@@ -116,7 +116,7 @@
             50% { opacity: 1; filter: drop-shadow(0 0 28px white); }
         }
 
-        #add-category-modal, #add-link-modal {
+        #manage-categories-modal, #add-link-modal {
             display: none;
         }
     </style>
@@ -134,8 +134,8 @@
                     <span class="logo-font text-3xl font-semibold tracking-tight">Starlink</span>
                 </a>
 
-                <button onclick="showAddCategoryModal()" class="bg-gray-800 hover:bg-gray-700 text-white px-5 py-2 rounded-lg font-medium flex items-center gap-2">
-                    <i class="fa-solid fa-plus text-sm"></i> Add Category
+                <button onclick="showManageCategoriesModal()" class="bg-gray-800 hover:bg-gray-700 text-white px-5 py-2 rounded-lg font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-cog text-sm"></i> Manage Categories
                 </button>
             </div>
 
@@ -170,19 +170,26 @@
     <!-- Dynamic category sections -->
     <div id="dynamic-sections"></div>
 
-    <!-- Add Category Modal -->
-    <div id="add-category-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
-        <div class="bg-gray-900 rounded-2xl p-8 w-full max-w-md mx-4 border border-gray-800">
-            <h3 class="text-2xl font-semibold mb-6">Add New Category</h3>
-            <div class="space-y-5">
-                <div>
-                    <label class="block text-sm font-medium mb-1.5 text-gray-300">Category Name</label>
-                    <input id="new-category-name" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white" placeholder="e.g. Proxies">
+    <!-- Manage Categories Modal -->
+    <div id="manage-categories-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div class="bg-gray-900 rounded-2xl p-8 w-full max-w-lg mx-4 border border-gray-800">
+            <h3 class="text-2xl font-semibold mb-6">Manage Categories</h3>
+            
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2 text-gray-300">Add New Category</label>
+                <div class="flex gap-3">
+                    <input id="new-category-name" type="text" class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white" placeholder="e.g. Proxies">
+                    <button onclick="addCategory()" class="bg-white text-black px-6 py-2 rounded-lg font-medium hover:opacity-90">Add</button>
                 </div>
             </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-2 text-gray-300">Current Categories</label>
+                <div id="category-list" class="max-h-60 overflow-y-auto space-y-2"></div>
+            </div>
+
             <div class="flex gap-4 mt-8">
-                <button onclick="hideAddCategoryModal()" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Cancel</button>
-                <button onclick="addCategory()" class="flex-1 py-3 bg-white text-black rounded-lg font-medium hover:opacity-90 transition-opacity">Add Category</button>
+                <button onclick="hideManageCategoriesModal()" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Close</button>
             </div>
         </div>
     </div>
@@ -353,23 +360,42 @@
             }
         }
 
-        function showAddCategoryModal() {
-            document.getElementById('add-category-modal').style.display = 'flex';
+        function showManageCategoriesModal() {
+            const modal = document.getElementById('manage-categories-modal');
+            modal.style.display = 'flex';
+
+            const list = document.getElementById('category-list');
+            list.innerHTML = '';
+
+            if (categories.length === 0) {
+                list.innerHTML = '<p class="text-gray-500 text-center py-4">No categories yet</p>';
+            } else {
+                categories.forEach(cat => {
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center justify-between bg-gray-800 p-3 rounded-lg';
+                    item.innerHTML = `
+                        <span class="text-white">${cat}</span>
+                        <button onclick="removeCategory('${cat}')" class="text-red-400 hover:text-red-300">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    `;
+                    list.appendChild(item);
+                });
+            }
         }
 
-        function hideAddCategoryModal() {
-            document.getElementById('add-category-modal').style.display = 'none';
-            document.getElementById('new-category-name').value = '';
+        function hideManageCategoriesModal() {
+            document.getElementById('manage-categories-modal').style.display = 'none';
         }
 
         function addCategory() {
             const name = document.getElementById('new-category-name').value.trim();
             if (!name) {
-                alert('Please enter a category name');
+                alert('Category name required!');
                 return;
             }
             if (categories.includes(name)) {
-                alert('That category already exists');
+                alert('Category already exists!');
                 return;
             }
             categories.push(name);
@@ -377,7 +403,20 @@
             renderNavbar();
             renderDynamicSections();
             renderAllGrids();
-            hideAddCategoryModal();
+            document.getElementById('new-category-name').value = '';
+            showManageCategoriesModal(); // refresh list
+        }
+
+        function removeCategory(cat) {
+            if (!confirm(`Remove category "${cat}"? All links in it will be deleted.`)) return;
+            categories = categories.filter(c => c !== cat);
+            sites = sites.filter(s => s.category !== cat);
+            saveCategories();
+            saveSites();
+            renderNavbar();
+            renderDynamicSections();
+            renderAllGrids();
+            showManageCategoriesModal(); // refresh list
         }
 
         function showAddLinkModal(cat = categories[0] || '') {
@@ -390,7 +429,7 @@
                 opt.textContent = c;
                 select.appendChild(opt);
             });
-            if (cat) select.value = cat;
+            if (cat && categories.includes(cat)) select.value = cat;
         }
 
         function hideAddLinkModal() {
@@ -404,7 +443,7 @@
             const category = document.getElementById('link-category').value;
 
             if (!name || !url || !category) {
-                alert('Name, URL, and Category are required!');
+                alert('Name, URL, and Category required!');
                 return;
             }
 
