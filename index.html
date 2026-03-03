@@ -16,56 +16,23 @@
         
         body {
             font-family: 'Inter', system-ui, sans-serif;
-            color: white;
-            overflow-x: hidden;
-            transition: background 0.5s ease, color 0.5s ease;
             background: #000;
+            color: white;
             margin: 0;
             padding: 0;
         }
         .logo-font { font-family: 'Space Grotesk', sans-serif; }
 
         nav {
-            height: 80px; /* fixed height for consistent offset */
-        }
-
-        .card {
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            position: relative;
-        }
-        .card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 15px 30px rgba(255,255,255,0.08);
-        }
-
-        .delete-btn {
-            opacity: 0.6;
-            transition: all 0.25s ease;
-        }
-        .card:hover .delete-btn {
-            opacity: 1;
-        }
-        .delete-btn:hover {
-            color: #ef4444 !important;
-            transform: scale(1.15);
+            height: 80px;
         }
 
         .tab {
             position: relative;
             padding-bottom: 4px;
-            transition: all 0.25s ease;
             cursor: pointer;
         }
-        .tab.active:after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background-color: white;
-            transform: scaleX(1);
-        }
+        .tab.active:after,
         .tab:hover:after {
             content: '';
             position: absolute;
@@ -77,129 +44,162 @@
             transform: scaleX(1);
             transition: transform 0.3s ease;
         }
-
-        .category-section {
-            transition: opacity 0.5s ease;
-            min-height: calc(100vh - 80px); /* full height minus navbar */
-        }
-        .category-section.hidden {
-            opacity: 0;
-            pointer-events: none;
+        .tab:after {
+            content: '';
             position: absolute;
-            top: 80px;
+            bottom: 0;
             left: 0;
             width: 100%;
+            height: 3px;
+            background-color: white;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
         }
 
-        .pulse-glow {
-            animation: pulse-glow 6s infinite ease-in-out;
+        .category-section {
+            min-height: calc(100vh - 80px);
+            padding-top: 100px;
         }
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 0.9; filter: drop-shadow(0 0 12px white); }
-            50% { opacity: 1; filter: drop-shadow(0 0 28px white); }
+        .category-section.hidden {
+            display: none;
         }
 
-        /* Floating stars - always visible, never reach navbar */
-        #floating-stars {
-            position: fixed;
-            top: 80px;           /* starts exactly below navbar */
-            left: 0;
-            right: 0;
-            bottom: 0;
-            pointer-events: none;
-            z-index: -1;
-            overflow: hidden;
+        .grid-container {
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 2rem;
+            background: #111;
+            min-height: 300px;
         }
-        .star {
+
+        .card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .card:hover {
+            transform: translateY(-6px);
+            border-color: #666;
+            box-shadow: 0 10px 20px rgba(255,255,255,0.05);
+        }
+
+        .delete-btn {
             position: absolute;
-            background: white;
-            border-radius: 50%;
-            opacity: 0;
-            animation: float-up linear infinite;
-            box-shadow: 0 0 8px white;
+            top: 12px;
+            left: 12px;
+            color: #888;
+            opacity: 0.5;
+            transition: all 0.2s;
         }
-        @keyframes float-up {
-            0%   { transform: translateY(100%) scale(0.2); opacity: 0; }
-            15%  { opacity: 0.7; }
-            85%  { opacity: 0.7; }
-            100% { transform: translateY(-100%) scale(0.5); opacity: 0; }
+        .card:hover .delete-btn {
+            opacity: 1;
+        }
+        .delete-btn:hover {
+            color: #ff4d4d;
+            transform: scale(1.2);
         }
     </style>
 </head>
-<body class="theme-dark">
-
-    <!-- Floating stars - always present -->
-    <div id="floating-stars"></div>
+<body>
 
     <!-- NAVBAR -->
     <nav class="border-b border-gray-800 bg-black/95 backdrop-blur-md fixed w-full z-50 top-0">
         <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <svg class="h-9 w-9 text-white" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <svg class="h-9 w-9 text-white" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                 </svg>
                 <span class="logo-font text-3xl font-semibold tracking-tight">Starlink</span>
             </div>
 
-            <div class="flex items-center gap-10">
-                <div class="flex items-center gap-12 text-sm font-medium">
-                    <a href="#" class="tab active" onclick="showCategory(event, 'home')">Home</a>
-                    <a href="#proxies" class="tab" onclick="showCategory(event, 'proxies')">Proxies</a>
-                    <a href="#games" class="tab" onclick="showCategory(event, 'games')">Games</a>
-                    <a href="#music" class="tab" onclick="showCategory(event, 'music')">Music</a>
-                    <a href="#tv" class="tab" onclick="showCategory(event, 'tv')">TV</a>
-                    <a href="#ai" class="tab" onclick="showCategory(event, 'ai')">AI</a>
-                </div>
-
-                <!-- Theme Dropdown -->
-                <select id="theme-select" onchange="changeTheme(this.value)" class="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white">
-                    <option value="dark">Dark (Default)</option>
-                    <option value="light">Light</option>
-                    <option value="ocean">Ocean Deep</option>
-                    <option value="neon">Neon Purple</option>
-                    <option value="sunset">Sunset Orange</option>
-                    <option value="forest">Forest Green</option>
-                    <option value="purple">Midnight Purple</option>
-                    <option value="cyber">Cyber Blue</option>
-                    <option value="void">Pure Void</option>
-                    <option value="cream">Cream Paper</option>
-                    <option value="slate">Slate Gray</option>
-                    <option value="wine">Deep Wine</option>
-                </select>
+            <div class="flex items-center gap-12 text-sm font-medium">
+                <a href="#" class="tab active" onclick="showCategory(event, 'home')">Home</a>
+                <a href="#proxies" class="tab" onclick="showCategory(event, 'proxies')">Proxies</a>
+                <a href="#games" class="tab" onclick="showCategory(event, 'games')">Games</a>
+                <a href="#music" class="tab" onclick="showCategory(event, 'music')">Music</a>
+                <a href="#tv" class="tab" onclick="showCategory(event, 'tv')">TV</a>
+                <a href="#ai" class="tab" onclick="showCategory(event, 'ai')">AI</a>
             </div>
         </div>
     </nav>
 
     <!-- HOME -->
-    <section id="home" class="pt-40 pb-32 text-center category-section relative min-h-screen">
-        <div class="max-w-5xl mx-auto px-6">
+    <section id="home" class="category-section">
+        <div class="max-w-5xl mx-auto px-6 pt-32 pb-32 text-center">
             <div class="flex flex-col items-center gap-6">
-                <div class="relative">
-                    <svg class="h-40 w-40 md:h-48 md:w-48 text-white pulse-glow" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                    </svg>
-                </div>
+                <svg class="h-40 w-40 md:h-48 md:w-48 text-white" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                </svg>
                 <h1 class="text-8xl md:text-9xl font-semibold logo-font tracking-tighter">Starlink</h1>
                 <p class="text-3xl text-gray-400 mt-2">By: Gunnar Booth</p>
-                <p class="text-xl md:text-2xl text-gray-300 max-w-4xl mt-10 leading-relaxed px-4">
-                    Starlink is a clean, personal, and fully offline-capable web directory designed to provide fast, unrestricted access to curated online resources. Built as a static site hosted on GitHub Pages, it serves as your private gateway to proxies for bypassing restrictions, browser-based games, music streaming platforms, television/movie streaming alternatives, AI tools, and other essential or entertaining web destinations — all organized, searchable, and under your full control.
+                <p class="text-xl md:text-2xl text-gray-300 max-w-4xl mt-10 leading-relaxed">
+                    ★ Starlink is a clean, personal, and fully offline-capable web directory designed to provide fast, unrestricted access to curated online resources. Built as a static site hosted on GitHub Pages, it serves as your private gateway to proxies for bypassing restrictions, browser-based games, music streaming platforms, television/movie streaming alternatives, AI tools, and other essential or entertaining web destinations — all organized, searchable, and under your full control.
                 </p>
             </div>
         </div>
     </section>
 
-    <!-- CATEGORY SECTIONS (example for proxies – others follow same pattern) -->
-    <section id="proxies" class="max-w-7xl mx-auto px-6 py-20 category-section hidden min-h-screen">
-        <h2 class="text-6xl font-semibold logo-font tracking-tighter mb-16 text-center">Proxies</h2>
-        <div id="proxies-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16"></div>
-        <div id="manage-proxies" class="mt-20"></div>
+    <!-- PROXIES -->
+    <section id="proxies" class="category-section hidden">
+        <div class="max-w-7xl mx-auto px-6 py-20">
+            <h2 class="text-7xl font-semibold logo-font tracking-tighter mb-20 text-center">Proxies</h2>
+            <div class="grid-container">
+                <div id="proxies-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+            </div>
+            <div id="manage-proxies" class="mt-20"></div>
+        </div>
     </section>
 
-    <!-- Repeat the same structure for games, music, tv, ai (just change IDs and titles) -->
-    <!-- ... -->
+    <!-- GAMES -->
+    <section id="games" class="category-section hidden">
+        <div class="max-w-7xl mx-auto px-6 py-20">
+            <h2 class="text-7xl font-semibold logo-font tracking-tighter mb-20 text-center">Games</h2>
+            <div class="grid-container">
+                <div id="games-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+            </div>
+            <div id="manage-games" class="mt-20"></div>
+        </div>
+    </section>
 
-    <!-- ADD MODAL (unchanged) -->
-    <div id="add-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
+    <!-- MUSIC -->
+    <section id="music" class="category-section hidden">
+        <div class="max-w-7xl mx-auto px-6 py-20">
+            <h2 class="text-7xl font-semibold logo-font tracking-tighter mb-20 text-center">Music</h2>
+            <div class="grid-container">
+                <div id="music-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+            </div>
+            <div id="manage-music" class="mt-20"></div>
+        </div>
+    </section>
+
+    <!-- TV -->
+    <section id="tv" class="category-section hidden">
+        <div class="max-w-7xl mx-auto px-6 py-20">
+            <h2 class="text-7xl font-semibold logo-font tracking-tighter mb-20 text-center">TV</h2>
+            <div class="grid-container">
+                <div id="tv-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+            </div>
+            <div id="manage-tv" class="mt-20"></div>
+        </div>
+    </section>
+
+    <!-- AI -->
+    <section id="ai" class="category-section hidden">
+        <div class="max-w-7xl mx-auto px-6 py-20">
+            <h2 class="text-7xl font-semibold logo-font tracking-tighter mb-20 text-center">AI</h2>
+            <div class="grid-container">
+                <div id="ai-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+            </div>
+            <div id="manage-ai" class="mt-20"></div>
+        </div>
+    </section>
+
+    <!-- ADD MODAL -->
+    <div id="add-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
         <div class="bg-gray-900 rounded-2xl p-8 w-full max-w-md mx-4 border border-gray-800">
             <h3 class="text-2xl font-semibold mb-6">Add New Link</h3>
             <div class="space-y-5">
@@ -208,7 +208,7 @@
                     <input id="site-name" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-1.5 text-gray-300">URL[](https://...)</label>
+                    <label class="block text-sm font-medium mb-1.5 text-gray-300">URL</label>
                     <input id="site-url" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
                 </div>
                 <div>
@@ -237,41 +237,6 @@
         const categories = ['proxies', 'games', 'music', 'tv', 'ai'];
         let sites = JSON.parse(localStorage.getItem('starlinkSites')) || [];
 
-        // Theme handling
-        function changeTheme(theme) {
-            document.body.className = 'theme-' + theme;
-            localStorage.setItem('starlinkTheme', theme);
-        }
-
-        const savedTheme = localStorage.getItem('starlinkTheme') || 'dark';
-        document.body.className = 'theme-' + savedTheme;
-        if (document.getElementById('theme-select')) {
-            document.getElementById('theme-select').value = savedTheme;
-        }
-
-        function createFloatingStar() {
-            const star = document.createElement('div');
-            star.className = 'star';
-            const size = Math.random() * 3 + 1;
-            star.style.width = `${size}px`;
-            star.style.height = `${size}px`;
-            star.style.left = `${Math.random() * 100}vw`;
-            star.style.top = `${Math.random() * 40 + 40}%`; // spread more vertically
-            star.style.animationDuration = `${Math.random() * 50 + 50}s`; // 50–100s slow rise
-            star.style.animationDelay = `${Math.random() * 20}s`;
-            document.getElementById('floating-stars').appendChild(star);
-            setTimeout(() => star.remove(), 140000); // clean up after ~2.3 minutes
-        }
-
-        // Initialize stars once – they continue forever
-        function initStars() {
-            for (let i = 0; i < 15; i++) createFloatingStar(); // more initial stars
-            setInterval(createFloatingStar, 3000); // slower spawn rate for calm effect
-        }
-
-        // Start stars on page load (persistent across all pages)
-        initStars();
-
         function renderCategory(cat) {
             const grid = document.getElementById(cat + '-grid');
             const manageDiv = document.getElementById('manage-' + cat);
@@ -283,22 +248,20 @@
             const catSites = sites.filter(s => s.category === cat);
 
             if (catSites.length === 0) {
-                grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-20 text-xl">No links yet in this category</p>';
+                grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-32 text-xl">No links yet in this category</p>';
             } else {
                 catSites.forEach(site => {
                     const card = document.createElement('div');
-                    card.className = `card bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-white transition-colors group relative cursor-pointer`;
-                    card.onclick = (e) => {
-                        if (!e.target.closest('.delete-btn')) window.open(site.url, '_blank');
-                    };
+                    card.className = `card`;
+                    card.onclick = () => window.open(site.url, '_blank');
                     card.innerHTML = `
-                        <button class="delete-btn absolute top-3 left-3 text-gray-400 hover:text-red-400 transition-colors z-10" 
+                        <button class="delete-btn absolute top-3 left-3 text-gray-400 hover:text-red-400 z-10" 
                                 onclick="event.stopPropagation(); deleteSite('${site.id}');">
                             <i class="fa-solid fa-trash-can text-xl"></i>
                         </button>
                         <div class="flex items-start justify-between mb-3 pl-10">
                             <h3 class="text-xl font-semibold group-hover:text-white">${site.name}</h3>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-gray-400 group-hover:text-white transition-colors"></i>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-gray-400 group-hover:text-white"></i>
                         </div>
                         <p class="text-sm text-gray-500">${site.desc || ''}</p>
                     `;
@@ -307,15 +270,13 @@
             }
 
             manageDiv.innerHTML = `
-                <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center mt-20">
+                <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
                     <h3 class="text-2xl font-semibold mb-6">Manage ${cat.charAt(0).toUpperCase() + cat.slice(1)}</h3>
                     <div class="flex justify-center gap-8">
-                        <button onclick="addNewSite()" 
-                                class="bg-white text-black px-8 py-4 rounded-full font-medium hover:opacity-90 transition-opacity flex items-center gap-3 text-lg">
+                        <button onclick="addNewSite()" class="bg-white text-black px-8 py-4 rounded-full font-medium hover:opacity-90 flex items-center gap-3 text-lg">
                             <i class="fa-solid fa-plus"></i> Add New
                         </button>
-                        <button onclick="clearCategory('${cat}')" 
-                                class="border-2 border-white px-8 py-4 rounded-full font-medium hover:bg-white hover:text-black transition-colors flex items-center gap-3 text-lg">
+                        <button onclick="clearCategory('${cat}')" class="border-2 border-white px-8 py-4 rounded-full font-medium hover:bg-white hover:text-black flex items-center gap-3 text-lg">
                             <i class="fa-solid fa-trash-can"></i> Clear This Category
                         </button>
                     </div>
@@ -324,7 +285,7 @@
         }
 
         function renderAllGrids() {
-            categories.forEach(cat => renderCategory(cat));
+            categories.forEach(renderCategory);
         }
 
         function deleteSite(id) {
@@ -335,7 +296,7 @@
         }
 
         function clearCategory(cat) {
-            if (!confirm(`Delete ALL links in ${cat.charAt(0).toUpperCase() + cat.slice(1)} category?`)) return;
+            if (!confirm(`Clear all links in ${cat}?`)) return;
             sites = sites.filter(s => s.category !== cat);
             localStorage.setItem('starlinkSites', JSON.stringify(sites));
             renderCategory(cat);
@@ -343,14 +304,15 @@
 
         function showCategory(e, cat) {
             e.preventDefault();
-            document.querySelectorAll('.category-section').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('.category-section').forEach(s => s.classList.add('hidden'));
             document.getElementById(cat).classList.remove('hidden');
 
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            const activeTab = Array.from(document.querySelectorAll('.tab')).find(t => 
-                t.textContent.trim().toLowerCase() === (cat === 'home' ? 'home' : cat)
-            );
-            if (activeTab) activeTab.classList.add('active');
+            document.querySelectorAll('.tab').forEach(t => {
+                if (t.textContent.trim().toLowerCase() === (cat === 'home' ? 'home' : cat)) {
+                    t.classList.add('active');
+                }
+            });
         }
 
         function addNewSite() {
@@ -383,7 +345,7 @@
 
         window.addEventListener('load', () => {
             renderAllGrids();
-            showCategory({preventDefault: () => {}}, 'home');
+            showCategory({ preventDefault: () => {} }, 'home');
         });
     </script>
 </body>
