@@ -121,12 +121,12 @@
     <!-- NAVBAR -->
     <nav class="border-b border-gray-800 bg-black/95 backdrop-blur-md fixed w-full z-50 top-0">
         <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-            <div class="flex items-center gap-6">
+            <div class="flex items-center gap-8">
                 <a href="#" class="home-logo flex items-center gap-3" onclick="showCategory(event, 'home')">
                     <svg class="h-9 w-9 text-white" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                     </svg>
-                    <span class="logo-font text-3xl font-semibold tracking-tight">Starlink</span>
+                    <span class="logo-font text-3xl font-semibold tracking-tighter">Starlink</span>
                 </a>
 
                 <button onclick="showManageCategoriesModal()" class="bg-gray-800 hover:bg-gray-700 text-white px-5 py-2 rounded-lg font-medium flex items-center gap-2">
@@ -139,9 +139,7 @@
             </div>
 
             <div class="flex items-center gap-6">
-                <button onclick="clearAllSites()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2">
-                    <i class="fa-solid fa-trash-can"></i> Clear All Sites
-                </button>
+                <!-- Right side is now empty / future-proof -->
             </div>
         </div>
     </nav>
@@ -187,7 +185,7 @@
                 <button onclick="clearAllCategories()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2">
                     <i class="fa-solid fa-trash-can"></i> Clear All Categories
                 </button>
-                <button onclick="document.getElementById('manage-categories-modal').style.display='none'" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Close</button>
+                <button onclick="hideManageCategoriesModal()" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Close</button>
             </div>
         </div>
     </div>
@@ -337,13 +335,6 @@
             renderCategoryGrid(cat);
         }
 
-        function clearAllSites() {
-            if (!confirm('Clear ALL links from EVERY category? This cannot be undone.')) return;
-            sites = [];
-            saveSites();
-            renderAllGrids();
-        }
-
         function clearAllCategories() {
             if (!confirm('Delete EVERY category and ALL links? This cannot be undone.')) return;
             categories = [];
@@ -437,7 +428,7 @@
             });
             if (cat && categories.includes(cat)) select.value = cat;
 
-            // Reset all fields every time modal opens
+            // Reset fields every time modal opens
             document.getElementById('link-name').value = '';
             document.getElementById('link-url').value = '';
             document.getElementById('link-desc').value = '';
@@ -462,7 +453,7 @@
             sites.push({ id: Date.now().toString(), name, url: fullUrl, desc, category });
             saveSites();
             renderAllGrids();
-            hideAddLinkModal(); // modal closes and will reset on next open
+            hideAddLinkModal();
         }
 
         window.addEventListener('load', () => {
