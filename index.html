@@ -60,9 +60,10 @@
         .category-section {
             min-height: calc(100vh - 80px);
             padding-top: 100px;
-        }
-        .category-section.hidden {
             display: none;
+        }
+        .category-section.active {
+            display: block;
         }
 
         .grid-container {
@@ -102,6 +103,10 @@
             color: #ff4d4d;
             transform: scale(1.2);
         }
+
+        #add-category-modal, #add-link-modal {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -109,26 +114,40 @@
     <!-- NAVBAR -->
     <nav class="border-b border-gray-800 bg-black/95 backdrop-blur-md fixed w-full z-50 top-0">
         <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <svg class="h-9 w-9 text-white" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                </svg>
-                <span class="logo-font text-3xl font-semibold tracking-tight">Starlink</span>
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-3">
+                    <svg class="h-9 w-9 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                    </svg>
+                    <span class="logo-font text-3xl font-semibold tracking-tight">Starlink</span>
+                </div>
+
+                <button onclick="showAddCategoryModal()" class="bg-gray-800 hover:bg-gray-700 text-white px-5 py-2 rounded-lg font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-plus text-sm"></i> Add Category
+                </button>
             </div>
 
-            <div class="flex items-center gap-12 text-sm font-medium">
-                <a href="#" class="tab active" onclick="showCategory(event, 'home')">Home</a>
-                <a href="#proxies" class="tab" onclick="showCategory(event, 'proxies')">Proxies</a>
-                <a href="#games" class="tab" onclick="showCategory(event, 'games')">Games</a>
-                <a href="#music" class="tab" onclick="showCategory(event, 'music')">Music</a>
-                <a href="#tv" class="tab" onclick="showCategory(event, 'tv')">TV</a>
-                <a href="#ai" class="tab" onclick="showCategory(event, 'ai')">AI</a>
+            <div id="category-tabs" class="flex items-center gap-10 text-sm font-medium">
+                <a href="#" class="tab active" data-category="home" onclick="showCategory(event, 'home')">Home</a>
+                <!-- Dynamic category tabs go here -->
+            </div>
+
+            <div class="flex items-center gap-6">
+                <select id="theme-select" onchange="changeTheme(this.value)" class="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white">
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                    <!-- Add more themes if you want -->
+                </select>
+
+                <button onclick="clearAllSites()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-trash-can"></i> Clear All Sites
+                </button>
             </div>
         </div>
     </nav>
 
     <!-- HOME -->
-    <section id="home" class="category-section">
+    <section id="home" class="category-section active">
         <div class="max-w-5xl mx-auto px-6 pt-32 pb-32 text-center">
             <div class="flex flex-col items-center gap-6">
                 <svg class="h-40 w-40 md:h-48 md:w-48 text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -143,103 +162,106 @@
         </div>
     </section>
 
-    <!-- PROXIES -->
-    <section id="proxies" class="category-section hidden">
-        <div class="max-w-7xl mx-auto px-6 py-20">
-            <h2 class="text-7xl font-semibold logo-font tracking-tighter mb-20 text-center">Proxies</h2>
-            <div class="grid-container">
-                <div id="proxies-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-            </div>
-            <div id="manage-proxies" class="mt-20"></div>
-        </div>
-    </section>
+    <!-- Dynamic category sections container -->
+    <div id="dynamic-sections"></div>
 
-    <!-- GAMES -->
-    <section id="games" class="category-section hidden">
-        <div class="max-w-7xl mx-auto px-6 py-20">
-            <h2 class="text-7xl font-semibold logo-font tracking-tighter mb-20 text-center">Games</h2>
-            <div class="grid-container">
-                <div id="games-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    <!-- Add Category Modal -->
+    <div id="add-category-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div class="bg-gray-900 rounded-2xl p-8 w-full max-w-md mx-4 border border-gray-800">
+            <h3 class="text-2xl font-semibold mb-6">Add New Category</h3>
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium mb-1.5 text-gray-300">Category Name</label>
+                    <input id="new-category-name" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
+                </div>
             </div>
-            <div id="manage-games" class="mt-20"></div>
-        </div>
-    </section>
-
-    <!-- MUSIC -->
-    <section id="music" class="category-section hidden">
-        <div class="max-w-7xl mx-auto px-6 py-20">
-            <h2 class="text-7xl font-semibold logo-font tracking-tighter mb-20 text-center">Music</h2>
-            <div class="grid-container">
-                <div id="music-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+            <div class="flex gap-4 mt-8">
+                <button onclick="hideAddCategoryModal()" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Cancel</button>
+                <button onclick="addCategory()" class="flex-1 py-3 bg-white text-black rounded-lg font-medium hover:opacity-90 transition-opacity">Add Category</button>
             </div>
-            <div id="manage-music" class="mt-20"></div>
         </div>
-    </section>
+    </div>
 
-    <!-- TV -->
-    <section id="tv" class="category-section hidden">
-        <div class="max-w-7xl mx-auto px-6 py-20">
-            <h2 class="text-7xl font-semibold logo-font tracking-tighter mb-20 text-center">TV</h2>
-            <div class="grid-container">
-                <div id="tv-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-            </div>
-            <div id="manage-tv" class="mt-20"></div>
-        </div>
-    </section>
-
-    <!-- AI -->
-    <section id="ai" class="category-section hidden">
-        <div class="max-w-7xl mx-auto px-6 py-20">
-            <h2 class="text-7xl font-semibold logo-font tracking-tighter mb-20 text-center">AI</h2>
-            <div class="grid-container">
-                <div id="ai-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-            </div>
-            <div id="manage-ai" class="mt-20"></div>
-        </div>
-    </section>
-
-    <!-- ADD MODAL -->
-    <div id="add-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
+    <!-- Add Link Modal -->
+    <div id="add-link-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
         <div class="bg-gray-900 rounded-2xl p-8 w-full max-w-md mx-4 border border-gray-800">
             <h3 class="text-2xl font-semibold mb-6">Add New Link</h3>
             <div class="space-y-5">
                 <div>
                     <label class="block text-sm font-medium mb-1.5 text-gray-300">Name</label>
-                    <input id="site-name" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
+                    <input id="link-name" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-1.5 text-gray-300">URL</label>
-                    <input id="site-url" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
+                    <input id="link-url" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-1.5 text-gray-300">Description (optional)</label>
-                    <input id="site-desc" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
+                    <input id="link-desc" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-1.5 text-gray-300">Category</label>
-                    <select id="site-category" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
-                        <option value="proxies">Proxies</option>
-                        <option value="games">Games</option>
-                        <option value="music">Music</option>
-                        <option value="tv">TV</option>
-                        <option value="ai">AI</option>
-                    </select>
+                    <select id="link-category" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white"></select>
                 </div>
             </div>
             <div class="flex gap-4 mt-8">
-                <button onclick="hideModal()" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Cancel</button>
-                <button onclick="saveNewSite()" class="flex-1 py-3 bg-white text-black rounded-lg font-medium hover:opacity-90 transition-opacity">Add</button>
+                <button onclick="hideAddLinkModal()" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Cancel</button>
+                <button onclick="saveNewLink()" class="flex-1 py-3 bg-white text-black rounded-lg font-medium hover:opacity-90 transition-opacity">Add</button>
             </div>
         </div>
     </div>
 
     <script>
-        const categories = ['proxies', 'games', 'music', 'tv', 'ai'];
+        let categories = JSON.parse(localStorage.getItem('starlinkCategories')) || [];
         let sites = JSON.parse(localStorage.getItem('starlinkSites')) || [];
 
-        function renderCategory(cat) {
-            const grid = document.getElementById(cat + '-grid');
-            const manageDiv = document.getElementById('manage-' + cat);
+        function saveCategories() {
+            localStorage.setItem('starlinkCategories', JSON.stringify(categories));
+        }
+
+        function saveSites() {
+            localStorage.setItem('starlinkSites', JSON.stringify(sites));
+        }
+
+        function renderNavbar() {
+            const tabsContainer = document.getElementById('category-tabs');
+            tabsContainer.innerHTML = '<a href="#" class="tab active" data-category="home" onclick="showCategory(event, \'home\')">Home</a>';
+
+            categories.forEach(cat => {
+                const tab = document.createElement('a');
+                tab.href = `#${cat.toLowerCase()}`;
+                tab.className = 'tab';
+                tab.dataset.category = cat.toLowerCase();
+                tab.textContent = cat;
+                tab.onclick = (e) => showCategory(e, cat.toLowerCase());
+                tabsContainer.appendChild(tab);
+            });
+        }
+
+        function renderDynamicSections() {
+            const container = document.getElementById('dynamic-sections');
+            container.innerHTML = '';
+
+            categories.forEach(cat => {
+                const section = document.createElement('section');
+                section.id = cat.toLowerCase();
+                section.className = 'category-section hidden';
+                section.innerHTML = `
+                    <div class="max-w-7xl mx-auto px-6 py-20">
+                        <h2 class="text-7xl font-semibold logo-font tracking-tighter mb-20 text-center">${cat}</h2>
+                        <div class="grid-container">
+                            <div id="grid-${cat.toLowerCase()}" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+                        </div>
+                        <div id="manage-${cat.toLowerCase()}" class="mt-20"></div>
+                    </div>
+                `;
+                container.appendChild(section);
+            });
+        }
+
+        function renderCategoryGrid(cat) {
+            const grid = document.getElementById(`grid-${cat}`);
+            const manageDiv = document.getElementById(`manage-${cat}`);
             if (!grid || !manageDiv) return;
 
             grid.innerHTML = '';
@@ -252,7 +274,7 @@
             } else {
                 catSites.forEach(site => {
                     const card = document.createElement('div');
-                    card.className = `card`;
+                    card.className = 'card';
                     card.onclick = () => window.open(site.url, '_blank');
                     card.innerHTML = `
                         <button class="delete-btn absolute top-3 left-3 text-gray-400 hover:text-red-400 z-10" 
@@ -271,12 +293,14 @@
 
             manageDiv.innerHTML = `
                 <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
-                    <h3 class="text-2xl font-semibold mb-6">Manage ${cat.charAt(0).toUpperCase() + cat.slice(1)}</h3>
+                    <h3 class="text-2xl font-semibold mb-6">Manage ${cat}</h3>
                     <div class="flex justify-center gap-8">
-                        <button onclick="addNewSite()" class="bg-white text-black px-8 py-4 rounded-full font-medium hover:opacity-90 flex items-center gap-3 text-lg">
+                        <button onclick="showAddLinkModal('${cat}')" 
+                                class="bg-white text-black px-8 py-4 rounded-full font-medium hover:opacity-90 flex items-center gap-3 text-lg">
                             <i class="fa-solid fa-plus"></i> Add New
                         </button>
-                        <button onclick="clearCategory('${cat}')" class="border-2 border-white px-8 py-4 rounded-full font-medium hover:bg-white hover:text-black flex items-center gap-3 text-lg">
+                        <button onclick="clearCategory('${cat}')" 
+                                class="border-2 border-white px-8 py-4 rounded-full font-medium hover:bg-white hover:text-black flex items-center gap-3 text-lg">
                             <i class="fa-solid fa-trash-can"></i> Clear This Category
                         </button>
                     </div>
@@ -285,51 +309,90 @@
         }
 
         function renderAllGrids() {
-            categories.forEach(renderCategory);
+            categories.forEach(cat => renderCategoryGrid(cat));
         }
 
         function deleteSite(id) {
             if (!confirm('Delete this link?')) return;
             sites = sites.filter(s => s.id !== id);
-            localStorage.setItem('starlinkSites', JSON.stringify(sites));
+            saveSites();
             renderAllGrids();
         }
 
         function clearCategory(cat) {
             if (!confirm(`Clear all links in ${cat}?`)) return;
             sites = sites.filter(s => s.category !== cat);
-            localStorage.setItem('starlinkSites', JSON.stringify(sites));
-            renderCategory(cat);
+            saveSites();
+            renderCategoryGrid(cat);
+        }
+
+        function clearAllSites() {
+            if (!confirm('Clear ALL links from EVERY category? This cannot be undone.')) return;
+            sites = [];
+            saveSites();
+            renderAllGrids();
         }
 
         function showCategory(e, cat) {
             e.preventDefault();
             document.querySelectorAll('.category-section').forEach(s => s.classList.add('hidden'));
-            document.getElementById(cat).classList.remove('hidden');
+            document.getElementById(cat === 'home' ? 'home' : cat).classList.remove('hidden');
 
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => {
-                if (t.textContent.trim().toLowerCase() === (cat === 'home' ? 'home' : cat)) {
-                    t.classList.add('active');
-                }
+                if (t.dataset.category === cat) t.classList.add('active');
             });
         }
 
-        function addNewSite() {
-            document.getElementById('add-modal').classList.remove('hidden');
-            document.getElementById('add-modal').classList.add('flex');
+        function showAddCategoryModal() {
+            document.getElementById('add-category-modal').classList.remove('hidden');
         }
 
-        function hideModal() {
-            document.getElementById('add-modal').classList.add('hidden');
-            document.getElementById('add-modal').classList.remove('flex');
+        function hideAddCategoryModal() {
+            document.getElementById('add-category-modal').classList.add('hidden');
+            document.getElementById('new-category-name').value = '';
         }
 
-        function saveNewSite() {
-            const name = document.getElementById('site-name').value.trim();
-            const url = document.getElementById('site-url').value.trim();
-            const desc = document.getElementById('site-desc').value.trim();
-            const category = document.getElementById('site-category').value;
+        function addCategory() {
+            const name = document.getElementById('new-category-name').value.trim();
+            if (!name) {
+                alert('Category name required!');
+                return;
+            }
+            if (categories.includes(name)) {
+                alert('Category already exists!');
+                return;
+            }
+            categories.push(name);
+            saveCategories();
+            renderNavbar();
+            renderDynamicSections();
+            renderAllGrids();
+            hideAddCategoryModal();
+        }
+
+        function showAddLinkModal(cat = '') {
+            document.getElementById('add-link-modal').classList.remove('hidden');
+            const select = document.getElementById('link-category');
+            select.innerHTML = '';
+            categories.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                select.appendChild(opt);
+            });
+            if (cat) select.value = cat;
+        }
+
+        function hideAddLinkModal() {
+            document.getElementById('add-link-modal').classList.add('hidden');
+        }
+
+        function saveNewLink() {
+            const name = document.getElementById('link-name').value.trim();
+            const url = document.getElementById('link-url').value.trim();
+            const desc = document.getElementById('link-desc').value.trim();
+            const category = document.getElementById('link-category').value;
 
             if (!name || !url || !category) {
                 alert('Name, URL, and Category required!');
@@ -338,12 +401,23 @@
 
             let fullUrl = url.startsWith('http') ? url : 'https://' + url;
             sites.push({ id: Date.now().toString(), name, url: fullUrl, desc, category });
-            localStorage.setItem('starlinkSites', JSON.stringify(sites));
+            saveSites();
             renderAllGrids();
-            hideModal();
+            hideAddLinkModal();
         }
 
+        function changeTheme(theme) {
+            document.body.className = 'theme-' + theme;
+            localStorage.setItem('starlinkTheme', theme);
+        }
+
+        const savedTheme = localStorage.getItem('starlinkTheme') || 'dark';
+        document.body.className = 'theme-' + savedTheme;
+        if (document.getElementById('theme-select')) document.getElementById('theme-select').value = savedTheme;
+
         window.addEventListener('load', () => {
+            renderNavbar();
+            renderDynamicSections();
             renderAllGrids();
             showCategory({ preventDefault: () => {} }, 'home');
         });
