@@ -26,20 +26,11 @@
             height: 80px;
         }
 
-        #category-tabs {
-            display: flex;
-            gap: 2.5rem;
-            overflow-x: auto;
-            scrollbar-width: none;
-            padding-bottom: 4px;
-        }
-        #category-tabs::-webkit-scrollbar { display: none; }
-
         .tab, .home-logo {
             position: relative;
             padding-bottom: 4px;
             cursor: pointer;
-            white-space: nowrap;
+            display: inline-block;
         }
         .tab.active:after,
         .tab:hover:after,
@@ -144,16 +135,10 @@
             </div>
 
             <div id="category-tabs" class="flex items-center gap-10 text-sm font-medium overflow-x-auto scrollbar-hide">
-                <!-- Dynamic tabs added here -->
+                <!-- Dynamic tabs -->
             </div>
 
             <div class="flex items-center gap-6">
-                <input id="global-search" 
-                       type="text" 
-                       placeholder="Search all categories..." 
-                       class="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white w-72"
-                       oninput="globalSearch(this.value)">
-                
                 <button onclick="clearAllSites()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2">
                     <i class="fa-solid fa-trash-can"></i> Clear All Sites
                 </button>
@@ -180,14 +165,6 @@
     <!-- Dynamic category sections -->
     <div id="dynamic-sections"></div>
 
-    <!-- Global Search Results -->
-    <section id="search-results" class="category-section hidden">
-        <div class="max-w-7xl mx-auto px-6 py-20">
-            <h2 class="text-5xl font-semibold logo-font tracking-tighter mb-10 text-center">Search Results</h2>
-            <div id="search-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-        </div>
-    </section>
-
     <!-- Manage Categories Modal -->
     <div id="manage-categories-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
         <div class="bg-gray-900 rounded-2xl p-8 w-full max-w-lg mx-4 border border-gray-800">
@@ -202,12 +179,15 @@
             </div>
 
             <div class="mb-6">
-                <label class="block text-sm font-medium mb-2 text-gray-300">Current Categories (drag to reorder)</label>
+                <label class="block text-sm font-medium mb-2 text-gray-300">Current Categories</label>
                 <div id="category-list" class="max-h-60 overflow-y-auto space-y-3 pr-2"></div>
             </div>
 
             <div class="flex gap-4 mt-8">
-                <button onclick="hideManageCategoriesModal()" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Close</button>
+                <button onclick="clearAllCategories()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-trash-can"></i> Clear All Categories
+                </button>
+                <button onclick="document.getElementById('manage-categories-modal').style.display='none'" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Close</button>
             </div>
         </div>
     </div>
@@ -244,7 +224,6 @@
     <script>
         let categories = JSON.parse(localStorage.getItem('starlinkCategories')) || [];
         let sites = JSON.parse(localStorage.getItem('starlinkSites')) || [];
-        let currentSearchQuery = '';
 
         function saveCategories() { localStorage.setItem('starlinkCategories', JSON.stringify(categories)); }
         function saveSites() { localStorage.setItem('starlinkSites', JSON.stringify(sites)); }
@@ -359,15 +338,26 @@
         }
 
         function clearAllSites() {
-            if (!confirm('Clear ALL links from EVERY category?')) return;
+            if (!confirm('Clear ALL links from EVERY category? This cannot be undone.')) return;
             sites = [];
             saveSites();
             renderAllGrids();
         }
 
+        function clearAllCategories() {
+            if (!confirm('Delete EVERY category and ALL links? This cannot be undone.')) return;
+            categories = [];
+            sites = [];
+            saveCategories();
+            saveSites();
+            renderNavbar();
+            renderDynamicSections();
+            renderAllGrids();
+            hideManageCategoriesModal();
+        }
+
         function showCategory(e, catId) {
             e.preventDefault();
-            document.getElementById('search-results').classList.add('hidden');
             document.querySelectorAll('.category-section').forEach(s => s.classList.remove('active'));
             document.getElementById(catId === 'home' ? 'home' : catId).classList.add('active');
 
@@ -381,46 +371,6 @@
             }
         }
 
-        function globalSearch(query) {
-            query = query.toLowerCase().trim();
-            if (!query) {
-                document.getElementById('search-results').classList.add('hidden');
-                showCategory({preventDefault: () => {}}, 'home');
-                return;
-            }
-
-            const results = sites.filter(site => 
-                site.name.toLowerCase().includes(query) || 
-                (site.desc && site.desc.toLowerCase().includes(query))
-            );
-
-            const container = document.getElementById('search-results');
-            const grid = document.getElementById('search-grid');
-            grid.innerHTML = '';
-
-            if (results.length === 0) {
-                grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-20">No matches found</p>';
-            } else {
-                results.forEach(site => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.onclick = () => window.open(site.url, '_blank');
-                    card.innerHTML = `
-                        <div class="text-xs text-gray-500 mb-1">${site.category}</div>
-                        <div class="flex items-start justify-between mb-3">
-                            <h3 class="text-xl font-semibold">${site.name}</h3>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-gray-400"></i>
-                        </div>
-                        <p class="text-sm text-gray-500">${site.desc || ''}</p>
-                    `;
-                    grid.appendChild(card);
-                });
-            }
-
-            document.querySelectorAll('.category-section').forEach(s => s.classList.remove('active'));
-            container.classList.remove('hidden');
-        }
-
         function showManageCategoriesModal() {
             const modal = document.getElementById('manage-categories-modal');
             modal.style.display = 'flex';
@@ -428,27 +378,21 @@
             const list = document.getElementById('category-list');
             list.innerHTML = '';
 
-            categories.forEach((cat, index) => {
-                const item = document.createElement('div');
-                item.className = 'sortable-item flex items-center justify-between bg-gray-800 p-3 rounded-lg cursor-move';
-                item.draggable = true;
-                item.dataset.index = index;
-                item.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-grip-vertical text-gray-500 cursor-move"></i>
+            if (categories.length === 0) {
+                list.innerHTML = '<p class="text-gray-500 text-center py-4">No categories yet</p>';
+            } else {
+                categories.forEach(cat => {
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center justify-between bg-gray-800 p-3 rounded-lg';
+                    item.innerHTML = `
                         <span class="text-white">${cat}</span>
-                    </div>
-                    <div class="flex gap-3">
-                        <button onclick="startRename('${cat.replace(/'/g, "\\'")}')" class="text-blue-400 hover:text-blue-300">
-                            <i class="fa-solid fa-pencil"></i>
-                        </button>
                         <button onclick="removeCategory('${cat.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
+                    `;
+                    list.appendChild(item);
+                });
+            }
         }
 
         function hideManageCategoriesModal() {
@@ -456,7 +400,8 @@
         }
 
         function addCategory() {
-            const name = document.getElementById('new-category-name').value.trim();
+            const nameInput = document.getElementById('new-category-name');
+            const name = nameInput.value.trim();
             if (!name) return alert('Category name required!');
             if (categories.includes(name)) return alert('Category already exists!');
             categories.push(name);
@@ -464,26 +409,12 @@
             renderNavbar();
             renderDynamicSections();
             renderAllGrids();
-            document.getElementById('new-category-name').value = '';
-            showManageCategoriesModal();
-        }
-
-        function startRename(oldCat) {
-            const newName = prompt(`Rename "${oldCat}" to:`, oldCat);
-            if (!newName || newName === oldCat) return;
-            if (categories.includes(newName)) return alert('Name already used!');
-            categories = categories.map(c => c === oldCat ? newName : c);
-            sites.forEach(s => { if (s.category === oldCat) s.category = newName; });
-            saveCategories();
-            saveSites();
-            renderNavbar();
-            renderDynamicSections();
-            renderAllGrids();
+            nameInput.value = '';
             showManageCategoriesModal();
         }
 
         function removeCategory(cat) {
-            if (!confirm(`Remove "${cat}" and all its links?`)) return;
+            if (!confirm(`Remove category "${cat}"? All links in it will be deleted.`)) return;
             categories = categories.filter(c => c !== cat);
             sites = sites.filter(s => s.category !== cat);
             saveCategories();
@@ -504,7 +435,12 @@
                 opt.textContent = c;
                 select.appendChild(opt);
             });
-            if (cat) select.value = cat;
+            if (cat && categories.includes(cat)) select.value = cat;
+
+            // Reset all fields every time modal opens
+            document.getElementById('link-name').value = '';
+            document.getElementById('link-url').value = '';
+            document.getElementById('link-desc').value = '';
         }
 
         function hideAddLinkModal() {
@@ -517,13 +453,16 @@
             const desc = document.getElementById('link-desc').value.trim();
             const category = document.getElementById('link-category').value;
 
-            if (!name || !url || !category) return alert('Name, URL, and Category required!');
+            if (!name || !url || !category) {
+                alert('Name, URL, and Category required!');
+                return;
+            }
 
             let fullUrl = url.startsWith('http') ? url : 'https://' + url;
             sites.push({ id: Date.now().toString(), name, url: fullUrl, desc, category });
             saveSites();
             renderAllGrids();
-            hideAddLinkModal();
+            hideAddLinkModal(); // modal closes and will reset on next open
         }
 
         window.addEventListener('load', () => {
