@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starlink</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
+        
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .logo-font { font-family: 'Space Grotesk', sans-serif; }
+
+        .card {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .delete-btn {
+            opacity: 0.6;
+            transition: all 0.25s ease;
+        }
+        .card:hover .delete-btn {
+            opacity: 1;
+        }
+        .delete-btn:hover {
+            color: #ef4444 !important;
+            transform: scale(1.15);
+        }
+
+        .tab {
+            position: relative;
+            padding-bottom: 4px;
+            transition: all 0.25s ease;
+        }
+        .tab.active:after,
+        .tab:hover:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: currentColor;
+            transform: scaleX(1);
+            transition: transform 0.3s ease;
+        }
+        .tab:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: currentColor;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .category-section {
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        .category-section.hidden {
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 4s infinite ease-in-out;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.92; filter: drop-shadow(0 0 8px currentColor); }
+            50% { opacity: 1; filter: drop-shadow(0 0 24px currentColor); }
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+
+    <!-- NAVBAR (no theme button) -->
+    <nav class="border-b border-gray-800 bg-black/95 backdrop-blur-md fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <svg class="h-9 w-9 text-white" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                </svg>
+                <span class="logo-font text-3xl font-semibold tracking-tight">Starlink</span>
+            </div>
+
+            <div class="flex items-center gap-12 text-sm font-medium">
+                <a href="#" class="tab active" onclick="showCategory('home')">Home</a>
+                <a href="#proxies" class="tab" onclick="showCategory('proxies')">Proxies</a>
+                <a href="#games" class="tab" onclick="showCategory('games')">Games</a>
+                <a href="#music" class="tab" onclick="showCategory('music')">Music</a>
+                <a href="#tv" class="tab" onclick="showCategory('tv')">TV</a>
+                <a href="#ai" class="tab" onclick="showCategory('ai')">AI</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO / HOME -->
+    <section id="home" class="pt-40 pb-24 text-center category-section">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="flex flex-col items-center gap-6">
+                <div class="relative">
+                    <svg class="h-40 w-40 md:h-48 md:w-48 text-white pulse-glow" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                    </svg>
+                </div>
+                <h1 class="text-8xl md:text-9xl font-semibold logo-font tracking-tighter">Starlink</h1>
+                <p class="text-3xl text-gray-400 mt-2">By: Gunnar Booth</p>
+                <p class="text-xl md:text-2xl text-gray-300 max-w-4xl mt-10 leading-relaxed px-4">
+                    ★ Starlink is a curated directory designed to bring the best of the internet to your fingertips. Whether you need to bypass restrictions with our secure proxy sites, dive into immersive browser gaming, stream the latest films, explore the frontier of AI, or discover new music, ★ Starlink is your central hub for entertainment and utility.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CATEGORY SECTIONS -->
+    <section id="proxies" class="max-w-7xl mx-auto px-6 pb-20 category-section hidden">
+        <h2 class="text-5xl font-semibold logo-font tracking-tight mb-10">Proxies</h2>
+        <div id="proxies-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    </section>
+
+    <section id="games" class="max-w-7xl mx-auto px-6 pb-20 category-section hidden">
+        <h2 class="text-5xl font-semibold logo-font tracking-tight mb-10">Games</h2>
+        <div id="games-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    </section>
+
+    <section id="music" class="max-w-7xl mx-auto px-6 pb-20 category-section hidden">
+        <h2 class="text-5xl font-semibold logo-font tracking-tight mb-10">Music</h2>
+        <div id="music-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    </section>
+
+    <section id="tv" class="max-w-7xl mx-auto px-6 pb-20 category-section hidden">
+        <h2 class="text-5xl font-semibold logo-font tracking-tight mb-10">TV</h2>
+        <div id="tv-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    </section>
+
+    <section id="ai" class="max-w-7xl mx-auto px-6 pb-20 category-section hidden">
+        <h2 class="text-5xl font-semibold logo-font tracking-tight mb-10">AI</h2>
+        <div id="ai-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    </section>
+
+    <!-- MANAGE SECTION (only on category pages) -->
+    <section id="manage-section" class="max-w-7xl mx-auto px-6 pb-24 hidden">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
+            <h3 class="text-2xl font-semibold mb-6">Manage Your Links</h3>
+            <div class="flex justify-center gap-8">
+                <button onclick="addNewSite()" 
+                        class="bg-white text-black px-8 py-4 rounded-full font-medium hover:opacity-90 transition-opacity flex items-center gap-3 text-lg">
+                    <i class="fa-solid fa-plus"></i> Add New
+                </button>
+                <button onclick="clearAllSites()" 
+                        class="border-2 border-white px-8 py-4 rounded-full font-medium hover:bg-white hover:text-black transition-colors flex items-center gap-3 text-lg">
+                    <i class="fa-solid fa-trash-can"></i> Clear All
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ADD MODAL -->
+    <div id="add-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div class="bg-gray-900 rounded-2xl p-8 w-full max-w-md mx-4 border border-gray-800">
+            <h3 class="text-2xl font-semibold mb-6">Add New Link</h3>
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium mb-1.5 text-gray-300">Name</label>
+                    <input id="site-name" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1.5 text-gray-300">URL[](https://...)</label>
+                    <input id="site-url" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1.5 text-gray-300">Description (optional)</label>
+                    <input id="site-desc" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1.5 text-gray-300">Category</label>
+                    <select id="site-category" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
+                        <option value="proxies">Proxies</option>
+                        <option value="games">Games</option>
+                        <option value="music">Music</option>
+                        <option value="tv">TV</option>
+                        <option value="ai">AI</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-4 mt-8">
+                <button onclick="hideModal()" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Cancel</button>
+                <button onclick="saveNewSite()" class="flex-1 py-3 bg-white text-black rounded-lg font-medium hover:opacity-90 transition-opacity">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const categories = ['proxies', 'games', 'music', 'tv', 'ai'];
+
+        let sites = JSON.parse(localStorage.getItem('starlinkSites')) || [
+            { id: Date.now(), name: "CroxyProxy", url: "https://www.croxyproxy.com/", desc: "Fast web proxy", category: "proxies" },
+            { id: Date.now()+1, name: "Slope", url: "https://slope-game.github.io/", desc: "Endless runner", category: "games" },
+        ];
+
+        function renderAllGrids() {
+            categories.forEach(cat => {
+                const grid = document.getElementById(cat + '-grid');
+                if (!grid) return;
+                grid.innerHTML = '';
+
+                const catSites = sites.filter(s => s.category === cat);
+
+                if (catSites.length === 0) {
+                    grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-12">No links yet in this category</p>';
+                    return;
+                }
+
+                catSites.forEach(site => {
+                    const card = document.createElement('div');
+                    card.className = `card bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-white transition-colors group relative cursor-pointer`;
+                    card.onclick = (e) => {
+                        if (!e.target.closest('.delete-btn')) {
+                            window.open(site.url, '_blank');
+                        }
+                    };
+                    card.innerHTML = `
+                        <button class="delete-btn absolute top-3 left-3 text-gray-400 hover:text-red-400 transition-colors z-10" 
+                                onclick="event.stopPropagation(); deleteSite(${site.id});">
+                            <i class="fa-solid fa-trash-can text-xl"></i>
+                        </button>
+                        <div class="flex items-start justify-between mb-3 pl-10">
+                            <h3 class="text-xl font-semibold group-hover:text-white">${site.name}</h3>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-gray-400 group-hover:text-white transition-colors"></i>
+                        </div>
+                        <p class="text-sm text-gray-500">${site.desc || ''}</p>
+                    `;
+                    grid.appendChild(card);
+                });
+            });
+        }
+
+        function deleteSite(id) {
+            if (!confirm('Delete this link?')) return;
+            sites = sites.filter(s => s.id !== id);
+            localStorage.setItem('starlinkSites', JSON.stringify(sites));
+            renderAllGrids();
+        }
+
+        function showCategory(cat) {
+            document.querySelectorAll('.category-section').forEach(sec => sec.classList.add('hidden'));
+            document.getElementById(cat).classList.remove('hidden');
+
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            const tabText = cat === 'home' ? 'Home' : cat.charAt(0).toUpperCase() + cat.slice(1);
+            const activeTab = Array.from(document.querySelectorAll('.tab')).find(t => t.textContent.trim() === tabText);
+            if (activeTab) activeTab.classList.add('active');
+
+            // Show manage section ONLY on category pages
+            document.getElementById('manage-section').classList.toggle('hidden', cat === 'home');
+        }
+
+        function addNewSite() {
+            document.getElementById('add-modal').classList.remove('hidden');
+            document.getElementById('add-modal').classList.add('flex');
+        }
+
+        function hideModal() {
+            document.getElementById('add-modal').classList.add('hidden');
+            document.getElementById('add-modal').classList.remove('flex');
+        }
+
+        function saveNewSite() {
+            const name = document.getElementById('site-name').value.trim();
+            const url = document.getElementById('site-url').value.trim();
+            const desc = document.getElementById('site-desc').value.trim();
+            const category = document.getElementById('site-category').value;
+
+            if (!name || !url || !category) {
+                alert('Name, URL, and Category required!');
+                return;
+            }
+
+            let fullUrl = url.startsWith('http') ? url : 'https://' + url;
+            sites.push({ id: Date.now(), name, url: fullUrl, desc, category });
+            localStorage.setItem('starlinkSites', JSON.stringify(sites));
+            renderAllGrids();
+            hideModal();
+        }
+
+        function clearAllSites() {
+            if (!confirm('Delete ALL links in ALL categories?')) return;
+            sites = [];
+            localStorage.setItem('starlinkSites', JSON.stringify(sites));
+            renderAllGrids();
+        }
+
+        window.addEventListener('load', () => {
+            renderAllGrids();
+            showCategory('home');
+        });
+    </script>
+</body>
+</html>
