@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Starlink</title>
     
-    <!-- Favicon: white star -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z'/%3E%3C/svg%3E" />
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -27,11 +26,20 @@
             height: 80px;
         }
 
+        #category-tabs {
+            display: flex;
+            gap: 2.5rem;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding-bottom: 4px;
+        }
+        #category-tabs::-webkit-scrollbar { display: none; }
+
         .tab, .home-logo {
             position: relative;
             padding-bottom: 4px;
             cursor: pointer;
-            display: inline-block;
+            white-space: nowrap;
         }
         .tab.active:after,
         .tab:hover:after,
@@ -115,17 +123,6 @@
             0%, 100% { opacity: 0.92; filter: drop-shadow(0 0 12px white); }
             50% { opacity: 1; filter: drop-shadow(0 0 28px white); }
         }
-
-        #manage-categories-modal, #add-link-modal {
-            display: none;
-        }
-
-        .sortable-item {
-            cursor: move;
-        }
-        .sortable-item:hover {
-            background: #2a2a2a;
-        }
     </style>
 </head>
 <body>
@@ -146,12 +143,17 @@
                 </button>
             </div>
 
-            <div id="category-tabs" class="flex items-center gap-10 text-sm font-medium">
-                <!-- Dynamic tabs -->
+            <div id="category-tabs" class="flex items-center gap-10 text-sm font-medium overflow-x-auto scrollbar-hide">
+                <!-- Dynamic tabs added here -->
             </div>
 
             <div class="flex items-center gap-6">
-                <input id="global-search" type="text" placeholder="Search all links..." class="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white w-64" oninput="filterLinks(this.value)">
+                <input id="global-search" 
+                       type="text" 
+                       placeholder="Search all categories..." 
+                       class="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white w-72"
+                       oninput="globalSearch(this.value)">
+                
                 <button onclick="clearAllSites()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2">
                     <i class="fa-solid fa-trash-can"></i> Clear All Sites
                 </button>
@@ -178,6 +180,14 @@
     <!-- Dynamic category sections -->
     <div id="dynamic-sections"></div>
 
+    <!-- Global Search Results -->
+    <section id="search-results" class="category-section hidden">
+        <div class="max-w-7xl mx-auto px-6 py-20">
+            <h2 class="text-5xl font-semibold logo-font tracking-tighter mb-10 text-center">Search Results</h2>
+            <div id="search-grid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        </div>
+    </section>
+
     <!-- Manage Categories Modal -->
     <div id="manage-categories-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
         <div class="bg-gray-900 rounded-2xl p-8 w-full max-w-lg mx-4 border border-gray-800">
@@ -197,7 +207,7 @@
             </div>
 
             <div class="flex gap-4 mt-8">
-                <button onclick="document.getElementById('manage-categories-modal').style.display='none'" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Close</button>
+                <button onclick="hideManageCategoriesModal()" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Close</button>
             </div>
         </div>
     </div>
@@ -225,7 +235,7 @@
                 </div>
             </div>
             <div class="flex gap-4 mt-8">
-                <button onclick="document.getElementById('add-link-modal').style.display='none'" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Cancel</button>
+                <button onclick="hideAddLinkModal()" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Cancel</button>
                 <button onclick="saveNewLink()" class="flex-1 py-3 bg-white text-black rounded-lg font-medium hover:opacity-90 transition-opacity">Add</button>
             </div>
         </div>
@@ -234,6 +244,7 @@
     <script>
         let categories = JSON.parse(localStorage.getItem('starlinkCategories')) || [];
         let sites = JSON.parse(localStorage.getItem('starlinkSites')) || [];
+        let currentSearchQuery = '';
 
         function saveCategories() { localStorage.setItem('starlinkCategories', JSON.stringify(categories)); }
         function saveSites() { localStorage.setItem('starlinkSites', JSON.stringify(sites)); }
@@ -348,7 +359,7 @@
         }
 
         function clearAllSites() {
-            if (!confirm('Clear ALL links from EVERY category? This cannot be undone.')) return;
+            if (!confirm('Clear ALL links from EVERY category?')) return;
             sites = [];
             saveSites();
             renderAllGrids();
@@ -356,6 +367,7 @@
 
         function showCategory(e, catId) {
             e.preventDefault();
+            document.getElementById('search-results').classList.add('hidden');
             document.querySelectorAll('.category-section').forEach(s => s.classList.remove('active'));
             document.getElementById(catId === 'home' ? 'home' : catId).classList.add('active');
 
@@ -369,6 +381,46 @@
             }
         }
 
+        function globalSearch(query) {
+            query = query.toLowerCase().trim();
+            if (!query) {
+                document.getElementById('search-results').classList.add('hidden');
+                showCategory({preventDefault: () => {}}, 'home');
+                return;
+            }
+
+            const results = sites.filter(site => 
+                site.name.toLowerCase().includes(query) || 
+                (site.desc && site.desc.toLowerCase().includes(query))
+            );
+
+            const container = document.getElementById('search-results');
+            const grid = document.getElementById('search-grid');
+            grid.innerHTML = '';
+
+            if (results.length === 0) {
+                grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-20">No matches found</p>';
+            } else {
+                results.forEach(site => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.onclick = () => window.open(site.url, '_blank');
+                    card.innerHTML = `
+                        <div class="text-xs text-gray-500 mb-1">${site.category}</div>
+                        <div class="flex items-start justify-between mb-3">
+                            <h3 class="text-xl font-semibold">${site.name}</h3>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-gray-400"></i>
+                        </div>
+                        <p class="text-sm text-gray-500">${site.desc || ''}</p>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+
+            document.querySelectorAll('.category-section').forEach(s => s.classList.remove('active'));
+            container.classList.remove('hidden');
+        }
+
         function showManageCategoriesModal() {
             const modal = document.getElementById('manage-categories-modal');
             modal.style.display = 'flex';
@@ -376,65 +428,27 @@
             const list = document.getElementById('category-list');
             list.innerHTML = '';
 
-            if (categories.length === 0) {
-                list.innerHTML = '<p class="text-gray-500 text-center py-4">No categories yet</p>';
-            } else {
-                categories.forEach((cat, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'sortable-item flex items-center justify-between bg-gray-800 p-3 rounded-lg cursor-move';
-                    item.draggable = true;
-                    item.dataset.index = index;
-                    item.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-grip-vertical text-gray-500 cursor-move"></i>
-                            <span class="text-white">${cat}</span>
-                        </div>
-                        <div class="flex gap-3">
-                            <button onclick="startRename('${cat.replace(/'/g, "\\'")}')" class="text-blue-400 hover:text-blue-300">
-                                <i class="fa-solid fa-pencil"></i>
-                            </button>
-                            <button onclick="removeCategory('${cat.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </div>
-                    `;
-                    list.appendChild(item);
-                });
-
-                // Enable drag & drop reordering
-                list.addEventListener('dragstart', e => {
-                    if (e.target.classList.contains('sortable-item')) {
-                        e.dataTransfer.setData('text/plain', e.target.dataset.index);
-                        e.target.classList.add('opacity-50');
-                    }
-                });
-
-                list.addEventListener('dragover', e => {
-                    e.preventDefault();
-                });
-
-                list.addEventListener('drop', e => {
-                    e.preventDefault();
-                    const fromIndex = e.dataTransfer.getData('text/plain');
-                    const toItem = e.target.closest('.sortable-item');
-                    if (!toItem) return;
-                    const toIndex = toItem.dataset.index;
-
-                    // Reorder array
-                    const [moved] = categories.splice(fromIndex, 1);
-                    categories.splice(toIndex, 0, moved);
-
-                    saveCategories();
-                    renderNavbar();
-                    renderDynamicSections();
-                    renderAllGrids();
-                    showManageCategoriesModal(); // refresh list
-                });
-
-                list.addEventListener('dragend', e => {
-                    e.target.classList.remove('opacity-50');
-                });
-            }
+            categories.forEach((cat, index) => {
+                const item = document.createElement('div');
+                item.className = 'sortable-item flex items-center justify-between bg-gray-800 p-3 rounded-lg cursor-move';
+                item.draggable = true;
+                item.dataset.index = index;
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-grip-vertical text-gray-500 cursor-move"></i>
+                        <span class="text-white">${cat}</span>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="startRename('${cat.replace(/'/g, "\\'")}')" class="text-blue-400 hover:text-blue-300">
+                            <i class="fa-solid fa-pencil"></i>
+                        </button>
+                        <button onclick="removeCategory('${cat.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
         }
 
         function hideManageCategoriesModal() {
@@ -442,38 +456,24 @@
         }
 
         function addCategory() {
-            const nameInput = document.getElementById('new-category-name');
-            const name = nameInput.value.trim();
-            if (!name) {
-                alert('Category name required!');
-                return;
-            }
-            if (categories.includes(name)) {
-                alert('Category already exists!');
-                return;
-            }
+            const name = document.getElementById('new-category-name').value.trim();
+            if (!name) return alert('Category name required!');
+            if (categories.includes(name)) return alert('Category already exists!');
             categories.push(name);
             saveCategories();
             renderNavbar();
             renderDynamicSections();
             renderAllGrids();
-            nameInput.value = '';
+            document.getElementById('new-category-name').value = '';
             showManageCategoriesModal();
         }
 
         function startRename(oldCat) {
             const newName = prompt(`Rename "${oldCat}" to:`, oldCat);
             if (!newName || newName === oldCat) return;
-            if (categories.includes(newName)) {
-                alert('That name is already used!');
-                return;
-            }
-            // Rename category
+            if (categories.includes(newName)) return alert('Name already used!');
             categories = categories.map(c => c === oldCat ? newName : c);
-            // Update all links in that category
-            sites.forEach(s => {
-                if (s.category === oldCat) s.category = newName;
-            });
+            sites.forEach(s => { if (s.category === oldCat) s.category = newName; });
             saveCategories();
             saveSites();
             renderNavbar();
@@ -483,7 +483,7 @@
         }
 
         function removeCategory(cat) {
-            if (!confirm(`Remove category "${cat}"? All links in it will be deleted.`)) return;
+            if (!confirm(`Remove "${cat}" and all its links?`)) return;
             categories = categories.filter(c => c !== cat);
             sites = sites.filter(s => s.category !== cat);
             saveCategories();
@@ -504,7 +504,7 @@
                 opt.textContent = c;
                 select.appendChild(opt);
             });
-            if (cat && categories.includes(cat)) select.value = cat;
+            if (cat) select.value = cat;
         }
 
         function hideAddLinkModal() {
@@ -517,24 +517,13 @@
             const desc = document.getElementById('link-desc').value.trim();
             const category = document.getElementById('link-category').value;
 
-            if (!name || !url || !category) {
-                alert('Name, URL, and Category required!');
-                return;
-            }
+            if (!name || !url || !category) return alert('Name, URL, and Category required!');
 
             let fullUrl = url.startsWith('http') ? url : 'https://' + url;
             sites.push({ id: Date.now().toString(), name, url: fullUrl, desc, category });
             saveSites();
             renderAllGrids();
             hideAddLinkModal();
-        }
-
-        function filterLinks(query) {
-            query = query.toLowerCase().trim();
-            document.querySelectorAll('.card').forEach(card => {
-                const text = card.textContent.toLowerCase();
-                card.style.display = text.includes(query) ? 'block' : 'none';
-            });
         }
 
         window.addEventListener('load', () => {
