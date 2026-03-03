@@ -119,6 +119,13 @@
         #manage-categories-modal, #add-link-modal {
             display: none;
         }
+
+        .sortable-item {
+            cursor: move;
+        }
+        .sortable-item:hover {
+            background: #2a2a2a;
+        }
     </style>
 </head>
 <body>
@@ -140,10 +147,11 @@
             </div>
 
             <div id="category-tabs" class="flex items-center gap-10 text-sm font-medium">
-                <!-- Dynamic category tabs appear here -->
+                <!-- Dynamic tabs -->
             </div>
 
             <div class="flex items-center gap-6">
+                <input id="global-search" type="text" placeholder="Search all links..." class="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white w-64" oninput="filterLinks(this.value)">
                 <button onclick="clearAllSites()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2">
                     <i class="fa-solid fa-trash-can"></i> Clear All Sites
                 </button>
@@ -175,7 +183,7 @@
         <div class="bg-gray-900 rounded-2xl p-8 w-full max-w-lg mx-4 border border-gray-800">
             <h3 class="text-2xl font-semibold mb-6">Manage Categories</h3>
             
-            <div class="mb-6">
+            <div class="mb-8">
                 <label class="block text-sm font-medium mb-2 text-gray-300">Add New Category</label>
                 <div class="flex gap-3">
                     <input id="new-category-name" type="text" class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white" placeholder="e.g. Proxies">
@@ -183,13 +191,13 @@
                 </div>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium mb-2 text-gray-300">Current Categories</label>
-                <div id="category-list" class="max-h-60 overflow-y-auto space-y-2"></div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2 text-gray-300">Current Categories (drag to reorder)</label>
+                <div id="category-list" class="max-h-60 overflow-y-auto space-y-3 pr-2"></div>
             </div>
 
             <div class="flex gap-4 mt-8">
-                <button onclick="hideManageCategoriesModal()" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Close</button>
+                <button onclick="document.getElementById('manage-categories-modal').style.display='none'" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Close</button>
             </div>
         </div>
     </div>
@@ -217,7 +225,7 @@
                 </div>
             </div>
             <div class="flex gap-4 mt-8">
-                <button onclick="hideAddLinkModal()" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Cancel</button>
+                <button onclick="document.getElementById('add-link-modal').style.display='none'" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Cancel</button>
                 <button onclick="saveNewLink()" class="flex-1 py-3 bg-white text-black rounded-lg font-medium hover:opacity-90 transition-opacity">Add</button>
             </div>
         </div>
@@ -227,26 +235,25 @@
         let categories = JSON.parse(localStorage.getItem('starlinkCategories')) || [];
         let sites = JSON.parse(localStorage.getItem('starlinkSites')) || [];
 
-        function saveCategories() {
-            localStorage.setItem('starlinkCategories', JSON.stringify(categories));
-        }
+        function saveCategories() { localStorage.setItem('starlinkCategories', JSON.stringify(categories)); }
+        function saveSites() { localStorage.setItem('starlinkSites', JSON.stringify(sites)); }
 
-        function saveSites() {
-            localStorage.setItem('starlinkSites', JSON.stringify(sites));
+        function sanitizeId(name) {
+            return 'cat-' + name.toLowerCase().replace(/[^a-z0-9]/g, '-');
         }
 
         function renderNavbar() {
-            const tabsContainer = document.getElementById('category-tabs');
-            tabsContainer.innerHTML = '';
+            const container = document.getElementById('category-tabs');
+            container.innerHTML = '';
 
             categories.forEach(cat => {
                 const tab = document.createElement('a');
-                tab.href = `#${cat.toLowerCase()}`;
+                tab.href = `#${sanitizeId(cat)}`;
                 tab.className = 'tab';
-                tab.dataset.category = cat.toLowerCase();
+                tab.dataset.category = sanitizeId(cat);
                 tab.textContent = cat;
-                tab.onclick = (e) => showCategory(e, cat.toLowerCase());
-                tabsContainer.appendChild(tab);
+                tab.onclick = (e) => showCategory(e, sanitizeId(cat));
+                container.appendChild(tab);
             });
         }
 
@@ -255,16 +262,17 @@
             container.innerHTML = '';
 
             categories.forEach(cat => {
+                const id = sanitizeId(cat);
                 const section = document.createElement('section');
-                section.id = cat.toLowerCase();
+                section.id = id;
                 section.className = 'category-section hidden';
                 section.innerHTML = `
                     <div class="max-w-7xl mx-auto px-6 py-20">
                         <h2 class="text-7xl font-semibold logo-font tracking-tighter mb-20 text-center">${cat}</h2>
                         <div class="grid-container">
-                            <div id="grid-${cat.toLowerCase()}" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+                            <div id="grid-${id}" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
                         </div>
-                        <div id="manage-${cat.toLowerCase()}" class="mt-20"></div>
+                        <div id="manage-${id}" class="mt-20"></div>
                     </div>
                 `;
                 container.appendChild(section);
@@ -272,8 +280,9 @@
         }
 
         function renderCategoryGrid(cat) {
-            const grid = document.getElementById(`grid-${cat}`);
-            const manageDiv = document.getElementById(`manage-${cat}`);
+            const id = sanitizeId(cat);
+            const grid = document.getElementById(`grid-${id}`);
+            const manageDiv = document.getElementById(`manage-${id}`);
             if (!grid || !manageDiv) return;
 
             grid.innerHTML = '';
@@ -345,17 +354,17 @@
             renderAllGrids();
         }
 
-        function showCategory(e, cat) {
+        function showCategory(e, catId) {
             e.preventDefault();
             document.querySelectorAll('.category-section').forEach(s => s.classList.remove('active'));
-            document.getElementById(cat === 'home' ? 'home' : cat).classList.add('active');
+            document.getElementById(catId === 'home' ? 'home' : catId).classList.add('active');
 
             document.querySelectorAll('.tab, .home-logo').forEach(el => el.classList.remove('active'));
-            if (cat === 'home') {
+            if (catId === 'home') {
                 document.querySelector('.home-logo').classList.add('active');
             } else {
                 document.querySelectorAll('.tab').forEach(t => {
-                    if (t.dataset.category === cat) t.classList.add('active');
+                    if (t.dataset.category === catId) t.classList.add('active');
                 });
             }
         }
@@ -370,16 +379,60 @@
             if (categories.length === 0) {
                 list.innerHTML = '<p class="text-gray-500 text-center py-4">No categories yet</p>';
             } else {
-                categories.forEach(cat => {
+                categories.forEach((cat, index) => {
                     const item = document.createElement('div');
-                    item.className = 'flex items-center justify-between bg-gray-800 p-3 rounded-lg';
+                    item.className = 'sortable-item flex items-center justify-between bg-gray-800 p-3 rounded-lg cursor-move';
+                    item.draggable = true;
+                    item.dataset.index = index;
                     item.innerHTML = `
-                        <span class="text-white">${cat}</span>
-                        <button onclick="removeCategory('${cat}')" class="text-red-400 hover:text-red-300">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-grip-vertical text-gray-500 cursor-move"></i>
+                            <span class="text-white">${cat}</span>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="startRename('${cat.replace(/'/g, "\\'")}')" class="text-blue-400 hover:text-blue-300">
+                                <i class="fa-solid fa-pencil"></i>
+                            </button>
+                            <button onclick="removeCategory('${cat.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
                     `;
                     list.appendChild(item);
+                });
+
+                // Enable drag & drop reordering
+                list.addEventListener('dragstart', e => {
+                    if (e.target.classList.contains('sortable-item')) {
+                        e.dataTransfer.setData('text/plain', e.target.dataset.index);
+                        e.target.classList.add('opacity-50');
+                    }
+                });
+
+                list.addEventListener('dragover', e => {
+                    e.preventDefault();
+                });
+
+                list.addEventListener('drop', e => {
+                    e.preventDefault();
+                    const fromIndex = e.dataTransfer.getData('text/plain');
+                    const toItem = e.target.closest('.sortable-item');
+                    if (!toItem) return;
+                    const toIndex = toItem.dataset.index;
+
+                    // Reorder array
+                    const [moved] = categories.splice(fromIndex, 1);
+                    categories.splice(toIndex, 0, moved);
+
+                    saveCategories();
+                    renderNavbar();
+                    renderDynamicSections();
+                    renderAllGrids();
+                    showManageCategoriesModal(); // refresh list
+                });
+
+                list.addEventListener('dragend', e => {
+                    e.target.classList.remove('opacity-50');
                 });
             }
         }
@@ -389,7 +442,8 @@
         }
 
         function addCategory() {
-            const name = document.getElementById('new-category-name').value.trim();
+            const nameInput = document.getElementById('new-category-name');
+            const name = nameInput.value.trim();
             if (!name) {
                 alert('Category name required!');
                 return;
@@ -403,8 +457,29 @@
             renderNavbar();
             renderDynamicSections();
             renderAllGrids();
-            document.getElementById('new-category-name').value = '';
-            showManageCategoriesModal(); // refresh list
+            nameInput.value = '';
+            showManageCategoriesModal();
+        }
+
+        function startRename(oldCat) {
+            const newName = prompt(`Rename "${oldCat}" to:`, oldCat);
+            if (!newName || newName === oldCat) return;
+            if (categories.includes(newName)) {
+                alert('That name is already used!');
+                return;
+            }
+            // Rename category
+            categories = categories.map(c => c === oldCat ? newName : c);
+            // Update all links in that category
+            sites.forEach(s => {
+                if (s.category === oldCat) s.category = newName;
+            });
+            saveCategories();
+            saveSites();
+            renderNavbar();
+            renderDynamicSections();
+            renderAllGrids();
+            showManageCategoriesModal();
         }
 
         function removeCategory(cat) {
@@ -416,7 +491,7 @@
             renderNavbar();
             renderDynamicSections();
             renderAllGrids();
-            showManageCategoriesModal(); // refresh list
+            showManageCategoriesModal();
         }
 
         function showAddLinkModal(cat = categories[0] || '') {
@@ -452,6 +527,14 @@
             saveSites();
             renderAllGrids();
             hideAddLinkModal();
+        }
+
+        function filterLinks(query) {
+            query = query.toLowerCase().trim();
+            document.querySelectorAll('.card').forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(query) ? 'block' : 'none';
+            });
         }
 
         window.addEventListener('load', () => {
