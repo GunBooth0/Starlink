@@ -104,6 +104,14 @@
             transform: scale(1.2);
         }
 
+        .pulse-glow {
+            animation: pulse-glow 5s infinite ease-in-out;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.92; filter: drop-shadow(0 0 12px white); }
+            50% { opacity: 1; filter: drop-shadow(0 0 28px white); }
+        }
+
         #add-category-modal, #add-link-modal {
             display: none;
         }
@@ -115,12 +123,12 @@
     <nav class="border-b border-gray-800 bg-black/95 backdrop-blur-md fixed w-full z-50 top-0">
         <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
             <div class="flex items-center gap-6">
-                <div class="flex items-center gap-3">
+                <a href="#" onclick="showCategory(event, 'home')" class="flex items-center gap-3 cursor-pointer">
                     <svg class="h-9 w-9 text-white" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                     </svg>
                     <span class="logo-font text-3xl font-semibold tracking-tight">Starlink</span>
-                </div>
+                </a>
 
                 <button onclick="showAddCategoryModal()" class="bg-gray-800 hover:bg-gray-700 text-white px-5 py-2 rounded-lg font-medium flex items-center gap-2">
                     <i class="fa-solid fa-plus text-sm"></i> Add Category
@@ -128,17 +136,10 @@
             </div>
 
             <div id="category-tabs" class="flex items-center gap-10 text-sm font-medium">
-                <a href="#" class="tab active" data-category="home" onclick="showCategory(event, 'home')">Home</a>
                 <!-- Dynamic category tabs go here -->
             </div>
 
             <div class="flex items-center gap-6">
-                <select id="theme-select" onchange="changeTheme(this.value)" class="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white">
-                    <option value="dark">Dark</option>
-                    <option value="light">Light</option>
-                    <!-- Add more themes if you want -->
-                </select>
-
                 <button onclick="clearAllSites()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2">
                     <i class="fa-solid fa-trash-can"></i> Clear All Sites
                 </button>
@@ -150,7 +151,7 @@
     <section id="home" class="category-section active">
         <div class="max-w-5xl mx-auto px-6 pt-32 pb-32 text-center">
             <div class="flex flex-col items-center gap-6">
-                <svg class="h-40 w-40 md:h-48 md:w-48 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <svg class="h-40 w-40 md:h-48 md:w-48 text-white pulse-glow" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                 </svg>
                 <h1 class="text-8xl md:text-9xl font-semibold logo-font tracking-tighter">Starlink</h1>
@@ -225,7 +226,7 @@
 
         function renderNavbar() {
             const tabsContainer = document.getElementById('category-tabs');
-            tabsContainer.innerHTML = '<a href="#" class="tab active" data-category="home" onclick="showCategory(event, \'home\')">Home</a>';
+            tabsContainer.innerHTML = '';
 
             categories.forEach(cat => {
                 const tab = document.createElement('a');
@@ -335,8 +336,8 @@
 
         function showCategory(e, cat) {
             e.preventDefault();
-            document.querySelectorAll('.category-section').forEach(s => s.classList.add('hidden'));
-            document.getElementById(cat === 'home' ? 'home' : cat).classList.remove('hidden');
+            document.querySelectorAll('.category-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(cat === 'home' ? 'home' : cat).classList.add('active');
 
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => {
@@ -371,7 +372,7 @@
             hideAddCategoryModal();
         }
 
-        function showAddLinkModal(cat = '') {
+        function showAddLinkModal(cat = categories[0] || '') {
             document.getElementById('add-link-modal').classList.remove('hidden');
             const select = document.getElementById('link-category');
             select.innerHTML = '';
@@ -405,15 +406,6 @@
             renderAllGrids();
             hideAddLinkModal();
         }
-
-        function changeTheme(theme) {
-            document.body.className = 'theme-' + theme;
-            localStorage.setItem('starlinkTheme', theme);
-        }
-
-        const savedTheme = localStorage.getItem('starlinkTheme') || 'dark';
-        document.body.className = 'theme-' + savedTheme;
-        if (document.getElementById('theme-select')) document.getElementById('theme-select').value = savedTheme;
 
         window.addEventListener('load', () => {
             renderNavbar();
