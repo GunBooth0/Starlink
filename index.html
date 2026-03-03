@@ -27,13 +27,16 @@
             height: 80px;
         }
 
-        .tab {
+        .tab, .home-logo {
             position: relative;
             padding-bottom: 4px;
             cursor: pointer;
+            display: inline-block;
         }
         .tab.active:after,
-        .tab:hover:after {
+        .tab:hover:after,
+        .home-logo.active:after,
+        .home-logo:hover:after {
             content: '';
             position: absolute;
             bottom: 0;
@@ -44,7 +47,8 @@
             transform: scaleX(1);
             transition: transform 0.3s ease;
         }
-        .tab:after {
+        .tab:after,
+        .home-logo:after {
             content: '';
             position: absolute;
             bottom: 0;
@@ -123,7 +127,7 @@
     <nav class="border-b border-gray-800 bg-black/95 backdrop-blur-md fixed w-full z-50 top-0">
         <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
             <div class="flex items-center gap-6">
-                <a href="#" onclick="showCategory(event, 'home')" class="flex items-center gap-3 cursor-pointer">
+                <a href="#" class="home-logo flex items-center gap-3" onclick="showCategory(event, 'home')">
                     <svg class="h-9 w-9 text-white" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                     </svg>
@@ -136,7 +140,7 @@
             </div>
 
             <div id="category-tabs" class="flex items-center gap-10 text-sm font-medium">
-                <!-- Dynamic category tabs go here -->
+                <!-- Dynamic category tabs appear here -->
             </div>
 
             <div class="flex items-center gap-6">
@@ -163,7 +167,7 @@
         </div>
     </section>
 
-    <!-- Dynamic category sections container -->
+    <!-- Dynamic category sections -->
     <div id="dynamic-sections"></div>
 
     <!-- Add Category Modal -->
@@ -173,7 +177,7 @@
             <div class="space-y-5">
                 <div>
                     <label class="block text-sm font-medium mb-1.5 text-gray-300">Category Name</label>
-                    <input id="new-category-name" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
+                    <input id="new-category-name" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white" placeholder="e.g. Proxies">
                 </div>
             </div>
             <div class="flex gap-4 mt-8">
@@ -339,29 +343,33 @@
             document.querySelectorAll('.category-section').forEach(s => s.classList.remove('active'));
             document.getElementById(cat === 'home' ? 'home' : cat).classList.add('active');
 
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(t => {
-                if (t.dataset.category === cat) t.classList.add('active');
-            });
+            document.querySelectorAll('.tab, .home-logo').forEach(el => el.classList.remove('active'));
+            if (cat === 'home') {
+                document.querySelector('.home-logo').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab').forEach(t => {
+                    if (t.dataset.category === cat) t.classList.add('active');
+                });
+            }
         }
 
         function showAddCategoryModal() {
-            document.getElementById('add-category-modal').classList.remove('hidden');
+            document.getElementById('add-category-modal').style.display = 'flex';
         }
 
         function hideAddCategoryModal() {
-            document.getElementById('add-category-modal').classList.add('hidden');
+            document.getElementById('add-category-modal').style.display = 'none';
             document.getElementById('new-category-name').value = '';
         }
 
         function addCategory() {
             const name = document.getElementById('new-category-name').value.trim();
             if (!name) {
-                alert('Category name required!');
+                alert('Please enter a category name');
                 return;
             }
             if (categories.includes(name)) {
-                alert('Category already exists!');
+                alert('That category already exists');
                 return;
             }
             categories.push(name);
@@ -373,7 +381,7 @@
         }
 
         function showAddLinkModal(cat = categories[0] || '') {
-            document.getElementById('add-link-modal').classList.remove('hidden');
+            document.getElementById('add-link-modal').style.display = 'flex';
             const select = document.getElementById('link-category');
             select.innerHTML = '';
             categories.forEach(c => {
@@ -386,7 +394,7 @@
         }
 
         function hideAddLinkModal() {
-            document.getElementById('add-link-modal').classList.add('hidden');
+            document.getElementById('add-link-modal').style.display = 'none';
         }
 
         function saveNewLink() {
@@ -396,7 +404,7 @@
             const category = document.getElementById('link-category').value;
 
             if (!name || !url || !category) {
-                alert('Name, URL, and Category required!');
+                alert('Name, URL, and Category are required!');
                 return;
             }
 
