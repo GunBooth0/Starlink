@@ -110,7 +110,7 @@
     <!-- SIDEBAR -->
     <div class="w-72 bg-black border-r border-white/10 flex flex-col fixed h-screen z-50">
         <div class="p-8 flex items-center gap-x-4 border-b border-white/10">
-            <svg id="sidebar-star" width="48" height="48" viewBox="0 0 200 200" class="star-svg" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
+            <svg width="48" height="48" viewBox="0 0 200 200" class="star-svg" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
                 <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
             </svg>
             <div>
@@ -148,7 +148,7 @@
     <div class="flex-1 ml-72 relative z-10 overflow-y-auto">
         <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50">
             <div class="h-full px-10 flex items-center gap-4">
-                <i id="current-tab-icon" class="text-3xl"></i>
+                <i id="current-tab-icon" class="text-3xl fa-solid"></i>
                 <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Home</div>
             </div>
         </div>
@@ -157,7 +157,7 @@
             <!-- HOME -->
             <div id="content-0" class="tab-content">
                 <div class="max-w-4xl mx-auto text-center pt-12">
-                    <svg id="home-star" width="180" height="180" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="180" height="180" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
                         <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
                     </svg>
                     <h1 class="logo-font text-7xl md:text-8xl font-bold tracking-tight mb-6">Starlink</h1>
@@ -194,11 +194,8 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div>
             </div>
 
-            <!-- SETTINGS -->
+            <!-- SETTINGS (no duplicate heading inside) -->
             <div id="content-6" class="tab-content hidden">
-                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
-                    <i class="fa-solid fa-gear"></i> Settings
-                </h2>
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
                     <h3 class="text-2xl font-semibold mb-6">Appearance • Choose Theme</h3>
                     <p class="text-white/70 mb-10">Click a color to change the accent, stars, glow, and sidebar highlights</p>
@@ -259,7 +256,6 @@
             const saved = localStorage.getItem('starlinkNewTab');
             const checkbox = document.getElementById('newtab-toggle');
             if (saved === null) {
-                // First time ever → default ON
                 checkbox.checked = true;
                 saveNewTabPreference(true);
             } else {
@@ -299,16 +295,16 @@
         });
 
         // ──────────────────────────────────────────────
-        // TABS & ICONS
+        // TAB ICONS (exact match to sidebar)
         // ──────────────────────────────────────────────
         const tabIcons = [
-            'fa-house',         // Home
-            'fa-gamepad',       // Games
-            'fa-brain',         // AI Tools
-            'fa-tv',            // TV & Streaming
-            'fa-shield-halved', // Proxies
-            'fa-music',         // Music
-            'fa-gear'           // Settings
+            'fa-house',             // 0 Home
+            'fa-gamepad',           // 1 Games
+            'fa-brain',             // 2 AI Tools
+            'fa-tv',                // 3 TV & Streaming
+            'fa-shield-halved',     // 4 Proxies
+            'fa-music',             // 5 Music
+            'fa-gear'               // 6 Settings
         ];
 
         const sites = {
@@ -363,7 +359,9 @@
 
             const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings"];
             document.getElementById('current-tab').textContent = titles[tabIndex];
-            document.getElementById('current-tab-icon').className = `text-3xl ${tabIcons[tabIndex]}`;
+
+            // Set the matching sidebar icon at the top
+            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[tabIndex]}`;
         }
 
         function populateGrid(category, containerId) {
@@ -421,7 +419,6 @@
 
             switchTab(0);
 
-            // Listen for checkbox changes
             document.getElementById('newtab-toggle').addEventListener('change', (e) => {
                 saveNewTabPreference(e.target.checked);
             });
