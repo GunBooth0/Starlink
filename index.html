@@ -51,6 +51,7 @@
             color: inherit;
         }
 
+        #current-tab-icon,
         #current-tab {
             color: var(--accent);
             transition: color 0.4s ease;
@@ -80,7 +81,6 @@
             margin-right: auto;
         }
 
-        /* Background stars */
         #star-bg {
             position: fixed;
             inset: 0;
@@ -148,9 +148,7 @@
     <div class="flex-1 ml-72 relative z-10 overflow-y-auto">
         <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50">
             <div class="h-full px-10 flex items-center gap-4">
-                <svg width="36" height="36" viewBox="0 0 200 200" class="star-svg" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
-                </svg>
+                <i id="current-tab-icon" class="text-3xl"></i>
                 <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Home</div>
             </div>
         </div>
@@ -214,7 +212,7 @@
                                 <span>Open links in new tab</span>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" checked class="sr-only peer" id="newtab-toggle">
+                                <input type="checkbox" class="sr-only peer" id="newtab-toggle">
                                 <div class="w-14 h-7 bg-white/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]"></div>
                             </label>
                         </div>
@@ -226,7 +224,7 @@
 
     <script>
         // ──────────────────────────────────────────────
-        // THEME (saved to localStorage)
+        // SETTINGS & PERSISTENCE
         // ──────────────────────────────────────────────
         const themes = [
             { name: "White", color: "#ffffff" },
@@ -250,10 +248,22 @@
 
         function loadTheme() {
             const saved = localStorage.getItem('starlinkAccent');
-            if (saved) {
-                setTheme(saved);
+            setTheme(saved || '#ffffff');
+        }
+
+        function saveNewTabPreference(value) {
+            localStorage.setItem('starlinkNewTab', value ? 'true' : 'false');
+        }
+
+        function loadNewTabPreference() {
+            const saved = localStorage.getItem('starlinkNewTab');
+            const checkbox = document.getElementById('newtab-toggle');
+            if (saved === null) {
+                // First time ever → default ON
+                checkbox.checked = true;
+                saveNewTabPreference(true);
             } else {
-                setTheme('#ffffff');
+                checkbox.checked = saved === 'true';
             }
         }
 
@@ -265,18 +275,13 @@
             star.className = 'star';
             star.style.left = `${x}px`;
             star.style.top  = `${y}px`;
-            
             const size = Math.random() * 3 + 1;
             star.style.width = star.style.height = `${size}px`;
-            
             const duration = Math.random() * 40 + 25;
             star.style.animationDuration = `${duration}s`;
-            
             const drift = (Math.random() - 0.5) * 120;
             star.style.transform = `translateX(${drift}px)`;
-            
             document.getElementById('star-bg').appendChild(star);
-            
             setTimeout(() => star.remove(), duration * 1000 + 2000);
         }
 
@@ -288,15 +293,24 @@
             }
         }
 
-        // Click to add star (ignore clicks on interactive elements)
         document.addEventListener('click', (e) => {
             if (e.target.closest('button, a, .nav-link, input, label, svg, .card')) return;
             createStar(e.clientX, e.clientY);
         });
 
         // ──────────────────────────────────────────────
-        // TABS & CONTENT
+        // TABS & ICONS
         // ──────────────────────────────────────────────
+        const tabIcons = [
+            'fa-house',         // Home
+            'fa-gamepad',       // Games
+            'fa-brain',         // AI Tools
+            'fa-tv',            // TV & Streaming
+            'fa-shield-halved', // Proxies
+            'fa-music',         // Music
+            'fa-gear'           // Settings
+        ];
+
         const sites = {
             games: [
                 { name: "Poki", url: "https://poki.com", desc: "Thousands of free games", icon: "🎮" },
@@ -349,6 +363,7 @@
 
             const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings"];
             document.getElementById('current-tab').textContent = titles[tabIndex];
+            document.getElementById('current-tab-icon').className = `text-3xl ${tabIcons[tabIndex]}`;
         }
 
         function populateGrid(category, containerId) {
@@ -394,6 +409,7 @@
 
         function initialize() {
             loadTheme();
+            loadNewTabPreference();
             initStars();
             populateThemeGrid();
 
@@ -404,6 +420,11 @@
             populateGrid('music',   'music-grid');
 
             switchTab(0);
+
+            // Listen for checkbox changes
+            document.getElementById('newtab-toggle').addEventListener('change', (e) => {
+                saveNewTabPreference(e.target.checked);
+            });
         }
 
         window.onload = initialize;
