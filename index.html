@@ -1,708 +1,636 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth" data-theme="default">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Starlink</title>
-    
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z'/%3E%3C/svg%3E" />
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
         
+        :root {
+            --accent: 234 179 8;
+        }
+        
+        [data-theme="dark"] {
+            --bg: 9 9 11;
+            --card: 24 24 27;
+            --text: 255 255 255;
+            --accent: 234 179 8;
+        }
+        
+        [data-theme="light"] {
+            --bg: 250 250 250;
+            --card: 255 255 255;
+            --text: 9 9 11;
+            --accent: 234 179 8;
+        }
+        
+        [data-theme="cosmic"] {
+            --bg: 15 23 42;
+            --card: 30 41 59;
+            --text: 224 242 255;
+            --accent: 147 197 253;
+        }
+        
+        [data-theme="neon"] {
+            --bg: 17 17 17;
+            --card: 39 39 42;
+            --text: 163 163 163;
+            --accent: 163 230 77;
+        }
+
         body {
-            font-family: 'Inter', system-ui, sans-serif;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-            transition: background 0.8s ease;
-            color: #ffffff;
-            cursor: default;
+            background: hsl(var(--bg));
+            color: hsl(var(--text));
+            font-family: 'Inter', system_ui, sans-serif;
         }
-        * { color: #ffffff !important; }
-        .logo-font { font-family: 'Space Grotesk', sans-serif; }
-
-        nav { height: 80px; backdrop-filter: blur(12px); z-index: 50; }
-
-        .tab, .home-logo {
-            position: relative;
-            padding-bottom: 4px;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .tab.active:after, .tab:hover:after,
-        .home-logo.active:after, .home-logo:hover:after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0;
-            width: 100%; height: 3px;
-            background: #ffffff;
-            transform: scaleX(1);
-            transition: transform 0.3s ease;
-        }
-        .tab:after, .home-logo:after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0;
-            width: 100%; height: 3px;
-            background: #ffffff;
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s ease;
+        
+        .logo-font {
+            font-family: 'Space Grotesk', sans-serif;
         }
 
-        .category-section {
-            min-height: calc(100vh - 80px);
-            padding-top: 100px;
-            display: none;
-            position: relative;
+        .star-svg {
+            filter: drop-shadow(0 0 15px rgb(234 179 8));
         }
-        .category-section.active { display: block; }
 
-        .grid-container, .manage-section {
-            border: 1px solid;
-            border-radius: 16px;
-            padding: 2rem;
-            background: rgba(20,20,30,0.6);
-            backdrop-filter: blur(8px);
-            min-height: 300px;
-            transition: border-color 0.8s ease;
+        .nav-link {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .nav-link:hover {
+            transform: translateX(8px);
+            color: rgb(234 179 8);
         }
 
         .card {
-            background: rgba(30,30,45,0.7);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-            position: relative;
-            backdrop-filter: blur(6px);
+            transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
         }
+        
         .card:hover {
-            transform: translateY(-6px);
-            border-color: rgba(255,255,255,0.3);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4);
         }
 
-        .delete-btn {
-            position: absolute;
-            top: 12px; left: 12px;
-            color: rgba(255,255,255,0.6);
-            transition: all 0.2s;
-        }
-        .card:hover .delete-btn { opacity: 1; }
-        .delete-btn:hover {
-            color: #ff4d4d;
-            transform: scale(1.2);
+        .glass {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
         }
 
-        .pulse-glow {
-            animation: pulse-glow 5s infinite ease-in-out;
-        }
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 0.92; filter: drop-shadow(0 0 12px currentColor); }
-            50% { opacity: 1; filter: drop-shadow(0 0 28px currentColor); }
-        }
-
-        #stars-container {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: -2;
-            overflow: hidden;
-        }
-        .star {
-            position: absolute;
-            border-radius: 50%;
-            opacity: 0;
-            animation: rise linear infinite;
-            box-shadow: 0 0 12px currentColor;
-        }
-        @keyframes rise {
-            0%   { transform: translateY(0) scale(0.4); opacity: 0.8; }
-            5%   { opacity: 1; }
-            95%  { opacity: 1; }
-            100% { transform: translateY(-120vh) scale(0.8); opacity: 0; }
-        }
-
-        #bottom-glow {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            height: 70vh;
-            background: radial-gradient(ellipse at bottom, var(--glow-color) 0%, transparent 60%);
-            pointer-events: none;
-            z-index: -1;
-            opacity: 0.9;
-            mix-blend-mode: screen;
-            transition: background 0.8s ease;
-        }
-
-        [data-theme="default"] {
-            --bg: #000;
-            --glow-color: rgba(255,255,255,0.45);
-            --star-color: white;
-            --big-star-color: white;
-            --grid-border: rgba(255,255,255,0.25);
-        }
-
-        [data-theme="nightmare"] {
-            --bg: #0f0000;
-            --glow-color: rgba(255,40,40,0.65);
-            --star-color: #ff4040;
-            --big-star-color: #ff4040;
-            --grid-border: rgba(255,40,40,0.45);
-        }
-
-        [data-theme="aurora"] {
-            --bg: #001a1a;
-            --glow-color: rgba(0,255,180,0.65);
-            --star-color: #00ffcc;
-            --big-star-color: #00ffcc;
-            --grid-border: rgba(0,255,180,0.45);
-        }
-
-        [data-theme="midnight"] {
-            --bg: #0a0e14;
-            --glow-color: rgba(80,140,255,0.55);
-            --star-color: #4dabff;
-            --big-star-color: #4dabff;
-            --grid-border: rgba(80,140,255,0.35);
-        }
-
-        body { background: var(--bg); }
-        .grid-container, .manage-section { border-color: var(--grid-border); }
-        .star { background: var(--star-color); }
-        .big-star { fill: var(--big-star-color) !important; }
-
-        button.bg-white, button.bg-white:hover {
-            color: #000000 !important;
-        }
-
-        .sortable-item {
-            cursor: move;
-            user-select: none;
-        }
-        .sortable-item.dragging {
-            opacity: 0.6;
-            background: rgba(100,100,100,0.3);
-        }
-
-        .add-new-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 1rem 2rem;
-            border-radius: 9999px;
-            background: white;
-            color: black;
-            font-weight: 500;
-            transition: opacity 0.2s ease;
-        }
-        .add-new-btn:hover {
-            opacity: 0.9;
-        }
-        .add-new-btn i {
-            font-size: 1.25rem;
+        .tail-container {
+            max-width: 1280px;
+            margin-left: auto;
+            margin-right: auto;
         }
     </style>
 </head>
-<body data-theme="default">
-
-    <div id="stars-container"></div>
-    <div id="bottom-glow"></div>
-
-    <!-- NAVBAR -->
-    <nav class="border-b border-gray-800/50 bg-black/70 backdrop-blur-xl fixed w-full z-50 top-0">
-        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-            <div class="flex items-center gap-8">
-                <a href="#" class="home-logo flex items-center gap-3" onclick="showCategory(event, 'home')">
-                    <svg class="h-9 w-9 big-star pulse-glow" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                    </svg>
-                    <span class="logo-font text-3xl font-semibold tracking-tighter">Starlink</span>
-                </a>
-
-                <button onclick="showSettingsModal()" class="bg-gray-900/60 hover:bg-gray-800/80 text-white px-5 py-2 rounded-lg font-medium flex items-center gap-2 backdrop-blur-sm border border-gray-700/50">
-                    <i class="fa-solid fa-cog text-sm"></i> Settings
-                </button>
-            </div>
-
-            <div id="category-tabs" class="flex items-center gap-10 text-sm font-medium overflow-x-auto scrollbar-hide"></div>
-
-            <div class="flex items-center gap-6">
-                <select id="theme-select" onchange="changeTheme(this.value)" class="bg-gray-900/70 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white backdrop-blur-sm">
-                    <option value="default">Default</option>
-                    <option value="nightmare">Nightmare</option>
-                    <option value="aurora">Aurora</option>
-                    <option value="midnight">Midnight</option>
-                </select>
+<body class="min-h-screen flex">
+    <!-- SIDEBAR -->
+    <div class="w-72 bg-zinc-950 border-r border-white/10 flex flex-col fixed h-screen">
+        <!-- Logo -->
+        <div class="p-8 flex items-center gap-x-4 border-b border-white/10">
+            <svg width="48" height="48" viewBox="0 0 200 200" class="star-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M100 10 L120 70 L185 70 L130 110 L150 170 L100 135 L50 170 L70 110 L15 70 L80 70 Z" 
+                      fill="#facc15" stroke="#fff" stroke-width="12" stroke-linejoin="round"/>
+            </svg>
+            <div>
+                <h1 class="logo-font text-4xl font-semibold tracking-tighter text-white">Starlink</h1>
+                <p class="text-[10px] text-yellow-400 tracking-[3px] -mt-1">GATEWAY TO THE STARS</p>
             </div>
         </div>
-    </nav>
 
-    <!-- HOME -->
-    <section id="home" class="category-section active relative">
-        <div class="max-w-5xl mx-auto px-6 pt-32 pb-32 text-center">
-            <div class="flex flex-col items-center gap-6">
-                <svg class="h-40 w-40 md:h-48 md:w-48 big-star pulse-glow" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                </svg>
-                <h1 class="text-8xl md:text-9xl font-semibold logo-font tracking-tighter">Starlink</h1>
-                <p class="text-3xl text-white mt-2">By: Gunnar Booth</p>
-                <p class="text-xl md:text-2xl text-white max-w-4xl mt-10 leading-relaxed">
-                    ★ Starlink is a clean, personal, and fully offline-capable web directory designed to provide fast, unrestricted access to curated online resources. Built as a static site hosted on GitHub Pages, it serves as your private gateway to proxies for bypassing restrictions, browser-based games, music streaming platforms, television/movie streaming alternatives, AI tools, and other essential or entertaining web destinations — all organized, searchable, and under your full control.
-                </p>
+        <!-- Navigation -->
+        <div class="flex-1 px-6 py-8 overflow-y-auto">
+            <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
+                <i class="fa-solid fa-house w-5"></i>
+                <span>Home</span>
+            </div>
+            <div onclick="switchTab(1)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-1">
+                <i class="fa-solid fa-gamepad w-5"></i>
+                <span>Games</span>
+            </div>
+            <div onclick="switchTab(2)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-2">
+                <i class="fa-solid fa-brain w-5"></i>
+                <span>AI Tools</span>
+            </div>
+            <div onclick="switchTab(3)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-3">
+                <i class="fa-solid fa-tv w-5"></i>
+                <span>TV &amp; Streaming</span>
+            </div>
+            <div onclick="switchTab(4)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-4">
+                <i class="fa-solid fa-shield-halved w-5"></i>
+                <span>Proxies</span>
+            </div>
+            <div onclick="switchTab(5)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-5">
+                <i class="fa-solid fa-music w-5"></i>
+                <span>Music</span>
             </div>
         </div>
-    </section>
 
-    <!-- Dynamic category sections -->
-    <div id="dynamic-sections"></div>
+        <!-- Quick Proxy Bar -->
+        <div class="p-6 border-t border-white/10">
+            <div class="glass rounded-3xl p-5">
+                <p class="text-xs uppercase tracking-widest text-yellow-400 mb-2">Instant Proxy</p>
+                <div class="flex gap-x-2">
+                    <input id="proxy-url" 
+                           type="text" 
+                           placeholder="https://example.com"
+                           class="flex-1 bg-zinc-900 border border-white/20 rounded-2xl px-5 py-3 text-sm focus:outline-none focus:border-yellow-400 transition-colors">
+                    <button onclick="launchProxy()" 
+                            class="bg-yellow-400 hover:bg-yellow-300 transition-colors text-zinc-950 font-semibold px-8 rounded-2xl flex items-center gap-x-2">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+                <p class="text-[10px] text-white/50 mt-3">Bypasses restrictions instantly</p>
+            </div>
+        </div>
 
-    <!-- Settings Modal (was Manage Categories) -->
-    <div id="settings-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
-        <div class="bg-gray-900 rounded-2xl p-8 w-full max-w-lg mx-4 border border-gray-800">
-            <h3 class="text-2xl font-semibold mb-6 text-white">Settings</h3>
+        <!-- Footer -->
+        <div class="p-6 text-xs text-white/40 flex items-center justify-between border-t border-white/10">
+            <div>Made with ❤️ for unlimited access</div>
+            <button onclick="showSettings()" 
+                    class="flex items-center gap-x-2 hover:text-yellow-400 transition-colors">
+                <i class="fa-solid fa-gear"></i>
+                <span>Settings</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 ml-72">
+        <!-- Top Bar -->
+        <div class="h-16 border-b border-white/10 bg-zinc-950/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50">
+            <div class="h-full px-10 flex items-center justify-between">
+                <div class="flex items-center gap-x-8">
+                    <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Home</div>
+                    
+                    <!-- Search -->
+                    <div class="relative w-96">
+                        <input id="search-input" 
+                               onkeyup="if(event.key === 'Enter') filterCards()"
+                               type="text" 
+                               placeholder="Search any site or category..." 
+                               class="w-full bg-zinc-900 border border-white/20 rounded-3xl py-3 pl-12 pr-6 text-sm focus:outline-none focus:border-yellow-400">
+                        <i class="fa-solid fa-magnifying-glass absolute left-5 top-3.5 text-white/40"></i>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-x-6">
+                    <!-- Theme indicator -->
+                    <div onclick="showSettings()" 
+                         class="flex items-center gap-x-2 bg-zinc-900 hover:bg-zinc-800 transition-colors border border-white/10 rounded-3xl px-5 py-2 text-sm cursor-pointer">
+                        <span id="theme-name" class="text-yellow-400">Space Dark</span>
+                        <i class="fa-solid fa-palette"></i>
+                    </div>
+
+                    <div class="w-9 h-9 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl flex items-center justify-center text-zinc-950 font-bold cursor-pointer" onclick="showSettings()">
+                        G
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="pt-24 pb-12 px-10 tail-container">
             
-            <div class="mb-8">
-                <label class="block text-sm font-medium mb-2 text-white">Add New Category</label>
-                <div class="flex gap-3">
-                    <input id="new-category-name" type="text" class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white" placeholder="e.g. Proxies">
-                    <button onclick="addCategory()" class="bg-white text-black px-6 py-2 rounded-lg font-medium hover:opacity-90">Add</button>
+            <!-- HOME TAB -->
+            <div id="content-0" class="tab-content">
+                <div class="mb-12">
+                    <h2 class="text-5xl font-semibold logo-font tracking-tighter mb-2">Welcome back, Voyager</h2>
+                    <p class="text-xl text-white/60">Your personal unblocked gateway • Powered by Starlink</p>
+                </div>
+
+                <!-- Featured -->
+                <div class="mb-16">
+                    <div class="flex items-end justify-between mb-6">
+                        <h3 class="text-2xl font-semibold">Featured Destinations</h3>
+                        <a onclick="switchTab(1)" class="text-yellow-400 text-sm flex items-center gap-x-2 hover:underline cursor-pointer">
+                            Explore all <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="grid grid-cols-5 gap-6" id="featured-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Quick Categories -->
+                <div>
+                    <h3 class="text-2xl font-semibold mb-6">Jump to Category</h3>
+                    <div class="grid grid-cols-5 gap-6">
+                        <div onclick="switchTab(1)" class="card glass border border-white/10 rounded-3xl p-8 cursor-pointer hover:border-yellow-400/30">
+                            <i class="fa-solid fa-gamepad text-5xl mb-6 text-yellow-400"></i>
+                            <div class="text-2xl font-medium">Games</div>
+                            <div class="text-white/60 text-sm mt-1">Unblocked • 100+ titles</div>
+                        </div>
+                        <div onclick="switchTab(2)" class="card glass border border-white/10 rounded-3xl p-8 cursor-pointer hover:border-yellow-400/30">
+                            <i class="fa-solid fa-brain text-5xl mb-6 text-blue-400"></i>
+                            <div class="text-2xl font-medium">AI Tools</div>
+                            <div class="text-white/60 text-sm mt-1">Chat • Generate • Code</div>
+                        </div>
+                        <div onclick="switchTab(3)" class="card glass border border-white/10 rounded-3xl p-8 cursor-pointer hover:border-yellow-400/30">
+                            <i class="fa-solid fa-tv text-5xl mb-6 text-red-400"></i>
+                            <div class="text-2xl font-medium">Live TV</div>
+                            <div class="text-white/60 text-sm mt-1">Movies • Sports • Shows</div>
+                        </div>
+                        <div onclick="switchTab(4)" class="card glass border border-white/10 rounded-3xl p-8 cursor-pointer hover:border-yellow-400/30">
+                            <i class="fa-solid fa-shield-halved text-5xl mb-6 text-emerald-400"></i>
+                            <div class="text-2xl font-medium">Proxies</div>
+                            <div class="text-white/60 text-sm mt-1">Instant bypass</div>
+                        </div>
+                        <div onclick="switchTab(5)" class="card glass border border-white/10 rounded-3xl p-8 cursor-pointer hover:border-yellow-400/30">
+                            <i class="fa-solid fa-music text-5xl mb-6 text-purple-400"></i>
+                            <div class="text-2xl font-medium">Music</div>
+                            <div class="text-white/60 text-sm mt-1">Stream anything</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="mb-6">
-                <label class="block text-sm font-medium mb-2 text-white">Current Categories (drag to reorder)</label>
-                <div id="category-list" class="max-h-60 overflow-y-auto space-y-3 pr-2"></div>
+            <!-- GAMES TAB -->
+            <div id="content-1" class="tab-content hidden">
+                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
+                    <i class="fa-solid fa-gamepad"></i> Games
+                </h2>
+                <div class="grid grid-cols-6 gap-6" id="games-grid"></div>
             </div>
 
-            <div class="flex flex-col sm:flex-row gap-4 mt-8">
-                <button onclick="clearAllCategories()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-trash-can"></i> Clear All Categories
-                </button>
-                <button onclick="deleteEverything()" class="bg-red-800 hover:bg-red-900 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-skull-crossbones"></i> Delete Everything
-                </button>
-                <button onclick="hideSettingsModal()" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Close</button>
+            <!-- AI TAB -->
+            <div id="content-2" class="tab-content hidden">
+                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
+                    <i class="fa-solid fa-brain"></i> AI Tools
+                </h2>
+                <div class="grid grid-cols-6 gap-6" id="ai-grid"></div>
+            </div>
+
+            <!-- TV TAB -->
+            <div id="content-3" class="tab-content hidden">
+                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
+                    <i class="fa-solid fa-tv"></i> TV &amp; Streaming
+                </h2>
+                <div class="grid grid-cols-6 gap-6" id="tv-grid"></div>
+            </div>
+
+            <!-- PROXIES TAB -->
+            <div id="content-4" class="tab-content hidden">
+                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
+                    <i class="fa-solid fa-shield-halved"></i> Proxy Network
+                </h2>
+                
+                <!-- Instant Proxy -->
+                <div class="glass border border-yellow-400/30 rounded-3xl p-10 mb-12">
+                    <div class="max-w-md mx-auto text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-yellow-400/10 rounded-2xl mb-6">
+                            <i class="fa-solid fa-globe text-4xl text-yellow-400"></i>
+                        </div>
+                        <h3 class="text-3xl font-semibold mb-3">Starlink Instant Proxy</h3>
+                        <p class="text-white/70 mb-8">Enter any URL and bypass restrictions in one click</p>
+                        
+                        <div class="flex gap-3">
+                            <input id="big-proxy-input" type="text" placeholder="https://youtube.com" 
+                                   class="flex-1 bg-zinc-900 border border-white/30 focus:border-yellow-400 rounded-3xl px-8 py-5 text-lg">
+                            <button onclick="launchBigProxy()" 
+                                    class="bg-yellow-400 text-black font-bold px-16 rounded-3xl text-lg hover:scale-105 transition-transform">
+                                LAUNCH
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-6 gap-6" id="proxy-grid"></div>
+            </div>
+
+            <!-- MUSIC TAB -->
+            <div id="content-5" class="tab-content hidden">
+                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
+                    <i class="fa-solid fa-music"></i> Music
+                </h2>
+                <div class="grid grid-cols-6 gap-6" id="music-grid"></div>
             </div>
         </div>
     </div>
 
-    <!-- Add Link Modal -->
-    <div id="add-link-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
-        <div class="bg-gray-900 rounded-2xl p-8 w-full max-w-md mx-4 border border-gray-800">
-            <h3 class="text-2xl font-semibold mb-6 text-white">Add New Link</h3>
-            <div class="space-y-5">
-                <div>
-                    <label class="block text-sm font-medium mb-1.5 text-white">Name</label>
-                    <input id="link-name" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1.5 text-white">URL</label>
-                    <input id="link-url" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1.5 text-white">Description (optional)</label>
-                    <input id="link-desc" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1.5 text-white">Category</label>
-                    <select id="link-category" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white"></select>
+    <!-- SETTINGS MODAL -->
+    <div onclick="if(event.target.id==='settings-modal') hideSettings()" id="settings-modal"
+         class="hidden fixed inset-0 bg-black/80 backdrop-blur-xl z-[999] flex items-center justify-center">
+        <div onclick="event.stopImmediatePropagation()" 
+             class="bg-zinc-900 rounded-3xl max-w-md w-full mx-4 overflow-hidden">
+            
+            <!-- Header -->
+            <div class="px-8 py-6 border-b border-white/10 flex items-center justify-between">
+                <div class="text-2xl font-semibold">Settings</div>
+                <button onclick="hideSettings()" class="text-white/60 hover:text-white">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- Themes -->
+            <div class="p-8">
+                <p class="uppercase text-xs tracking-widest text-white/50 mb-4">Themes</p>
+                <div class="grid grid-cols-4 gap-4">
+                    <!-- Theme 1 -->
+                    <div onclick="setTheme('dark')" 
+                         class="cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all">
+                        <div class="h-20 bg-zinc-950 flex items-center justify-center">
+                            <span class="text-yellow-400 text-4xl">★</span>
+                        </div>
+                        <div class="text-center py-3 text-sm font-medium bg-zinc-900">Space Dark</div>
+                    </div>
+                    
+                    <!-- Theme 2 -->
+                    <div onclick="setTheme('light')" 
+                         class="cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all">
+                        <div class="h-20 bg-white flex items-center justify-center border border-zinc-200">
+                            <span class="text-yellow-400 text-4xl">★</span>
+                        </div>
+                        <div class="text-center py-3 text-sm font-medium bg-white text-black">Classic Light</div>
+                    </div>
+                    
+                    <!-- Theme 3 -->
+                    <div onclick="setTheme('cosmic')" 
+                         class="cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all">
+                        <div class="h-20 bg-slate-900 flex items-center justify-center">
+                            <span class="text-sky-400 text-4xl">★</span>
+                        </div>
+                        <div class="text-center py-3 text-sm font-medium bg-slate-900">Cosmic Blue</div>
+                    </div>
+                    
+                    <!-- Theme 4 -->
+                    <div onclick="setTheme('neon')" 
+                         class="cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all">
+                        <div class="h-20 bg-neutral-950 flex items-center justify-center">
+                            <span class="text-lime-400 text-4xl">★</span>
+                        </div>
+                        <div class="text-center py-3 text-sm font-medium bg-neutral-950">Neon Glow</div>
+                    </div>
                 </div>
             </div>
-            <div class="flex gap-4 mt-8">
-                <button onclick="hideAddLinkModal()" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Cancel</button>
-                <button onclick="saveNewLink()" class="flex-1 py-3 bg-white text-black rounded-lg font-medium hover:opacity-90 transition-opacity">Add</button>
+
+            <!-- Extra options -->
+            <div class="px-8 py-6 border-t border-white/10 text-sm">
+                <div class="flex justify-between items-center py-4 border-b border-white/10">
+                    <div class="flex items-center gap-x-3">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        <span>Open links in new tab</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" checked class="sr-only peer" id="newtab-toggle">
+                        <div class="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-400"></div>
+                    </label>
+                </div>
+                
+                <div onclick="clearCustomLinks()" 
+                     class="flex items-center gap-x-3 py-4 text-red-400 hover:text-red-300 cursor-pointer">
+                    <i class="fa-solid fa-trash"></i>
+                    <span>Reset all custom links</span>
+                </div>
+            </div>
+
+            <div class="px-8 py-6 bg-black/40 text-center text-xs text-white/40">
+                Starlink v1.0 • Fully local • No data collected
             </div>
         </div>
     </div>
 
     <script>
-        let categories = JSON.parse(localStorage.getItem('starlinkCategories')) || [];
-        let sites = JSON.parse(localStorage.getItem('starlinkSites')) || [];
-
-        function saveCategories() { localStorage.setItem('starlinkCategories', JSON.stringify(categories)); }
-        function saveSites() { localStorage.setItem('starlinkSites', JSON.stringify(sites)); }
-
-        function sanitizeId(name) {
-            return 'cat-' + name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-        }
-
-        function renderNavbar() {
-            const container = document.getElementById('category-tabs');
-            container.innerHTML = '';
-
-            categories.forEach(cat => {
-                const tab = document.createElement('a');
-                tab.href = `#${sanitizeId(cat)}`;
-                tab.className = 'tab';
-                tab.dataset.category = sanitizeId(cat);
-                tab.textContent = cat;
-                tab.onclick = (e) => showCategory(e, sanitizeId(cat));
-                container.appendChild(tab);
-            });
-        }
-
-        function renderDynamicSections() {
-            const container = document.getElementById('dynamic-sections');
-            container.innerHTML = '';
-
-            categories.forEach(cat => {
-                const id = sanitizeId(cat);
-                const section = document.createElement('section');
-                section.id = id;
-                section.className = 'category-section hidden';
-                section.innerHTML = `
-                    <div class="max-w-7xl mx-auto px-6 py-20">
-                        <h2 class="text-7xl font-semibold logo-font tracking-tighter mb-20 text-center text-white">${cat}</h2>
-                        <div class="grid-container">
-                            <div id="grid-${id}" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-                        </div>
-                        <div id="manage-${id}" class="manage-section mt-20"></div>
-                    </div>
-                `;
-                container.appendChild(section);
-            });
-        }
-
-        function renderCategoryGrid(cat) {
-            const id = sanitizeId(cat);
-            const grid = document.getElementById(`grid-${id}`);
-            const manageDiv = document.getElementById(`manage-${id}`);
-            if (!grid || !manageDiv) return;
-
-            grid.innerHTML = '';
-            manageDiv.innerHTML = '';
-
-            const catSites = sites.filter(s => s.category === cat);
-
-            if (catSites.length === 0) {
-                grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-32 text-xl">No links yet in this category</p>';
-            } else {
-                catSites.forEach(site => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.onclick = () => window.open(site.url, '_blank');
-                    card.innerHTML = `
-                        <button class="delete-btn absolute top-3 left-3 text-gray-400 hover:text-red-400 z-10" 
-                                onclick="event.stopPropagation(); deleteSite('${site.id}');">
-                            <i class="fa-solid fa-trash-can text-xl"></i>
-                        </button>
-                        <div class="flex items-start justify-between mb-3 pl-10">
-                            <h3 class="text-xl font-semibold group-hover:text-white">${site.name}</h3>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-gray-400 group-hover:text-white"></i>
-                        </div>
-                        <p class="text-sm text-gray-500">${site.desc || ''}</p>
-                    `;
-                    grid.appendChild(card);
-                });
-            }
-
-            manageDiv.innerHTML = `
-                <div class="text-center">
-                    <h3 class="text-2xl font-semibold mb-6 text-white">Manage ${cat}</h3>
-                    <div class="flex justify-center gap-8">
-                        <button onclick="showAddLinkModal('${cat}')" 
-                                class="add-new-btn">
-                            <i class="fa-solid fa-plus"></i> Add New
-                        </button>
-                        <button onclick="clearCategory('${cat}')" 
-                                class="border-2 border-white px-8 py-4 rounded-full font-medium hover:bg-white hover:text-black flex items-center gap-3 text-lg">
-                            <i class="fa-solid fa-trash-can"></i> Clear This Category
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderAllGrids() {
-            categories.forEach(cat => renderCategoryGrid(cat));
-        }
-
-        function deleteSite(id) {
-            if (!confirm('Delete this link?')) return;
-            sites = sites.filter(s => s.id !== id);
-            saveSites();
-            renderAllGrids();
-        }
-
-        function clearCategory(cat) {
-            if (!confirm(`Clear all links in ${cat}?`)) return;
-            sites = sites.filter(s => s.category !== cat);
-            saveSites();
-            renderCategoryGrid(cat);
-        }
-
-        function clearAllCategories() {
-            if (!confirm('Clear ALL categories and their links? This cannot be undone.')) return;
-            categories = [];
-            sites = [];
-            saveCategories();
-            saveSites();
-            renderNavbar();
-            renderDynamicSections();
-            renderAllGrids();
-            hideSettingsModal();
-        }
-
-        function deleteEverything() {
-            if (!confirm('Delete EVERYTHING (categories, links, theme, everything)? This cannot be undone.')) return;
-            if (!confirm('Are you 100% sure? All your data will be permanently lost.')) return;
-
-            localStorage.clear();
-            location.reload();
-        }
-
-        function showCategory(e, catId) {
-            e.preventDefault();
-            document.querySelectorAll('.category-section').forEach(s => s.classList.remove('active'));
-            document.getElementById(catId === 'home' ? 'home' : catId).classList.add('active');
-
-            document.querySelectorAll('.tab, .home-logo').forEach(el => el.classList.remove('active'));
-            if (catId === 'home') {
-                document.querySelector('.home-logo').classList.add('active');
-            } else {
-                document.querySelectorAll('.tab').forEach(t => {
-                    if (t.dataset.category === catId) t.classList.add('active');
-                });
-            }
-        }
-
-        function showSettingsModal() {
-            const modal = document.getElementById('settings-modal');
-            modal.style.display = 'flex';
-
-            const list = document.getElementById('category-list');
-            list.innerHTML = '';
-
-            if (categories.length === 0) {
-                list.innerHTML = '<p class="text-gray-500 text-center py-4">No categories yet</p>';
-            } else {
-                categories.forEach((cat, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'sortable-item flex items-center justify-between bg-gray-800 p-3 rounded-lg cursor-move select-none';
-                    item.draggable = true;
-                    item.dataset.index = index;
-                    item.innerHTML = `
-                        <div class="flex items-center gap-3 flex-1">
-                            <i class="fa-solid fa-grip-vertical text-gray-500 cursor-move"></i>
-                            <span class="text-white">${cat}</span>
-                        </div>
-                        <div class="flex gap-3">
-                            <button onclick="removeCategory('${cat.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </div>
-                    `;
-                    list.appendChild(item);
-                });
-
-                let draggedItem = null;
-
-                list.addEventListener('dragstart', e => {
-                    draggedItem = e.target.closest('.sortable-item');
-                    if (draggedItem) {
-                        draggedItem.classList.add('dragging');
-                        e.dataTransfer.effectAllowed = 'move';
-                    }
-                });
-
-                list.addEventListener('dragover', e => {
-                    e.preventDefault();
-                    const afterElement = getDragAfterElement(list, e.clientY);
-                    const dragging = document.querySelector('.dragging');
-                    if (afterElement == null) {
-                        list.appendChild(dragging);
-                    } else {
-                        list.insertBefore(dragging, afterElement);
-                    }
-                });
-
-                list.addEventListener('dragend', e => {
-                    if (draggedItem) {
-                        draggedItem.classList.remove('dragging');
-                        const newOrder = Array.from(list.children).map(item => {
-                            return item.querySelector('span').textContent;
-                        });
-                        categories = newOrder;
-                        saveCategories();
-                        renderNavbar();
-                        renderDynamicSections();
-                        renderAllGrids();
-                        hideSettingsModal();
-                        setTimeout(showSettingsModal, 0);
-                    }
-                });
-
-                function getDragAfterElement(container, y) {
-                    const draggableElements = [...container.querySelectorAll('.sortable-item:not(.dragging)')];
-
-                    return draggableElements.reduce((closest, child) => {
-                        const box = child.getBoundingClientRect();
-                        const offset = y - box.top - box.height / 2;
-                        if (offset < 0 && offset > closest.offset) {
-                            return { offset: offset, element: child };
-                        } else {
-                            return closest;
-                        }
-                    }, { offset: Number.NEGATIVE_INFINITY }).element;
+        // Tailwind script init
+        function initTailwind() {
+            tailwind.config = {
+                content: [],
+                theme: {
+                    extend: {}
                 }
             }
         }
 
-        function hideSettingsModal() {
-            document.getElementById('settings-modal').style.display = 'none';
+        // Data
+        const sites = {
+            games: [
+                { name: "Poki", url: "https://poki.com", desc: "Thousands of free games", icon: "🎮" },
+                { name: "CrazyGames", url: "https://crazygames.com", desc: "Browser hits", icon: "🚀" },
+                { name: "itch.io", url: "https://itch.io", desc: "Indie games", icon: "🕹️" },
+                { name: "Roblox", url: "https://roblox.com", desc: "Play with friends", icon: "📦" },
+                { name: "Coolmath Games", url: "https://coolmathgames.com", desc: "School classics", icon: "🧠" },
+                { name: "Minecraft Classic", url: "https://classic.minecraft.net", desc: "Free version", icon: "⛏️" }
+            ],
+            ai: [
+                { name: "ChatGPT", url: "https://chatgpt.com", desc: "OpenAI", icon: "🤖" },
+                { name: "Grok", url: "https://grok.x.ai", desc: "by xAI", icon: "⭐" },
+                { name: "Claude", url: "https://claude.ai", desc: "Anthropic", icon: "🧠" },
+                { name: "Gemini", url: "https://gemini.google.com", desc: "Google", icon: "🔭" },
+                { name: "Perplexity", url: "https://perplexity.ai", desc: "Research AI", icon: "🔍" },
+                { name: "Blackbox", url: "https://blackbox.ai", desc: "Code AI", icon: "💻" }
+            ],
+            tv: [
+                { name: "YouTube", url: "https://youtube.com", desc: "Videos & Live", icon: "📺" },
+                { name: "Tubi", url: "https://tubitv.com", desc: "Free movies", icon: "🎥" },
+                { name: "Pluto TV", url: "https://pluto.tv", desc: "Live channels", icon: "📡" },
+                { name: "Netflix", url: "https://netflix.com", desc: "Premium shows", icon: "🎬" },
+                { name: "Disney+", url: "https://disneyplus.com", desc: "Family & Marvel", icon: "🏰" },
+                { name: "Twitch", url: "https://twitch.tv", desc: "Live gaming", icon: "🎮" }
+            ],
+            proxies: [
+                { name: "CroxyProxy", url: "https://www.croxyproxy.com", desc: "YouTube & more", icon: "🌐" },
+                { name: "ProxySite", url: "https://www.proxysite.com", desc: "Fast & simple", icon: "⚡" },
+                { name: "Hide.me", url: "https://hide.me/en/proxy", desc: "Privacy first", icon: "🕵️" },
+                { name: "KProxy", url: "https://kproxy.com", desc: "No sign-up", icon: "🔑" },
+                { name: "Proxyium", url: "https://proxyium.com", desc: "Ultra fast", icon: "🚀" },
+                { name: "SudoProxy", url: "https://sudoproxy.net", desc: "School friendly", icon: "🏫" }
+            ],
+            music: [
+                { name: "Spotify", url: "https://open.spotify.com", desc: "Millions of songs", icon: "🎵" },
+                { name: "YouTube Music", url: "https://music.youtube.com", desc: "Free with ads", icon: "🎧" },
+                { name: "SoundCloud", url: "https://soundcloud.com", desc: "Underground hits", icon: "🔊" },
+                { name: "Bandcamp", url: "https://bandcamp.com", desc: "Support artists", icon: "💿" },
+                { name: "Deezer", url: "https://deezer.com", desc: "High quality", icon: "📻" },
+                { name: "iHeartRadio", url: "https://iheart.com", desc: "Live radio", icon: "📻" }
+            ]
         }
 
-        function addCategory() {
-            const nameInput = document.getElementById('new-category-name');
-            const name = nameInput.value.trim();
-            if (!name) return alert('Category name required!');
-            if (categories.includes(name)) return alert('Category already exists!');
-            categories.push(name);
-            saveCategories();
-            renderNavbar();
-            renderDynamicSections();
-            renderAllGrids();
-            nameInput.value = '';
-            showSettingsModal();
-        }
+        let currentTab = 0
+        let customLinks = []
 
-        function removeCategory(cat) {
-            if (!confirm(`Remove category "${cat}"? All links in it will be deleted.`)) return;
-            categories = categories.filter(c => c !== cat);
-            sites = sites.filter(s => s.category !== cat);
-            saveCategories();
-            saveSites();
-            renderNavbar();
-            renderDynamicSections();
-            renderAllGrids();
-            showSettingsModal();
-        }
-
-        function showAddLinkModal(cat = categories[0] || '') {
-            document.getElementById('add-link-modal').style.display = 'flex';
-            const select = document.getElementById('link-category');
-            select.innerHTML = '';
-            categories.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c;
-                opt.textContent = c;
-                select.appendChild(opt);
-            });
-            if (cat && categories.includes(cat)) select.value = cat;
-
-            document.getElementById('link-name').value = '';
-            document.getElementById('link-url').value = '';
-            document.getElementById('link-desc').value = '';
-        }
-
-        function hideAddLinkModal() {
-            document.getElementById('add-link-modal').style.display = 'none';
-        }
-
-        function saveNewLink() {
-            const name = document.getElementById('link-name').value.trim();
-            const url = document.getElementById('link-url').value.trim();
-            const desc = document.getElementById('link-desc').value.trim();
-            const category = document.getElementById('link-category').value;
-
-            if (!name || !url || !category) {
-                alert('Name, URL, and Category required!');
-                return;
-            }
-
-            let fullUrl = url.startsWith('http') ? url : 'https://' + url;
-            sites.push({ id: Date.now().toString(), name, url: fullUrl, desc, category });
-            saveSites();
-            renderAllGrids();
-            hideAddLinkModal();
-        }
-
-        function createStar(x = null, y = null) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            const size = Math.random() * 3.5 + 1.5;
-            star.style.width = star.style.height = size + 'px';
+        function populateGrid(category, containerId) {
+            const container = document.getElementById(containerId)
+            container.innerHTML = ''
             
-            if (x !== null && y !== null) {
-                star.style.left = x + 'px';
-                star.style.top = y + 'px';
-                star.style.animationDelay = '0s';
-            } else {
-                star.style.left = Math.random() * 100 + 'vw';
-                star.style.top = '100vh';
-                star.style.animationDelay = Math.random() * 2 + 's';
+            sites[category].forEach(site => {
+                const card = document.createElement('div')
+                card.className = `card glass border border-white/10 rounded-3xl p-6 cursor-pointer group`
+                card.innerHTML = `
+                    <div class="text-5xl mb-8 transition-transform group-hover:scale-125">${site.icon}</div>
+                    <div class="font-semibold text-xl mb-1">${site.name}</div>
+                    <div class="text-white/60 text-sm line-clamp-2">${site.desc}</div>
+                `
+                card.onclick = () => {
+                    const openInNew = document.getElementById('newtab-toggle').checked
+                    if (openInNew) {
+                        window.open(site.url, '_blank')
+                    } else {
+                        window.location = site.url
+                    }
+                }
+                container.appendChild(card)
+            })
+        }
+
+        function populateFeatured() {
+            const container = document.getElementById('featured-grid')
+            container.innerHTML = ''
+            
+            // Mix of popular ones
+            const mix = [
+                ...sites.games.slice(0,2),
+                ...sites.ai.slice(0,1),
+                ...sites.tv.slice(0,1),
+                ...sites.music.slice(0,1)
+            ]
+            
+            mix.forEach(site => {
+                const card = document.createElement('div')
+                card.className = `card glass border border-white/10 rounded-3xl p-6 cursor-pointer`
+                card.innerHTML = `
+                    <div class="text-6xl mb-6">${site.icon}</div>
+                    <div class="font-medium">${site.name}</div>
+                `
+                card.onclick = () => window.open(site.url, '_blank')
+                container.appendChild(card)
+            })
+        }
+
+        function switchTab(tabIndex) {
+            // Remove active from all
+            document.querySelectorAll('.nav-link').forEach(el => {
+                el.classList.remove('bg-white/10', 'active-tab')
+            })
+            
+            // Add active
+            const activeEl = document.getElementById(`tab-${tabIndex}`)
+            activeEl.classList.add('bg-white/10', 'active-tab')
+            
+            // Hide all content
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'))
+            
+            // Show selected
+            document.getElementById(`content-${tabIndex}`).classList.remove('hidden')
+            
+            // Update header
+            const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music"]
+            document.getElementById('current-tab').textContent = titles[tabIndex]
+            
+            currentTab = tabIndex
+        }
+
+        function launchProxy() {
+            const input = document.getElementById('proxy-url')
+            let url = input.value.trim()
+            
+            if (!url) {
+                url = "https://www.google.com"
             }
             
-            star.style.animationDuration = (Math.random() * 50 + 60) + 's';
-            document.getElementById('stars-container').appendChild(star);
-            setTimeout(() => star.remove(), 180000);
+            if (!url.startsWith('http')) url = 'https://' + url
+            
+            // Open through CroxyProxy (most reliable public proxy)
+            const proxyUrl = `https://www.croxyproxy.com/?url=${encodeURIComponent(url)}`
+            window.open(proxyUrl, '_blank')
         }
 
-        function initStars() {
-            for (let i = 0; i < 40; i++) createStar();
-            setInterval(() => createStar(), 1200);
+        function launchBigProxy() {
+            const input = document.getElementById('big-proxy-input')
+            let url = input.value.trim() || "https://youtube.com"
+            if (!url.startsWith('http')) url = 'https://' + url
+            const proxyUrl = `https://www.croxyproxy.com/?url=${encodeURIComponent(url)}`
+            window.open(proxyUrl, '_blank')
         }
 
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('button, a, input, select, .card, nav, #settings-modal, #add-link-modal')) {
-                return;
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme)
+            
+            const names = {
+                dark: "Space Dark",
+                light: "Classic Light",
+                cosmic: "Cosmic Blue",
+                neon: "Neon Glow"
             }
-            createStar(e.clientX, e.clientY);
-        });
-
-        function changeTheme(theme) {
-            document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('starlinkTheme', theme);
-
-            const glow = document.getElementById('bottom-glow');
-            const stars = document.querySelectorAll('.star');
-            const bigStars = document.querySelectorAll('.big-star');
-
-            let starColor, glowColor;
-
-            if (theme === 'default') {
-                glowColor = 'rgba(255,255,255,0.45)';
-                starColor = 'white';
-            } else if (theme === 'nightmare') {
-                glowColor = 'rgba(255,40,40,0.65)';
-                starColor = '#ff4040';
-            } else if (theme === 'aurora') {
-                glowColor = 'rgba(0,255,180,0.65)';
-                starColor = '#00ffcc';
-            } else if (theme === 'midnight') {
-                glowColor = 'rgba(80,140,255,0.55)';
-                starColor = '#4dabff';
-            }
-
-            glow.style.background = `radial-gradient(ellipse at bottom, ${glowColor} 0%, transparent 60%)`;
-            stars.forEach(s => {
-                s.style.background = starColor;
-                s.style.boxShadow = `0 0 12px ${starColor}`;
-            });
-            bigStars.forEach(s => {
-                s.style.fill = starColor;
-                s.style.color = starColor;
-            });
+            document.getElementById('theme-name').textContent = names[theme]
+            hideSettings()
         }
 
-        const savedTheme = localStorage.getItem('starlinkTheme') || 'default';
-        changeTheme(savedTheme);
-        document.getElementById('theme-select').value = savedTheme;
+        function showSettings() {
+            document.getElementById('settings-modal').classList.remove('hidden')
+            document.getElementById('settings-modal').classList.add('flex')
+        }
 
-        window.addEventListener('load', () => {
-            initStars();
-            renderNavbar();
-            renderDynamicSections();
-            renderAllGrids();
-            showCategory({ preventDefault: () => {} }, 'home');
-        });
+        function hideSettings() {
+            const modal = document.getElementById('settings-modal')
+            modal.classList.add('hidden')
+            modal.classList.remove('flex')
+        }
+
+        function filterCards() {
+            const term = document.getElementById('search-input').value.toLowerCase().trim()
+            if (!term) return
+            
+            // Simple global search - opens first match
+            let allSites = []
+            Object.keys(sites).forEach(cat => {
+                allSites = allSites.concat(sites[cat])
+            })
+            
+            const match = allSites.find(site => 
+                site.name.toLowerCase().includes(term) || 
+                site.desc.toLowerCase().includes(term)
+            )
+            
+            if (match) {
+                window.open(match.url, '_blank')
+                document.getElementById('search-input').value = ''
+            }
+        }
+
+        function clearCustomLinks() {
+            if (confirm('Reset everything?')) {
+                localStorage.removeItem('starlinkCustom')
+                alert('All custom links cleared!')
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.metaKey && e.key === 'k') {
+                e.preventDefault()
+                document.getElementById('search-input').focus()
+            }
+        })
+
+        // Initialize everything
+        function initialize() {
+            initTailwind()
+            
+            // Populate all grids
+            populateGrid('games', 'games-grid')
+            populateGrid('ai', 'ai-grid')
+            populateGrid('tv', 'tv-grid')
+            populateGrid('proxies', 'proxy-grid')
+            populateGrid('music', 'music-grid')
+            populateFeatured()
+            
+            // Default tab
+            switchTab(0)
+            
+            // Set initial theme name
+            document.getElementById('theme-name').textContent = "Space Dark"
+            
+            // Make sure modal is hidden
+            document.getElementById('settings-modal').classList.add('hidden')
+            
+            // Demo message
+            console.log('%cStarlink loaded successfully 🚀\nCopy this file and open in any browser!', 'color:#facc15; font-family:monospace')
+        }
+
+        // Auto start
+        window.onload = initialize
     </script>
 </body>
 </html>
