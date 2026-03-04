@@ -107,7 +107,7 @@
             50% { opacity: 1; filter: drop-shadow(0 0 28px currentColor); }
         }
 
-        /* Stars - slightly larger */
+        /* Stars - theme-aware */
         #stars-container {
             position: fixed;
             inset: 0;
@@ -147,6 +147,7 @@
             --bg: #000;
             --glow-color: rgba(255,255,255,0.45);
             --star-color: white;
+            --big-star-color: white;
             --grid-border: rgba(255,255,255,0.25);
         }
 
@@ -154,6 +155,7 @@
             --bg: #0f0000;
             --glow-color: rgba(255,40,40,0.65);
             --star-color: #ff4040;
+            --big-star-color: #ff4040;
             --grid-border: rgba(255,40,40,0.45);
         }
 
@@ -161,6 +163,7 @@
             --bg: #001a1a;
             --glow-color: rgba(0,255,180,0.65);
             --star-color: #00ffcc;
+            --big-star-color: #00ffcc;
             --grid-border: rgba(0,255,180,0.45);
         }
 
@@ -168,16 +171,28 @@
             --bg: #0a0e14;
             --glow-color: rgba(80,140,255,0.55);
             --star-color: #4dabff;
+            --big-star-color: #4dabff;
             --grid-border: rgba(80,140,255,0.35);
         }
 
         body { background: var(--bg); }
         .grid-container, .manage-section { border-color: var(--grid-border); }
         .star { background: var(--star-color); }
+        .big-star { fill: var(--big-star-color) !important; }
 
         /* White buttons → black text */
         button.bg-white, button.bg-white:hover {
             color: #000000 !important;
+        }
+
+        /* Draggable category items */
+        .sortable-item {
+            cursor: move;
+            user-select: none;
+        }
+        .sortable-item.dragging {
+            opacity: 0.6;
+            background: rgba(100,100,100,0.3);
         }
     </style>
 </head>
@@ -194,7 +209,7 @@
         <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
             <div class="flex items-center gap-8">
                 <a href="#" class="home-logo flex items-center gap-3" onclick="showCategory(event, 'home')">
-                    <svg class="h-9 w-9 text-white pulse-glow" viewBox="0 0 24 24" fill="currentColor">
+                    <svg class="h-9 w-9 big-star pulse-glow" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                     </svg>
                     <span class="logo-font text-3xl font-semibold tracking-tighter">Starlink</span>
@@ -222,7 +237,7 @@
     <section id="home" class="category-section active relative">
         <div class="max-w-5xl mx-auto px-6 pt-32 pb-32 text-center">
             <div class="flex flex-col items-center gap-6">
-                <svg class="h-40 w-40 md:h-48 md:w-48 text-white pulse-glow" viewBox="0 0 24 24" fill="currentColor">
+                <svg class="h-40 w-40 md:h-48 md:w-48 big-star pulse-glow" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                 </svg>
                 <h1 class="text-8xl md:text-9xl font-semibold logo-font tracking-tighter">Starlink</h1>
@@ -251,7 +266,7 @@
             </div>
 
             <div class="mb-6">
-                <label class="block text-sm font-medium mb-2 text-white">Current Categories</label>
+                <label class="block text-sm font-medium mb-2 text-white">Current Categories (drag to reorder)</label>
                 <div id="category-list" class="max-h-60 overflow-y-auto space-y-3 pr-2"></div>
             </div>
 
@@ -446,17 +461,78 @@
             if (categories.length === 0) {
                 list.innerHTML = '<p class="text-gray-500 text-center py-4">No categories yet</p>';
             } else {
-                categories.forEach(cat => {
+                categories.forEach((cat, index) => {
                     const item = document.createElement('div');
-                    item.className = 'flex items-center justify-between bg-gray-800 p-3 rounded-lg';
+                    item.className = 'sortable-item flex items-center justify-between bg-gray-800 p-3 rounded-lg cursor-move select-none';
+                    item.draggable = true;
+                    item.dataset.index = index;
                     item.innerHTML = `
-                        <span class="text-white">${cat}</span>
-                        <button onclick="removeCategory('${cat.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
+                        <div class="flex items-center gap-3 flex-1">
+                            <i class="fa-solid fa-grip-vertical text-gray-500 cursor-move"></i>
+                            <span class="text-white">${cat}</span>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="removeCategory('${cat.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
                     `;
                     list.appendChild(item);
                 });
+
+                // Drag & drop logic
+                let draggedItem = null;
+
+                list.addEventListener('dragstart', e => {
+                    draggedItem = e.target.closest('.sortable-item');
+                    if (draggedItem) {
+                        draggedItem.classList.add('dragging');
+                        e.dataTransfer.effectAllowed = 'move';
+                    }
+                });
+
+                list.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    const afterElement = getDragAfterElement(list, e.clientY);
+                    const dragging = document.querySelector('.dragging');
+                    if (afterElement == null) {
+                        list.appendChild(dragging);
+                    } else {
+                        list.insertBefore(dragging, afterElement);
+                    }
+                });
+
+                list.addEventListener('dragend', e => {
+                    if (draggedItem) {
+                        draggedItem.classList.remove('dragging');
+                        // Update categories array based on new DOM order
+                        const newOrder = Array.from(list.children).map(item => {
+                            return item.querySelector('span').textContent;
+                        });
+                        categories = newOrder;
+                        saveCategories();
+                        renderNavbar();
+                        renderDynamicSections();
+                        renderAllGrids();
+                        // Re-open modal to refresh UI
+                        hideManageCategoriesModal();
+                        setTimeout(showManageCategoriesModal, 0);
+                    }
+                });
+
+                function getDragAfterElement(container, y) {
+                    const draggableElements = [...container.querySelectorAll('.sortable-item:not(.dragging)')];
+
+                    return draggableElements.reduce((closest, child) => {
+                        const box = child.getBoundingClientRect();
+                        const offset = y - box.top - box.height / 2;
+                        if (offset < 0 && offset > closest.offset) {
+                            return { offset: offset, element: child };
+                        } else {
+                            return closest;
+                        }
+                    }, { offset: Number.NEGATIVE_INFINITY }).element;
+                }
             }
         }
 
@@ -533,7 +609,7 @@
         function createStar(x = null, y = null) {
             const star = document.createElement('div');
             star.className = 'star';
-            const size = Math.random() * 3.5 + 1.5; // bigger: 1.5–5px
+            const size = Math.random() * 3.5 + 1.5;
             star.style.width = star.style.height = size + 'px';
             
             if (x !== null && y !== null) {
@@ -571,32 +647,33 @@
 
             const glow = document.getElementById('bottom-glow');
             const stars = document.querySelectorAll('.star');
+            const bigStar = document.querySelectorAll('.big-star');
+
+            let starColor, glowColor;
 
             if (theme === 'default') {
-                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(255,255,255,0.45) 0%, transparent 60%)';
-                stars.forEach(s => {
-                    s.style.background = 'white';
-                    s.style.boxShadow = '0 0 10px white';
-                });
+                glowColor = 'rgba(255,255,255,0.45)';
+                starColor = 'white';
             } else if (theme === 'nightmare') {
-                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(255,40,40,0.65) 0%, transparent 55%)';
-                stars.forEach(s => {
-                    s.style.background = '#ff4040';
-                    s.style.boxShadow = '0 0 14px #ff4040';
-                });
+                glowColor = 'rgba(255,40,40,0.65)';
+                starColor = '#ff4040';
             } else if (theme === 'aurora') {
-                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(0,255,180,0.65) 0%, transparent 55%)';
-                stars.forEach(s => {
-                    s.style.background = '#00ffcc';
-                    s.style.boxShadow = '0 0 14px #00ffcc';
-                });
+                glowColor = 'rgba(0,255,180,0.65)';
+                starColor = '#00ffcc';
             } else if (theme === 'midnight') {
-                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(80,140,255,0.55) 0%, transparent 60%)';
-                stars.forEach(s => {
-                    s.style.background = '#4dabff';
-                    s.style.boxShadow = '0 0 12px #4dabff';
-                });
+                glowColor = 'rgba(80,140,255,0.55)';
+                starColor = '#4dabff';
             }
+
+            glow.style.background = `radial-gradient(ellipse at bottom, ${glowColor} 0%, transparent 60%)`;
+            stars.forEach(s => {
+                s.style.background = starColor;
+                s.style.boxShadow = `0 0 12px ${starColor}`;
+            });
+            bigStar.forEach(s => {
+                s.style.fill = starColor;
+                s.style.color = starColor;
+            });
         }
 
         const savedTheme = localStorage.getItem('starlinkTheme') || 'default';
