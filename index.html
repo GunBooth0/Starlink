@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="scroll-smooth" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,11 +19,14 @@
             color: white;
             margin: 0;
             padding: 0;
+            overflow-x: hidden;
+            transition: background 0.6s ease, color 0.6s ease;
         }
         .logo-font { font-family: 'Space Grotesk', sans-serif; }
 
         nav {
             height: 80px;
+            backdrop-filter: blur(12px);
         }
 
         .tab, .home-logo {
@@ -42,7 +45,7 @@
             left: 0;
             width: 100%;
             height: 3px;
-            background-color: white;
+            background: currentColor;
             transform: scaleX(1);
             transition: transform 0.3s ease;
         }
@@ -54,7 +57,7 @@
             left: 0;
             width: 100%;
             height: 3px;
-            background-color: white;
+            background: currentColor;
             transform: scaleX(0);
             transform-origin: left;
             transition: transform 0.3s ease;
@@ -64,39 +67,41 @@
             min-height: calc(100vh - 80px);
             padding-top: 100px;
             display: none;
+            position: relative;
         }
         .category-section.active {
             display: block;
         }
 
         .grid-container {
-            border: 1px solid #333;
+            border: 1px solid rgba(255,255,255,0.08);
             border-radius: 16px;
             padding: 2rem;
-            background: #111;
+            background: rgba(20,20,30,0.6);
+            backdrop-filter: blur(8px);
             min-height: 300px;
         }
 
         .card {
-            background: #1a1a1a;
-            border: 1px solid #333;
+            background: rgba(30,30,45,0.7);
+            border: 1px solid rgba(255,255,255,0.08);
             border-radius: 12px;
             padding: 1.5rem;
             transition: all 0.3s ease;
             position: relative;
+            backdrop-filter: blur(6px);
         }
         .card:hover {
             transform: translateY(-6px);
-            border-color: #666;
-            box-shadow: 0 10px 20px rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.25);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
         }
 
         .delete-btn {
             position: absolute;
             top: 12px;
             left: 12px;
-            color: #888;
-            opacity: 0.5;
+            color: rgba(255,255,255,0.5);
             transition: all 0.2s;
         }
         .card:hover .delete-btn {
@@ -111,41 +116,123 @@
             animation: pulse-glow 5s infinite ease-in-out;
         }
         @keyframes pulse-glow {
-            0%, 100% { opacity: 0.92; filter: drop-shadow(0 0 12px white); }
-            50% { opacity: 1; filter: drop-shadow(0 0 28px white); }
+            0%, 100% { opacity: 0.92; filter: drop-shadow(0 0 12px currentColor); }
+            50% { opacity: 1; filter: drop-shadow(0 0 28px currentColor); }
+        }
+
+        /* Floating stars - persistent across pages */
+        #stars-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -2;
+            overflow: hidden;
+        }
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 8px white;
+            opacity: 0;
+            animation: rise linear infinite;
+        }
+        @keyframes rise {
+            0%   { transform: translateY(110vh) scale(0.3); opacity: 0; }
+            10%  { opacity: 0.8; }
+            90%  { opacity: 0.8; }
+            100% { transform: translateY(-20vh) scale(0.6); opacity: 0; }
+        }
+
+        /* Bottom glow / light bloom */
+        #bottom-glow {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40vh;
+            background: radial-gradient(ellipse at bottom, rgba(100,50,255,0.18) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.7;
+        }
+
+        /* Theme variations */
+        [data-theme="light"] {
+            background: #f8f9fc;
+            color: #111;
+        }
+        [data-theme="light"] .card {
+            background: rgba(255,255,255,0.9);
+            border-color: rgba(0,0,0,0.1);
+        }
+        [data-theme="light"] .grid-container {
+            background: rgba(255,255,255,0.6);
+            border-color: rgba(0,0,0,0.12);
+        }
+        [data-theme="light"] .tab:after,
+        [data-theme="light"] .home-logo:after {
+            background: #000;
+        }
+        [data-theme="light"] .star,
+        [data-theme="light"] #bottom-glow {
+            background: #000;
+            box-shadow: 0 0 8px #333;
+        }
+
+        [data-theme="purple"] {
+            background: linear-gradient(135deg, #0f001a, #1a0033);
+        }
+        [data-theme="purple"] #bottom-glow {
+            background: radial-gradient(ellipse at bottom, rgba(180,100,255,0.28) 0%, transparent 70%);
+        }
+
+        [data-theme="blue"] {
+            background: linear-gradient(135deg, #000d1a, #001a33);
+        }
+        [data-theme="blue"] #bottom-glow {
+            background: radial-gradient(ellipse at bottom, rgba(80,180,255,0.22) 0%, transparent 70%);
         }
     </style>
 </head>
-<body>
+<body data-theme="dark">
+
+    <!-- Persistent stars container -->
+    <div id="stars-container"></div>
+
+    <!-- Bottom glowing light -->
+    <div id="bottom-glow"></div>
 
     <!-- NAVBAR -->
-    <nav class="border-b border-gray-800 bg-black/95 backdrop-blur-md fixed w-full z-50 top-0">
+    <nav class="border-b border-gray-800 bg-black/80 backdrop-blur-md fixed w-full z-50 top-0">
         <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
             <div class="flex items-center gap-8">
                 <a href="#" class="home-logo flex items-center gap-3" onclick="showCategory(event, 'home')">
-                    <svg class="h-9 w-9 text-white" viewBox="0 0 24 24" fill="currentColor">
+                    <svg class="h-9 w-9 text-white pulse-glow" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                     </svg>
                     <span class="logo-font text-3xl font-semibold tracking-tighter">Starlink</span>
                 </a>
 
-                <button onclick="showManageCategoriesModal()" class="bg-gray-800 hover:bg-gray-700 text-white px-5 py-2 rounded-lg font-medium flex items-center gap-2">
+                <button onclick="showManageCategoriesModal()" class="bg-gray-800/80 hover:bg-gray-700 text-white px-5 py-2 rounded-lg font-medium flex items-center gap-2 backdrop-blur-sm border border-gray-700/50">
                     <i class="fa-solid fa-cog text-sm"></i> Manage Categories
                 </button>
             </div>
 
-            <div id="category-tabs" class="flex items-center gap-10 text-sm font-medium overflow-x-auto scrollbar-hide">
-                <!-- Dynamic tabs -->
-            </div>
+            <div id="category-tabs" class="flex items-center gap-10 text-sm font-medium overflow-x-auto scrollbar-hide"></div>
 
             <div class="flex items-center gap-6">
-                <!-- Right side is now empty / future-proof -->
+                <select id="theme-select" onchange="changeTheme(this.value)" class="bg-gray-900/80 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white backdrop-blur-sm">
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                    <option value="purple">Purple Nebula</option>
+                    <option value="blue">Deep Ocean</option>
+                </select>
             </div>
         </div>
     </nav>
 
     <!-- HOME -->
-    <section id="home" class="category-section active">
+    <section id="home" class="category-section active relative">
         <div class="max-w-5xl mx-auto px-6 pt-32 pb-32 text-center">
             <div class="flex flex-col items-center gap-6">
                 <svg class="h-40 w-40 md:h-48 md:w-48 text-white pulse-glow" viewBox="0 0 24 24" fill="currentColor">
@@ -428,7 +515,6 @@
             });
             if (cat && categories.includes(cat)) select.value = cat;
 
-            // Reset fields every time modal opens
             document.getElementById('link-name').value = '';
             document.getElementById('link-url').value = '';
             document.getElementById('link-desc').value = '';
@@ -456,7 +542,54 @@
             hideAddLinkModal();
         }
 
+        // Persistent floating stars
+        function createStar() {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const size = Math.random() * 2 + 0.8;
+            star.style.width = star.style.height = size + 'px';
+            star.style.left = Math.random() * 100 + 'vw';
+            star.style.animationDuration = (Math.random() * 60 + 80) + 's'; // 80–140s slow rise
+            star.style.animationDelay = Math.random() * 20 + 's';
+            document.getElementById('stars-container').appendChild(star);
+
+            setTimeout(() => star.remove(), 200000); // clean up after ~3.3 min
+        }
+
+        function initStars() {
+            for (let i = 0; i < 20; i++) createStar();
+            setInterval(createStar, 4000); // new star every ~4 seconds
+        }
+
+        // Theme switcher
+        function changeTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('starlinkTheme', theme);
+
+            // Adjust star & bottom glow colors per theme
+            const glow = document.getElementById('bottom-glow');
+            if (theme === 'light') {
+                document.querySelectorAll('.star').forEach(s => s.style.background = '#000');
+                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(0,0,0,0.12) 0%, transparent 70%)';
+            } else {
+                document.querySelectorAll('.star').forEach(s => s.style.background = 'white');
+                if (theme === 'purple') {
+                    glow.style.background = 'radial-gradient(ellipse at bottom, rgba(140,80,255,0.28) 0%, transparent 70%)';
+                } else if (theme === 'blue') {
+                    glow.style.background = 'radial-gradient(ellipse at bottom, rgba(80,140,255,0.22) 0%, transparent 70%)';
+                } else {
+                    glow.style.background = 'radial-gradient(ellipse at bottom, rgba(100,50,255,0.18) 0%, transparent 70%)';
+                }
+            }
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('starlinkTheme') || 'dark';
+        changeTheme(savedTheme);
+        document.getElementById('theme-select').value = savedTheme;
+
         window.addEventListener('load', () => {
+            initStars();
             renderNavbar();
             renderDynamicSections();
             renderAllGrids();
