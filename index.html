@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
         
         :root {
             --accent: 234 179 8;
@@ -44,7 +44,7 @@
         body {
             background: hsl(var(--bg));
             color: hsl(var(--text));
-            font-family: 'Inter', system_ui, sans-serif;
+            font-family: 'Inter', system-ui, sans-serif;
         }
         
         .logo-font {
@@ -116,7 +116,7 @@
             </div>
             <div onclick="switchTab(3)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-3">
                 <i class="fa-solid fa-tv w-5"></i>
-                <span>TV &amp; Streaming</span>
+                <span>TV & Streaming</span>
             </div>
             <div onclick="switchTab(4)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-4">
                 <i class="fa-solid fa-shield-halved w-5"></i>
@@ -125,24 +125,6 @@
             <div onclick="switchTab(5)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-5">
                 <i class="fa-solid fa-music w-5"></i>
                 <span>Music</span>
-            </div>
-        </div>
-
-        <!-- Quick Proxy Bar -->
-        <div class="p-6 border-t border-white/10">
-            <div class="glass rounded-3xl p-5">
-                <p class="text-xs uppercase tracking-widest text-yellow-400 mb-2">Instant Proxy</p>
-                <div class="flex gap-x-2">
-                    <input id="proxy-url" 
-                           type="text" 
-                           placeholder="https://example.com"
-                           class="flex-1 bg-zinc-900 border border-white/20 rounded-2xl px-5 py-3 text-sm focus:outline-none focus:border-yellow-400 transition-colors">
-                    <button onclick="launchProxy()" 
-                            class="bg-yellow-400 hover:bg-yellow-300 transition-colors text-zinc-950 font-semibold px-8 rounded-2xl flex items-center gap-x-2">
-                        <i class="fa-solid fa-arrow-right"></i>
-                    </button>
-                </div>
-                <p class="text-[10px] text-white/50 mt-3">Bypasses restrictions instantly</p>
             </div>
         </div>
 
@@ -177,7 +159,6 @@
                 </div>
 
                 <div class="flex items-center gap-x-6">
-                    <!-- Theme indicator -->
                     <div onclick="showSettings()" 
                          class="flex items-center gap-x-2 bg-zinc-900 hover:bg-zinc-800 transition-colors border border-white/10 rounded-3xl px-5 py-2 text-sm cursor-pointer">
                         <span id="theme-name" class="text-yellow-400">Space Dark</span>
@@ -201,7 +182,6 @@
                     <p class="text-xl text-white/60">Your personal unblocked gateway • Powered by Starlink</p>
                 </div>
 
-                <!-- Featured -->
                 <div class="mb-16">
                     <div class="flex items-end justify-between mb-6">
                         <h3 class="text-2xl font-semibold">Featured Destinations</h3>
@@ -209,12 +189,9 @@
                             Explore all <i class="fa-solid fa-arrow-right"></i>
                         </a>
                     </div>
-                    <div class="grid grid-cols-5 gap-6" id="featured-grid">
-                        <!-- Populated by JS -->
-                    </div>
+                    <div class="grid grid-cols-5 gap-6" id="featured-grid"></div>
                 </div>
 
-                <!-- Quick Categories -->
                 <div>
                     <h3 class="text-2xl font-semibold mb-6">Jump to Category</h3>
                     <div class="grid grid-cols-5 gap-6">
@@ -236,7 +213,7 @@
                         <div onclick="switchTab(4)" class="card glass border border-white/10 rounded-3xl p-8 cursor-pointer hover:border-yellow-400/30">
                             <i class="fa-solid fa-shield-halved text-5xl mb-6 text-emerald-400"></i>
                             <div class="text-2xl font-medium">Proxies</div>
-                            <div class="text-white/60 text-sm mt-1">Instant bypass</div>
+                            <div class="text-white/60 text-sm mt-1">Proxy services</div>
                         </div>
                         <div onclick="switchTab(5)" class="card glass border border-white/10 rounded-3xl p-8 cursor-pointer hover:border-yellow-400/30">
                             <i class="fa-solid fa-music text-5xl mb-6 text-purple-400"></i>
@@ -266,37 +243,16 @@
             <!-- TV TAB -->
             <div id="content-3" class="tab-content hidden">
                 <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
-                    <i class="fa-solid fa-tv"></i> TV &amp; Streaming
+                    <i class="fa-solid fa-tv"></i> TV & Streaming
                 </h2>
                 <div class="grid grid-cols-6 gap-6" id="tv-grid"></div>
             </div>
 
-            <!-- PROXIES TAB -->
+            <!-- PROXIES TAB (now just regular sites) -->
             <div id="content-4" class="tab-content hidden">
                 <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
-                    <i class="fa-solid fa-shield-halved"></i> Proxy Network
+                    <i class="fa-solid fa-shield-halved"></i> Proxy Services
                 </h2>
-                
-                <!-- Instant Proxy -->
-                <div class="glass border border-yellow-400/30 rounded-3xl p-10 mb-12">
-                    <div class="max-w-md mx-auto text-center">
-                        <div class="inline-flex items-center justify-center w-16 h-16 bg-yellow-400/10 rounded-2xl mb-6">
-                            <i class="fa-solid fa-globe text-4xl text-yellow-400"></i>
-                        </div>
-                        <h3 class="text-3xl font-semibold mb-3">Starlink Instant Proxy</h3>
-                        <p class="text-white/70 mb-8">Enter any URL and bypass restrictions in one click</p>
-                        
-                        <div class="flex gap-3">
-                            <input id="big-proxy-input" type="text" placeholder="https://youtube.com" 
-                                   class="flex-1 bg-zinc-900 border border-white/30 focus:border-yellow-400 rounded-3xl px-8 py-5 text-lg">
-                            <button onclick="launchBigProxy()" 
-                                    class="bg-yellow-400 text-black font-bold px-16 rounded-3xl text-lg hover:scale-105 transition-transform">
-                                LAUNCH
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="grid grid-cols-6 gap-6" id="proxy-grid"></div>
             </div>
 
@@ -316,7 +272,6 @@
         <div onclick="event.stopImmediatePropagation()" 
              class="bg-zinc-900 rounded-3xl max-w-md w-full mx-4 overflow-hidden">
             
-            <!-- Header -->
             <div class="px-8 py-6 border-b border-white/10 flex items-center justify-between">
                 <div class="text-2xl font-semibold">Settings</div>
                 <button onclick="hideSettings()" class="text-white/60 hover:text-white">
@@ -324,11 +279,9 @@
                 </button>
             </div>
 
-            <!-- Themes -->
             <div class="p-8">
                 <p class="uppercase text-xs tracking-widest text-white/50 mb-4">Themes</p>
                 <div class="grid grid-cols-4 gap-4">
-                    <!-- Theme 1 -->
                     <div onclick="setTheme('dark')" 
                          class="cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all">
                         <div class="h-20 bg-zinc-950 flex items-center justify-center">
@@ -336,8 +289,6 @@
                         </div>
                         <div class="text-center py-3 text-sm font-medium bg-zinc-900">Space Dark</div>
                     </div>
-                    
-                    <!-- Theme 2 -->
                     <div onclick="setTheme('light')" 
                          class="cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all">
                         <div class="h-20 bg-white flex items-center justify-center border border-zinc-200">
@@ -345,8 +296,6 @@
                         </div>
                         <div class="text-center py-3 text-sm font-medium bg-white text-black">Classic Light</div>
                     </div>
-                    
-                    <!-- Theme 3 -->
                     <div onclick="setTheme('cosmic')" 
                          class="cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all">
                         <div class="h-20 bg-slate-900 flex items-center justify-center">
@@ -354,8 +303,6 @@
                         </div>
                         <div class="text-center py-3 text-sm font-medium bg-slate-900">Cosmic Blue</div>
                     </div>
-                    
-                    <!-- Theme 4 -->
                     <div onclick="setTheme('neon')" 
                          class="cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all">
                         <div class="h-20 bg-neutral-950 flex items-center justify-center">
@@ -366,7 +313,6 @@
                 </div>
             </div>
 
-            <!-- Extra options -->
             <div class="px-8 py-6 border-t border-white/10 text-sm">
                 <div class="flex justify-between items-center py-4 border-b border-white/10">
                     <div class="flex items-center gap-x-3">
@@ -387,23 +333,28 @@
             </div>
 
             <div class="px-8 py-6 bg-black/40 text-center text-xs text-white/40">
-                Starlink v1.0 • Fully local • No data collected
+                Starlink v1.1 • Fully local • No data collected
             </div>
         </div>
     </div>
 
     <script>
-        // Tailwind script init
-        function initTailwind() {
-            tailwind.config = {
-                content: [],
-                theme: {
-                    extend: {}
-                }
-            }
+        function switchTab(tabIndex) {
+            document.querySelectorAll('.nav-link').forEach(el => {
+                el.classList.remove('bg-white/10', 'active-tab');
+            });
+            
+            document.getElementById(`tab-${tabIndex}`).classList.add('bg-white/10', 'active-tab');
+            
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`content-${tabIndex}`).classList.remove('hidden');
+            
+            const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music"];
+            document.getElementById('current-tab').textContent = titles[tabIndex];
+            
+            currentTab = tabIndex;
         }
 
-        // Data
         const sites = {
             games: [
                 { name: "Poki", url: "https://poki.com", desc: "Thousands of free games", icon: "🎮" },
@@ -445,192 +396,130 @@
                 { name: "Deezer", url: "https://deezer.com", desc: "High quality", icon: "📻" },
                 { name: "iHeartRadio", url: "https://iheart.com", desc: "Live radio", icon: "📻" }
             ]
-        }
+        };
 
-        let currentTab = 0
-        let customLinks = []
+        let currentTab = 0;
 
         function populateGrid(category, containerId) {
-            const container = document.getElementById(containerId)
-            container.innerHTML = ''
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
             
             sites[category].forEach(site => {
-                const card = document.createElement('div')
-                card.className = `card glass border border-white/10 rounded-3xl p-6 cursor-pointer group`
+                const card = document.createElement('div');
+                card.className = `card glass border border-white/10 rounded-3xl p-6 cursor-pointer group`;
                 card.innerHTML = `
                     <div class="text-5xl mb-8 transition-transform group-hover:scale-125">${site.icon}</div>
                     <div class="font-semibold text-xl mb-1">${site.name}</div>
                     <div class="text-white/60 text-sm line-clamp-2">${site.desc}</div>
-                `
+                `;
                 card.onclick = () => {
-                    const openInNew = document.getElementById('newtab-toggle').checked
+                    const openInNew = document.getElementById('newtab-toggle').checked;
                     if (openInNew) {
-                        window.open(site.url, '_blank')
+                        window.open(site.url, '_blank');
                     } else {
-                        window.location = site.url
+                        window.location = site.url;
                     }
-                }
-                container.appendChild(card)
-            })
+                };
+                container.appendChild(card);
+            });
         }
 
         function populateFeatured() {
-            const container = document.getElementById('featured-grid')
-            container.innerHTML = ''
+            const container = document.getElementById('featured-grid');
+            container.innerHTML = '';
             
-            // Mix of popular ones
             const mix = [
                 ...sites.games.slice(0,2),
                 ...sites.ai.slice(0,1),
                 ...sites.tv.slice(0,1),
                 ...sites.music.slice(0,1)
-            ]
+            ];
             
             mix.forEach(site => {
-                const card = document.createElement('div')
-                card.className = `card glass border border-white/10 rounded-3xl p-6 cursor-pointer`
+                const card = document.createElement('div');
+                card.className = `card glass border border-white/10 rounded-3xl p-6 cursor-pointer`;
                 card.innerHTML = `
                     <div class="text-6xl mb-6">${site.icon}</div>
                     <div class="font-medium">${site.name}</div>
-                `
-                card.onclick = () => window.open(site.url, '_blank')
-                container.appendChild(card)
-            })
-        }
-
-        function switchTab(tabIndex) {
-            // Remove active from all
-            document.querySelectorAll('.nav-link').forEach(el => {
-                el.classList.remove('bg-white/10', 'active-tab')
-            })
-            
-            // Add active
-            const activeEl = document.getElementById(`tab-${tabIndex}`)
-            activeEl.classList.add('bg-white/10', 'active-tab')
-            
-            // Hide all content
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'))
-            
-            // Show selected
-            document.getElementById(`content-${tabIndex}`).classList.remove('hidden')
-            
-            // Update header
-            const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music"]
-            document.getElementById('current-tab').textContent = titles[tabIndex]
-            
-            currentTab = tabIndex
-        }
-
-        function launchProxy() {
-            const input = document.getElementById('proxy-url')
-            let url = input.value.trim()
-            
-            if (!url) {
-                url = "https://www.google.com"
-            }
-            
-            if (!url.startsWith('http')) url = 'https://' + url
-            
-            // Open through CroxyProxy (most reliable public proxy)
-            const proxyUrl = `https://www.croxyproxy.com/?url=${encodeURIComponent(url)}`
-            window.open(proxyUrl, '_blank')
-        }
-
-        function launchBigProxy() {
-            const input = document.getElementById('big-proxy-input')
-            let url = input.value.trim() || "https://youtube.com"
-            if (!url.startsWith('http')) url = 'https://' + url
-            const proxyUrl = `https://www.croxyproxy.com/?url=${encodeURIComponent(url)}`
-            window.open(proxyUrl, '_blank')
+                `;
+                card.onclick = () => window.open(site.url, '_blank');
+                container.appendChild(card);
+            });
         }
 
         function setTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme)
+            document.documentElement.setAttribute('data-theme', theme);
             
             const names = {
                 dark: "Space Dark",
                 light: "Classic Light",
                 cosmic: "Cosmic Blue",
                 neon: "Neon Glow"
-            }
-            document.getElementById('theme-name').textContent = names[theme]
-            hideSettings()
+            };
+            document.getElementById('theme-name').textContent = names[theme];
+            hideSettings();
         }
 
         function showSettings() {
-            document.getElementById('settings-modal').classList.remove('hidden')
-            document.getElementById('settings-modal').classList.add('flex')
+            document.getElementById('settings-modal').classList.remove('hidden');
+            document.getElementById('settings-modal').classList.add('flex');
         }
 
         function hideSettings() {
-            const modal = document.getElementById('settings-modal')
-            modal.classList.add('hidden')
-            modal.classList.remove('flex')
+            const modal = document.getElementById('settings-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
         }
 
         function filterCards() {
-            const term = document.getElementById('search-input').value.toLowerCase().trim()
-            if (!term) return
+            const term = document.getElementById('search-input').value.toLowerCase().trim();
+            if (!term) return;
             
-            // Simple global search - opens first match
-            let allSites = []
+            let allSites = [];
             Object.keys(sites).forEach(cat => {
-                allSites = allSites.concat(sites[cat])
-            })
+                allSites = allSites.concat(sites[cat]);
+            });
             
             const match = allSites.find(site => 
                 site.name.toLowerCase().includes(term) || 
                 site.desc.toLowerCase().includes(term)
-            )
+            );
             
             if (match) {
-                window.open(match.url, '_blank')
-                document.getElementById('search-input').value = ''
+                window.open(match.url, '_blank');
+                document.getElementById('search-input').value = '';
             }
         }
 
         function clearCustomLinks() {
             if (confirm('Reset everything?')) {
-                localStorage.removeItem('starlinkCustom')
-                alert('All custom links cleared!')
+                alert('All custom links cleared! (no custom links were stored in this version)');
             }
         }
 
-        // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
             if (e.metaKey && e.key === 'k') {
-                e.preventDefault()
-                document.getElementById('search-input').focus()
+                e.preventDefault();
+                document.getElementById('search-input').focus();
             }
-        })
+        });
 
-        // Initialize everything
         function initialize() {
-            initTailwind()
+            populateGrid('games', 'games-grid');
+            populateGrid('ai', 'ai-grid');
+            populateGrid('tv', 'tv-grid');
+            populateGrid('proxies', 'proxy-grid');
+            populateGrid('music', 'music-grid');
+            populateFeatured();
             
-            // Populate all grids
-            populateGrid('games', 'games-grid')
-            populateGrid('ai', 'ai-grid')
-            populateGrid('tv', 'tv-grid')
-            populateGrid('proxies', 'proxy-grid')
-            populateGrid('music', 'music-grid')
-            populateFeatured()
+            switchTab(0);
+            document.getElementById('theme-name').textContent = "Space Dark";
+            document.getElementById('settings-modal').classList.add('hidden');
             
-            // Default tab
-            switchTab(0)
-            
-            // Set initial theme name
-            document.getElementById('theme-name').textContent = "Space Dark"
-            
-            // Make sure modal is hidden
-            document.getElementById('settings-modal').classList.add('hidden')
-            
-            // Demo message
-            console.log('%cStarlink loaded successfully 🚀\nCopy this file and open in any browser!', 'color:#facc15; font-family:monospace')
+            console.log('%cStarlink updated – proxy removed 🚀', 'color:#facc15; font-family:monospace');
         }
 
-        // Auto start
-        window.onload = initialize
+        window.onload = initialize;
     </script>
 </body>
 </html>
