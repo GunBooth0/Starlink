@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
         
         body {
             background: #000000;
@@ -20,7 +20,13 @@
         }
 
         .star-svg {
-            filter: drop-shadow(0 0 8px rgba(255,255,255,0.6));
+            filter: drop-shadow(0 0 20px rgba(255,255,255,0.7));
+            animation: pulse 4s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.85; filter: drop-shadow(0 0 20px rgba(255,255,255,0.7)); }
+            50%      { opacity: 1;    filter: drop-shadow(0 0 40px rgba(255,255,255,1)); }
         }
 
         .nav-link {
@@ -131,11 +137,22 @@
         </div>
 
         <!-- Content Area -->
-        <div class="pt-24 pb-12 px-10 tail-container">
+        <div class="pt-24 pb-12 px-10 tail-container min-h-[calc(100vh-6rem)] flex flex-col items-center justify-center">
             
-            <!-- HOME TAB (still empty) -->
-            <div id="content-0" class="tab-content">
-                <!-- Add whatever you want here next -->
+            <!-- HOME TAB -->
+            <div id="content-0" class="tab-content w-full max-w-4xl mx-auto text-center">
+                <div class="mb-16">
+                    <svg width="180" height="180" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="white" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+                    </svg>
+                    
+                    <h1 class="logo-font text-7xl md:text-8xl font-bold tracking-tight mb-6">Starlink</h1>
+                    
+                    <p class="text-xl md:text-2xl text-white/70 max-w-3xl mx-auto leading-relaxed">
+                        Your personal gateway to unblocked games, AI tools, streaming, music, proxies, and more — 
+                        fast, clean, and always available.
+                    </p>
+                </div>
             </div>
 
             <!-- GAMES TAB -->
@@ -178,7 +195,7 @@
                 <div class="grid grid-cols-6 gap-6" id="music-grid"></div>
             </div>
 
-            <!-- SETTINGS TAB (simplified since no multi-themes) -->
+            <!-- SETTINGS TAB -->
             <div id="content-6" class="tab-content hidden">
                 <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
                     <i class="fa-solid fa-gear"></i> Settings
@@ -321,7 +338,7 @@
             
             switchTab(0);
             
-            console.log('%cStarlink updated – black & white theme + new logo/subtitle', 'color:#ffffff; font-family:monospace; background:#000; padding:4px 8px;');
+            console.log('%cStarlink – Home updated with pulsing star', 'color:#ffffff; font-family:monospace; background:#000; padding:4px 8px;');
         }
 
         window.onload = initialize;
