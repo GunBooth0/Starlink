@@ -99,12 +99,14 @@
             transform: scale(1.2);
         }
 
+        /* Pulsing glow uses currentColor for theme sync */
         .pulse-glow {
             animation: pulse-glow 5s infinite ease-in-out;
+            color: inherit;
         }
         @keyframes pulse-glow {
-            0%, 100% { opacity: 0.92; filter: drop-shadow(0 0 12px currentColor); }
-            50% { opacity: 1; filter: drop-shadow(0 0 28px currentColor); }
+            0%, 100% { filter: drop-shadow(0 0 12px currentColor); opacity: 0.92; }
+            50%      { filter: drop-shadow(0 0 28px currentColor); opacity: 1; }
         }
 
         /* Stars - theme-aware */
@@ -640,14 +642,14 @@
             createStar(e.clientX, e.clientY);
         });
 
-        // Theme switcher
+        // Theme switcher - updates floating stars, bottom glow, and both big/small stars + their pulse
         function changeTheme(theme) {
             document.body.setAttribute('data-theme', theme);
             localStorage.setItem('starlinkTheme', theme);
 
             const glow = document.getElementById('bottom-glow');
-            const stars = document.querySelectorAll('.star');
-            const bigStar = document.querySelectorAll('.big-star');
+            const floatingStars = document.querySelectorAll('.star:not(.big-star)');
+            const themeStars = document.querySelectorAll('.big-star');
 
             let starColor, glowColor;
 
@@ -665,12 +667,17 @@
                 starColor = '#4dabff';
             }
 
+            // Bottom glow
             glow.style.background = `radial-gradient(ellipse at bottom, ${glowColor} 0%, transparent 60%)`;
-            stars.forEach(s => {
+
+            // Floating background stars
+            floatingStars.forEach(s => {
                 s.style.background = starColor;
                 s.style.boxShadow = `0 0 12px ${starColor}`;
             });
-            bigStar.forEach(s => {
+
+            // Navbar small star + Home big star (including pulse effect)
+            themeStars.forEach(s => {
                 s.style.fill = starColor;
                 s.style.color = starColor;
             });
