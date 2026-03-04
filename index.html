@@ -19,6 +19,10 @@
             padding: 0;
             overflow-x: hidden;
             transition: background 0.8s ease;
+            color: #ffffff !important; /* Force all text white */
+        }
+        * {
+            color: #ffffff !important; /* Override any theme-colored text */
         }
         .logo-font { font-family: 'Space Grotesk', sans-serif; }
 
@@ -44,7 +48,7 @@
             left: 0;
             width: 100%;
             height: 3px;
-            background: currentColor;
+            background: #ffffff;
             transform: scaleX(1);
             transition: transform 0.3s ease;
         }
@@ -56,7 +60,7 @@
             left: 0;
             width: 100%;
             height: 3px;
-            background: currentColor;
+            background: #ffffff;
             transform: scaleX(0);
             transform-origin: left;
             transition: transform 0.3s ease;
@@ -84,7 +88,7 @@
 
         .card {
             background: rgba(30,30,45,0.7);
-            border: 1px solid rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
             border-radius: 12px;
             padding: 1.5rem;
             transition: all 0.3s ease;
@@ -93,7 +97,7 @@
         }
         .card:hover {
             transform: translateY(-6px);
-            border-color: rgba(255,255,255,0.25);
+            border-color: rgba(255,255,255,0.3);
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
         }
 
@@ -101,7 +105,7 @@
             position: absolute;
             top: 12px;
             left: 12px;
-            color: rgba(255,255,255,0.5);
+            color: rgba(255,255,255,0.6);
             transition: all 0.2s;
         }
         .card:hover .delete-btn {
@@ -120,7 +124,7 @@
             50% { opacity: 1; filter: drop-shadow(0 0 28px currentColor); }
         }
 
-        /* Stars - theme-aware */
+        /* Stars - theme-aware color */
         #stars-container {
             position: fixed;
             inset: 0;
@@ -191,6 +195,9 @@
         }
         .grid-container {
             border-color: var(--grid-border);
+        }
+        .star {
+            background: var(--star-color);
         }
     </style>
 </head>
@@ -542,7 +549,7 @@
             hideAddLinkModal();
         }
 
-        // Persistent floating stars - immediate & frequent spawn
+        // Persistent floating stars
         function createStar() {
             const star = document.createElement('div');
             star.className = 'star';
@@ -560,7 +567,7 @@
             setInterval(createStar, 1200);
         }
 
-        // Theme switcher - updates stars & glow
+        // Theme switcher - updates stars & glow only (text stays white)
         function changeTheme(theme) {
             document.body.setAttribute('data-theme', theme);
             localStorage.setItem('starlinkTheme', theme);
