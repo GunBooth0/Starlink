@@ -19,10 +19,7 @@
             padding: 0;
             overflow-x: hidden;
             transition: background 0.8s ease;
-            color: #ffffff !important; /* Force all text white */
-        }
-        * {
-            color: #ffffff !important; /* Override any theme-colored text */
+            color: #ffffff;
         }
         .logo-font { font-family: 'Space Grotesk', sans-serif; }
 
@@ -86,6 +83,15 @@
             transition: border-color 0.8s ease;
         }
 
+        .manage-section {
+            border: 1px solid;
+            border-radius: 16px;
+            padding: 2rem;
+            background: rgba(20,20,30,0.6);
+            backdrop-filter: blur(8px);
+            transition: border-color 0.8s ease;
+        }
+
         .card {
             background: rgba(30,30,45,0.7);
             border: 1px solid rgba(255,255,255,0.12);
@@ -124,7 +130,7 @@
             50% { opacity: 1; filter: drop-shadow(0 0 28px currentColor); }
         }
 
-        /* Stars - theme-aware color */
+        /* Stars - theme-aware */
         #stars-container {
             position: fixed;
             inset: 0;
@@ -164,9 +170,9 @@
         /* Theme definitions */
         [data-theme="default"] {
             --bg: #000;
-            --glow-color: rgba(140,80,255,0.55);
+            --glow-color: rgba(255,255,255,0.45); /* white glow for default */
             --star-color: white;
-            --grid-border: rgba(140,80,255,0.35);
+            --grid-border: rgba(255,255,255,0.25);
         }
 
         [data-theme="nightmare"] {
@@ -193,11 +199,17 @@
         body {
             background: var(--bg);
         }
-        .grid-container {
+        .grid-container, .manage-section {
             border-color: var(--grid-border);
         }
         .star {
             background: var(--star-color);
+        }
+
+        /* Force all buttons with white bg to have black text */
+        button.bg-white, 
+        button.bg-white:hover {
+            color: #000000 !important;
         }
     </style>
 </head>
@@ -246,8 +258,8 @@
                     <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                 </svg>
                 <h1 class="text-8xl md:text-9xl font-semibold logo-font tracking-tighter">Starlink</h1>
-                <p class="text-3xl text-gray-400 mt-2">By: Gunnar Booth</p>
-                <p class="text-xl md:text-2xl text-gray-300 max-w-4xl mt-10 leading-relaxed">
+                <p class="text-3xl text-white mt-2">By: Gunnar Booth</p>
+                <p class="text-xl md:text-2xl text-white max-w-4xl mt-10 leading-relaxed">
                     ★ Starlink is a clean, personal, and fully offline-capable web directory designed to provide fast, unrestricted access to curated online resources. Built as a static site hosted on GitHub Pages, it serves as your private gateway to proxies for bypassing restrictions, browser-based games, music streaming platforms, television/movie streaming alternatives, AI tools, and other essential or entertaining web destinations — all organized, searchable, and under your full control.
                 </p>
             </div>
@@ -260,10 +272,10 @@
     <!-- Manage Categories Modal -->
     <div id="manage-categories-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
         <div class="bg-gray-900 rounded-2xl p-8 w-full max-w-lg mx-4 border border-gray-800">
-            <h3 class="text-2xl font-semibold mb-6">Manage Categories</h3>
+            <h3 class="text-2xl font-semibold mb-6 text-white">Manage Categories</h3>
             
             <div class="mb-8">
-                <label class="block text-sm font-medium mb-2 text-gray-300">Add New Category</label>
+                <label class="block text-sm font-medium mb-2 text-white">Add New Category</label>
                 <div class="flex gap-3">
                     <input id="new-category-name" type="text" class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white" placeholder="e.g. Proxies">
                     <button onclick="addCategory()" class="bg-white text-black px-6 py-2 rounded-lg font-medium hover:opacity-90">Add</button>
@@ -271,7 +283,7 @@
             </div>
 
             <div class="mb-6">
-                <label class="block text-sm font-medium mb-2 text-gray-300">Current Categories</label>
+                <label class="block text-sm font-medium mb-2 text-white">Current Categories</label>
                 <div id="category-list" class="max-h-60 overflow-y-auto space-y-3 pr-2"></div>
             </div>
 
@@ -287,22 +299,22 @@
     <!-- Add Link Modal -->
     <div id="add-link-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
         <div class="bg-gray-900 rounded-2xl p-8 w-full max-w-md mx-4 border border-gray-800">
-            <h3 class="text-2xl font-semibold mb-6">Add New Link</h3>
+            <h3 class="text-2xl font-semibold mb-6 text-white">Add New Link</h3>
             <div class="space-y-5">
                 <div>
-                    <label class="block text-sm font-medium mb-1.5 text-gray-300">Name</label>
+                    <label class="block text-sm font-medium mb-1.5 text-white">Name</label>
                     <input id="link-name" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-1.5 text-gray-300">URL</label>
+                    <label class="block text-sm font-medium mb-1.5 text-white">URL</label>
                     <input id="link-url" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-1.5 text-gray-300">Description (optional)</label>
+                    <label class="block text-sm font-medium mb-1.5 text-white">Description (optional)</label>
                     <input id="link-desc" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-1.5 text-gray-300">Category</label>
+                    <label class="block text-sm font-medium mb-1.5 text-white">Category</label>
                     <select id="link-category" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white"></select>
                 </div>
             </div>
@@ -350,11 +362,11 @@
                 section.className = 'category-section hidden';
                 section.innerHTML = `
                     <div class="max-w-7xl mx-auto px-6 py-20">
-                        <h2 class="text-7xl font-semibold logo-font tracking-tighter mb-20 text-center">${cat}</h2>
+                        <h2 class="text-7xl font-semibold logo-font tracking-tighter mb-20 text-center text-white">${cat}</h2>
                         <div class="grid-container">
                             <div id="grid-${id}" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
                         </div>
-                        <div id="manage-${id}" class="mt-20"></div>
+                        <div id="manage-${id}" class="manage-section mt-20"></div>
                     </div>
                 `;
                 container.appendChild(section);
@@ -395,8 +407,8 @@
             }
 
             manageDiv.innerHTML = `
-                <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
-                    <h3 class="text-2xl font-semibold mb-6">Manage ${cat}</h3>
+                <div class="text-center">
+                    <h3 class="text-2xl font-semibold mb-6 text-white">Manage ${cat}</h3>
                     <div class="flex justify-center gap-8">
                         <button onclick="showAddLinkModal('${cat}')" 
                                 class="bg-white text-black px-8 py-4 rounded-full font-medium hover:opacity-90 flex items-center gap-3 text-lg">
@@ -567,7 +579,7 @@
             setInterval(createStar, 1200);
         }
 
-        // Theme switcher - updates stars & glow only (text stays white)
+        // Theme switcher - updates stars & glow only
         function changeTheme(theme) {
             document.body.setAttribute('data-theme', theme);
             localStorage.setItem('starlinkTheme', theme);
@@ -576,7 +588,7 @@
             const stars = document.querySelectorAll('.star');
 
             if (theme === 'default') {
-                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(140,80,255,0.55) 0%, transparent 60%)';
+                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(255,255,255,0.45) 0%, transparent 60%)';
                 stars.forEach(s => {
                     s.style.background = 'white';
                     s.style.boxShadow = '0 0 10px white';
