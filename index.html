@@ -23,7 +23,7 @@
             font-family: 'Inter', system-ui, sans-serif;
             margin: 0;
             height: 100vh;
-            overflow: hidden;           /* ← keeps body locked */
+            overflow: hidden;
         }
         
         .logo-font {
@@ -106,8 +106,8 @@
             100% { transform: translateY(-30vh); }
         }
 
-        /* Make main content scrollable */
-        .main-content-wrapper {
+        /* Make main content area scrollable */
+        .main-content {
             overflow-y: auto;
             height: 100vh;
             padding-top: 4rem; /* space for fixed top bar */
@@ -120,7 +120,6 @@
 
     <!-- SIDEBAR -->
     <div class="w-72 bg-black border-r border-white/10 flex flex-col fixed h-screen z-50">
-        <!-- ... same sidebar code as before ... -->
         <div class="p-8 flex items-center gap-x-4 border-b border-white/10">
             <svg width="48" height="48" viewBox="0 0 200 200" class="star-svg" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
                 <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
@@ -138,12 +137,26 @@
             <div onclick="switchTab(1)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-1">
                 <i class="fa-solid fa-gamepad w-5"></i> <span>Games</span>
             </div>
-            <!-- ... rest of sidebar links unchanged ... -->
+            <div onclick="switchTab(2)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-2">
+                <i class="fa-solid fa-brain w-5"></i> <span>AI Tools</span>
+            </div>
+            <div onclick="switchTab(3)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-3">
+                <i class="fa-solid fa-tv w-5"></i> <span>TV & Streaming</span>
+            </div>
+            <div onclick="switchTab(4)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-4">
+                <i class="fa-solid fa-shield-halved w-5"></i> <span>Proxies</span>
+            </div>
+            <div onclick="switchTab(5)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-5">
+                <i class="fa-solid fa-music w-5"></i> <span>Music</span>
+            </div>
+            <div onclick="switchTab(6)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-6 border-t border-white/10 pt-4" id="tab-6">
+                <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
+            </div>
         </div>
     </div>
 
-    <!-- MAIN CONTENT - now scrollable -->
-    <div class="flex-1 ml-72 main-content-wrapper">
+    <!-- MAIN SCROLLABLE CONTENT -->
+    <div class="flex-1 ml-72 main-content">
         <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50 top-0">
             <div class="h-full px-10 flex items-center gap-4">
                 <i id="current-tab-icon" class="text-3xl fa-solid"></i>
@@ -152,7 +165,45 @@
         </div>
 
         <div class="pt-24 pb-20 px-10 tail-container">
-            <!-- HOME, GAMES, AI, TV, PROXIES, MUSIC content unchanged -->
+            <!-- HOME -->
+            <div id="content-0" class="tab-content">
+                <div class="max-w-4xl mx-auto text-center pt-12">
+                    <svg width="180" height="180" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+                    </svg>
+                    <h1 class="logo-font text-7xl md:text-8xl font-bold tracking-tight mb-6">Starlink</h1>
+                    <p class="text-2xl text-white/70 max-w-3xl mx-auto leading-relaxed">
+                        Welcome to Starlink — your personal gateway to unblocked games, AI tools, streaming, music, proxies, and more. 
+                        Fast, clean, and always available.
+                    </p>
+                    <div class="mt-16 text-white/50 text-lg">By: Gunnar Booth</div>
+                </div>
+            </div>
+
+            <!-- GAMES -->
+            <div id="content-1" class="tab-content hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="games-grid"></div>
+            </div>
+
+            <!-- AI -->
+            <div id="content-2" class="tab-content hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="ai-grid"></div>
+            </div>
+
+            <!-- TV -->
+            <div id="content-3" class="tab-content hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="tv-grid"></div>
+            </div>
+
+            <!-- PROXIES -->
+            <div id="content-4" class="tab-content hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="proxy-grid"></div>
+            </div>
+
+            <!-- MUSIC -->
+            <div id="content-5" class="tab-content hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div>
+            </div>
 
             <!-- SETTINGS -->
             <div id="content-6" class="tab-content hidden">
@@ -187,10 +238,237 @@
         </div>
     </div>
 
-    <!-- JavaScript remains unchanged from your last working version -->
     <script>
-        // ... paste your full existing <script> block here (initialize, switchTab, populateGrid, etc.) ...
-        // Make sure switchTab(0) is called in initialize() to always start on Home
+        // ──────────────────────────────────────────────
+        // SETTINGS & PERSISTENCE
+        // ──────────────────────────────────────────────
+        const themes = [
+            { name: "White", color: "#ffffff" },
+            { name: "Red", color: "#ef4444" },
+            { name: "Blue", color: "#3b82f6" },
+            { name: "Green", color: "#10b981" },
+            { name: "Purple", color: "#8b5cf6" },
+            { name: "Pink", color: "#ec4899" },
+            { name: "Cyan", color: "#22d3ee" },
+            { name: "Yellow", color: "#f59e0b" },
+            { name: "Lime", color: "#84cc16" },
+            { name: "Teal", color: "#14b8a6" },
+            { name: "Rose", color: "#f43f5e" },
+            { name: "Indigo", color: "#6366f1" },
+            { name: "Orange", color: "#f97316" },
+            { name: "Magenta", color: "#d946ef" },
+            { name: "Sky Blue", color: "#0ea5e9" },
+            { name: "Lime Green", color: "#65a30d" },
+            { name: "Deep Purple", color: "#7c3aed" },
+            { name: "Neon Green", color: "#39ff14" },
+            { name: "Coral", color: "#f87171" },
+            { name: "Electric Violet", color: "#a855f7" }
+        ];
+
+        function setTheme(color) {
+            document.documentElement.style.setProperty('--accent', color);
+            localStorage.setItem('starlinkAccent', color);
+        }
+
+        function loadTheme() {
+            const saved = localStorage.getItem('starlinkAccent');
+            setTheme(saved || '#ffffff');
+        }
+
+        function saveNewTabPreference(value) {
+            localStorage.setItem('starlinkNewTab', value ? 'true' : 'false');
+        }
+
+        function loadNewTabPreference() {
+            const saved = localStorage.getItem('starlinkNewTab');
+            const checkbox = document.getElementById('newtab-toggle');
+            if (saved === null) {
+                checkbox.checked = true;
+                saveNewTabPreference(true);
+            } else {
+                checkbox.checked = saved === 'true';
+            }
+        }
+
+        function resetEverything() {
+            if (!confirm("Reset all settings to default?\nThis will clear theme and link preferences.")) return;
+
+            localStorage.removeItem('starlinkAccent');
+            localStorage.removeItem('starlinkNewTab');
+            setTheme('#ffffff');
+            document.getElementById('newtab-toggle').checked = true;
+            saveNewTabPreference(true);
+
+            const msg = document.getElementById('reset-message');
+            msg.classList.remove('hidden');
+            setTimeout(() => {
+                msg.classList.add('hidden');
+                location.reload();
+            }, 2000);
+        }
+
+        // ──────────────────────────────────────────────
+        // BACKGROUND STARS
+        // ──────────────────────────────────────────────
+        function createStar(x, y) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = `${x}px`;
+            star.style.top  = `${y}px`;
+            const size = Math.random() * 3 + 1;
+            star.style.width = star.style.height = `${size}px`;
+            const duration = Math.random() * 40 + 25;
+            star.style.animationDuration = `${duration}s`;
+            const drift = (Math.random() - 0.5) * 120;
+            star.style.transform = `translateX(${drift}px)`;
+            document.getElementById('star-bg').appendChild(star);
+            setTimeout(() => star.remove(), duration * 1000 + 2000);
+        }
+
+        function initStars(count = 100) {
+            for (let i = 0; i < count; i++) {
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight * 1.5;
+                createStar(x, y);
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('button, a, .nav-link, input, label, svg, .card')) return;
+            createStar(e.clientX, e.clientY);
+        });
+
+        // ──────────────────────────────────────────────
+        // TAB ICONS
+        // ──────────────────────────────────────────────
+        const tabIcons = [
+            'fa-house',
+            'fa-gamepad',
+            'fa-brain',
+            'fa-tv',
+            'fa-shield-halved',
+            'fa-music',
+            'fa-gear'
+        ];
+
+        const sites = {
+            games: [
+                { name: "Poki", url: "https://poki.com", desc: "Thousands of free games", icon: "🎮" },
+                { name: "CrazyGames", url: "https://crazygames.com", desc: "Browser hits", icon: "🚀" },
+                { name: "itch.io", url: "https://itch.io", desc: "Indie games", icon: "🕹️" },
+                { name: "Roblox", url: "https://roblox.com", desc: "Play with friends", icon: "📦" },
+                { name: "Coolmath Games", url: "https://coolmathgames.com", desc: "School classics", icon: "🧠" },
+                { name: "Minecraft Classic", url: "https://classic.minecraft.net", desc: "Free version", icon: "⛏️" }
+            ],
+            ai: [
+                { name: "ChatGPT", url: "https://chatgpt.com", desc: "OpenAI", icon: "🤖" },
+                { name: "Grok", url: "https://grok.x.ai", desc: "by xAI", icon: "⭐" },
+                { name: "Claude", url: "https://claude.ai", desc: "Anthropic", icon: "🧠" },
+                { name: "Gemini", url: "https://gemini.google.com", desc: "Google", icon: "🔭" },
+                { name: "Perplexity", url: "https://perplexity.ai", desc: "Research AI", icon: "🔍" },
+                { name: "Blackbox", url: "https://blackbox.ai", desc: "Code AI", icon: "💻" }
+            ],
+            tv: [
+                { name: "YouTube", url: "https://youtube.com", desc: "Videos & Live", icon: "📺" },
+                { name: "Tubi", url: "https://tubitv.com", desc: "Free movies", icon: "🎥" },
+                { name: "Pluto TV", url: "https://pluto.tv", desc: "Live channels", icon: "📡" },
+                { name: "Netflix", url: "https://netflix.com", desc: "Premium shows", icon: "🎬" },
+                { name: "Disney+", url: "https://disneyplus.com", desc: "Family & Marvel", icon: "🏰" },
+                { name: "Twitch", url: "https://twitch.tv", desc: "Live gaming", icon: "🎮" }
+            ],
+            proxies: [
+                { name: "CroxyProxy", url: "https://www.croxyproxy.com", desc: "YouTube & more", icon: "🌐" },
+                { name: "ProxySite", url: "https://www.proxysite.com", desc: "Fast & simple", icon: "⚡" },
+                { name: "Hide.me", url: "https://hide.me/en/proxy", desc: "Privacy first", icon: "🕵️" },
+                { name: "KProxy", url: "https://kproxy.com", desc: "No sign-up", icon: "🔑" },
+                { name: "Proxyium", url: "https://proxyium.com", desc: "Ultra fast", icon: "🚀" },
+                { name: "SudoProxy", url: "https://sudoproxy.net", desc: "School friendly", icon: "🏫" }
+            ],
+            music: [
+                { name: "Spotify", url: "https://open.spotify.com", desc: "Millions of songs", icon: "🎵" },
+                { name: "YouTube Music", url: "https://music.youtube.com", desc: "Free with ads", icon: "🎧" },
+                { name: "SoundCloud", url: "https://soundcloud.com", desc: "Underground hits", icon: "🔊" },
+                { name: "Bandcamp", url: "https://bandcamp.com", desc: "Support artists", icon: "💿" },
+                { name: "Deezer", url: "https://deezer.com", desc: "High quality", icon: "📻" },
+                { name: "iHeartRadio", url: "https://iheart.com", desc: "Live radio", icon: "📻" }
+            ]
+        };
+
+        function switchTab(tabIndex) {
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
+            document.getElementById(`tab-${tabIndex}`).classList.add('active-tab');
+
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`content-${tabIndex}`).classList.remove('hidden');
+
+            const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings"];
+            document.getElementById('current-tab').textContent = titles[tabIndex];
+
+            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[tabIndex]}`;
+        }
+
+        function populateGrid(category, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+
+            (sites[category] || []).forEach(site => {
+                const card = document.createElement('div');
+                card.className = `card rounded-3xl p-6 cursor-pointer group`;
+                card.innerHTML = `
+                    <div class="text-5xl mb-6 transition-transform group-hover:scale-125">${site.icon}</div>
+                    <div class="font-semibold text-xl mb-2">${site.name}</div>
+                    <div class="text-white/60 text-sm">${site.desc}</div>
+                `;
+                card.onclick = () => {
+                    const newTab = document.getElementById('newtab-toggle').checked;
+                    if (newTab) window.open(site.url, '_blank');
+                    else window.location.href = site.url;
+                };
+                container.appendChild(card);
+            });
+        }
+
+        function populateThemeGrid() {
+            const container = document.getElementById('theme-grid');
+            if (!container) return;
+            container.innerHTML = '';
+
+            themes.forEach(t => {
+                const el = document.createElement('div');
+                el.className = 'cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-white/50 transition-all shadow-md';
+                el.innerHTML = `
+                    <div class="h-24 flex items-center justify-center" style="background:${t.color};">
+                        <span class="text-5xl drop-shadow-xl">★</span>
+                    </div>
+                    <div class="text-center py-3 text-xs font-medium bg-black/70">${t.name}</div>
+                `;
+                el.onclick = () => setTheme(t.color);
+                container.appendChild(el);
+            });
+        }
+
+        function initialize() {
+            loadTheme();
+            loadNewTabPreference();
+            initStars();
+            populateThemeGrid();
+
+            populateGrid('games',   'games-grid');
+            populateGrid('ai',      'ai-grid');
+            populateGrid('tv',      'tv-grid');
+            populateGrid('proxies', 'proxy-grid');
+            populateGrid('music',   'music-grid');
+
+            // Always start on Home
+            switchTab(0);
+
+            document.getElementById('newtab-toggle').addEventListener('change', (e) => {
+                saveNewTabPreference(e.target.checked);
+            });
+        }
+
+        window.onload = initialize;
     </script>
 </body>
 </html>
