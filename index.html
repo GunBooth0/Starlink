@@ -147,7 +147,10 @@
     <!-- MAIN CONTENT -->
     <div class="flex-1 ml-72 relative z-10 overflow-y-auto">
         <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50">
-            <div class="h-full px-10 flex items-center">
+            <div class="h-full px-10 flex items-center gap-4">
+                <svg width="36" height="36" viewBox="0 0 200 200" class="star-svg" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+                </svg>
                 <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Home</div>
             </div>
         </div>
@@ -170,41 +173,26 @@
 
             <!-- GAMES -->
             <div id="content-1" class="tab-content hidden">
-                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
-                    <i class="fa-solid fa-gamepad"></i> Games
-                </h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="games-grid"></div>
             </div>
 
             <!-- AI -->
             <div id="content-2" class="tab-content hidden">
-                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
-                    <i class="fa-solid fa-brain"></i> AI Tools
-                </h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="ai-grid"></div>
             </div>
 
             <!-- TV -->
             <div id="content-3" class="tab-content hidden">
-                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
-                    <i class="fa-solid fa-tv"></i> TV & Streaming
-                </h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="tv-grid"></div>
             </div>
 
             <!-- PROXIES -->
             <div id="content-4" class="tab-content hidden">
-                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
-                    <i class="fa-solid fa-shield-halved"></i> Proxy Services
-                </h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="proxy-grid"></div>
             </div>
 
             <!-- MUSIC -->
             <div id="content-5" class="tab-content hidden">
-                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
-                    <i class="fa-solid fa-music"></i> Music
-                </h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div>
             </div>
 
@@ -238,7 +226,7 @@
 
     <script>
         // ──────────────────────────────────────────────
-        // THEME PERSISTENCE + ACCENT
+        // THEME (saved to localStorage)
         // ──────────────────────────────────────────────
         const themes = [
             { name: "White", color: "#ffffff" },
@@ -257,12 +245,16 @@
 
         function setTheme(color) {
             document.documentElement.style.setProperty('--accent', color);
-            localStorage.setItem('starlinkTheme', color);
+            localStorage.setItem('starlinkAccent', color);
         }
 
         function loadTheme() {
-            const saved = localStorage.getItem('starlinkTheme') || '#ffffff';
-            setTheme(saved);
+            const saved = localStorage.getItem('starlinkAccent');
+            if (saved) {
+                setTheme(saved);
+            } else {
+                setTheme('#ffffff');
+            }
         }
 
         // ──────────────────────────────────────────────
@@ -277,7 +269,7 @@
             const size = Math.random() * 3 + 1;
             star.style.width = star.style.height = `${size}px`;
             
-            const duration = Math.random() * 40 + 25; // 25–65s
+            const duration = Math.random() * 40 + 25;
             star.style.animationDuration = `${duration}s`;
             
             const drift = (Math.random() - 0.5) * 120;
@@ -296,10 +288,9 @@
             }
         }
 
-        // Click anywhere adds a star
+        // Click to add star (ignore clicks on interactive elements)
         document.addEventListener('click', (e) => {
-            // Prevent adding stars when clicking buttons/links
-            if (e.target.closest('button, a, .nav-link, input, label')) return;
+            if (e.target.closest('button, a, .nav-link, input, label, svg, .card')) return;
             createStar(e.clientX, e.clientY);
         });
 
