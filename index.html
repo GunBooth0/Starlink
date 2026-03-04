@@ -126,28 +126,21 @@
                 <i class="fa-solid fa-music w-5"></i>
                 <span>Music</span>
             </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="p-6 text-xs text-white/40 flex items-center justify-between border-t border-white/10">
-            <div>Made with ❤️ for unlimited access</div>
-            <button onclick="showSettings()" 
-                    class="flex items-center gap-x-2 hover:text-yellow-400 transition-colors">
-                <i class="fa-solid fa-gear"></i>
+            <div onclick="switchTab(6)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-6 border-t border-white/10 pt-4" id="tab-6">
+                <i class="fa-solid fa-gear w-5"></i>
                 <span>Settings</span>
-            </button>
+            </div>
         </div>
     </div>
 
     <!-- MAIN CONTENT -->
     <div class="flex-1 ml-72">
-        <!-- Top Bar -->
+        <!-- Top Bar (cleaned up - only title and search) -->
         <div class="h-16 border-b border-white/10 bg-zinc-950/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50">
             <div class="h-full px-10 flex items-center justify-between">
                 <div class="flex items-center gap-x-8">
                     <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Home</div>
                     
-                    <!-- Search -->
                     <div class="relative w-96">
                         <input id="search-input" 
                                onkeyup="if(event.key === 'Enter') filterCards()"
@@ -157,71 +150,15 @@
                         <i class="fa-solid fa-magnifying-glass absolute left-5 top-3.5 text-white/40"></i>
                     </div>
                 </div>
-
-                <div class="flex items-center gap-x-6">
-                    <div onclick="showSettings()" 
-                         class="flex items-center gap-x-2 bg-zinc-900 hover:bg-zinc-800 transition-colors border border-white/10 rounded-3xl px-5 py-2 text-sm cursor-pointer">
-                        <span id="theme-name" class="text-yellow-400">Space Dark</span>
-                        <i class="fa-solid fa-palette"></i>
-                    </div>
-
-                    <div class="w-9 h-9 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl flex items-center justify-center text-zinc-950 font-bold cursor-pointer" onclick="showSettings()">
-                        G
-                    </div>
-                </div>
             </div>
         </div>
 
         <!-- Content Area -->
         <div class="pt-24 pb-12 px-10 tail-container">
             
-            <!-- HOME TAB -->
+            <!-- HOME TAB (empty for now) -->
             <div id="content-0" class="tab-content">
-                <div class="mb-12">
-                    <h2 class="text-5xl font-semibold logo-font tracking-tighter mb-2">Welcome back, Voyager</h2>
-                    <p class="text-xl text-white/60">Your personal unblocked gateway • Powered by Starlink</p>
-                </div>
-
-                <div class="mb-16">
-                    <div class="flex items-end justify-between mb-6">
-                        <h3 class="text-2xl font-semibold">Featured Destinations</h3>
-                        <a onclick="switchTab(1)" class="text-yellow-400 text-sm flex items-center gap-x-2 hover:underline cursor-pointer">
-                            Explore all <i class="fa-solid fa-arrow-right"></i>
-                        </a>
-                    </div>
-                    <div class="grid grid-cols-5 gap-6" id="featured-grid"></div>
-                </div>
-
-                <div>
-                    <h3 class="text-2xl font-semibold mb-6">Jump to Category</h3>
-                    <div class="grid grid-cols-5 gap-6">
-                        <div onclick="switchTab(1)" class="card glass border border-white/10 rounded-3xl p-8 cursor-pointer hover:border-yellow-400/30">
-                            <i class="fa-solid fa-gamepad text-5xl mb-6 text-yellow-400"></i>
-                            <div class="text-2xl font-medium">Games</div>
-                            <div class="text-white/60 text-sm mt-1">Unblocked • 100+ titles</div>
-                        </div>
-                        <div onclick="switchTab(2)" class="card glass border border-white/10 rounded-3xl p-8 cursor-pointer hover:border-yellow-400/30">
-                            <i class="fa-solid fa-brain text-5xl mb-6 text-blue-400"></i>
-                            <div class="text-2xl font-medium">AI Tools</div>
-                            <div class="text-white/60 text-sm mt-1">Chat • Generate • Code</div>
-                        </div>
-                        <div onclick="switchTab(3)" class="card glass border border-white/10 rounded-3xl p-8 cursor-pointer hover:border-yellow-400/30">
-                            <i class="fa-solid fa-tv text-5xl mb-6 text-red-400"></i>
-                            <div class="text-2xl font-medium">Live TV</div>
-                            <div class="text-white/60 text-sm mt-1">Movies • Sports • Shows</div>
-                        </div>
-                        <div onclick="switchTab(4)" class="card glass border border-white/10 rounded-3xl p-8 cursor-pointer hover:border-yellow-400/30">
-                            <i class="fa-solid fa-shield-halved text-5xl mb-6 text-emerald-400"></i>
-                            <div class="text-2xl font-medium">Proxies</div>
-                            <div class="text-white/60 text-sm mt-1">Proxy services</div>
-                        </div>
-                        <div onclick="switchTab(5)" class="card glass border border-white/10 rounded-3xl p-8 cursor-pointer hover:border-yellow-400/30">
-                            <i class="fa-solid fa-music text-5xl mb-6 text-purple-400"></i>
-                            <div class="text-2xl font-medium">Music</div>
-                            <div class="text-white/60 text-sm mt-1">Stream anything</div>
-                        </div>
-                    </div>
-                </div>
+                <!-- You can tell me what to put here next -->
             </div>
 
             <!-- GAMES TAB -->
@@ -248,7 +185,7 @@
                 <div class="grid grid-cols-6 gap-6" id="tv-grid"></div>
             </div>
 
-            <!-- PROXIES TAB (now just regular sites) -->
+            <!-- PROXIES TAB -->
             <div id="content-4" class="tab-content hidden">
                 <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
                     <i class="fa-solid fa-shield-halved"></i> Proxy Services
@@ -263,97 +200,71 @@
                 </h2>
                 <div class="grid grid-cols-6 gap-6" id="music-grid"></div>
             </div>
-        </div>
-    </div>
 
-    <!-- SETTINGS MODAL -->
-    <div onclick="if(event.target.id==='settings-modal') hideSettings()" id="settings-modal"
-         class="hidden fixed inset-0 bg-black/80 backdrop-blur-xl z-[999] flex items-center justify-center">
-        <div onclick="event.stopImmediatePropagation()" 
-             class="bg-zinc-900 rounded-3xl max-w-md w-full mx-4 overflow-hidden">
-            
-            <div class="px-8 py-6 border-b border-white/10 flex items-center justify-between">
-                <div class="text-2xl font-semibold">Settings</div>
-                <button onclick="hideSettings()" class="text-white/60 hover:text-white">
-                    <i class="fa-solid fa-xmark text-2xl"></i>
-                </button>
-            </div>
-
-            <div class="p-8">
-                <p class="uppercase text-xs tracking-widest text-white/50 mb-4">Themes</p>
-                <div class="grid grid-cols-4 gap-4">
-                    <div onclick="setTheme('dark')" 
-                         class="cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all">
-                        <div class="h-20 bg-zinc-950 flex items-center justify-center">
-                            <span class="text-yellow-400 text-4xl">★</span>
-                        </div>
-                        <div class="text-center py-3 text-sm font-medium bg-zinc-900">Space Dark</div>
-                    </div>
-                    <div onclick="setTheme('light')" 
-                         class="cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all">
-                        <div class="h-20 bg-white flex items-center justify-center border border-zinc-200">
-                            <span class="text-yellow-400 text-4xl">★</span>
-                        </div>
-                        <div class="text-center py-3 text-sm font-medium bg-white text-black">Classic Light</div>
-                    </div>
-                    <div onclick="setTheme('cosmic')" 
-                         class="cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all">
-                        <div class="h-20 bg-slate-900 flex items-center justify-center">
-                            <span class="text-sky-400 text-4xl">★</span>
-                        </div>
-                        <div class="text-center py-3 text-sm font-medium bg-slate-900">Cosmic Blue</div>
-                    </div>
-                    <div onclick="setTheme('neon')" 
-                         class="cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all">
-                        <div class="h-20 bg-neutral-950 flex items-center justify-center">
-                            <span class="text-lime-400 text-4xl">★</span>
-                        </div>
-                        <div class="text-center py-3 text-sm font-medium bg-neutral-950">Neon Glow</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="px-8 py-6 border-t border-white/10 text-sm">
-                <div class="flex justify-between items-center py-4 border-b border-white/10">
-                    <div class="flex items-center gap-x-3">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                        <span>Open links in new tab</span>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" checked class="sr-only peer" id="newtab-toggle">
-                        <div class="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-400"></div>
-                    </label>
-                </div>
+            <!-- SETTINGS TAB -->
+            <div id="content-6" class="tab-content hidden">
+                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
+                    <i class="fa-solid fa-gear"></i> Settings
+                </h2>
                 
-                <div onclick="clearCustomLinks()" 
-                     class="flex items-center gap-x-3 py-4 text-red-400 hover:text-red-300 cursor-pointer">
-                    <i class="fa-solid fa-trash"></i>
-                    <span>Reset all custom links</span>
-                </div>
-            </div>
+                <div class="glass border border-white/10 rounded-3xl p-10 max-w-2xl mx-auto">
+                    <h3 class="text-2xl font-semibold mb-6">Appearance</h3>
+                    <p class="text-white/70 mb-8">Choose your preferred theme</p>
+                    
+                    <div class="grid grid-cols-4 gap-6">
+                        <div onclick="setTheme('dark')" 
+                             class="cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all shadow-lg">
+                            <div class="h-32 bg-zinc-950 flex items-center justify-center">
+                                <span class="text-yellow-400 text-6xl">★</span>
+                            </div>
+                            <div class="text-center py-4 text-base font-medium bg-zinc-900">Space Dark</div>
+                        </div>
+                        
+                        <div onclick="setTheme('light')" 
+                             class="cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all shadow-lg">
+                            <div class="h-32 bg-white flex items-center justify-center border border-zinc-200">
+                                <span class="text-yellow-400 text-6xl">★</span>
+                            </div>
+                            <div class="text-center py-4 text-base font-medium bg-white text-black">Classic Light</div>
+                        </div>
+                        
+                        <div onclick="setTheme('cosmic')" 
+                             class="cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all shadow-lg">
+                            <div class="h-32 bg-slate-900 flex items-center justify-center">
+                                <span class="text-sky-400 text-6xl">★</span>
+                            </div>
+                            <div class="text-center py-4 text-base font-medium bg-slate-900">Cosmic Blue</div>
+                        </div>
+                        
+                        <div onclick="setTheme('neon')" 
+                             class="cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all shadow-lg">
+                            <div class="h-32 bg-neutral-950 flex items-center justify-center">
+                                <span class="text-lime-400 text-6xl">★</span>
+                            </div>
+                            <div class="text-center py-4 text-base font-medium bg-neutral-950">Neon Glow</div>
+                        </div>
+                    </div>
 
-            <div class="px-8 py-6 bg-black/40 text-center text-xs text-white/40">
-                Starlink v1.1 • Fully local • No data collected
+                    <div class="mt-12 pt-8 border-t border-white/10">
+                        <h3 class="text-2xl font-semibold mb-6">Link Behavior</h3>
+                        <div class="flex justify-between items-center py-4">
+                            <div class="flex items-center gap-x-3 text-lg">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                <span>Open links in new tab</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" checked class="sr-only peer" id="newtab-toggle">
+                                <div class="w-14 h-7 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-400"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        function switchTab(tabIndex) {
-            document.querySelectorAll('.nav-link').forEach(el => {
-                el.classList.remove('bg-white/10', 'active-tab');
-            });
-            
-            document.getElementById(`tab-${tabIndex}`).classList.add('bg-white/10', 'active-tab');
-            
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`content-${tabIndex}`).classList.remove('hidden');
-            
-            const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music"];
-            document.getElementById('current-tab').textContent = titles[tabIndex];
-            
-            currentTab = tabIndex;
-        }
+        let currentTab = 0;
 
         const sites = {
             games: [
@@ -398,7 +309,21 @@
             ]
         };
 
-        let currentTab = 0;
+        function switchTab(tabIndex) {
+            document.querySelectorAll('.nav-link').forEach(el => {
+                el.classList.remove('bg-white/10', 'active-tab');
+            });
+            
+            document.getElementById(`tab-${tabIndex}`).classList.add('bg-white/10', 'active-tab');
+            
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`content-${tabIndex}`).classList.remove('hidden');
+            
+            const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings"];
+            document.getElementById('current-tab').textContent = titles[tabIndex];
+            
+            currentTab = tabIndex;
+        }
 
         function populateGrid(category, containerId) {
             const container = document.getElementById(containerId);
@@ -424,51 +349,8 @@
             });
         }
 
-        function populateFeatured() {
-            const container = document.getElementById('featured-grid');
-            container.innerHTML = '';
-            
-            const mix = [
-                ...sites.games.slice(0,2),
-                ...sites.ai.slice(0,1),
-                ...sites.tv.slice(0,1),
-                ...sites.music.slice(0,1)
-            ];
-            
-            mix.forEach(site => {
-                const card = document.createElement('div');
-                card.className = `card glass border border-white/10 rounded-3xl p-6 cursor-pointer`;
-                card.innerHTML = `
-                    <div class="text-6xl mb-6">${site.icon}</div>
-                    <div class="font-medium">${site.name}</div>
-                `;
-                card.onclick = () => window.open(site.url, '_blank');
-                container.appendChild(card);
-            });
-        }
-
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
-            
-            const names = {
-                dark: "Space Dark",
-                light: "Classic Light",
-                cosmic: "Cosmic Blue",
-                neon: "Neon Glow"
-            };
-            document.getElementById('theme-name').textContent = names[theme];
-            hideSettings();
-        }
-
-        function showSettings() {
-            document.getElementById('settings-modal').classList.remove('hidden');
-            document.getElementById('settings-modal').classList.add('flex');
-        }
-
-        function hideSettings() {
-            const modal = document.getElementById('settings-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
         }
 
         function filterCards() {
@@ -491,32 +373,17 @@
             }
         }
 
-        function clearCustomLinks() {
-            if (confirm('Reset everything?')) {
-                alert('All custom links cleared! (no custom links were stored in this version)');
-            }
-        }
-
-        document.addEventListener('keydown', function(e) {
-            if (e.metaKey && e.key === 'k') {
-                e.preventDefault();
-                document.getElementById('search-input').focus();
-            }
-        });
-
         function initialize() {
             populateGrid('games', 'games-grid');
             populateGrid('ai', 'ai-grid');
             populateGrid('tv', 'tv-grid');
             populateGrid('proxies', 'proxy-grid');
             populateGrid('music', 'music-grid');
-            populateFeatured();
             
             switchTab(0);
-            document.getElementById('theme-name').textContent = "Space Dark";
-            document.getElementById('settings-modal').classList.add('hidden');
+            document.getElementById('settings-modal')?.classList?.add('hidden');
             
-            console.log('%cStarlink updated – proxy removed 🚀', 'color:#facc15; font-family:monospace');
+            console.log('%cStarlink updated – clean sidebar + settings tab', 'color:#facc15; font-family:monospace');
         }
 
         window.onload = initialize;
