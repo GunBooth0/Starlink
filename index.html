@@ -17,9 +17,9 @@
             background: #000000;
             color: #ffffff;
             font-family: 'Inter', system-ui, sans-serif;
-            overflow: hidden;
             margin: 0;
             height: 100vh;
+            overflow: hidden;
         }
         
         .logo-font {
@@ -38,12 +38,22 @@
 
         .nav-link {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #ffffff;
         }
         
-        .nav-link:hover {
-            transform: translateX(8px);
-            color: #ffffff;
+        .nav-link:hover,
+        .nav-link.active-tab {
+            color: var(--accent) !important;
             background: rgba(255,255,255,0.08);
+        }
+
+        .nav-link i {
+            color: inherit;
+        }
+
+        #current-tab {
+            color: var(--accent);
+            transition: color 0.4s ease;
         }
 
         .card {
@@ -54,7 +64,7 @@
         
         .card:hover {
             transform: translateY(-8px) scale(1.03);
-            border-color: rgba(255,255,255,0.4);
+            border-color: var(--accent);
             background: rgba(255,255,255,0.06);
         }
 
@@ -70,18 +80,12 @@
             margin-right: auto;
         }
 
-        .active-tab {
-            background: rgba(255,255,255,0.1) !important;
-            color: #ffffff !important;
-        }
-
-        /* Background stars container */
+        /* Background stars */
         #star-bg {
             position: fixed;
             inset: 0;
             z-index: -1;
-            pointer-events: auto; /* allow clicks */
-            overflow: hidden;
+            pointer-events: auto;
         }
 
         .star {
@@ -94,18 +98,13 @@
         }
 
         @keyframes floatUp {
-            0% {
-                transform: translateY(100vh);
-            }
-            100% {
-                transform: translateY(-20vh);
-            }
+            0%   { transform: translateY(110vh); }
+            100% { transform: translateY(-30vh); }
         }
     </style>
 </head>
-<body class="min-h-screen flex">
+<body>
 
-    <!-- Persistent starry background -->
     <div id="star-bg"></div>
 
     <!-- SIDEBAR -->
@@ -146,174 +145,273 @@
     </div>
 
     <!-- MAIN CONTENT -->
-    <div class="flex-1 ml-72 relative z-10">
+    <div class="flex-1 ml-72 relative z-10 overflow-y-auto">
         <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50">
             <div class="h-full px-10 flex items-center">
                 <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Home</div>
             </div>
         </div>
 
-        <div class="pt-24 pb-12 px-10 tail-container min-h-[calc(100vh-6rem)]">
-            <!-- HOME TAB -->
-            <div id="content-0" class="tab-content w-full max-w-4xl mx-auto text-center pt-12">
-                <div class="mb-16">
+        <div class="pt-24 pb-20 px-10 tail-container">
+            <!-- HOME -->
+            <div id="content-0" class="tab-content">
+                <div class="max-w-4xl mx-auto text-center pt-12">
                     <svg id="home-star" width="180" height="180" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
                         <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
                     </svg>
-                    
                     <h1 class="logo-font text-7xl md:text-8xl font-bold tracking-tight mb-6">Starlink</h1>
-                    
                     <p class="text-2xl text-white/70 max-w-3xl mx-auto leading-relaxed">
                         Welcome to Starlink — your personal gateway to unblocked games, AI tools, streaming, music, proxies, and more. 
                         Fast, clean, and always available.
                     </p>
-                    
                     <div class="mt-16 text-white/50 text-lg">By: Gunnar Booth</div>
                 </div>
             </div>
 
-            <!-- Other tabs remain the same (omitted for brevity in this snippet) -->
-            <div id="content-1" class="tab-content hidden"> <!-- Games --> </div>
-            <div id="content-2" class="tab-content hidden"> <!-- AI --> </div>
-            <div id="content-3" class="tab-content hidden"> <!-- TV --> </div>
-            <div id="content-4" class="tab-content hidden"> <!-- Proxies --> </div>
-            <div id="content-5" class="tab-content hidden"> <!-- Music --> </div>
+            <!-- GAMES -->
+            <div id="content-1" class="tab-content hidden">
+                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
+                    <i class="fa-solid fa-gamepad"></i> Games
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="games-grid"></div>
+            </div>
 
+            <!-- AI -->
+            <div id="content-2" class="tab-content hidden">
+                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
+                    <i class="fa-solid fa-brain"></i> AI Tools
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="ai-grid"></div>
+            </div>
+
+            <!-- TV -->
+            <div id="content-3" class="tab-content hidden">
+                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
+                    <i class="fa-solid fa-tv"></i> TV & Streaming
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="tv-grid"></div>
+            </div>
+
+            <!-- PROXIES -->
+            <div id="content-4" class="tab-content hidden">
+                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
+                    <i class="fa-solid fa-shield-halved"></i> Proxy Services
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="proxy-grid"></div>
+            </div>
+
+            <!-- MUSIC -->
+            <div id="content-5" class="tab-content hidden">
+                <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
+                    <i class="fa-solid fa-music"></i> Music
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div>
+            </div>
+
+            <!-- SETTINGS -->
             <div id="content-6" class="tab-content hidden">
                 <h2 class="text-4xl font-semibold mb-8 flex items-center gap-x-4">
                     <i class="fa-solid fa-gear"></i> Settings
                 </h2>
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
                     <h3 class="text-2xl font-semibold mb-6">Appearance • Choose Theme</h3>
-                    <p class="text-white/70 mb-10">Click a color to change the star glow, pulsing effect, and background stars instantly</p>
-                    <div id="theme-grid" class="grid grid-cols-5 gap-6"></div>
-                    <!-- Link behavior section remains -->
+                    <p class="text-white/70 mb-10">Click a color to change the accent, stars, glow, and sidebar highlights</p>
+                    <div id="theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-5"></div>
+
+                    <div class="mt-12 pt-8 border-t border-white/10">
+                        <h3 class="text-2xl font-semibold mb-6">Link Behavior</h3>
+                        <div class="flex justify-between items-center py-4">
+                            <div class="flex items-center gap-x-3 text-lg">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                <span>Open links in new tab</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" checked class="sr-only peer" id="newtab-toggle">
+                                <div class="w-14 h-7 bg-white/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]"></div>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        let currentTab = 0;
-
+        // ──────────────────────────────────────────────
+        // THEME PERSISTENCE + ACCENT
+        // ──────────────────────────────────────────────
         const themes = [
-            { name: "Black & White", color: "#ffffff" },
-            { name: "Crimson", color: "#ef4444" },
-            { name: "Ocean Blue", color: "#3b82f6" },
-            { name: "Emerald", color: "#10b981" },
-            { name: "Violet", color: "#8b5cf6" },
-            { name: "Hot Pink", color: "#ec4899" },
+            { name: "White", color: "#ffffff" },
+            { name: "Red", color: "#ef4444" },
+            { name: "Blue", color: "#3b82f6" },
+            { name: "Green", color: "#10b981" },
+            { name: "Purple", color: "#8b5cf6" },
+            { name: "Pink", color: "#ec4899" },
             { name: "Cyan", color: "#22d3ee" },
-            { name: "Amber", color: "#f59e0b" },
+            { name: "Yellow", color: "#f59e0b" },
             { name: "Lime", color: "#84cc16" },
             { name: "Teal", color: "#14b8a6" },
             { name: "Rose", color: "#f43f5e" },
             { name: "Indigo", color: "#6366f1" }
         ];
 
-        // ... (sites object remains the same as previous version)
+        function setTheme(color) {
+            document.documentElement.style.setProperty('--accent', color);
+            localStorage.setItem('starlinkTheme', color);
+        }
 
+        function loadTheme() {
+            const saved = localStorage.getItem('starlinkTheme') || '#ffffff';
+            setTheme(saved);
+        }
+
+        // ──────────────────────────────────────────────
+        // BACKGROUND STARS
+        // ──────────────────────────────────────────────
         function createStar(x, y) {
             const star = document.createElement('div');
             star.className = 'star';
-            star.style.left = x + 'px';
-            star.style.top = y + 'px';
+            star.style.left = `${x}px`;
+            star.style.top  = `${y}px`;
             
-            // Random size between 1–4px
             const size = Math.random() * 3 + 1;
-            star.style.width = size + 'px';
-            star.style.height = size + 'px';
+            star.style.width = star.style.height = `${size}px`;
             
-            // Random duration 20–60 seconds for slow float
-            const duration = Math.random() * 40 + 20;
-            star.style.animationDuration = duration + 's';
+            const duration = Math.random() * 40 + 25; // 25–65s
+            star.style.animationDuration = `${duration}s`;
             
-            // Slight random horizontal drift
-            const drift = (Math.random() - 0.5) * 80;
+            const drift = (Math.random() - 0.5) * 120;
             star.style.transform = `translateX(${drift}px)`;
             
             document.getElementById('star-bg').appendChild(star);
             
-            // Remove after animation completes to prevent DOM bloat
-            setTimeout(() => star.remove(), duration * 1000 + 1000);
+            setTimeout(() => star.remove(), duration * 1000 + 2000);
         }
 
-        function initBackgroundStars(count = 120) {
-            const bg = document.getElementById('star-bg');
+        function initStars(count = 100) {
             for (let i = 0; i < count; i++) {
                 const x = Math.random() * window.innerWidth;
-                const y = Math.random() * window.innerHeight;
+                const y = Math.random() * window.innerHeight * 1.5;
                 createStar(x, y);
             }
         }
 
-        function setTheme(color) {
-            document.documentElement.style.setProperty('--accent', color);
-        }
-
-        function populateThemeGrid() {
-            const container = document.getElementById('theme-grid');
-            container.innerHTML = '';
-            themes.forEach(theme => {
-                const div = document.createElement('div');
-                div.className = `cursor-pointer rounded-3xl overflow-hidden border-2 border-transparent hover:border-white transition-all`;
-                div.innerHTML = `
-                    <div class="h-28 flex items-center justify-center" style="background: ${theme.color};">
-                        <span class="text-6xl drop-shadow-2xl">★</span>
-                    </div>
-                    <div class="text-center py-4 text-sm font-medium bg-black">${theme.name}</div>
-                `;
-                div.onclick = () => setTheme(theme.color);
-                container.appendChild(div);
-            });
-        }
-
-        // Click to add star
-        document.getElementById('star-bg').addEventListener('click', (e) => {
+        // Click anywhere adds a star
+        document.addEventListener('click', (e) => {
+            // Prevent adding stars when clicking buttons/links
+            if (e.target.closest('button, a, .nav-link, input, label')) return;
             createStar(e.clientX, e.clientY);
         });
+
+        // ──────────────────────────────────────────────
+        // TABS & CONTENT
+        // ──────────────────────────────────────────────
+        const sites = {
+            games: [
+                { name: "Poki", url: "https://poki.com", desc: "Thousands of free games", icon: "🎮" },
+                { name: "CrazyGames", url: "https://crazygames.com", desc: "Browser hits", icon: "🚀" },
+                { name: "itch.io", url: "https://itch.io", desc: "Indie games", icon: "🕹️" },
+                { name: "Roblox", url: "https://roblox.com", desc: "Play with friends", icon: "📦" },
+                { name: "Coolmath Games", url: "https://coolmathgames.com", desc: "School classics", icon: "🧠" },
+                { name: "Minecraft Classic", url: "https://classic.minecraft.net", desc: "Free version", icon: "⛏️" }
+            ],
+            ai: [
+                { name: "ChatGPT", url: "https://chatgpt.com", desc: "OpenAI", icon: "🤖" },
+                { name: "Grok", url: "https://grok.x.ai", desc: "by xAI", icon: "⭐" },
+                { name: "Claude", url: "https://claude.ai", desc: "Anthropic", icon: "🧠" },
+                { name: "Gemini", url: "https://gemini.google.com", desc: "Google", icon: "🔭" },
+                { name: "Perplexity", url: "https://perplexity.ai", desc: "Research AI", icon: "🔍" },
+                { name: "Blackbox", url: "https://blackbox.ai", desc: "Code AI", icon: "💻" }
+            ],
+            tv: [
+                { name: "YouTube", url: "https://youtube.com", desc: "Videos & Live", icon: "📺" },
+                { name: "Tubi", url: "https://tubitv.com", desc: "Free movies", icon: "🎥" },
+                { name: "Pluto TV", url: "https://pluto.tv", desc: "Live channels", icon: "📡" },
+                { name: "Netflix", url: "https://netflix.com", desc: "Premium shows", icon: "🎬" },
+                { name: "Disney+", url: "https://disneyplus.com", desc: "Family & Marvel", icon: "🏰" },
+                { name: "Twitch", url: "https://twitch.tv", desc: "Live gaming", icon: "🎮" }
+            ],
+            proxies: [
+                { name: "CroxyProxy", url: "https://www.croxyproxy.com", desc: "YouTube & more", icon: "🌐" },
+                { name: "ProxySite", url: "https://www.proxysite.com", desc: "Fast & simple", icon: "⚡" },
+                { name: "Hide.me", url: "https://hide.me/en/proxy", desc: "Privacy first", icon: "🕵️" },
+                { name: "KProxy", url: "https://kproxy.com", desc: "No sign-up", icon: "🔑" },
+                { name: "Proxyium", url: "https://proxyium.com", desc: "Ultra fast", icon: "🚀" },
+                { name: "SudoProxy", url: "https://sudoproxy.net", desc: "School friendly", icon: "🏫" }
+            ],
+            music: [
+                { name: "Spotify", url: "https://open.spotify.com", desc: "Millions of songs", icon: "🎵" },
+                { name: "YouTube Music", url: "https://music.youtube.com", desc: "Free with ads", icon: "🎧" },
+                { name: "SoundCloud", url: "https://soundcloud.com", desc: "Underground hits", icon: "🔊" },
+                { name: "Bandcamp", url: "https://bandcamp.com", desc: "Support artists", icon: "💿" },
+                { name: "Deezer", url: "https://deezer.com", desc: "High quality", icon: "📻" },
+                { name: "iHeartRadio", url: "https://iheart.com", desc: "Live radio", icon: "📻" }
+            ]
+        };
 
         function switchTab(tabIndex) {
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
             document.getElementById(`tab-${tabIndex}`).classList.add('active-tab');
+
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`content-${tabIndex}`).classList.remove('hidden');
+
             const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings"];
             document.getElementById('current-tab').textContent = titles[tabIndex];
-            currentTab = tabIndex;
         }
 
         function populateGrid(category, containerId) {
-            // same as before – omitted for brevity
             const container = document.getElementById(containerId);
+            if (!container) return;
             container.innerHTML = '';
-            sites[category].forEach(site => {
+
+            (sites[category] || []).forEach(site => {
                 const card = document.createElement('div');
                 card.className = `card rounded-3xl p-6 cursor-pointer group`;
                 card.innerHTML = `
-                    <div class="text-5xl mb-8 transition-transform group-hover:scale-125">${site.icon}</div>
-                    <div class="font-semibold text-xl mb-1">${site.name}</div>
-                    <div class="text-white/60 text-sm line-clamp-2">${site.desc}</div>
+                    <div class="text-5xl mb-6 transition-transform group-hover:scale-125">${site.icon}</div>
+                    <div class="font-semibold text-xl mb-2">${site.name}</div>
+                    <div class="text-white/60 text-sm">${site.desc}</div>
                 `;
                 card.onclick = () => {
-                    const openInNew = document.getElementById('newtab-toggle').checked;
-                    if (openInNew) window.open(site.url, '_blank');
-                    else window.location = site.url;
+                    const newTab = document.getElementById('newtab-toggle').checked;
+                    if (newTab) window.open(site.url, '_blank');
+                    else window.location.href = site.url;
                 };
                 container.appendChild(card);
             });
         }
 
+        function populateThemeGrid() {
+            const container = document.getElementById('theme-grid');
+            if (!container) return;
+            container.innerHTML = '';
+
+            themes.forEach(t => {
+                const el = document.createElement('div');
+                el.className = 'cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-white/50 transition-all shadow-md';
+                el.innerHTML = `
+                    <div class="h-24 flex items-center justify-center" style="background:${t.color};">
+                        <span class="text-5xl drop-shadow-xl">★</span>
+                    </div>
+                    <div class="text-center py-3 text-xs font-medium bg-black/70">${t.name}</div>
+                `;
+                el.onclick = () => setTheme(t.color);
+                container.appendChild(el);
+            });
+        }
+
         function initialize() {
-            initBackgroundStars();
+            loadTheme();
+            initStars();
             populateThemeGrid();
-            populateGrid('games', 'games-grid');
-            populateGrid('ai', 'ai-grid');
-            populateGrid('tv', 'tv-grid');
+
+            populateGrid('games',   'games-grid');
+            populateGrid('ai',      'ai-grid');
+            populateGrid('tv',      'tv-grid');
             populateGrid('proxies', 'proxy-grid');
-            populateGrid('music', 'music-grid');
-            
-            setTheme('#ffffff'); // default white
+            populateGrid('music',   'music-grid');
+
             switchTab(0);
         }
 
