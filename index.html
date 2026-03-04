@@ -99,14 +99,12 @@
             transform: scale(1.2);
         }
 
-        /* Pulsing glow now uses currentColor so it follows theme */
         .pulse-glow {
             animation: pulse-glow 5s infinite ease-in-out;
-            color: inherit; /* Ensures it uses the element's color */
         }
         @keyframes pulse-glow {
-            0%, 100% { filter: drop-shadow(0 0 12px currentColor); opacity: 0.92; }
-            50%      { filter: drop-shadow(0 0 28px currentColor); opacity: 1; }
+            0%, 100% { opacity: 0.92; filter: drop-shadow(0 0 12px currentColor); }
+            50% { opacity: 1; filter: drop-shadow(0 0 28px currentColor); }
         }
 
         /* Stars - theme-aware */
@@ -186,6 +184,16 @@
         button.bg-white, button.bg-white:hover {
             color: #000000 !important;
         }
+
+        /* Draggable category items */
+        .sortable-item {
+            cursor: move;
+            user-select: none;
+        }
+        .sortable-item.dragging {
+            opacity: 0.6;
+            background: rgba(100,100,100,0.3);
+        }
     </style>
 </head>
 <body data-theme="default">
@@ -241,19 +249,405 @@
         </div>
     </section>
 
-    <!-- The rest of your sections/modals remain unchanged -->
+    <!-- Dynamic category sections -->
+    <div id="dynamic-sections"></div>
+
+    <!-- Manage Categories Modal -->
+    <div id="manage-categories-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div class="bg-gray-900 rounded-2xl p-8 w-full max-w-lg mx-4 border border-gray-800">
+            <h3 class="text-2xl font-semibold mb-6 text-white">Manage Categories</h3>
+            
+            <div class="mb-8">
+                <label class="block text-sm font-medium mb-2 text-white">Add New Category</label>
+                <div class="flex gap-3">
+                    <input id="new-category-name" type="text" class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white" placeholder="e.g. Proxies">
+                    <button onclick="addCategory()" class="bg-white text-black px-6 py-2 rounded-lg font-medium hover:opacity-90">Add</button>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2 text-white">Current Categories (drag to reorder)</label>
+                <div id="category-list" class="max-h-60 overflow-y-auto space-y-3 pr-2"></div>
+            </div>
+
+            <div class="flex gap-4 mt-8">
+                <button onclick="clearAllCategories()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-trash-can"></i> Clear All Categories
+                </button>
+                <button onclick="hideManageCategoriesModal()" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Link Modal -->
+    <div id="add-link-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div class="bg-gray-900 rounded-2xl p-8 w-full max-w-md mx-4 border border-gray-800">
+            <h3 class="text-2xl font-semibold mb-6 text-white">Add New Link</h3>
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium mb-1.5 text-white">Name</label>
+                    <input id="link-name" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1.5 text-white">URL</label>
+                    <input id="link-url" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1.5 text-white">Description (optional)</label>
+                    <input id="link-desc" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1.5 text-white">Category</label>
+                    <select id="link-category" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-white text-white"></select>
+                </div>
+            </div>
+            <div class="flex gap-4 mt-8">
+                <button onclick="hideAddLinkModal()" class="flex-1 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors text-white">Cancel</button>
+                <button onclick="saveNewLink()" class="flex-1 py-3 bg-white text-black rounded-lg font-medium hover:opacity-90 transition-opacity">Add</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // ... (all your existing functions: saveCategories, sanitizeId, renderNavbar, etc.)
+        let categories = JSON.parse(localStorage.getItem('starlinkCategories')) || [];
+        let sites = JSON.parse(localStorage.getItem('starlinkSites')) || [];
 
-        // Theme switcher - now also updates big star and pulsing effect
+        function saveCategories() { localStorage.setItem('starlinkCategories', JSON.stringify(categories)); }
+        function saveSites() { localStorage.setItem('starlinkSites', JSON.stringify(sites)); }
+
+        function sanitizeId(name) {
+            return 'cat-' + name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        }
+
+        function renderNavbar() {
+            const container = document.getElementById('category-tabs');
+            container.innerHTML = '';
+
+            categories.forEach(cat => {
+                const tab = document.createElement('a');
+                tab.href = `#${sanitizeId(cat)}`;
+                tab.className = 'tab';
+                tab.dataset.category = sanitizeId(cat);
+                tab.textContent = cat;
+                tab.onclick = (e) => showCategory(e, sanitizeId(cat));
+                container.appendChild(tab);
+            });
+        }
+
+        function renderDynamicSections() {
+            const container = document.getElementById('dynamic-sections');
+            container.innerHTML = '';
+
+            categories.forEach(cat => {
+                const id = sanitizeId(cat);
+                const section = document.createElement('section');
+                section.id = id;
+                section.className = 'category-section hidden';
+                section.innerHTML = `
+                    <div class="max-w-7xl mx-auto px-6 py-20">
+                        <h2 class="text-7xl font-semibold logo-font tracking-tighter mb-20 text-center text-white">${cat}</h2>
+                        <div class="grid-container">
+                            <div id="grid-${id}" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+                        </div>
+                        <div id="manage-${id}" class="manage-section mt-20"></div>
+                    </div>
+                `;
+                container.appendChild(section);
+            });
+        }
+
+        function renderCategoryGrid(cat) {
+            const id = sanitizeId(cat);
+            const grid = document.getElementById(`grid-${id}`);
+            const manageDiv = document.getElementById(`manage-${id}`);
+            if (!grid || !manageDiv) return;
+
+            grid.innerHTML = '';
+            manageDiv.innerHTML = '';
+
+            const catSites = sites.filter(s => s.category === cat);
+
+            if (catSites.length === 0) {
+                grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-32 text-xl">No links yet in this category</p>';
+            } else {
+                catSites.forEach(site => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.onclick = () => window.open(site.url, '_blank');
+                    card.innerHTML = `
+                        <button class="delete-btn absolute top-3 left-3 text-gray-400 hover:text-red-400 z-10" 
+                                onclick="event.stopPropagation(); deleteSite('${site.id}');">
+                            <i class="fa-solid fa-trash-can text-xl"></i>
+                        </button>
+                        <div class="flex items-start justify-between mb-3 pl-10">
+                            <h3 class="text-xl font-semibold group-hover:text-white">${site.name}</h3>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-gray-400 group-hover:text-white"></i>
+                        </div>
+                        <p class="text-sm text-gray-500">${site.desc || ''}</p>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+
+            manageDiv.innerHTML = `
+                <div class="text-center">
+                    <h3 class="text-2xl font-semibold mb-6 text-white">Manage ${cat}</h3>
+                    <div class="flex justify-center gap-8">
+                        <button onclick="showAddLinkModal('${cat}')" 
+                                class="bg-white text-black px-8 py-4 rounded-full font-medium hover:opacity-90 flex items-center gap-3 text-lg">
+                            <i class="fa-solid fa-plus"></i> Add New
+                        </button>
+                        <button onclick="clearCategory('${cat}')" 
+                                class="border-2 border-white px-8 py-4 rounded-full font-medium hover:bg-white hover:text-black flex items-center gap-3 text-lg">
+                            <i class="fa-solid fa-trash-can"></i> Clear This Category
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAllGrids() {
+            categories.forEach(cat => renderCategoryGrid(cat));
+        }
+
+        function deleteSite(id) {
+            if (!confirm('Delete this link?')) return;
+            sites = sites.filter(s => s.id !== id);
+            saveSites();
+            renderAllGrids();
+        }
+
+        function clearCategory(cat) {
+            if (!confirm(`Clear all links in ${cat}?`)) return;
+            sites = sites.filter(s => s.category !== cat);
+            saveSites();
+            renderCategoryGrid(cat);
+        }
+
+        function clearAllCategories() {
+            if (!confirm('Delete EVERY category and ALL links? This cannot be undone.')) return;
+            categories = [];
+            sites = [];
+            saveCategories();
+            saveSites();
+            renderNavbar();
+            renderDynamicSections();
+            renderAllGrids();
+            hideManageCategoriesModal();
+        }
+
+        function showCategory(e, catId) {
+            e.preventDefault();
+            document.querySelectorAll('.category-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(catId === 'home' ? 'home' : catId).classList.add('active');
+
+            document.querySelectorAll('.tab, .home-logo').forEach(el => el.classList.remove('active'));
+            if (catId === 'home') {
+                document.querySelector('.home-logo').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab').forEach(t => {
+                    if (t.dataset.category === catId) t.classList.add('active');
+                });
+            }
+        }
+
+        function showManageCategoriesModal() {
+            const modal = document.getElementById('manage-categories-modal');
+            modal.style.display = 'flex';
+
+            const list = document.getElementById('category-list');
+            list.innerHTML = '';
+
+            if (categories.length === 0) {
+                list.innerHTML = '<p class="text-gray-500 text-center py-4">No categories yet</p>';
+            } else {
+                categories.forEach((cat, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'sortable-item flex items-center justify-between bg-gray-800 p-3 rounded-lg cursor-move select-none';
+                    item.draggable = true;
+                    item.dataset.index = index;
+                    item.innerHTML = `
+                        <div class="flex items-center gap-3 flex-1">
+                            <i class="fa-solid fa-grip-vertical text-gray-500 cursor-move"></i>
+                            <span class="text-white">${cat}</span>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="removeCategory('${cat.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+
+                // Drag & drop logic
+                let draggedItem = null;
+
+                list.addEventListener('dragstart', e => {
+                    draggedItem = e.target.closest('.sortable-item');
+                    if (draggedItem) {
+                        draggedItem.classList.add('dragging');
+                        e.dataTransfer.effectAllowed = 'move';
+                    }
+                });
+
+                list.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    const afterElement = getDragAfterElement(list, e.clientY);
+                    const dragging = document.querySelector('.dragging');
+                    if (afterElement == null) {
+                        list.appendChild(dragging);
+                    } else {
+                        list.insertBefore(dragging, afterElement);
+                    }
+                });
+
+                list.addEventListener('dragend', e => {
+                    if (draggedItem) {
+                        draggedItem.classList.remove('dragging');
+                        // Update categories array based on new DOM order
+                        const newOrder = Array.from(list.children).map(item => {
+                            return item.querySelector('span').textContent;
+                        });
+                        categories = newOrder;
+                        saveCategories();
+                        renderNavbar();
+                        renderDynamicSections();
+                        renderAllGrids();
+                        // Re-open modal to refresh UI
+                        hideManageCategoriesModal();
+                        setTimeout(showManageCategoriesModal, 0);
+                    }
+                });
+
+                function getDragAfterElement(container, y) {
+                    const draggableElements = [...container.querySelectorAll('.sortable-item:not(.dragging)')];
+
+                    return draggableElements.reduce((closest, child) => {
+                        const box = child.getBoundingClientRect();
+                        const offset = y - box.top - box.height / 2;
+                        if (offset < 0 && offset > closest.offset) {
+                            return { offset: offset, element: child };
+                        } else {
+                            return closest;
+                        }
+                    }, { offset: Number.NEGATIVE_INFINITY }).element;
+                }
+            }
+        }
+
+        function hideManageCategoriesModal() {
+            document.getElementById('manage-categories-modal').style.display = 'none';
+        }
+
+        function addCategory() {
+            const nameInput = document.getElementById('new-category-name');
+            const name = nameInput.value.trim();
+            if (!name) return alert('Category name required!');
+            if (categories.includes(name)) return alert('Category already exists!');
+            categories.push(name);
+            saveCategories();
+            renderNavbar();
+            renderDynamicSections();
+            renderAllGrids();
+            nameInput.value = '';
+            showManageCategoriesModal();
+        }
+
+        function removeCategory(cat) {
+            if (!confirm(`Remove category "${cat}"? All links in it will be deleted.`)) return;
+            categories = categories.filter(c => c !== cat);
+            sites = sites.filter(s => s.category !== cat);
+            saveCategories();
+            saveSites();
+            renderNavbar();
+            renderDynamicSections();
+            renderAllGrids();
+            showManageCategoriesModal();
+        }
+
+        function showAddLinkModal(cat = categories[0] || '') {
+            document.getElementById('add-link-modal').style.display = 'flex';
+            const select = document.getElementById('link-category');
+            select.innerHTML = '';
+            categories.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                select.appendChild(opt);
+            });
+            if (cat && categories.includes(cat)) select.value = cat;
+
+            document.getElementById('link-name').value = '';
+            document.getElementById('link-url').value = '';
+            document.getElementById('link-desc').value = '';
+        }
+
+        function hideAddLinkModal() {
+            document.getElementById('add-link-modal').style.display = 'none';
+        }
+
+        function saveNewLink() {
+            const name = document.getElementById('link-name').value.trim();
+            const url = document.getElementById('link-url').value.trim();
+            const desc = document.getElementById('link-desc').value.trim();
+            const category = document.getElementById('link-category').value;
+
+            if (!name || !url || !category) {
+                alert('Name, URL, and Category required!');
+                return;
+            }
+
+            let fullUrl = url.startsWith('http') ? url : 'https://' + url;
+            sites.push({ id: Date.now().toString(), name, url: fullUrl, desc, category });
+            saveSites();
+            renderAllGrids();
+            hideAddLinkModal();
+        }
+
+        // Persistent floating stars + click spawn
+        function createStar(x = null, y = null) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const size = Math.random() * 3.5 + 1.5;
+            star.style.width = star.style.height = size + 'px';
+            
+            if (x !== null && y !== null) {
+                star.style.left = x + 'px';
+                star.style.top = y + 'px';
+                star.style.animationDelay = '0s';
+            } else {
+                star.style.left = Math.random() * 100 + 'vw';
+                star.style.top = '100vh';
+                star.style.animationDelay = Math.random() * 2 + 's';
+            }
+            
+            star.style.animationDuration = (Math.random() * 50 + 60) + 's';
+            document.getElementById('stars-container').appendChild(star);
+            setTimeout(() => star.remove(), 180000);
+        }
+
+        function initStars() {
+            for (let i = 0; i < 40; i++) createStar();
+            setInterval(() => createStar(), 1200);
+        }
+
+        // Click on background → spawn 1 star
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('button, a, input, select, .card, nav, #manage-categories-modal, #add-link-modal')) {
+                return;
+            }
+            createStar(e.clientX, e.clientY);
+        });
+
+        // Theme switcher
         function changeTheme(theme) {
             document.body.setAttribute('data-theme', theme);
             localStorage.setItem('starlinkTheme', theme);
 
             const glow = document.getElementById('bottom-glow');
             const stars = document.querySelectorAll('.star');
-            const bigStars = document.querySelectorAll('.big-star');
+            const bigStar = document.querySelectorAll('.big-star');
 
             let starColor, glowColor;
 
@@ -271,17 +665,12 @@
                 starColor = '#4dabff';
             }
 
-            // Update bottom glow
             glow.style.background = `radial-gradient(ellipse at bottom, ${glowColor} 0%, transparent 60%)`;
-
-            // Update floating stars
             stars.forEach(s => {
                 s.style.background = starColor;
                 s.style.boxShadow = `0 0 12px ${starColor}`;
             });
-
-            // Update big star on Home + small one in navbar
-            bigStars.forEach(s => {
+            bigStar.forEach(s => {
                 s.style.fill = starColor;
                 s.style.color = starColor;
             });
@@ -291,7 +680,13 @@
         changeTheme(savedTheme);
         document.getElementById('theme-select').value = savedTheme;
 
-        // ... (rest of your script: initStars, click-to-spawn, etc.)
+        window.addEventListener('load', () => {
+            initStars();
+            renderNavbar();
+            renderDynamicSections();
+            renderAllGrids();
+            showCategory({ preventDefault: () => {} }, 'home');
+        });
     </script>
 </body>
 </html>
