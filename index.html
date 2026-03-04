@@ -15,25 +15,24 @@
         
         body {
             font-family: 'Inter', system-ui, sans-serif;
-            background: #000;
-            color: white;
             margin: 0;
             padding: 0;
             overflow-x: hidden;
-            transition: background 0.6s ease, color 0.6s ease;
+            transition: background 0.8s ease;
         }
         .logo-font { font-family: 'Space Grotesk', sans-serif; }
 
         nav {
             height: 80px;
             backdrop-filter: blur(12px);
+            z-index: 50;
         }
 
         .tab, .home-logo {
             position: relative;
             padding-bottom: 4px;
             cursor: pointer;
-            display: inline-block;
+            white-space: nowrap;
         }
         .tab.active:after,
         .tab:hover:after,
@@ -74,12 +73,13 @@
         }
 
         .grid-container {
-            border: 1px solid rgba(255,255,255,0.08);
+            border: 1px solid;
             border-radius: 16px;
             padding: 2rem;
             background: rgba(20,20,30,0.6);
             backdrop-filter: blur(8px);
             min-height: 300px;
+            transition: border-color 0.8s ease;
         }
 
         .card {
@@ -120,7 +120,7 @@
             50% { opacity: 1; filter: drop-shadow(0 0 28px currentColor); }
         }
 
-        /* Floating stars */
+        /* Stars - theme-aware */
         #stars-container {
             position: fixed;
             inset: 0;
@@ -130,91 +130,67 @@
         }
         .star {
             position: absolute;
-            background: white;
             border-radius: 50%;
-            box-shadow: 0 0 10px white;
             opacity: 0;
             animation: rise linear infinite;
+            box-shadow: 0 0 10px currentColor;
         }
         @keyframes rise {
             0%   { transform: translateY(100vh) scale(0.2); opacity: 0; }
-            5%   { opacity: 0.9; }
-            95%  { opacity: 0.9; }
+            5%   { opacity: 0.95; }
+            95%  { opacity: 0.95; }
             100% { transform: translateY(-30vh) scale(0.5); opacity: 0; }
         }
 
-        /* Stronger bottom light bloom */
+        /* Bottom glow - theme-aware */
         #bottom-glow {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 60vh;
-            background: radial-gradient(ellipse at bottom, rgba(120,60,255,0.45) 0%, transparent 65%);
+            height: 70vh;
+            background: radial-gradient(ellipse at bottom, var(--glow-color) 0%, transparent 60%);
             pointer-events: none;
             z-index: -1;
             opacity: 0.9;
             mix-blend-mode: screen;
+            transition: background 0.8s ease;
         }
 
-        /* Theme variations */
+        /* Theme definitions */
         [data-theme="default"] {
-            background: #000;
-        }
-        [data-theme="default"] #bottom-glow {
-            background: radial-gradient(ellipse at bottom, rgba(120,60,255,0.45) 0%, transparent 65%);
-        }
-
-        [data-theme="neon"] {
-            background: #0a0015;
-        }
-        [data-theme="neon"] #bottom-glow {
-            background: radial-gradient(ellipse at bottom, rgba(0,255,255,0.35) 0%, transparent 65%);
-        }
-        [data-theme="neon"] .card {
-            border-color: #00ffff33;
+            --bg: #000;
+            --glow-color: rgba(140,80,255,0.55);
+            --star-color: white;
+            --grid-border: rgba(140,80,255,0.35);
         }
 
-        [data-theme="cosmic"] {
-            background: linear-gradient(180deg, #0b001f, #1a0033);
-        }
-        [data-theme="cosmic"] #bottom-glow {
-            background: radial-gradient(ellipse at bottom, rgba(180,100,255,0.4) 0%, transparent 65%);
-        }
-
-        [data-theme="void"] {
-            background: #000;
-        }
-        [data-theme="void"] #bottom-glow {
-            background: radial-gradient(ellipse at bottom, rgba(80,0,255,0.3) 0%, transparent 65%);
-        }
-        [data-theme="void"] .star {
-            background: #aa88ff;
-            box-shadow: 0 0 10px #aa88ff;
-        }
-
-        [data-theme="cyberpunk"] {
-            background: #0d001a;
-        }
-        [data-theme="cyberpunk"] #bottom-glow {
-            background: radial-gradient(ellipse at bottom, rgba(255,0,180,0.35) 0%, transparent 65%);
-        }
-        [data-theme="cyberpunk"] .card {
-            border-color: #ff00b733;
-        }
-
-        [data-theme="midnight"] {
-            background: #000814;
-        }
-        [data-theme="midnight"] #bottom-glow {
-            background: radial-gradient(ellipse at bottom, rgba(0,120,255,0.3) 0%, transparent 65%);
+        [data-theme="nightmare"] {
+            --bg: #0f0000;
+            --glow-color: rgba(255,40,40,0.65);
+            --star-color: #ff4040;
+            --grid-border: rgba(255,40,40,0.45);
         }
 
         [data-theme="aurora"] {
-            background: linear-gradient(135deg, #001a1a, #0a002a);
+            --bg: #001a1a;
+            --glow-color: rgba(0,255,180,0.65);
+            --star-color: #00ffcc;
+            --grid-border: rgba(0,255,180,0.45);
         }
-        [data-theme="aurora"] #bottom-glow {
-            background: radial-gradient(ellipse at bottom, rgba(0,255,180,0.35) 0%, transparent 65%);
+
+        [data-theme="midnight"] {
+            --bg: #0a0e14;
+            --glow-color: rgba(80,140,255,0.55);
+            --star-color: #4dabff;
+            --grid-border: rgba(80,140,255,0.35);
+        }
+
+        body {
+            background: var(--bg);
+        }
+        .grid-container {
+            border-color: var(--grid-border);
         }
     </style>
 </head>
@@ -223,7 +199,7 @@
     <!-- Persistent stars -->
     <div id="stars-container"></div>
 
-    <!-- Strong bottom glow -->
+    <!-- Bottom glow -->
     <div id="bottom-glow"></div>
 
     <!-- NAVBAR -->
@@ -247,12 +223,9 @@
             <div class="flex items-center gap-6">
                 <select id="theme-select" onchange="changeTheme(this.value)" class="bg-gray-900/70 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white backdrop-blur-sm">
                     <option value="default">Default</option>
-                    <option value="neon">Neon</option>
-                    <option value="cosmic">Cosmic</option>
-                    <option value="void">Void</option>
-                    <option value="cyberpunk">Cyberpunk</option>
-                    <option value="midnight">Midnight</option>
+                    <option value="nightmare">Nightmare</option>
                     <option value="aurora">Aurora</option>
+                    <option value="midnight">Midnight</option>
                 </select>
             </div>
         </div>
@@ -569,28 +542,25 @@
             hideAddLinkModal();
         }
 
-        // Persistent floating stars - faster initial spawn
+        // Persistent floating stars - immediate & frequent spawn
         function createStar() {
             const star = document.createElement('div');
             star.className = 'star';
             const size = Math.random() * 2.5 + 0.8;
             star.style.width = star.style.height = size + 'px';
             star.style.left = Math.random() * 100 + 'vw';
-            star.style.animationDuration = (Math.random() * 50 + 60) + 's'; // 60–110s rise
-            star.style.animationDelay = Math.random() * 5 + 's';
+            star.style.animationDuration = (Math.random() * 50 + 60) + 's';
+            star.style.animationDelay = Math.random() * 2 + 's';
             document.getElementById('stars-container').appendChild(star);
-
             setTimeout(() => star.remove(), 180000);
         }
 
         function initStars() {
-            // Immediate burst for quick visibility
-            for (let i = 0; i < 30; i++) createStar();
-            // Then slower ongoing spawn
-            setInterval(createStar, 1800); // ~every 1.8 seconds
+            for (let i = 0; i < 40; i++) createStar();
+            setInterval(createStar, 1200);
         }
 
-        // Theme switcher
+        // Theme switcher - updates stars & glow
         function changeTheme(theme) {
             document.body.setAttribute('data-theme', theme);
             localStorage.setItem('starlinkTheme', theme);
@@ -599,46 +569,28 @@
             const stars = document.querySelectorAll('.star');
 
             if (theme === 'default') {
-                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(120,60,255,0.45) 0%, transparent 65%)';
+                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(140,80,255,0.55) 0%, transparent 60%)';
                 stars.forEach(s => {
                     s.style.background = 'white';
                     s.style.boxShadow = '0 0 10px white';
                 });
-            } else if (theme === 'neon') {
-                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(0,255,255,0.45) 0%, transparent 65%)';
+            } else if (theme === 'nightmare') {
+                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(255,40,40,0.65) 0%, transparent 55%)';
                 stars.forEach(s => {
-                    s.style.background = '#00ffff';
-                    s.style.boxShadow = '0 0 12px #00ffff';
-                });
-            } else if (theme === 'cosmic') {
-                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(180,100,255,0.5) 0%, transparent 65%)';
-                stars.forEach(s => {
-                    s.style.background = '#c084fc';
-                    s.style.boxShadow = '0 0 10px #c084fc';
-                });
-            } else if (theme === 'void') {
-                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(80,0,255,0.4) 0%, transparent 65%)';
-                stars.forEach(s => {
-                    s.style.background = '#aa88ff';
-                    s.style.boxShadow = '0 0 12px #aa88ff';
-                });
-            } else if (theme === 'cyberpunk') {
-                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(255,0,180,0.45) 0%, transparent 65%)';
-                stars.forEach(s => {
-                    s.style.background = '#ff0099';
-                    s.style.boxShadow = '0 0 12px #ff0099';
-                });
-            } else if (theme === 'midnight') {
-                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(0,120,255,0.4) 0%, transparent 65%)';
-                stars.forEach(s => {
-                    s.style.background = '#4dabff';
-                    s.style.boxShadow = '0 0 10px #4dabff';
+                    s.style.background = '#ff4040';
+                    s.style.boxShadow = '0 0 14px #ff4040';
                 });
             } else if (theme === 'aurora') {
-                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(0,255,180,0.45) 0%, transparent 65%)';
+                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(0,255,180,0.65) 0%, transparent 55%)';
                 stars.forEach(s => {
                     s.style.background = '#00ffcc';
-                    s.style.boxShadow = '0 0 12px #00ffcc';
+                    s.style.boxShadow = '0 0 14px #00ffcc';
+                });
+            } else if (theme === 'midnight') {
+                glow.style.background = 'radial-gradient(ellipse at bottom, rgba(80,140,255,0.55) 0%, transparent 60%)';
+                stars.forEach(s => {
+                    s.style.background = '#4dabff';
+                    s.style.boxShadow = '0 0 12px #4dabff';
                 });
             }
         }
