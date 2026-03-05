@@ -362,6 +362,8 @@
                 if (authForm) authForm.classList.add('hidden');
                 if (messageEl) messageEl.textContent = '';
                 if (accountTitle) accountTitle.textContent = 'Account';
+
+                // Rebuild sidebar
                 navLinks.innerHTML = `
                     <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-0">
                         <i class="fa-solid fa-house w-5"></i> <span>Home</span>
@@ -384,7 +386,7 @@
                     <div onclick="switchTab(6)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-6">
                         <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
                     </div>
-                    <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2 active-tab" id="tab-7">
+                    <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-7">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
                     </div>
                     <div onclick="switchTab(8)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-8">
@@ -394,7 +396,8 @@
                         <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
                     </div>
                 `;
-                // Wait for DOM to update, then load content and switch tab
+
+                // Give DOM time to update, then load content and switch
                 setTimeout(() => {
                     populateThemeGrid();
                     populateGrid('games', 'games-grid');
@@ -403,7 +406,7 @@
                     populateGrid('proxies', 'proxy-grid');
                     populateGrid('music', 'music-grid');
                     switchTab(0); // Home
-                }, 100); // small delay for DOM settlement
+                }, 50);
             } else {
                 statusEl.textContent = '';
                 currentTabEl.textContent = 'Sign In Required';
@@ -437,7 +440,7 @@
                     } else {
                         await firebaseAuth.createUserWithEmailAndPassword(firebaseAuth.auth, email, password);
                     }
-                    // Re-run UI update after sign-in
+                    // Force UI update
                     updateUIForAuth(firebaseAuth.auth.currentUser);
                 } catch (error) {
                     alert(error.message);
