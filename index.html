@@ -187,8 +187,8 @@
     <div class="flex-1 ml-72 main-content">
         <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50 top-0">
             <div class="h-full px-10 flex items-center gap-4">
-                <i id="current-tab-icon" class="text-3xl fa-solid fa-user"></i>
-                <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Account</div>
+                <i id="current-tab-icon" class="text-3xl fa-solid"></i>
+                <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Sign In Required</div>
                 <span id="user-status" class="ml-auto text-sm text-white/70"></span>
             </div>
         </div>
@@ -228,7 +228,7 @@
                 </div>
             </div>
 
-            <!-- HOME -->
+            <!-- Other tab contents (hidden until logged in) -->
             <div id="content-home" class="tab-content hidden">
                 <div class="max-w-4xl mx-auto text-center pt-12">
                     <svg width="180" height="180" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
@@ -243,32 +243,26 @@
                 </div>
             </div>
 
-            <!-- GAMES -->
             <div id="content-games" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="games-grid"></div>
             </div>
 
-            <!-- AI TOOLS -->
             <div id="content-ai" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="ai-grid"></div>
             </div>
 
-            <!-- TV & STREAMING -->
             <div id="content-tv" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="tv-grid"></div>
             </div>
 
-            <!-- PROXIES -->
             <div id="content-proxies" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="proxy-grid"></div>
             </div>
 
-            <!-- MUSIC -->
             <div id="content-music" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div>
             </div>
 
-            <!-- SETTINGS -->
             <div id="content-settings" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
                     <h3 class="text-2xl font-semibold mb-6">Appearance • Choose Theme</h3>
@@ -297,7 +291,6 @@
                 </div>
             </div>
 
-            <!-- CREDITS -->
             <div id="content-credits" class="tab-content hidden">
                 <div class="max-w-3xl mx-auto text-center py-20">
                     <svg width="120" height="120" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
@@ -364,7 +357,7 @@
                 if (authForm) authForm.classList.add('hidden');
                 if (messageEl) messageEl.textContent = '';
                 if (accountTitle) accountTitle.textContent = 'Account';
-                // Full navigation
+                // Show full sidebar
                 navLinks.innerHTML = `
                     <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-0">
                         <i class="fa-solid fa-house w-5"></i> <span>Home</span>
@@ -403,11 +396,11 @@
                 populateGrid('tv', 'tv-grid');
                 populateGrid('proxies', 'proxy-grid');
                 populateGrid('music', 'music-grid');
-                switchTab(0); // default to Home after login
+                switchTab(0); // default to Home
             } else {
                 statusEl.textContent = '';
-                document.getElementById('current-tab').textContent = 'Account';
-                document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-user';
+                document.getElementById('current-tab').textContent = 'Sign In Required';
+                document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-lock';
                 if (userInfo) userInfo.classList.add('hidden');
                 if (authForm) authForm.classList.remove('hidden');
                 if (accountTitle) accountTitle.textContent = 'Sign In Required';
@@ -509,9 +502,7 @@
             document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
         }
 
-        // ──────────────────────────────────────────────
-        // SETTINGS & PERSISTENCE (unchanged)
-        // ──────────────────────────────────────────────
+        // Rest of your script (themes, sites, populateGrid, populateThemeGrid, resetEverything, stars, etc.)
         const themes = [
             { name: "White", color: "#ffffff" },
             { name: "Red", color: "#ef4444" },
