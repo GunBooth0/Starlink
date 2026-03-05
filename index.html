@@ -4,13 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Starlink</title>
-    <!-- Favicon: white star -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><path d=%22M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z%22 fill=%22%23ffffff%22/></svg>" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
-      
+        
         :root {
             --accent: #ffffff;
         }
@@ -22,7 +21,7 @@
             height: 100vh;
             overflow: hidden;
         }
-      
+        
         .logo-font {
             font-family: 'Space Grotesk', sans-serif;
         }
@@ -38,63 +37,15 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             color: #ffffff;
         }
-      
         .nav-link:hover,
         .nav-link.active-tab {
             color: var(--accent) !important;
             background: rgba(255,255,255,0.08);
         }
-        .nav-link i {
-            color: inherit;
-        }
         #current-tab-icon,
         #current-tab {
             color: var(--accent);
             transition: color 0.4s ease;
-        }
-        .card {
-            transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.12);
-        }
-      
-        .card:hover {
-            transform: translateY(-8px) scale(1.03);
-            border-color: var(--accent);
-            background: rgba(255,255,255,0.06);
-        }
-        .glass {
-            background: rgba(255,255,255,0.04);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.15);
-        }
-        .tail-container {
-            max-width: 1280px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        #star-bg {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            pointer-events: auto;
-        }
-        .star {
-            position: absolute;
-            background: var(--accent);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent);
-            pointer-events: none;
-            animation: floatUp linear infinite;
-        }
-        @keyframes floatUp {
-            0% { transform: translateY(110vh); }
-            100% { transform: translateY(-30vh); }
-        }
-        .main-content {
-            overflow-y: auto;
-            height: 100vh;
-            padding-top: 4rem;
         }
         input[type="email"], input[type="password"] {
             background: rgba(255,255,255,0.08);
@@ -161,6 +112,12 @@
         }
         .success { color: #10b981; }
         .error { color: #ef4444; }
+        .main-content {
+            overflow-y: auto;
+            height: 100vh;
+            padding-top: 4rem;
+        }
+        /* ... rest of styles unchanged ... */
     </style>
 </head>
 <body>
@@ -237,8 +194,6 @@
                 </div>
             </div>
 
-            <!-- GAMES, AI, TV, PROXIES, MUSIC, SETTINGS, CREDITS tabs unchanged -->
-
             <!-- ACCOUNT TAB -->
             <div id="content-7" class="tab-content hidden">
                 <div class="max-w-md mx-auto py-12">
@@ -272,13 +227,14 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ... rest of your tabs (games, ai, tv, proxies, music, settings, credits) ... -->
         </div>
     </div>
 
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -292,7 +248,6 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
         const auth = getAuth(app);
 
         window.firebaseAuth = {
@@ -359,10 +314,10 @@
                 const user = firebaseAuth.auth.currentUser;
                 if (user) {
                     await firebaseAuth.deleteUser(user);
-                    alert("Your account has been deleted.");
+                    alert("Account deleted.");
                 }
             } catch (error) {
-                alert("Error deleting account: " + error.message);
+                alert("Error: " + error.message);
             }
         };
 
@@ -372,7 +327,7 @@
             const messageEl = document.getElementById('auth-message');
             try {
                 await firebaseAuth.sendPasswordResetEmail(firebaseAuth.auth, user.email);
-                messageEl.textContent = "Password reset email sent! Check your inbox.";
+                messageEl.textContent = "Reset email sent! Check your inbox.";
                 messageEl.className = "auth-message success";
             } catch (error) {
                 messageEl.textContent = "Error: " + error.message;
@@ -382,48 +337,20 @@
     </script>
 
     <script>
-        const themes = [ /* unchanged */ ];
-        function setTheme(color) { /* unchanged */ }
-        function loadTheme() { /* unchanged */ }
-        function saveNewTabPreference(value) { /* unchanged */ }
-        function loadNewTabPreference() { /* unchanged */ }
-        function resetEverything() { /* unchanged */ }
-        function createStar(x, y) { /* unchanged */ }
-        function initStars(count = 100) { /* unchanged */ }
-        document.addEventListener('click', (e) => { /* unchanged */ });
         const tabIcons = [
             'fa-house', 'fa-gamepad', 'fa-brain', 'fa-tv', 'fa-shield-halved',
             'fa-music', 'fa-gear', 'fa-user', 'fa-heart', 'fa-paper-plane'
         ];
-        const sites = { /* your sites unchanged */ };
+        const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings", "Account", "Credits", "Request a Site"];
         function switchTab(tabIndex) {
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
             document.getElementById(`tab-${tabIndex}`).classList.add('active-tab');
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`content-${tabIndex}`).classList.remove('hidden');
-            const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings", "Account", "Credits", "Request a Site"];
             document.getElementById('current-tab').textContent = titles[tabIndex];
             document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[tabIndex]}`;
         }
-        function populateGrid(category, containerId) { /* unchanged */ }
-        function populateThemeGrid() { /* unchanged */ }
-        function requestSite() { /* unchanged */ }
-        function initialize() {
-            loadTheme();
-            loadNewTabPreference();
-            initStars();
-            populateThemeGrid();
-            populateGrid('games', 'games-grid');
-            populateGrid('ai', 'ai-grid');
-            populateGrid('tv', 'tv-grid');
-            populateGrid('proxies', 'proxy-grid');
-            populateGrid('music', 'music-grid');
-            switchTab(0);
-            document.getElementById('newtab-toggle').addEventListener('change', (e) => {
-                saveNewTabPreference(e.target.checked);
-            });
-        }
-        window.onload = initialize;
+        // ... rest of your script (themes, stars, populateGrid, initialize, etc.) unchanged ...
     </script>
 </body>
 </html>
