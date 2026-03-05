@@ -160,10 +160,6 @@
         }
         .success { color: #10b981; }
         .error { color: #ef4444; }
-        #user-info p {
-            font-size: 1.4rem;
-            margin-bottom: 2rem;
-        }
     </style>
 </head>
 <body>
@@ -366,7 +362,6 @@
                 if (authForm) authForm.classList.add('hidden');
                 if (messageEl) messageEl.textContent = '';
                 if (accountTitle) accountTitle.textContent = 'Account';
-                // Show full sidebar
                 navLinks.innerHTML = `
                     <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-0">
                         <i class="fa-solid fa-house w-5"></i> <span>Home</span>
@@ -389,7 +384,7 @@
                     <div onclick="switchTab(6)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-6">
                         <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
                     </div>
-                    <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-7">
+                    <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2 active-tab" id="tab-7">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
                     </div>
                     <div onclick="switchTab(8)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-8">
@@ -399,13 +394,16 @@
                         <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
                     </div>
                 `;
-                populateThemeGrid();
-                populateGrid('games', 'games-grid');
-                populateGrid('ai', 'ai-grid');
-                populateGrid('tv', 'tv-grid');
-                populateGrid('proxies', 'proxy-grid');
-                populateGrid('music', 'music-grid');
-                switchTab(0); // Switch to Home
+                // Wait for DOM to update, then load content and switch tab
+                setTimeout(() => {
+                    populateThemeGrid();
+                    populateGrid('games', 'games-grid');
+                    populateGrid('ai', 'ai-grid');
+                    populateGrid('tv', 'tv-grid');
+                    populateGrid('proxies', 'proxy-grid');
+                    populateGrid('music', 'music-grid');
+                    switchTab(0); // Home
+                }, 100); // small delay for DOM settlement
             } else {
                 statusEl.textContent = '';
                 currentTabEl.textContent = 'Sign In Required';
@@ -439,6 +437,7 @@
                     } else {
                         await firebaseAuth.createUserWithEmailAndPassword(firebaseAuth.auth, email, password);
                     }
+                    // Re-run UI update after sign-in
                     updateUIForAuth(firebaseAuth.auth.currentUser);
                 } catch (error) {
                     alert(error.message);
@@ -495,23 +494,19 @@
         ];
 
         function switchTab(index) {
-            // Block access to non-account tabs if not logged in
             if (!currentUser && index !== 7) {
                 switchTab(7);
                 return;
             }
 
-            // Update sidebar active state
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
             const activeTab = document.getElementById(`tab-${index}`);
             if (activeTab) activeTab.classList.add('active-tab');
 
-            // Show/hide content sections
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             const content = document.getElementById(contentIds[index]);
             if (content) content.classList.remove('hidden');
 
-            // Update top bar text and icon
             document.getElementById('current-tab').textContent = tabTitles[index];
             document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
         }
@@ -611,7 +606,7 @@
             games: [
                 { name: "Shell Shockers", url: "https://egghead.institute/", desc: "", icon: "🎮" },
                 { name: "Kart Bros", url: "https://kart.basketball.services/", desc: "", icon: "🎮" },
-                { name: "The Marz Library", url: "https:// theorytest.help/", desc: "", icon: "🎮" },
+                { name: "The Marz Library", url: "https://theorytest.help/", desc: "", icon: "🎮" },
             ],
             ai: [
                 { name: "Grok", url: "https://grok.com/", desc: "", icon: "AI" },
