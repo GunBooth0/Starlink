@@ -165,6 +165,12 @@
             font-size: 1.4rem;
             margin-bottom: 2rem;
         }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -182,7 +188,7 @@
             </div>
         </div>
         <div class="flex-1 px-6 py-8 overflow-y-auto">
-            <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
+            <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-0">
                 <i class="fa-solid fa-house w-5"></i> <span>Home</span>
             </div>
             <div onclick="switchTab(1)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-1">
@@ -242,32 +248,32 @@
             </div>
 
             <!-- GAMES -->
-            <div id="content-1" class="tab-content hidden">
+            <div id="content-1" class="tab-content">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="games-grid"></div>
             </div>
 
             <!-- AI TOOLS -->
-            <div id="content-2" class="tab-content hidden">
+            <div id="content-2" class="tab-content">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="ai-grid"></div>
             </div>
 
             <!-- TV & STREAMING -->
-            <div id="content-3" class="tab-content hidden">
+            <div id="content-3" class="tab-content">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="tv-grid"></div>
             </div>
 
             <!-- PROXIES -->
-            <div id="content-4" class="tab-content hidden">
+            <div id="content-4" class="tab-content">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="proxy-grid"></div>
             </div>
 
             <!-- MUSIC -->
-            <div id="content-5" class="tab-content hidden">
+            <div id="content-5" class="tab-content">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div>
             </div>
 
             <!-- SETTINGS -->
-            <div id="content-6" class="tab-content hidden">
+            <div id="content-6" class="tab-content">
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
                     <h3 class="text-2xl font-semibold mb-6">Appearance • Choose Theme</h3>
                     <p class="text-white/70 mb-8">Click a color to instantly change the accent, stars, glow, and sidebar highlights</p>
@@ -296,7 +302,7 @@
             </div>
 
             <!-- ACCOUNT -->
-            <div id="content-7" class="tab-content hidden">
+            <div id="content-7" class="tab-content">
                 <div class="max-w-md mx-auto py-12">
                     <h2 class="text-3xl font-bold text-center mb-8">Account</h2>
                     
@@ -330,7 +336,7 @@
             </div>
 
             <!-- CREDITS -->
-            <div id="content-8" class="tab-content hidden">
+            <div id="content-8" class="tab-content">
                 <div class="max-w-3xl mx-auto text-center py-20">
                     <svg width="120" height="120" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
                         <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
@@ -381,187 +387,37 @@
         firebaseAuth.onAuthStateChanged(firebaseAuth.auth, (user) => {
             isAuthenticated = !!user;
             const statusEl = document.getElementById('user-status');
-            const userInfo = document.getElementById('user-info');
-            const authForm = document.getElementById('auth-form');
-            const messageEl = document.getElementById('auth-message');
 
             if (user) {
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
-                if (userInfo) {
-                    userInfo.classList.remove('hidden');
-                    document.getElementById('user-email').textContent = user.email;
-                }
-                if (authForm) authForm.classList.add('hidden');
-                if (messageEl) messageEl.textContent = '';
-                // Allow access to all tabs
-                document.querySelectorAll('.tab-content:not(#content-7)').forEach(el => el.style.display = 'block');
+                // Show all tabs normally
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                switchTab(0); // go to home by default after login
             } else {
                 statusEl.textContent = '';
-                if (userInfo) userInfo.classList.add('hidden');
-                if (authForm) authForm.classList.remove('hidden');
-                // Force to Account tab and hide others
+                // Force to Account tab and prevent other tabs
                 switchTab(7);
-                document.querySelectorAll('.tab-content:not(#content-7)').forEach(el => el.style.display = 'none');
             }
         });
 
-        const authBtn = document.getElementById('auth-btn');
-        const toggleLink = document.getElementById('toggle-link');
-        const formTitle = document.getElementById('form-title');
-        let isSignIn = true;
-
-        if (authBtn) {
-            authBtn.addEventListener('click', async () => {
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                try {
-                    if (isSignIn) {
-                        await firebaseAuth.signInWithEmailAndPassword(firebaseAuth.auth, email, password);
-                    } else {
-                        await firebaseAuth.createUserWithEmailAndPassword(firebaseAuth.auth, email, password);
-                    }
-                } catch (error) {
-                    alert(error.message);
-                }
-            });
-        }
-
-        if (toggleLink) {
-            toggleLink.addEventListener('click', () => {
-                isSignIn = !isSignIn;
-                formTitle.textContent = isSignIn ? 'Sign In' : 'Sign Up';
-                authBtn.textContent = isSignIn ? 'Sign In' : 'Sign Up';
-                toggleLink.textContent = isSignIn ? 'Need an account? Sign Up' : 'Already have an account? Sign In';
-            });
-        }
-
-        window.deleteAccount = async () => {
-            if (!confirm("Are you sure you want to permanently delete your account? This cannot be undone.")) return;
-            try {
-                const user = firebaseAuth.auth.currentUser;
-                if (user) {
-                    await firebaseAuth.deleteUser(user);
-                    alert("Account deleted.");
-                }
-            } catch (error) {
-                alert("Error: " + error.message);
+        function switchTab(tabIndex) {
+            // If not logged in, force Account tab only
+            if (!isAuthenticated && tabIndex !== 7) {
+                tabIndex = 7;
             }
-        };
 
-        window.changePassword = async () => {
-            const user = firebaseAuth.auth.currentUser;
-            if (!user || !user.email) return alert("You must be logged in.");
-            const messageEl = document.getElementById('auth-message');
-            try {
-                await firebaseAuth.sendPasswordResetEmail(firebaseAuth.auth, user.email);
-                messageEl.textContent = "Password reset email sent! Check your inbox (including spam).";
-                messageEl.className = "success";
-            } catch (error) {
-                messageEl.textContent = "Error: " + error.message;
-                messageEl.className = "error";
-            }
-        };
-    </script>
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
+            document.getElementById(`tab-${tabIndex}`).classList.add('active-tab');
 
-    <script>
-        // ──────────────────────────────────────────────
-        // SETTINGS & PERSISTENCE
-        // ──────────────────────────────────────────────
-        const themes = [
-            { name: "White", color: "#ffffff" },
-            { name: "Red", color: "#ef4444" },
-            { name: "Blue", color: "#3b82f6" },
-            { name: "Green", color: "#10b981" },
-            { name: "Purple", color: "#8b5cf6" },
-            { name: "Pink", color: "#ec4899" },
-            { name: "Cyan", color: "#22d3ee" },
-            { name: "Yellow", color: "#f59e0b" },
-            { name: "Lime", color: "#84cc16" },
-            { name: "Teal", color: "#14b8a6" },
-            { name: "Rose", color: "#f43f5e" },
-            { name: "Indigo", color: "#6366f1" },
-            { name: "Orange", color: "#f97316" },
-            { name: "Magenta", color: "#d946ef" },
-            { name: "Sky Blue", color: "#0ea5e9" },
-            { name: "Lime Green", color: "#65a30d" },
-            { name: "Deep Purple", color: "#7c3aed" },
-            { name: "Neon Green", color: "#39ff14" },
-            { name: "Coral", color: "#f87171" },
-            { name: "Electric Violet", color: "#a855f7" }
-        ];
-        function setTheme(color) {
-            document.documentElement.style.setProperty('--accent', color);
-            localStorage.setItem('starlinkAccent', color);
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`content-${tabIndex}`).classList.add('active');
+
+            const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings", "Account", "Credits", "Request a Site"];
+            document.getElementById('current-tab').textContent = titles[tabIndex];
+            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[tabIndex]}`;
         }
-        function loadTheme() {
-            const saved = localStorage.getItem('starlinkAccent');
-            setTheme(saved || '#ffffff');
-        }
-        function saveNewTabPreference(value) {
-            localStorage.setItem('starlinkNewTab', value ? 'true' : 'false');
-        }
-        function loadNewTabPreference() {
-            const saved = localStorage.getItem('starlinkNewTab');
-            const checkbox = document.getElementById('newtab-toggle');
-            if (saved === null) {
-                checkbox.checked = true;
-                saveNewTabPreference(true);
-            } else {
-                checkbox.checked = saved === 'true';
-            }
-        }
-        function resetEverything() {
-            if (!confirm("Reset all settings to default? This will also sign you out.")) return;
-            localStorage.removeItem('starlinkAccent');
-            localStorage.removeItem('starlinkNewTab');
-            setTheme('#ffffff');
-            document.getElementById('newtab-toggle').checked = true;
-            saveNewTabPreference(true);
-            // Sign out from Firebase
-            firebaseAuth.signOut(firebaseAuth.auth).then(() => {
-                const msg = document.getElementById('reset-message');
-                msg.textContent = "Reset complete! Signing out and refreshing...";
-                msg.classList.remove('hidden');
-                setTimeout(() => {
-                    msg.classList.add('hidden');
-                    location.reload();
-                }, 2000);
-            }).catch((error) => {
-                console.error("Sign out error:", error);
-                location.reload();
-            });
-        }
-        // ──────────────────────────────────────────────
-        // BACKGROUND STARS
-        // ──────────────────────────────────────────────
-        function createStar(x, y) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.left = `${x}px`;
-            star.style.top = `${y}px`;
-            const size = Math.random() * 3 + 1;
-            star.style.width = star.style.height = `${size}px`;
-            const duration = Math.random() * 40 + 25;
-            star.style.animationDuration = `${duration}s`;
-            const drift = (Math.random() - 0.5) * 120;
-            star.style.transform = `translateX(${drift}px)`;
-            document.getElementById('star-bg').appendChild(star);
-            setTimeout(() => star.remove(), duration * 1000 + 2000);
-        }
-        function initStars(count = 100) {
-            for (let i = 0; i < count; i++) {
-                const x = Math.random() * window.innerWidth;
-                const y = Math.random() * window.innerHeight * 1.5;
-                createStar(x, y);
-            }
-        }
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('button, a, .nav-link, input, label, svg, .card')) return;
-            createStar(e.clientX, e.clientY);
-        });
-        // ──────────────────────────────────────────────
-        // TAB ICONS & SITES
-        // ──────────────────────────────────────────────
+
+        // ... rest of your script (themes, stars, populateGrid, etc.) ...
         const tabIcons = [
             'fa-house',
             'fa-gamepad',
@@ -600,15 +456,6 @@
                 { name: "Amazon Music", url: "https://music.amazon.com/", desc: "", icon: "🎵" },
             ]
         };
-        function switchTab(tabIndex) {
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
-            document.getElementById(`tab-${tabIndex}`).classList.add('active-tab');
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`content-${tabIndex}`).classList.remove('hidden');
-            const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings", "Account", "Credits", "Request a Site"];
-            document.getElementById('current-tab').textContent = titles[tabIndex];
-            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[tabIndex]}`;
-        }
         function populateGrid(category, containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -648,6 +495,26 @@
         }
         function requestSite() {
             window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
+        }
+        function resetEverything() {
+            if (!confirm("Reset all settings to default? This will also sign you out.")) return;
+            localStorage.removeItem('starlinkAccent');
+            localStorage.removeItem('starlinkNewTab');
+            setTheme('#ffffff');
+            document.getElementById('newtab-toggle').checked = true;
+            saveNewTabPreference(true);
+            firebaseAuth.signOut(firebaseAuth.auth).then(() => {
+                const msg = document.getElementById('reset-message');
+                msg.textContent = "Reset complete! Signing out and refreshing...";
+                msg.classList.remove('hidden');
+                setTimeout(() => {
+                    msg.classList.add('hidden');
+                    location.reload();
+                }, 2000);
+            }).catch((error) => {
+                console.error("Sign out error:", error);
+                location.reload();
+            });
         }
         function initialize() {
             loadTheme();
