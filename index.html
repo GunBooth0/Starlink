@@ -97,6 +97,33 @@
             height: 100vh;
             padding-top: 4rem; /* space for fixed top bar */
         }
+        input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
+        }
+        button.auth-btn {
+            background: var(--accent);
+            color: black;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        button.auth-btn:hover {
+            background: white;
+        }
     </style>
 </head>
 <body>
@@ -140,6 +167,9 @@
             <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-8">
                 <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
             </div>
+            <div onclick="switchTab(9)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-9">
+                <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+            </div>
         </div>
     </div>
     <!-- MAIN SCROLLABLE CONTENT -->
@@ -148,6 +178,7 @@
             <div class="h-full px-10 flex items-center gap-4">
                 <i id="current-tab-icon" class="text-3xl fa-solid"></i>
                 <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Home</div>
+                <span id="user-status" class="ml-auto text-sm text-white/70"></span>
             </div>
         </div>
         <div class="pt-24 pb-20 px-10 tail-container">
@@ -162,7 +193,7 @@
                         Welcome to Starlink — your personal gateway to unblocked games, AI tools, streaming, music, proxies, and more.
                         Fast, clean, and always available.
                     </p>
-                    <div class="mt-8 text-white/50 text-lg">By: Gunnar Booth</div> <!-- Moved up (mt-16 → mt-8) -->
+                    <div class="mt-8 text-white/50 text-lg">By: Gunnar Booth</div>
                 </div>
             </div>
             <!-- GAMES -->
@@ -230,12 +261,123 @@
                     </a>
                 </div>
             </div>
+            <!-- ACCOUNT TAB (Firebase login/signup) -->
+            <div id="content-9" class="tab-content hidden">
+                <div class="max-w-md mx-auto py-12">
+                    <h2 class="text-3xl font-bold text-center mb-8">Account</h2>
+                    
+                    <div id="auth-form" class="glass p-8 rounded-3xl">
+                        <h3 class="text-xl font-semibold mb-4 text-center" id="form-title">Sign In</h3>
+                        
+                        <input type="email" id="email" placeholder="Email" required class="block w-full">
+                        <input type="password" id="password" placeholder="Password" required class="block w-full">
+                        
+                        <button id="auth-btn" class="auth-btn mt-4">Sign In</button>
+                        
+                        <p class="text-center mt-4 text-white/70">
+                            <span id="toggle-link" class="text-[var(--accent)] cursor-pointer hover:underline">Need an account? Sign Up</span>
+                        </p>
+                    </div>
+                    
+                    <div id="user-info" class="hidden text-center mt-8">
+                        <p class="text-xl mb-4">Logged in as <span id="user-email" class="font-semibold"></span></p>
+                        <button onclick="firebaseAuth.signOut(firebaseAuth.auth)" class="bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-xl">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Firebase SDK Initialization -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+
+        // Your Firebase configuration (replaced as requested)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpn6rgntLkwxE6xRu9xG81mhlyFcTDMGg",
+            authDomain: "starlink-auth-14477.firebaseapp.com",
+            projectId: "starlink-auth-14477",
+            storageBucket: "starlink-auth-14477.firebasestorage.app",
+            messagingSenderId: "91401410744",
+            appId: "1:91401410744:web:f2a44d3d1a721317403c4d",
+            measurementId: "G-9E2B15TVT6"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+
+        // Expose auth functions globally
+        window.firebaseAuth = {
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged,
+            auth
+        };
+
+        // Listen for auth state changes (updates UI automatically)
+        firebaseAuth.onAuthStateChanged(firebaseAuth.auth, (user) => {
+            const statusEl = document.getElementById('user-status');
+            const userInfo = document.getElementById('user-info');
+            const authForm = document.getElementById('auth-form');
+
+            if (user) {
+                statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
+                if (userInfo) {
+                    userInfo.classList.remove('hidden');
+                    document.getElementById('user-email').textContent = user.email;
+                }
+                if (authForm) authForm.classList.add('hidden');
+            } else {
+                statusEl.textContent = '';
+                if (userInfo) userInfo.classList.add('hidden');
+                if (authForm) authForm.classList.remove('hidden');
+            }
+        });
+
+        // Auth form logic (sign in / sign up toggle)
+        const authBtn = document.getElementById('auth-btn');
+        const toggleLink = document.getElementById('toggle-link');
+        const formTitle = document.getElementById('form-title');
+        let isSignIn = true;
+
+        if (authBtn) {
+            authBtn.addEventListener('click', async () => {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                try {
+                    if (isSignIn) {
+                        await firebaseAuth.signInWithEmailAndPassword(firebaseAuth.auth, email, password);
+                    } else {
+                        await firebaseAuth.createUserWithEmailAndPassword(firebaseAuth.auth, email, password);
+                    }
+                } catch (error) {
+                    alert(error.message);
+                }
+            });
+        }
+
+        if (toggleLink) {
+            toggleLink.addEventListener('click', () => {
+                isSignIn = !isSignIn;
+                formTitle.textContent = isSignIn ? 'Sign In' : 'Sign Up';
+                authBtn.textContent = isSignIn ? 'Sign In' : 'Sign Up';
+                toggleLink.textContent = isSignIn ? 'Need an account? Sign Up' : 'Already have an account? Sign In';
+            });
+        }
+    </script>
+
     <script>
         // ──────────────────────────────────────────────
-        // SETTINGS & PERSISTENCE
+        // SETTINGS & PERSISTENCE (your original code unchanged)
         // ──────────────────────────────────────────────
         const themes = [
             { name: "White", color: "#ffffff" },
@@ -333,8 +475,9 @@
             'fa-shield-halved',
             'fa-music',
             'fa-gear',
-            'fa-heart',       // Credits
-            'fa-paper-plane'  // Request a Site
+            'fa-heart',
+            'fa-paper-plane',
+            'fa-user'
         ];
         const sites = {
             games: [
@@ -367,7 +510,7 @@
             document.getElementById(`tab-${tabIndex}`).classList.add('active-tab');
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`content-${tabIndex}`).classList.remove('hidden');
-            const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings", "Credits"];
+            const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings", "Credits", "Account"];
             document.getElementById('current-tab').textContent = titles[tabIndex];
             document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[tabIndex]}`;
         }
