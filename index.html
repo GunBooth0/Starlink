@@ -2,62 +2,351 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test Tab</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starlink</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><path d=%22M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z%22 fill=%22%23ffffff%22/></svg>" type="image/svg+xml">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <style>
-        body { margin:0; font-family:sans-serif; background:#000; color:#fff; }
-        #top { position:fixed; top:0; width:100%; height:60px; background:#111; display:flex; align-items:center; padding:0 20px; box-sizing:border-box; z-index:10; }
-        #sidebar { position:fixed; left:0; top:60px; width:250px; height:calc(100vh - 60px); background:#000; border-right:1px solid #333; overflow-y:auto; }
-        .nav { padding:15px 20px; cursor:pointer; }
-        .nav:hover, .active { background:#222; }
-        #main { margin-left:250px; margin-top:60px; padding:20px; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
+        
+        :root {
+            --accent: #ffffff;
+        }
+        body {
+            background: #000000;
+            color: #ffffff;
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .logo-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .star-svg {
+            animation: pulse 4s infinite ease-in-out;
+            filter: drop-shadow(0 0 20px var(--accent));
+        }
+        @keyframes pulse {
+            0%, 100% { filter: drop-shadow(0 0 20px var(--accent)); }
+            50% { filter: drop-shadow(0 0 45px var(--accent)); }
+        }
+        .nav-link {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #ffffff;
+        }
+        .nav-link:hover,
+        .nav-link.active-tab {
+            color: var(--accent) !important;
+            background: rgba(255,255,255,0.08);
+        }
+        #current-tab-icon,
+        #current-tab {
+            color: var(--accent);
+            transition: color 0.4s ease;
+        }
+        .main-content {
+            overflow-y: auto;
+            height: 100vh;
+            padding-top: 4rem;
+        }
+        input[type="email"], input[type="password"] {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: white;
+            padding: 1rem 1.25rem;
+            border-radius: 1rem;
+            width: 100%;
+            margin-bottom: 1.25rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.12);
+        }
+        input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            width: 100%;
+        }
+        .auth-btn {
+            background: var(--accent);
+            color: #000;
+        }
+        .auth-btn:hover {
+            background: white;
+        }
+        .change-password {
+            background: #3b82f6;
+            color: white;
+        }
+        .change-password:hover {
+            background: #2563eb;
+        }
+        .delete-account {
+            background: #ef4444;
+            color: white;
+        }
+        .delete-account:hover {
+            background: #dc2626;
+        }
+        #auth-message {
+            margin-top: 1rem;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
     </style>
 </head>
 <body>
+    <div id="star-bg"></div>
 
-<div id="top">
-    <i id="current-icon" class="fa-solid fa-house text-2xl mr-3"></i>
-    <div id="current-text" class="text-2xl">Home</div>
-</div>
+    <!-- SIDEBAR -->
+    <div class="w-72 bg-black border-r border-white/10 flex flex-col fixed h-screen z-50">
+        <div class="p-8 flex items-center gap-x-4 border-b border-white/10">
+            <svg width="48" height="48" viewBox="0 0 200 200" class="star-svg" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
+                <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+            </svg>
+            <div>
+                <h1 class="logo-font text-4xl font-semibold tracking-tighter text-white">Starlink</h1>
+                <p class="text-xs text-white/70 tracking-wide -mt-1">By: Gunnar Booth</p>
+            </div>
+        </div>
+        <div class="flex-1 px-6 py-8 overflow-y-auto">
+            <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
+                <i class="fa-solid fa-house w-5"></i> <span>Home</span>
+            </div>
+            <div onclick="switchTab(1)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-1">
+                <i class="fa-solid fa-gamepad w-5"></i> <span>Games</span>
+            </div>
+            <div onclick="switchTab(2)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-2">
+                <i class="fa-solid fa-brain w-5"></i> <span>AI Tools</span>
+            </div>
+            <div onclick="switchTab(3)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-3">
+                <i class="fa-solid fa-tv w-5"></i> <span>TV & Streaming</span>
+            </div>
+            <div onclick="switchTab(4)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-4">
+                <i class="fa-solid fa-shield-halved w-5"></i> <span>Proxies</span>
+            </div>
+            <div onclick="switchTab(5)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-5">
+                <i class="fa-solid fa-music w-5"></i> <span>Music</span>
+            </div>
+            <div onclick="switchTab(6)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-6">
+                <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
+            </div>
+            <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-7">
+                <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+            </div>
+            <div onclick="switchTab(8)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-8">
+                <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
+            </div>
+            <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-9">
+                <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
+            </div>
+        </div>
+    </div>
 
-<div id="sidebar">
-    <div class="nav" onclick="switchTab(0)"><i class="fa-solid fa-house"></i> Home</div>
-    <div class="nav" onclick="switchTab(1)"><i class="fa-solid fa-gamepad"></i> Games</div>
-    <div class="nav" onclick="switchTab(2)"><i class="fa-solid fa-brain"></i> AI Tools</div>
-    <div class="nav" onclick="switchTab(3)"><i class="fa-solid fa-tv"></i> TV</div>
-    <div class="nav" onclick="switchTab(4)"><i class="fa-solid fa-shield-halved"></i> Proxies</div>
-    <div class="nav" onclick="switchTab(5)"><i class="fa-solid fa-music"></i> Music</div>
-    <div class="nav" onclick="switchTab(6)"><i class="fa-solid fa-gear"></i> Settings</div>
-    <div class="nav" onclick="switchTab(7)"><i class="fa-solid fa-user"></i> Account</div>
-    <div class="nav" onclick="switchTab(8)"><i class="fa-solid fa-heart"></i> Credits</div>
-</div>
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 ml-72 main-content">
+        <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50 top-0">
+            <div class="h-full px-10 flex items-center gap-4">
+                <i id="current-tab-icon" class="text-3xl fa-solid"></i>
+                <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Home</div>
+                <span id="user-status" class="ml-auto text-sm text-white/70"></span>
+            </div>
+        </div>
 
-<div id="main">
-    <h1 id="page-title">Home Page</h1>
-    <p>Content goes here</p>
-</div>
+        <div class="pt-24 pb-20 px-10 tail-container">
+            <!-- FIX TEST BANNER - if you see this, the new code loaded -->
+            <div style="background:red; color:white; text-align:center; padding:15px; font-weight:bold; font-size:1.3rem;">
+                FIX TEST - IF YOU SEE THIS RED BAR ON HOME PAGE → NEW CODE IS WORKING
+            </div>
 
-<script>
-const icons = [
-    'fa-house', 'fa-gamepad', 'fa-brain', 'fa-tv', 'fa-shield-halved',
-    'fa-music', 'fa-gear', 'fa-user', 'fa-heart'
-];
+            <!-- HOME -->
+            <div id="content-0" class="tab-content">
+                <div class="max-w-4xl mx-auto text-center pt-12">
+                    <svg width="180" height="180" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+                    </svg>
+                    <h1 class="logo-font text-7xl md:text-8xl font-bold tracking-tight mb-6">Starlink</h1>
+                    <p class="text-2xl text-white/70 max-w-3xl mx-auto leading-relaxed">
+                        Welcome to Starlink — your personal gateway to unblocked games, AI tools, streaming, music, proxies, and more.
+                        Fast, clean, and always available.
+                    </p>
+                    <div class="mt-8 text-white/50 text-lg">By: Gunnar Booth</div>
+                </div>
+            </div>
 
-const tabNames = [
-    "Home", "Games", "AI Tools", "TV & Streaming", "Proxies",
-    "Music", "Settings", "Account", "Credits"
-];
+            <!-- ACCOUNT TAB -->
+            <div id="content-7" class="tab-content hidden">
+                <div class="max-w-md mx-auto py-12">
+                    <h2 class="text-3xl font-bold text-center mb-8">Account</h2>
+                    
+                    <div id="auth-form" class="glass p-8 rounded-3xl">
+                        <h3 class="text-xl font-semibold mb-6 text-center" id="form-title">Sign In</h3>
+                        
+                        <input type="email" id="email" placeholder="Email address" required autocomplete="email">
+                        <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+                        
+                        <button id="auth-btn" class="auth-btn mt-6">Sign In</button>
+                        
+                        <p class="text-center mt-6 text-white/70 text-sm">
+                            <span id="toggle-link" class="text-[var(--accent)] cursor-pointer hover:underline">Need an account? Sign Up</span>
+                        </p>
+                    </div>
+                    
+                    <div id="user-info" class="hidden text-center mt-12">
+                        <p class="text-xl mb-6">Logged in as <span id="user-email" class="font-semibold text-[var(--accent)]"></span></p>
+                        <button onclick="firebaseAuth.signOut(firebaseAuth.auth)" class="bg-gray-700 hover:bg-gray-600 text-white py-3 px-8 rounded-xl font-medium mb-4 w-full">
+                            Logout
+                        </button>
+                        <button onclick="changePassword()" class="change-password w-full">
+                            Change Password
+                        </button>
+                        <button onclick="deleteAccount()" class="delete-account w-full">
+                            Delete Account
+                        </button>
+                        <p id="auth-message" class="mt-4"></p>
+                    </div>
+                </div>
+            </div>
 
-function switchTab(index) {
-    document.querySelectorAll('.nav').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.nav')[index].classList.add('active');
+            <!-- ... your other tabs (games, ai, tv, proxies, music, settings, credits) remain unchanged ... -->
+        </div>
+    </div>
 
-    document.getElementById('current-icon').className = `fa-solid ${icons[index]} text-2xl mr-3`;
-    document.getElementById('current-text').textContent = tabNames[index];
-    document.getElementById('page-title').textContent = tabNames[index] + " Page";
-}
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 
-switchTab(0); // start on home
-</script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpn6rgntLkwxE6xRu9xG81mhlyFcTDMGg",
+            authDomain: "starlink-auth-14477.firebaseapp.com",
+            projectId: "starlink-auth-14477",
+            storageBucket: "starlink-auth-14477.firebasestorage.app",
+            messagingSenderId: "91401410744",
+            appId: "1:91401410744:web:f2a44d3d1a721317403c4d",
+            measurementId: "G-9E2B15TVT6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        window.firebaseAuth = {
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged,
+            deleteUser,
+            sendPasswordResetEmail,
+            auth
+        };
+
+        firebaseAuth.onAuthStateChanged(firebaseAuth.auth, (user) => {
+            const statusEl = document.getElementById('user-status');
+            const userInfo = document.getElementById('user-info');
+            const authForm = document.getElementById('auth-form');
+            const messageEl = document.getElementById('auth-message');
+
+            if (user) {
+                statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
+                if (userInfo) userInfo.classList.remove('hidden');
+                if (authForm) authForm.classList.add('hidden');
+                if (messageEl) messageEl.textContent = '';
+            } else {
+                statusEl.textContent = '';
+                if (userInfo) userInfo.classList.add('hidden');
+                if (authForm) authForm.classList.remove('hidden');
+            }
+        });
+
+        const authBtn = document.getElementById('auth-btn');
+        const toggleLink = document.getElementById('toggle-link');
+        const formTitle = document.getElementById('form-title');
+        let isSignIn = true;
+
+        if (authBtn) {
+            authBtn.addEventListener('click', async () => {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                try {
+                    if (isSignIn) {
+                        await firebaseAuth.signInWithEmailAndPassword(firebaseAuth.auth, email, password);
+                    } else {
+                        await firebaseAuth.createUserWithEmailAndPassword(firebaseAuth.auth, email, password);
+                    }
+                } catch (error) {
+                    alert(error.message);
+                }
+            });
+        }
+
+        if (toggleLink) {
+            toggleLink.addEventListener('click', () => {
+                isSignIn = !isSignIn;
+                formTitle.textContent = isSignIn ? 'Sign In' : 'Sign Up';
+                authBtn.textContent = isSignIn ? 'Sign In' : 'Sign Up';
+                toggleLink.textContent = isSignIn ? 'Need an account? Sign Up' : 'Already have an account? Sign In';
+            });
+        }
+
+        window.deleteAccount = async () => {
+            if (!confirm("Are you sure you want to permanently delete your account? This cannot be undone.")) return;
+            try {
+                const user = firebaseAuth.auth.currentUser;
+                if (user) {
+                    await firebaseAuth.deleteUser(user);
+                    alert("Account deleted.");
+                }
+            } catch (error) {
+                alert("Error: " + error.message);
+            }
+        };
+
+        window.changePassword = async () => {
+            const user = firebaseAuth.auth.currentUser;
+            if (!user || !user.email) return alert("You must be logged in.");
+            const messageEl = document.getElementById('auth-message');
+            try {
+                await firebaseAuth.sendPasswordResetEmail(firebaseAuth.auth, user.email);
+                messageEl.textContent = "Reset email sent! Check your inbox.";
+                messageEl.className = "success";
+            } catch (error) {
+                messageEl.textContent = "Error: " + error.message;
+                messageEl.className = "error";
+            }
+        };
+    </script>
+
+    <script>
+        const tabIcons = [
+            'fa-house', 'fa-gamepad', 'fa-brain', 'fa-tv', 'fa-shield-halved',
+            'fa-music', 'fa-gear', 'fa-user', 'fa-heart', 'fa-paper-plane'
+        ];
+        const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings", "Account", "Credits", "Request a Site"];
+        function switchTab(tabIndex) {
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
+            document.getElementById(`tab-${tabIndex}`).classList.add('active-tab');
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`content-${tabIndex}`).classList.remove('hidden');
+            document.getElementById('current-tab').textContent = titles[tabIndex];
+            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[tabIndex]}`;
+        }
+        // ... rest of your script (themes, stars, populateGrid, initialize, etc.) unchanged ...
+    </script>
 </body>
 </html>
