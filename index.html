@@ -180,17 +180,15 @@
                 <p class="text-xs text-white/70 tracking-wide -mt-1">By: Gunnar Booth</p>
             </div>
         </div>
-        <div class="flex-1 px-6 py-8 overflow-y-auto" id="nav-links">
-            <!-- Nav links populated dynamically -->
-        </div>
+        <div class="flex-1 px-6 py-8 overflow-y-auto" id="nav-links"></div>
     </div>
 
     <!-- MAIN CONTENT -->
     <div class="flex-1 ml-72 main-content">
         <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50 top-0">
             <div class="h-full px-10 flex items-center gap-4">
-                <i id="current-tab-icon" class="text-3xl fa-solid"></i>
-                <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Sign In Required</div>
+                <i id="current-tab-icon" class="text-3xl fa-solid fa-user"></i>
+                <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Account</div>
                 <span id="user-status" class="ml-auto text-sm text-white/70"></span>
             </div>
         </div>
@@ -199,7 +197,7 @@
             <!-- ACCOUNT TAB -->
             <div id="content-account" class="tab-content">
                 <div class="max-w-md mx-auto py-12">
-                    <h2 class="text-3xl font-bold text-center mb-8">Account</h2>
+                    <h2 class="text-3xl font-bold text-center mb-8" id="account-title">Sign In Required</h2>
                     
                     <div id="auth-form" class="glass p-8 rounded-3xl">
                         <h3 class="text-xl font-semibold mb-6 text-center" id="form-title">Sign In</h3>
@@ -348,13 +346,14 @@
 
         let currentUser = null;
 
-        firebaseAuth.onAuthStateChanged(firebaseAuth.auth, (user) => {
+        function updateUIForAuth(user) {
             currentUser = user;
             const statusEl = document.getElementById('user-status');
             const navLinks = document.getElementById('nav-links');
             const userInfo = document.getElementById('user-info');
             const authForm = document.getElementById('auth-form');
             const messageEl = document.getElementById('auth-message');
+            const accountTitle = document.getElementById('account-title');
 
             if (user) {
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
@@ -364,7 +363,8 @@
                 }
                 if (authForm) authForm.classList.add('hidden');
                 if (messageEl) messageEl.textContent = '';
-                // Show full navigation
+                if (accountTitle) accountTitle.textContent = 'Account';
+                // Full navigation
                 navLinks.innerHTML = `
                     <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-0">
                         <i class="fa-solid fa-house w-5"></i> <span>Home</span>
@@ -387,7 +387,7 @@
                     <div onclick="switchTab(6)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-6">
                         <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
                     </div>
-                    <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-7">
+                    <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2 active-tab" id="tab-7">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
                     </div>
                     <div onclick="switchTab(8)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-8">
@@ -397,19 +397,20 @@
                         <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
                     </div>
                 `;
-                // Populate content grids/themes
                 populateThemeGrid();
                 populateGrid('games', 'games-grid');
                 populateGrid('ai', 'ai-grid');
                 populateGrid('tv', 'tv-grid');
                 populateGrid('proxies', 'proxy-grid');
                 populateGrid('music', 'music-grid');
-                // Switch to Home by default after login
-                switchTab(0);
+                switchTab(0); // default to Home after login
             } else {
-                statusEl.textContent = 'Sign In Required';
-                document.getElementById('current-tab').textContent = 'Sign In Required';
-                // Only show Account nav
+                statusEl.textContent = '';
+                document.getElementById('current-tab').textContent = 'Account';
+                document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-user';
+                if (userInfo) userInfo.classList.add('hidden');
+                if (authForm) authForm.classList.remove('hidden');
+                if (accountTitle) accountTitle.textContent = 'Sign In Required';
                 navLinks.innerHTML = `
                     <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-7">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
@@ -417,7 +418,9 @@
                 `;
                 switchTab(7);
             }
-        });
+        }
+
+        firebaseAuth.onAuthStateChanged(firebaseAuth.auth, updateUIForAuth);
 
         const authBtn = document.getElementById('auth-btn');
         const toggleLink = document.getElementById('toggle-link');
@@ -478,8 +481,36 @@
     </script>
 
     <script>
+        const tabIcons = [
+            'fa-house', 'fa-gamepad', 'fa-brain', 'fa-tv', 'fa-shield-halved',
+            'fa-music', 'fa-gear', 'fa-user', 'fa-heart', 'fa-paper-plane'
+        ];
+        const tabTitles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings", "Account", "Credits", "Request a Site"];
+        const contentIds = [
+            'content-home', 'content-games', 'content-ai', 'content-tv', 'content-proxies',
+            'content-music', 'content-settings', 'content-account', 'content-credits'
+        ];
+
+        function switchTab(index) {
+            if (!currentUser && index !== 7) {
+                switchTab(7);
+                return;
+            }
+
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
+            const active = document.getElementById(`tab-${index}`);
+            if (active) active.classList.add('active-tab');
+
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const content = document.getElementById(contentIds[index]);
+            if (content) content.classList.remove('hidden');
+
+            document.getElementById('current-tab').textContent = tabTitles[index];
+            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
+        }
+
         // ──────────────────────────────────────────────
-        // SETTINGS & PERSISTENCE
+        // SETTINGS & PERSISTENCE (unchanged)
         // ──────────────────────────────────────────────
         const themes = [
             { name: "White", color: "#ffffff" },
@@ -544,9 +575,6 @@
                 location.reload();
             });
         }
-        // ──────────────────────────────────────────────
-        // BACKGROUND STARS
-        // ──────────────────────────────────────────────
         function createStar(x, y) {
             const star = document.createElement('div');
             star.className = 'star';
@@ -572,21 +600,6 @@
             if (e.target.closest('button, a, .nav-link, input, label, svg, .card')) return;
             createStar(e.clientX, e.clientY);
         });
-        // ──────────────────────────────────────────────
-        // TAB ICONS & SITES
-        // ──────────────────────────────────────────────
-        const tabIcons = [
-            'fa-house',
-            'fa-gamepad',
-            'fa-brain',
-            'fa-tv',
-            'fa-shield-halved',
-            'fa-music',
-            'fa-gear',
-            'fa-user',
-            'fa-heart',
-            'fa-paper-plane'
-        ];
         const sites = {
             games: [
                 { name: "Shell Shockers", url: "https://egghead.institute/", desc: "", icon: "🎮" },
@@ -613,22 +626,6 @@
                 { name: "Amazon Music", url: "https://music.amazon.com/", desc: "", icon: "🎵" },
             ]
         };
-        function switchTab(tabIndex) {
-            if (!currentUser && tabIndex !== 7) {
-                switchTab(7);
-                return;
-            }
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
-            const activeTab = document.getElementById(`tab-${tabIndex}`);
-            if (activeTab) activeTab.classList.add('active-tab');
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            const contentId = tabIndex === 7 ? 'content-account' : ['content-home', 'content-games', 'content-ai', 'content-tv', 'content-proxies', 'content-music', 'content-settings', 'content-credits'][tabIndex];
-            const content = document.getElementById(contentId);
-            if (content) content.classList.remove('hidden');
-            const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings", "Account", "Credits", "Request a Site"];
-            document.getElementById('current-tab').textContent = titles[tabIndex];
-            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[tabIndex]}`;
-        }
         function populateGrid(category, containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
