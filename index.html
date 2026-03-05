@@ -340,10 +340,10 @@
             auth
         };
 
-        let currentUser = null;
+        window.currentUser = null;
 
         function updateUIForAuth(user) {
-            currentUser = user;
+            window.currentUser = user;
             const statusEl = document.getElementById('user-status');
             const navLinks = document.getElementById('nav-links');
             const userInfo = document.getElementById('user-info');
@@ -497,7 +497,7 @@
         ];
 
         function switchTab(index) {
-            if (!currentUser && index !== 7) {
+            if (!window.currentUser && index !== 7) {
                 switchTab(7);
                 return;
             }
