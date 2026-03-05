@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
-       
+      
         :root {
             --accent: #ffffff;
         }
@@ -22,7 +22,7 @@
             height: 100vh;
             overflow: hidden;
         }
-       
+      
         .logo-font {
             font-family: 'Space Grotesk', sans-serif;
         }
@@ -38,7 +38,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             color: #ffffff;
         }
-       
+      
         .nav-link:hover,
         .nav-link.active-tab {
             color: var(--accent) !important;
@@ -57,7 +57,7 @@
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.12);
         }
-       
+      
         .card:hover {
             transform: translateY(-8px) scale(1.03);
             border-color: var(--accent);
@@ -134,7 +134,10 @@
             <div onclick="switchTab(6)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-6">
                 <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
             </div>
-            <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-7">
+            <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-7">
+                <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
+            </div>
+            <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-8">
                 <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
             </div>
         </div>
@@ -208,6 +211,26 @@
                         </button>
                         <p id="reset-message" class="text-sm text-white/60 mt-3 hidden">Settings reset! Refreshing page...</p>
                     </div>
+                </div>
+            </div>
+            <!-- CREDITS -->
+            <div id="content-7" class="tab-content hidden">
+                <div class="max-w-3xl mx-auto text-center py-20">
+                    <svg width="120" height="120" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+                    </svg>
+                    <h1 class="logo-font text-6xl font-bold tracking-tight mb-8">Credits</h1>
+                    <p class="text-2xl text-white/80 mb-6">
+                        Created, designed, and built entirely by <span class="font-semibold text-[var(--accent)]">Gunnar Booth</span>
+                    </p>
+                    <p class="text-xl text-white/70 mb-12">
+                        Personal unblocked gateway • Made with passion in Carthage, North Carolina
+                    </p>
+                    <a href="https://github.com/GunBooth0/Starlink" target="_blank" rel="noopener noreferrer" 
+                       class="inline-flex items-center gap-3 bg-black border border-white/30 hover:border-[var(--accent)] text-white px-8 py-4 rounded-2xl transition-all text-lg font-medium">
+                        <i class="fa-brands fa-github text-3xl"></i>
+                        View Source on GitHub
+                    </a>
                 </div>
             </div>
         </div>
@@ -313,7 +336,8 @@
             'fa-shield-halved',
             'fa-music',
             'fa-gear',
-            'fa-paper-plane'  // New: for Request a Site
+            'fa-heart',       // Credits
+            'fa-paper-plane'  // Request a Site
         ];
         const sites = {
             games: [
@@ -346,7 +370,7 @@
             document.getElementById(`tab-${tabIndex}`).classList.add('active-tab');
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`content-${tabIndex}`).classList.remove('hidden');
-            const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings"];
+            const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings", "Credits"];
             document.getElementById('current-tab').textContent = titles[tabIndex];
             document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[tabIndex]}`;
         }
