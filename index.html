@@ -134,20 +134,24 @@
             background: white;
             transform: translateY(-2px);
         }
-        .change-password {
-            background: #3b82f6;
+        .github-style-btn {
+            background: black;
+            border: 1px solid rgba(255,255,255,0.3);
             color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            justify-content: center;
+            font-size: 1.1rem;
         }
-        .change-password:hover {
-            background: #2563eb;
-            transform: translateY(-2px);
-        }
-        .delete-account {
-            background: #ef4444;
-            color: white;
-        }
-        .delete-account:hover {
-            background: #dc2626;
+        .github-style-btn:hover {
+            border-color: var(--accent);
             transform: translateY(-2px);
         }
         #auth-message {
@@ -157,6 +161,10 @@
         }
         .success { color: #10b981; }
         .error { color: #ef4444; }
+        #user-info p {
+            font-size: 1.4rem;
+            margin-bottom: 2rem;
+        }
     </style>
 </head>
 <body>
@@ -307,14 +315,14 @@
                     
                     <div id="user-info" class="hidden text-center mt-12">
                         <p class="text-2xl mb-8">Logged in as: <span id="user-email" class="font-bold text-[var(--accent)]"></span></p>
-                        <button onclick="firebaseAuth.signOut(firebaseAuth.auth)" class="bg-gray-700 hover:bg-gray-600 text-white py-4 px-10 rounded-xl font-medium mb-4 w-full text-lg">
-                            Logout
+                        <button onclick="firebaseAuth.signOut(firebaseAuth.auth)" class="github-style-btn">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
                         </button>
-                        <button onclick="changePassword()" class="change-password text-lg">
-                            Change Password
+                        <button onclick="changePassword()" class="github-style-btn">
+                            <i class="fa-solid fa-key"></i> Change Password
                         </button>
-                        <button onclick="deleteAccount()" class="delete-account text-lg">
-                            Delete Account
+                        <button onclick="deleteAccount()" class="github-style-btn">
+                            <i class="fa-solid fa-trash-can"></i> Delete Account
                         </button>
                         <p id="auth-message" class="mt-6"></p>
                     </div>
@@ -331,8 +339,7 @@
                     <p class="text-2xl text-white/80 mb-6">
                         Created, designed, and built entirely by <span class="font-semibold text-[var(--accent)]">Gunnar Booth</span>
                     </p>
-                    <a href="https://github.com/GunBooth0/Starlink" target="_blank" rel="noopener noreferrer" 
-                       class="inline-flex items-center gap-3 bg-black border border-white/30 hover:border-[var(--accent)] text-white px-8 py-4 rounded-2xl transition-all text-lg font-medium">
+                    <a href="https://github.com/GunBooth0/Starlink" target="_blank" rel="noopener noreferrer" class="github-style-btn inline-flex">
                         <i class="fa-brands fa-github text-3xl"></i>
                         View Source on GitHub
                     </a>
@@ -369,7 +376,10 @@
             auth
         };
 
+        let isAuthenticated = false;
+
         firebaseAuth.onAuthStateChanged(firebaseAuth.auth, (user) => {
+            isAuthenticated = !!user;
             const statusEl = document.getElementById('user-status');
             const userInfo = document.getElementById('user-info');
             const authForm = document.getElementById('auth-form');
@@ -383,10 +393,15 @@
                 }
                 if (authForm) authForm.classList.add('hidden');
                 if (messageEl) messageEl.textContent = '';
+                // Allow access to all tabs
+                document.querySelectorAll('.tab-content:not(#content-7)').forEach(el => el.style.display = 'block');
             } else {
                 statusEl.textContent = '';
                 if (userInfo) userInfo.classList.add('hidden');
                 if (authForm) authForm.classList.remove('hidden');
+                // Force to Account tab and hide others
+                switchTab(7);
+                document.querySelectorAll('.tab-content:not(#content-7)').forEach(el => el.style.display = 'none');
             }
         });
 
