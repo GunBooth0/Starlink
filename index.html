@@ -4,19 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Starlink</title>
-
     <!-- Favicon: white star -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><path d=%22M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z%22 fill=%22%23ffffff%22/></svg>" type="image/svg+xml">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
-        
+       
         :root {
             --accent: #ffffff;
         }
-
         body {
             background: #000000;
             color: #ffffff;
@@ -25,73 +22,63 @@
             height: 100vh;
             overflow: hidden;
         }
-        
+       
         .logo-font {
             font-family: 'Space Grotesk', sans-serif;
         }
-
         .star-svg {
             animation: pulse 4s infinite ease-in-out;
             filter: drop-shadow(0 0 20px var(--accent));
         }
-
         @keyframes pulse {
             0%, 100% { filter: drop-shadow(0 0 20px var(--accent)); }
-            50%      { filter: drop-shadow(0 0 45px var(--accent)); }
+            50% { filter: drop-shadow(0 0 45px var(--accent)); }
         }
-
         .nav-link {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             color: #ffffff;
         }
-        
+       
         .nav-link:hover,
         .nav-link.active-tab {
             color: var(--accent) !important;
             background: rgba(255,255,255,0.08);
         }
-
         .nav-link i {
             color: inherit;
         }
-
         #current-tab-icon,
         #current-tab {
             color: var(--accent);
             transition: color 0.4s ease;
         }
-
         .card {
             transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.12);
         }
-        
+       
         .card:hover {
             transform: translateY(-8px) scale(1.03);
             border-color: var(--accent);
             background: rgba(255,255,255,0.06);
         }
-
         .glass {
             background: rgba(255,255,255,0.04);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255,255,255,0.15);
         }
-
         .tail-container {
             max-width: 1280px;
             margin-left: auto;
             margin-right: auto;
         }
-
         #star-bg {
             position: fixed;
             inset: 0;
             z-index: -1;
             pointer-events: auto;
         }
-
         .star {
             position: absolute;
             background: var(--accent);
@@ -100,12 +87,10 @@
             pointer-events: none;
             animation: floatUp linear infinite;
         }
-
         @keyframes floatUp {
-            0%   { transform: translateY(110vh); }
+            0% { transform: translateY(110vh); }
             100% { transform: translateY(-30vh); }
         }
-
         /* Make main content area scrollable */
         .main-content {
             overflow-y: auto;
@@ -115,9 +100,7 @@
     </style>
 </head>
 <body>
-
     <div id="star-bg"></div>
-
     <!-- SIDEBAR -->
     <div class="w-72 bg-black border-r border-white/10 flex flex-col fixed h-screen z-50">
         <div class="p-8 flex items-center gap-x-4 border-b border-white/10">
@@ -129,7 +112,6 @@
                 <p class="text-xs text-white/70 tracking-wide -mt-1">By: Gunnar Booth</p>
             </div>
         </div>
-
         <div class="flex-1 px-6 py-8 overflow-y-auto">
             <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
                 <i class="fa-solid fa-house w-5"></i> <span>Home</span>
@@ -149,12 +131,14 @@
             <div onclick="switchTab(5)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-5">
                 <i class="fa-solid fa-music w-5"></i> <span>Music</span>
             </div>
-            <div onclick="switchTab(6)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-6 border-t border-white/10 pt-4" id="tab-6">
+            <div onclick="switchTab(6)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-6">
                 <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
+            </div>
+            <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-7">
+                <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
             </div>
         </div>
     </div>
-
     <!-- MAIN SCROLLABLE CONTENT -->
     <div class="flex-1 ml-72 main-content">
         <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50 top-0">
@@ -163,7 +147,6 @@
                 <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Home</div>
             </div>
         </div>
-
         <div class="pt-24 pb-20 px-10 tail-container">
             <!-- HOME -->
             <div id="content-0" class="tab-content">
@@ -173,45 +156,38 @@
                     </svg>
                     <h1 class="logo-font text-7xl md:text-8xl font-bold tracking-tight mb-6">Starlink</h1>
                     <p class="text-2xl text-white/70 max-w-3xl mx-auto leading-relaxed">
-                        Welcome to Starlink — your personal gateway to unblocked games, AI tools, streaming, music, proxies, and more. 
+                        Welcome to Starlink — your personal gateway to unblocked games, AI tools, streaming, music, proxies, and more.
                         Fast, clean, and always available.
                     </p>
                     <div class="mt-16 text-white/50 text-lg">By: Gunnar Booth</div>
                 </div>
             </div>
-
             <!-- GAMES -->
             <div id="content-1" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="games-grid"></div>
             </div>
-
             <!-- AI -->
             <div id="content-2" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="ai-grid"></div>
             </div>
-
             <!-- TV -->
             <div id="content-3" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="tv-grid"></div>
             </div>
-
             <!-- PROXIES -->
             <div id="content-4" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="proxy-grid"></div>
             </div>
-
             <!-- MUSIC -->
             <div id="content-5" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div>
             </div>
-
             <!-- SETTINGS -->
             <div id="content-6" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
                     <h3 class="text-2xl font-semibold mb-6">Appearance • Choose Theme</h3>
                     <p class="text-white/70 mb-8">Click a color to instantly change the accent, stars, glow, and sidebar highlights</p>
                     <div id="theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div>
-
                     <div class="mt-12 pt-8 border-t border-white/10">
                         <h3 class="text-2xl font-semibold mb-6">Link Behavior</h3>
                         <div class="flex justify-between items-center py-4">
@@ -225,7 +201,6 @@
                             </label>
                         </div>
                     </div>
-
                     <div class="mt-12 pt-8 border-t border-white/10">
                         <h3 class="text-2xl font-semibold mb-6 text-red-400">Danger Zone</h3>
                         <button onclick="resetEverything()" class="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-6 rounded-xl transition-colors">
@@ -264,21 +239,17 @@
             { name: "Coral", color: "#f87171" },
             { name: "Electric Violet", color: "#a855f7" }
         ];
-
         function setTheme(color) {
             document.documentElement.style.setProperty('--accent', color);
             localStorage.setItem('starlinkAccent', color);
         }
-
         function loadTheme() {
             const saved = localStorage.getItem('starlinkAccent');
             setTheme(saved || '#ffffff');
         }
-
         function saveNewTabPreference(value) {
             localStorage.setItem('starlinkNewTab', value ? 'true' : 'false');
         }
-
         function loadNewTabPreference() {
             const saved = localStorage.getItem('starlinkNewTab');
             const checkbox = document.getElementById('newtab-toggle');
@@ -289,16 +260,13 @@
                 checkbox.checked = saved === 'true';
             }
         }
-
         function resetEverything() {
             if (!confirm("Reset all settings to default?\nThis will clear theme and link preferences.")) return;
-
             localStorage.removeItem('starlinkAccent');
             localStorage.removeItem('starlinkNewTab');
             setTheme('#ffffff');
             document.getElementById('newtab-toggle').checked = true;
             saveNewTabPreference(true);
-
             const msg = document.getElementById('reset-message');
             msg.classList.remove('hidden');
             setTimeout(() => {
@@ -306,7 +274,6 @@
                 location.reload();
             }, 2000);
         }
-
         // ──────────────────────────────────────────────
         // BACKGROUND STARS
         // ──────────────────────────────────────────────
@@ -314,7 +281,7 @@
             const star = document.createElement('div');
             star.className = 'star';
             star.style.left = `${x}px`;
-            star.style.top  = `${y}px`;
+            star.style.top = `${y}px`;
             const size = Math.random() * 3 + 1;
             star.style.width = star.style.height = `${size}px`;
             const duration = Math.random() * 40 + 25;
@@ -324,7 +291,6 @@
             document.getElementById('star-bg').appendChild(star);
             setTimeout(() => star.remove(), duration * 1000 + 2000);
         }
-
         function initStars(count = 100) {
             for (let i = 0; i < count; i++) {
                 const x = Math.random() * window.innerWidth;
@@ -332,12 +298,10 @@
                 createStar(x, y);
             }
         }
-
         document.addEventListener('click', (e) => {
             if (e.target.closest('button, a, .nav-link, input, label, svg, .card')) return;
             createStar(e.clientX, e.clientY);
         });
-
         // ──────────────────────────────────────────────
         // TAB ICONS
         // ──────────────────────────────────────────────
@@ -348,9 +312,9 @@
             'fa-tv',
             'fa-shield-halved',
             'fa-music',
-            'fa-gear'
+            'fa-gear',
+            'fa-paper-plane'  // New: for Request a Site
         ];
-
         const sites = {
             games: [
                 { name: "Shell Shockers", url: "https://egghead.institute/", desc: "", icon: "🎮" },
@@ -378,26 +342,21 @@
             ],
             music: [
                 { name: "Amazon Music", url: "https://music.amazon.com/", desc: "", icon: "🎵" },
+            ]
         };
-
         function switchTab(tabIndex) {
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
             document.getElementById(`tab-${tabIndex}`).classList.add('active-tab');
-
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`content-${tabIndex}`).classList.remove('hidden');
-
             const titles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings"];
             document.getElementById('current-tab').textContent = titles[tabIndex];
-
             document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[tabIndex]}`;
         }
-
         function populateGrid(category, containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
             container.innerHTML = '';
-
             (sites[category] || []).forEach(site => {
                 const card = document.createElement('div');
                 card.className = `card rounded-3xl p-6 cursor-pointer group`;
@@ -414,12 +373,10 @@
                 container.appendChild(card);
             });
         }
-
         function populateThemeGrid() {
             const container = document.getElementById('theme-grid');
             if (!container) return;
             container.innerHTML = '';
-
             themes.forEach(t => {
                 const el = document.createElement('div');
                 el.className = 'cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-white/50 transition-all shadow-md';
@@ -433,27 +390,25 @@
                 container.appendChild(el);
             });
         }
-
+        function requestSite() {
+            window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
+        }
         function initialize() {
             loadTheme();
             loadNewTabPreference();
             initStars();
             populateThemeGrid();
-
-            populateGrid('games',   'games-grid');
-            populateGrid('ai',      'ai-grid');
-            populateGrid('tv',      'tv-grid');
+            populateGrid('games', 'games-grid');
+            populateGrid('ai', 'ai-grid');
+            populateGrid('tv', 'tv-grid');
             populateGrid('proxies', 'proxy-grid');
-            populateGrid('music',   'music-grid');
-
+            populateGrid('music', 'music-grid');
             // Always start on Home
             switchTab(0);
-
             document.getElementById('newtab-toggle').addEventListener('change', (e) => {
                 saveNewTabPreference(e.target.checked);
             });
         }
-
         window.onload = initialize;
     </script>
 </body>
