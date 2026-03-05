@@ -389,7 +389,7 @@
                     <div onclick="switchTab(6)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-6">
                         <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
                     </div>
-                    <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2 active-tab" id="tab-7">
+                    <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-7">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
                     </div>
                     <div onclick="switchTab(8)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-8">
@@ -399,15 +399,13 @@
                         <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
                     </div>
                 `;
-                // Load content grids/themes
                 populateThemeGrid();
                 populateGrid('games', 'games-grid');
                 populateGrid('ai', 'ai-grid');
                 populateGrid('tv', 'tv-grid');
                 populateGrid('proxies', 'proxy-grid');
                 populateGrid('music', 'music-grid');
-                // Switch to Home after login
-                switchTab(0);
+                switchTab(0); // Switch to Home
             } else {
                 statusEl.textContent = '';
                 currentTabEl.textContent = 'Sign In Required';
@@ -441,7 +439,6 @@
                     } else {
                         await firebaseAuth.createUserWithEmailAndPassword(firebaseAuth.auth, email, password);
                     }
-                    // Force UI update after successful sign-in
                     updateUIForAuth(firebaseAuth.auth.currentUser);
                 } catch (error) {
                     alert(error.message);
@@ -614,7 +611,7 @@
             games: [
                 { name: "Shell Shockers", url: "https://egghead.institute/", desc: "", icon: "🎮" },
                 { name: "Kart Bros", url: "https://kart.basketball.services/", desc: "", icon: "🎮" },
-                { name: "The Marz Library", url: "https://theorytest.help/", desc: "", icon: "🎮" },
+                { name: "The Marz Library", url: "https:// theorytest.help/", desc: "", icon: "🎮" },
             ],
             ai: [
                 { name: "Grok", url: "https://grok.com/", desc: "", icon: "AI" },
