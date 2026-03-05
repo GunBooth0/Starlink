@@ -42,6 +42,9 @@
             color: var(--accent) !important;
             background: rgba(255,255,255,0.08);
         }
+        .nav-link i {
+            color: inherit;
+        }
         #current-tab-icon,
         #current-tab {
             color: var(--accent);
@@ -170,9 +173,9 @@
         </div>
 
         <div class="pt-24 pb-20 px-10 tail-container">
-            <!-- FIX TEST BANNER - if you see this, the new code loaded -->
-            <div style="background:red; color:white; text-align:center; padding:15px; font-weight:bold; font-size:1.3rem;">
-                FIX TEST - IF YOU SEE THIS RED BAR ON HOME PAGE → NEW CODE IS WORKING
+            <!-- FIX TEST BANNER -->
+            <div style="background:red; color:white; text-align:center; padding:20px; font-weight:bold; font-size:1.5rem;">
+                FIX TEST - IF YOU SEE THIS RED BAR → THE NEW CODE IS LOADING
             </div>
 
             <!-- HOME -->
@@ -224,7 +227,7 @@
                 </div>
             </div>
 
-            <!-- ... your other tabs (games, ai, tv, proxies, music, settings, credits) remain unchanged ... -->
+            <!-- ... rest of tabs unchanged ... -->
         </div>
     </div>
 
@@ -346,7 +349,10 @@
             document.getElementById('current-tab').textContent = titles[tabIndex];
             document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[tabIndex]}`;
         }
-        // ... rest of your script (themes, stars, populateGrid, initialize, etc.) unchanged ...
+        function initialize() {
+            switchTab(0);
+        }
+        window.onload = initialize;
     </script>
 </body>
 </html>
