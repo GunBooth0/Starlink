@@ -307,7 +307,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDpn6rgntLkwxE6xRu9xG81mhlyFcTDMGg",
@@ -427,10 +427,20 @@
                 const password = document.getElementById('password').value;
                 try {
                     if (isSignIn) {
-                        await firebaseAuth.signInWithEmailAndPassword(firebaseAuth.auth, email, password);
-                    } else {
-                        await firebaseAuth.createUserWithEmailAndPassword(firebaseAuth.auth, email, password);
+                        const userCredential = await firebaseAuth.signInWithEmailAndPassword(firebaseAuth.auth, email, password);
+
+                        if (!userCredential.user.emailVerified) {
+                        alert("Please verify your email before logging in.");
+                        await firebaseAuth.signOut(firebaseAuth.auth);
+                        return;
                     }
+                    } else {
+                        const userCredential = await firebaseAuth.createUserWithEmailAndPassword(firebaseAuth.auth, email, password);
+
+                        await firebaseAuth.sendEmailVerification(userCredential.user);
+
+                        alert("Verification email sent! Please check your inbox before logging in.");
+                        await firebaseAuth.signOut(firebaseAuth.auth);
                     updateUIForAuth(firebaseAuth.auth.currentUser);
                 } catch (error) {
                     alert(error.message);
