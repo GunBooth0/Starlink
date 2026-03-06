@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
-      
+     
         :root {
             --accent: #ffffff;
         }
@@ -21,7 +21,7 @@
             height: 100vh;
             overflow: hidden;
         }
-      
+     
         .logo-font {
             font-family: 'Space Grotesk', sans-serif;
         }
@@ -37,7 +37,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             color: #ffffff;
         }
-      
+     
         .nav-link:hover,
         .nav-link.active-tab {
             color: var(--accent) !important;
@@ -56,7 +56,7 @@
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.12);
         }
-      
+     
         .card:hover {
             transform: translateY(-8px) scale(1.03);
             border-color: var(--accent);
@@ -164,7 +164,6 @@
 </head>
 <body>
     <div id="star-bg"></div>
-
     <!-- SIDEBAR -->
     <div class="w-72 bg-black border-r border-white/10 flex flex-col fixed h-screen z-50">
         <div class="p-8 flex items-center gap-x-4 border-b border-white/10">
@@ -178,7 +177,6 @@
         </div>
         <div class="flex-1 px-6 py-8 overflow-y-auto" id="nav-links"></div>
     </div>
-
     <!-- MAIN CONTENT -->
     <div class="flex-1 ml-72 main-content">
         <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50 top-0">
@@ -188,30 +186,29 @@
                 <span id="user-status" class="ml-auto text-sm text-white/70"></span>
             </div>
         </div>
-
         <div class="pt-24 pb-20 px-10 tail-container">
             <!-- ACCOUNT TAB -->
             <div id="content-account" class="tab-content">
                 <div class="max-w-md mx-auto py-12">
                     <h2 class="text-3xl font-bold text-center mb-8" id="account-title">Sign In Required</h2>
-                    
+                   
                     <div id="auth-form" class="glass p-8 rounded-3xl">
                         <h3 class="text-xl font-semibold mb-6 text-center" id="form-title">Sign In</h3>
-                        
+                       
                         <input type="email" id="email" placeholder="Email address" required autocomplete="email">
                         <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
-                        
+                       
                         <button id="auth-btn" class="auth-btn mt-6">Sign In</button>
-                        
+                       
                         <p class="text-center mt-6 text-white/70 text-sm">
                             <span id="toggle-link" class="text-[var(--accent)] cursor-pointer hover:underline">Don't have an account? Sign Up</span>
                         </p>
                     </div>
-                    
+                   
                     <div id="user-info" class="hidden text-center mt-12">
                         <p class="text-2xl mb-8">Logged in as: <span id="user-email" class="font-bold text-[var(--accent)]"></span></p>
-                        <button onclick="firebaseAuth.signOut(firebaseAuth.auth)" class="github-style-btn">
-                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        <button onclick="changeEmail()" class="github-style-btn">
+                            <i class="fa-solid fa-envelope"></i> Change Email
                         </button>
                         <button onclick="changePassword()" class="github-style-btn">
                             <i class="fa-solid fa-key"></i> Change Password
@@ -219,11 +216,13 @@
                         <button onclick="deleteAccount()" class="github-style-btn">
                             <i class="fa-solid fa-trash-can"></i> Delete Account
                         </button>
+                        <button onclick="firebaseAuth.signOut(firebaseAuth.auth)" class="github-style-btn">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        </button>
                         <p id="auth-message" class="mt-6"></p>
                     </div>
                 </div>
             </div>
-
             <!-- HOME -->
             <div id="content-home" class="tab-content hidden">
                 <div class="max-w-4xl mx-auto text-center pt-12">
@@ -238,32 +237,26 @@
                     <div class="mt-8 text-white/50 text-lg">By: Gunnar Booth</div>
                 </div>
             </div>
-
             <!-- GAMES -->
             <div id="content-games" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="games-grid"></div>
             </div>
-
             <!-- AI TOOLS -->
             <div id="content-ai" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="ai-grid"></div>
             </div>
-
             <!-- TV & STREAMING -->
             <div id="content-tv" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="tv-grid"></div>
             </div>
-
             <!-- PROXIES -->
             <div id="content-proxies" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="proxy-grid"></div>
             </div>
-
             <!-- MUSIC -->
             <div id="content-music" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div>
             </div>
-
             <!-- SETTINGS -->
             <div id="content-settings" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
@@ -292,7 +285,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- CREDITS -->
             <div id="content-credits" class="tab-content hidden">
                 <div class="max-w-3xl mx-auto text-center py-20">
@@ -315,7 +307,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDpn6rgntLkwxE6xRu9xG81mhlyFcTDMGg",
@@ -337,6 +329,9 @@
             onAuthStateChanged,
             deleteUser,
             sendPasswordResetEmail,
+            updateEmail,
+            reauthenticateWithCredential,
+            EmailAuthProvider,
             auth
         };
 
@@ -362,8 +357,6 @@
                 if (authForm) authForm.classList.add('hidden');
                 if (messageEl) messageEl.textContent = '';
                 if (accountTitle) accountTitle.textContent = 'Account';
-
-                // Rebuild sidebar
                 navLinks.innerHTML = `
                     <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-0">
                         <i class="fa-solid fa-house w-5"></i> <span>Home</span>
@@ -386,7 +379,7 @@
                     <div onclick="switchTab(6)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-6">
                         <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
                     </div>
-                    <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-7">
+                    <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2 active-tab" id="tab-7">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
                     </div>
                     <div onclick="switchTab(8)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-8">
@@ -396,8 +389,6 @@
                         <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
                     </div>
                 `;
-
-                // Give DOM time to update, then load content and switch
                 setTimeout(() => {
                     populateThemeGrid();
                     populateGrid('games', 'games-grid');
@@ -405,7 +396,7 @@
                     populateGrid('tv', 'tv-grid');
                     populateGrid('proxies', 'proxy-grid');
                     populateGrid('music', 'music-grid');
-                    switchTab(0); // Home
+                    switchTab(0);
                 }, 50);
             } else {
                 statusEl.textContent = '';
@@ -440,7 +431,6 @@
                     } else {
                         await firebaseAuth.createUserWithEmailAndPassword(firebaseAuth.auth, email, password);
                     }
-                    // Force UI update
                     updateUIForAuth(firebaseAuth.auth.currentUser);
                 } catch (error) {
                     alert(error.message);
@@ -483,6 +473,34 @@
                 messageEl.className = "error";
             }
         };
+
+        window.changeEmail = async () => {
+            const user = firebaseAuth.auth.currentUser;
+            if (!user) return alert("You must be logged in.");
+
+            const newEmail = prompt("Enter your new email address:", user.email);
+            if (!newEmail || newEmail === user.email) return alert("No change made.");
+
+            const password = prompt("Enter your current password to confirm:");
+            if (!password) return;
+
+            const messageEl = document.getElementById('auth-message');
+            try {
+                // Re-authenticate
+                const credential = firebaseAuth.EmailAuthProvider.credential(user.email, password);
+                await firebaseAuth.reauthenticateWithCredential(user, credential);
+
+                // Update email
+                await firebaseAuth.updateEmail(user, newEmail);
+
+                messageEl.textContent = "Email updated successfully! Please verify the new email (check inbox/spam).";
+                messageEl.className = "success";
+                document.getElementById('user-email').textContent = newEmail;
+            } catch (error) {
+                messageEl.textContent = "Error: " + error.message;
+                messageEl.className = "error";
+            }
+        };
     </script>
 
     <script>
@@ -514,9 +532,6 @@
             document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
         }
 
-        // ──────────────────────────────────────────────
-        // SETTINGS & PERSISTENCE
-        // ──────────────────────────────────────────────
         const themes = [
             { name: "White", color: "#ffffff" },
             { name: "Red", color: "#ef4444" },
