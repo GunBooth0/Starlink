@@ -307,7 +307,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDpn6rgntLkwxE6xRu9xG81mhlyFcTDMGg",
@@ -427,25 +427,10 @@
                 const password = document.getElementById('password').value;
                 try {
                     if (isSignIn) {
-
-    const userCredential = await firebaseAuth.signInWithEmailAndPassword(firebaseAuth.auth, email, password);
-
-    if (!userCredential.user.emailVerified) {
-        alert("Please verify your email before signing in. Check your inbox.");
-        await firebaseAuth.signOut(firebaseAuth.auth);
-        return;
-    }
-
-} else {
-
-    const userCredential = await firebaseAuth.createUserWithEmailAndPassword(firebaseAuth.auth, email, password);
-
-    await sendEmailVerification(userCredential.user);
-
-    alert("Account created! A verification email has been sent. Please verify before signing in.");
-
-    await firebaseAuth.signOut(firebaseAuth.auth);
-}
+                        await firebaseAuth.signInWithEmailAndPassword(firebaseAuth.auth, email, password);
+                    } else {
+                        await firebaseAuth.createUserWithEmailAndPassword(firebaseAuth.auth, email, password);
+                    }
                     updateUIForAuth(firebaseAuth.auth.currentUser);
                 } catch (error) {
                     alert(error.message);
@@ -466,12 +451,7 @@
             if (!confirm("Are you sure you want to permanently delete your account? This cannot be undone.")) return;
             try {
                 const user = firebaseAuth.auth.currentUser;
-                if (user && !user.emailVerified) {
-    alert("Please verify your email before accessing the site.");
-    firebaseAuth.signOut(firebaseAuth.auth);
-    return;
-}
-                if (user && user.emailVerified) {
+                if (user) {
                     await firebaseAuth.deleteUser(user);
                     alert("Account deleted.");
                 }
