@@ -429,22 +429,25 @@
                     if (isSignIn) {
                         const userCredential = await firebaseAuth.signInWithEmailAndPassword(firebaseAuth.auth, email, password);
 
-                    if (!userCredential.user.emailVerified) {
-                        alert("Please verify your email before logging in.");
-                        await firebaseAuth.signOut(firebaseAuth.auth);
-                        return;
-                    }
+                        if (!userCredential.user.emailVerified) {
+                            alert("Please verify your email before logging in.");
+                            await firebaseAuth.signOut(firebaseAuth.auth);
+                            return;
+                    
+                        }
                         
                         updateUIForAuth(userCredential.user);
                         
                     } else {
-                        const userCredential = await firebaseAuth.createUserWithEmailAndPassword(firebaseAuth.auth, email, password);
+                        const userCredential = await firebaseAuth.createUserWithEmailAndPassword(auth, email, password);
 
-                        await firebaseAuth.sendEmailVerification(userCredential.user);
+                        await sendEmailVerification(userCredential.user);
 
                         alert("Verification email sent! Please check your inbox before logging in.");
-                        await firebaseAuth.signOut(firebaseAuth.auth);
-                    updateUIForAuth(firebaseAuth.auth.currentUser);
+
+                        await signOut(auth);
+
+                        updateUIForAuth(auth.currentUser);
                         
                  }
                     
