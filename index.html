@@ -429,11 +429,14 @@
                     if (isSignIn) {
                         const userCredential = await firebaseAuth.signInWithEmailAndPassword(firebaseAuth.auth, email, password);
 
-                        if (!userCredential.user.emailVerified) {
+                    if (!userCredential.user.emailVerified) {
                         alert("Please verify your email before logging in.");
                         await firebaseAuth.signOut(firebaseAuth.auth);
                         return;
                     }
+                        
+                        updateUIForAuth(userCredential.user);
+                        
                     } else {
                         const userCredential = await firebaseAuth.createUserWithEmailAndPassword(firebaseAuth.auth, email, password);
 
@@ -450,6 +453,8 @@
 
         if (toggleLink) {
             toggleLink.addEventListener('click', () => {
+                e.preventDefault();
+                
                 isSignIn = !isSignIn;
                 formTitle.textContent = isSignIn ? 'Sign In' : 'Sign Up';
                 authBtn.textContent = isSignIn ? 'Sign In' : 'Sign Up';
