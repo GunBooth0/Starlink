@@ -445,8 +445,11 @@
                         alert("Verification email sent! Please check your inbox before logging in.");
                         await firebaseAuth.signOut(firebaseAuth.auth);
                     updateUIForAuth(firebaseAuth.auth.currentUser);
-                } catch (error) {
-                    alert(error.message);
+                        
+                 }
+                    
+            } catch (error) {
+                alert(error.message);
                 }
             });
         }
