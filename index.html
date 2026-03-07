@@ -381,66 +381,9 @@
         statusEl.textContent = '';
         currentTabEl.textContent = 'Sign In Required';
         currentIconEl.className = 'text-3xl fa-solid fa-lock';
-    }
+    
 }
             
-                statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
-                if (userInfo) {
-                    userInfo.classList.remove('hidden');
-                    document.getElementById('user-email').textContent = user.email;
-                }
-                if (authForm) authForm.classList.add('hidden');
-                if (messageEl) messageEl.textContent = '';
-                if (accountTitle) accountTitle.textContent = 'Account';
-                navLinks.innerHTML = `
-                    <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-0">
-                        <i class="fa-solid fa-house w-5"></i> <span>Home</span>
-                    </div>
-                    <div onclick="switchTab(1)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-1">
-                        <i class="fa-solid fa-gamepad w-5"></i> <span>Games</span>
-                    </div>
-                    <div onclick="switchTab(2)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-2">
-                        <i class="fa-solid fa-brain w-5"></i> <span>AI Tools</span>
-                    </div>
-                    <div onclick="switchTab(3)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-3">
-                        <i class="fa-solid fa-tv w-5"></i> <span>TV & Streaming</span>
-                    </div>
-                    <div onclick="switchTab(4)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-4">
-                        <i class="fa-solid fa-shield-halved w-5"></i> <span>Proxies</span>
-                    </div>
-                    <div onclick="switchTab(5)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-5">
-                        <i class="fa-solid fa-music w-5"></i> <span>Music</span>
-                    </div>
-                    <div onclick="switchTab(6)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-6">
-                        <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
-                    </div>
-                    <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2 active-tab" id="tab-7">
-                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-                    </div>
-                    <div onclick="switchTab(8)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-8">
-                        <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
-                    </div>
-                    <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-9">
-                        <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
-                        
-                        <div onclick="showAdminPanel()" 
-                         class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2 hidden" 
-                         id="admin-tab">
-                        <i class="fa-solid fa-crown w-5"></i>
-                        <span>Admin Panel</span>
-                    </div>
-            
-                statusEl.textContent = '';
-                currentTabEl.textContent = 'Sign In Required';
-                currentIconEl.className = 'text-3xl fa-solid fa-lock';
-            
-                if (userInfo) userInfo.classList.add('hidden');
-                if (authForm) authForm.classList.remove('hidden');
-                if (accountTitle) accountTitle.textContent = 'Sign In Required';
-            
-                switchTab(7);
-            }
-
         firebaseAuth.onAuthStateChanged(firebaseAuth.auth, updateUIForAuth);
 
         const authBtn = document.getElementById('auth-btn');
