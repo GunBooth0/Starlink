@@ -388,7 +388,6 @@
 
  function updateUIForAuth(user) {
     window.currentUser = user;
-
     const statusEl = document.getElementById('user-status');
     const userInfo = document.getElementById('user-info');
     const authForm = document.getElementById('auth-form');
@@ -571,6 +570,7 @@
         const contentIds = [
             'content-home', 'content-games', 'content-ai', 'content-tv', 'content-proxies',
             'content-music', 'content-settings', 'content-account', 'content-credits'
+        const navLinks = document.getElementById("nav-links");
         ];
 
         function switchTab(index) {
@@ -752,6 +752,9 @@
                 saveNewTabPreference(e.target.checked);
             });
         }
+        function showAdminPanel() {
+    alert("Admin Panel Clicked");
+}
         window.onload = initialize;
 </script>
 </body>
