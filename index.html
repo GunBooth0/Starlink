@@ -529,6 +529,28 @@
                 messageEl.className = "error";
             }
         };
+        function showAdminPanel() {
+    const nav = document.getElementById("nav-links");
+
+    if (!nav) return;
+
+    if (document.getElementById("admin-tab")) return;
+
+    const adminTab = document.createElement("div");
+    adminTab.id = "admin-tab";
+    adminTab.textContent = "👑 Admin Panel";
+    adminTab.style.padding = "12px";
+    adminTab.style.cursor = "pointer";
+    adminTab.style.marginTop = "10px";
+    adminTab.style.background = "rgba(255,255,255,0.1)";
+    adminTab.style.borderRadius = "12px";
+
+    adminTab.onclick = () => {
+        alert("Welcome Admin 😎");
+    };
+
+    nav.appendChild(adminTab);
+}
     </script>
 
     <script>
