@@ -217,7 +217,7 @@
         <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
     </div>
 
-    <div onclick="showAdminPanel()" 
+    <div onclick="switchtab(9)" 
          class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2 hidden" 
          id="admin-tab">
         <i class="fa-solid fa-crown w-5"></i>
@@ -352,6 +352,23 @@
             </div>
         </div>
     </div>
+            <!-- ADMIN -->
+            <div id="content-admin" class="tab-content hidden">
+                <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
+                    <h2 class="text-3xl font-bold mb-6">Admin Panel</h2>
+
+                        <div class="space-y-6">
+                <div class="bg-black/40 p-6 rounded-2xl border border-white/10">
+                <h3 class="text-xl font-semibold mb-3">Admin Controls</h3>
+
+                <button onclick="alert('User management coming soon')"
+                    class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-xl">
+                    Manage Users
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Firebase SDK -->
     <script type="module">
@@ -572,7 +589,8 @@
         'content-music',
         'content-settings',
         'content-account',
-        'content-credits'
+        'content-credits',
+        'content-admin'
     ];
 
     const navLinks = document.getElementById("nav-links");
