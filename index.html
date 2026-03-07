@@ -337,30 +337,50 @@
 
         window.currentUser = null;
 
-        function updateUIForAuth(user) {
-            window.currentUser = user;
-            const statusEl = document.getElementById('user-status');
-            const navLinks = document.getElementById('nav-links');
-            const userInfo = document.getElementById('user-info');
-            const authForm = document.getElementById('auth-form');
-            const messageEl = document.getElementById('auth-message');
-            const accountTitle = document.getElementById('account-title');
-            const currentTabEl = document.getElementById('current-tab');
-            const currentIconEl = document.getElementById('current-tab-icon');
-            const adminTab = document.getElementById("admin-tab");
-            const adminEmail = "gunnarbooth@gmail.com";
+ function updateUIForAuth(user) {
+    window.currentUser = user;
 
-if (user) {
+    const statusEl = document.getElementById('user-status');
+    const navLinks = document.getElementById('nav-links');
+    const userInfo = document.getElementById('user-info');
+    const authForm = document.getElementById('auth-form');
+    const messageEl = document.getElementById('auth-message');
+    const accountTitle = document.getElementById('account-title');
+    const currentTabEl = document.getElementById('current-tab');
+    const currentIconEl = document.getElementById('current-tab-icon');
+    const adminTab = document.getElementById("admin-tab");
+    const adminEmail = "gunnarbooth@gmail.com";
 
-    if (user.email === adminEmail && adminTab) {
-        adminTab.classList.remove("hidden");
-    } else if (adminTab) {
-        adminTab.classList.add("hidden");
-    }
+    if (user) {
 
-} else {
-    if (adminTab) {
-        adminTab.classList.add("hidden");
+        // ✅ ADMIN VISIBILITY
+        if (adminTab) {
+            if (user.email === adminEmail) {
+                adminTab.classList.remove("hidden");
+            } else {
+                adminTab.classList.add("hidden");
+            }
+        }
+
+        // ✅ NORMAL LOGGED IN UI
+        setTimeout(() => {
+            populateThemeGrid();
+            populateGrid('games', 'games-grid');
+            populateGrid('ai', 'ai-grid');
+            populateGrid('tv', 'tv-grid');
+            populateGrid('proxies', 'proxy-grid');
+            populateGrid('music', 'music-grid');
+            switchTab(0);
+        }, 50);
+
+    } else {
+
+        // ✅ LOGGED OUT UI
+        if (adminTab) adminTab.classList.add("hidden");
+
+        statusEl.textContent = '';
+        currentTabEl.textContent = 'Sign In Required';
+        currentIconEl.className = 'text-3xl fa-solid fa-lock';
     }
 }
             
@@ -409,18 +429,6 @@ if (user) {
                         <i class="fa-solid fa-crown w-5"></i>
                         <span>Admin Panel</span>
                     </div>
-                `;
-                setTimeout(() => {
-                    populateThemeGrid();
-                    populateGrid('games', 'games-grid');
-                    populateGrid('ai', 'ai-grid');
-                    populateGrid('tv', 'tv-grid');
-                    populateGrid('proxies', 'proxy-grid');
-                    populateGrid('music', 'music-grid');
-                    switchTab(0);
-                }, 50);
-            
-            } else {
             
                 statusEl.textContent = '';
                 currentTabEl.textContent = 'Sign In Required';
