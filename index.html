@@ -744,17 +744,18 @@
         function requestSite() {
             window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
         }
+        function showAdminPanel() {
+            alert("Admin Panel Clicked");
+}
         function initialize() {
             loadTheme();
             loadNewTabPreference();
             initStars();
             document.getElementById('newtab-toggle').addEventListener('change', (e) => {
-                saveNewTabPreference(e.target.checked);
+            saveNewTabPreference(e.target.checked);
             });
         }
-        function showAdminPanel() {
-    alert("Admin Panel Clicked");
-}
+        
         window.onload = initialize;
 </script>
 </body>
