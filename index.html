@@ -530,11 +530,9 @@
             }
         };
        function showAdminPanel() {
+    const navLinks = document.getElementById("nav-links");
 
-    if (!navLinks) {
-        console.log("navLinks not found");
-        return;
-    }
+    if (!navLinks) return;
 
     // Prevent duplicates
     if (document.getElementById("admin-tab")) return;
@@ -552,7 +550,7 @@
     };
 
     navLinks.appendChild(adminTab);
-    }
+}
     </script>
 
     <script>
