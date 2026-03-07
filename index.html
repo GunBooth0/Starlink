@@ -347,14 +347,22 @@
             const accountTitle = document.getElementById('account-title');
             const currentTabEl = document.getElementById('current-tab');
             const currentIconEl = document.getElementById('current-tab-icon');
+            const adminTab = document.getElementById("admin-tab");
+            const admin Email = "gunnarbooth@gmail.com";
 
-            if (user) {
-                const adminEmail = "gunnarbooth@gmail.com"; // put YOUR email here
+if (user) {
 
-                if (user.email === adminEmail) {
-                    showAdminPanel();
-                }
+    if (user.email === adminEmail && adminTab) {
+        adminTab.classList.remove("hidden");
+    } else if (adminTab) {
+        adminTab.classList.add("hidden");
+    }
 
+} else {
+    if (adminTab) {
+        adminTab.classList.add("hidden");
+    }
+}
             
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
                 if (userInfo) {
@@ -394,6 +402,12 @@
                     </div>
                     <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-9">
                         <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
+                        
+                        <div onclick="showAdminPanel()" 
+                         class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2 hidden" 
+                         id="admin-tab">
+                        <i class="fa-solid fa-crown w-5"></i>
+                        <span>Admin Panel</span>
                     </div>
                 `;
                 setTimeout(() => {
