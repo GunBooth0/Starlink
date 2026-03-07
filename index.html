@@ -529,28 +529,30 @@
                 messageEl.className = "error";
             }
         };
-        function showAdminPanel() {
-    const nav = document.getElementById("nav-links");
+       function showAdminPanel() {
 
-    if (!nav) return;
+    if (!navLinks) {
+        console.log("navLinks not found");
+        return;
+    }
 
+    // Prevent duplicates
     if (document.getElementById("admin-tab")) return;
 
     const adminTab = document.createElement("div");
     adminTab.id = "admin-tab";
-    adminTab.textContent = "👑 Admin Panel";
-    adminTab.style.padding = "12px";
-    adminTab.style.cursor = "pointer";
-    adminTab.style.marginTop = "10px";
-    adminTab.style.background = "rgba(255,255,255,0.1)";
-    adminTab.style.borderRadius = "12px";
+    adminTab.className = "nav-link flex items-center gap-x-3 px-6 py-4 rounded";
+    adminTab.innerHTML = `
+        <i class="fa-solid fa-crown w-5"></i>
+        <span>Admin Panel</span>
+    `;
 
     adminTab.onclick = () => {
         alert("Welcome Admin 😎");
     };
 
-    nav.appendChild(adminTab);
-}
+    navLinks.appendChild(adminTab);
+    }
     </script>
 
     <script>
