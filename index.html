@@ -418,22 +418,25 @@ if (user) {
                     populateGrid('proxies', 'proxy-grid');
                     populateGrid('music', 'music-grid');
                     switchTab(0);
-                }, 50);    
-                } else {
+                }, 50);
+            
+            } else {
+            
                 statusEl.textContent = '';
                 currentTabEl.textContent = 'Sign In Required';
                 currentIconEl.className = 'text-3xl fa-solid fa-lock';
+            
                 if (userInfo) userInfo.classList.add('hidden');
                 if (authForm) authForm.classList.remove('hidden');
                 if (accountTitle) accountTitle.textContent = 'Sign In Required';
-                navLinks.innerHTML = `
+            
+                navLinks.innerHTML =`
                     <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-7">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
                     </div>
                 `;
                 switchTab(7);
             }
-        }
 
         firebaseAuth.onAuthStateChanged(firebaseAuth.auth, updateUIForAuth);
 
