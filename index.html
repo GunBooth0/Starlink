@@ -390,10 +390,8 @@
     window.currentUser = user;
 
     const statusEl = document.getElementById('user-status');
-    const navLinks = document.getElementById('nav-links');
     const userInfo = document.getElementById('user-info');
     const authForm = document.getElementById('auth-form');
-    const messageEl = document.getElementById('auth-message');
     const accountTitle = document.getElementById('account-title');
     const currentTabEl = document.getElementById('current-tab');
     const currentIconEl = document.getElementById('current-tab-icon');
@@ -402,7 +400,16 @@
 
     if (user) {
 
-        // ✅ ADMIN VISIBILITY
+        // SHOW USER INFO
+        userInfo.classList.remove("hidden");
+        authForm.classList.add("hidden");
+
+        document.getElementById("user-email").textContent = user.email;
+        statusEl.textContent = user.email;
+
+        accountTitle.textContent = "Your Account";
+
+        // ADMIN VISIBILITY
         if (adminTab) {
             if (user.email === adminEmail) {
                 adminTab.classList.remove("hidden");
@@ -411,7 +418,7 @@
             }
         }
 
-        // ✅ NORMAL LOGGED IN UI
+        // Load content
         setTimeout(() => {
             populateThemeGrid();
             populateGrid('games', 'games-grid');
@@ -424,12 +431,16 @@
 
     } else {
 
-        // ✅ LOGGED OUT UI
+        // LOGGED OUT STATE
+        userInfo.classList.add("hidden");
+        authForm.classList.remove("hidden");
+
         if (adminTab) adminTab.classList.add("hidden");
 
         statusEl.textContent = '';
-        currentTabEl.textContent = 'Sign In Required';
-        currentIconEl.className = 'text-3xl fa-solid fa-lock';
+        accountTitle.textContent = "Sign In Required";
+        currentTabEl.textContent = "Sign In Required";
+        currentIconEl.className = "text-3xl fa-solid fa-lock";
     
     }
  }
@@ -542,25 +553,10 @@
                 messageEl.className = "error";
             }
         };
-       function showAdminPanel() {
-    const navLinks = document.getElementById("nav-links");
-
-    if (!navLinks) return;
-
-    // Prevent duplicates
-    if (document.getElementById("admin-tab")) return;
-
-    const adminTab = document.createElement("div");
-    adminTab.id = "admin-tab";
-    adminTab.className = "nav-link flex items-center gap-x-3 px-6 py-4 rounded";
-    adminTab.innerHTML = `
-        <i class="fa-solid fa-crown w-5"></i>
-        <span>Admin Panel</span>
-    `;
-
-    adminTab.onclick = () => {
-        alert("Welcome Admin 😎");
-    };
+       
+        function showAdminPanel() {
+    alert("Welcome Admin 😎");
+}
 
     navLinks.appendChild(adminTab);
 }
