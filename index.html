@@ -351,9 +351,11 @@
             if (user) {
                 const adminEmail = "gunnarbooth@gmail.com"; // put YOUR email here
 
-if (user.email === adminEmail) {
-    showAdminPanel();
-}
+                if (user.email === adminEmail) {
+                    showAdminPanel();
+                }
+
+            }
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
                 if (userInfo) {
                     userInfo.classList.remove('hidden');
