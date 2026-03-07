@@ -553,11 +553,7 @@
             }
         };
        
-        function showAdminPanel() {
-    alert("Welcome Admin 😎");
-}
 
-    navLinks.appendChild(adminTab);
 
     </script>
 
@@ -568,10 +564,18 @@
         ];
         const tabTitles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings", "Account", "Credits", "Request a Site"];
         const contentIds = [
-            'content-home', 'content-games', 'content-ai', 'content-tv', 'content-proxies',
-            'content-music', 'content-settings', 'content-account', 'content-credits'
-        const navLinks = document.getElementById("nav-links");
-        ];
+        'content-home',
+        'content-games',
+        'content-ai',
+        'content-tv',
+        'content-proxies',
+        'content-music',
+        'content-settings',
+        'content-account',
+        'content-credits'
+    ];
+
+    const navLinks = document.getElementById("nav-links");
 
         function switchTab(index) {
             if (!window.currentUser && index !== 7) {
