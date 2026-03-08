@@ -292,7 +292,7 @@
 
         window.currentUser = null;
 
-        // Global announcement functions
+        // Global announcement functions (moved here so switchTab can see them)
         window.loadAnnouncement = async function() {
             try {
                 const annDoc = await getDoc(doc(db, "announcements", "current"));
@@ -436,7 +436,7 @@
                     populateGrid('music', 'music-grid');
                     switchTab(0);
                     if (isAdmin(user)) {
-                        window.loadAnnouncement();
+                        if (window.loadAnnouncement) window.loadAnnouncement();
                     }
                 }, 500);
 
@@ -584,7 +584,7 @@
             const content = document.getElementById(contentIds[index]);
             if (content) {
                 content.classList.remove('hidden');
-                // Refresh announcement banner on EVERY tab switch
+                // Refresh announcement banner on EVERY tab switch (safe check)
                 if (window.loadAnnouncement) window.loadAnnouncement();
             }
 
