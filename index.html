@@ -414,12 +414,10 @@
     const adminEmail = "gunnarbooth@gmail.com";
 
     if (user) {
-        // SHOW ALL TABS
         document.querySelectorAll('.nav-link').forEach(tab => {
             tab.style.display = "flex";
         });
 
-        // Show user info
         userInfo.classList.remove("hidden");
         authForm.classList.add("hidden");
 
@@ -427,7 +425,6 @@
         statusEl.textContent = user.email;
         accountTitle.textContent = "Your Account";
 
-        // Admin visibility
         if (adminTab) {
             if (user.email === adminEmail) {
                 adminTab.classList.remove("hidden");
@@ -436,8 +433,29 @@
             }
         }
 
-        // Go to Home after login
         switchTab(0);
+
+    } else {
+        document.querySelectorAll('.nav-link').forEach((tab, index) => {
+            if (index === 7) {
+                tab.style.display = "flex";
+            } else {
+                tab.style.display = "none";
+            }
+        });
+
+        if (adminTab) {
+            adminTab.classList.add("hidden");
+        }
+
+        userInfo.classList.add("hidden");
+        authForm.classList.remove("hidden");
+        statusEl.textContent = "Not signed in";
+        accountTitle.textContent = "Sign In Required";
+
+        switchTab(7);
+    }
+}
 
     } else {
         // HIDE ALL TABS EXCEPT ACCOUNT
@@ -464,14 +482,6 @@
      
 }
 
-    if (role === "admin") {
-        adminTab.classList.remove("hidden");
-    } else {
-        adminTab.classList.add("hidden");
-    }
-
-});
-
         // Load content
         setTimeout(() => {
             populateThemeGrid();
@@ -484,22 +494,6 @@
         }, 50);
 
     } else {
-
-    // LOGGED OUT STATE
-    userInfo.classList.add("hidden");
-    authForm.classList.remove("hidden");
-
-    if (adminTab) adminTab.classList.add("hidden");
-
-    statusEl.textContent = '';
-    accountTitle.textContent = "Sign In Required";
-    currentTabEl.textContent = "Sign In Required";
-    currentIconEl.className = "text-3xl fa-solid fa-lock";
-
-    // 🔒 Hide all sidebar tabs except Account
-    document.querySelectorAll('.nav-link').forEach(tab => {
-        tab.style.display = "none";
-    });
 
     const accountTab = document.getElementById("tab-7");
     if (accountTab) accountTab.style.display = "flex";
