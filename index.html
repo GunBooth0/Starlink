@@ -353,27 +353,59 @@
             </div>
         </div>
             <!-- ADMIN -->
-            <div id="content-admin" class="tab-content hidden">
-                <h3 class="text-xl font-semibold mb-6">Add New Site</h3>
+<div id="content-admin" class="tab-content hidden">
+    <div class="max-w-4xl mx-auto py-12">
+        
+        <div class="glass rounded-3xl p-10 border border-white/10">
+            
+            <div class="flex items-center justify-between mb-10">
+                <div>
+                    <h2 class="text-3xl font-bold">Admin Panel</h2>
+                    <p class="text-white/60 mt-1">Add new sites to Starlink instantly</p>
+                </div>
+                <div class="text-4xl">👑</div>
+            </div>
 
-<div class="space-y-4">
-    <input id="admin-site-name" type="text" placeholder="Site Name">
-    <input id="admin-site-url" type="text" placeholder="Site URL (https://example.com)">
-    
-    <select id="admin-site-category" class="w-full p-4 rounded-xl bg-black border border-white/20 text-white">
-        <option value="games">Games</option>
-        <option value="ai">AI Tools</option>
-        <option value="tv">TV & Streaming</option>
-        <option value="proxies">Proxies</option>
-        <option value="music">Music</option>
-    </select>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <div>
+                    <label class="block text-sm text-white/60 mb-2">Site Name</label>
+                    <input id="admin-site-name" type="text" placeholder="Ex: Cool Math Games"
+                        class="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)] transition">
+                </div>
 
-    <button onclick="addAdminSite()" 
-        class="bg-[var(--accent)] text-black font-semibold py-3 rounded-xl">
-        Add Site
-    </button>
+                <div>
+                    <label class="block text-sm text-white/60 mb-2">Site URL</label>
+                    <input id="admin-site-url" type="text" placeholder="https://example.com"
+                        class="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)] transition">
+                </div>
 
-    <p id="admin-message" class="text-sm mt-2"></p>
+                <div class="md:col-span-2">
+                    <label class="block text-sm text-white/60 mb-2">Category</label>
+                    <select id="admin-site-category"
+                        class="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)] transition">
+                        <option value="games">Games</option>
+                        <option value="ai">AI Tools</option>
+                        <option value="tv">TV & Streaming</option>
+                        <option value="proxies">Proxies</option>
+                        <option value="music">Music</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="mt-10">
+                <button onclick="addAdminSite()"
+                    class="w-full bg-[var(--accent)] text-black font-semibold py-4 rounded-2xl text-lg transition hover:scale-[1.02] hover:shadow-lg">
+                    Add Site
+                </button>
+            </div>
+
+            <p id="admin-message" class="text-center mt-6 text-sm"></p>
+
+        </div>
+
+    </div>
 </div>
     <!-- Firebase SDK -->
     <script type="module">
