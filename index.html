@@ -461,8 +461,36 @@
     }
  }
             
-        firebaseAuth.onAuthStateChanged(firebaseAuth.auth, updateUIForAuth);
+        firebase.auth().onAuthStateChanged(async (user) => {
+    const adminTab = document.getElementById("admin-tab");
 
+    if (user) {
+        window.currentUser = user;
+
+        const snapshot = await firebase.firestore()
+            .collection("users")
+            .where("email", "==", user.email)
+            .get();
+
+        if (!snapshot.empty) {
+            const userData = snapshot.docs[0].data();
+
+            if (userData.role === "admin") {
+                adminTab.classList.remove("hidden");
+            } else {
+                adminTab.classList.add("hidden");
+            }
+        } else {
+            adminTab.classList.add("hidden");
+        }
+
+        switchTab(0);
+    } else {
+        window.currentUser = null;
+        adminTab.classList.add("hidden");
+        switchTab(7);
+    }
+});
         const authBtn = document.getElementById('auth-btn');
         const toggleLink = document.getElementById('toggle-link');
         const formTitle = document.getElementById('form-title');
