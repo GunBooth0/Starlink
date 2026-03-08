@@ -767,13 +767,24 @@
             alert("Admin Panel Clicked");
 }
         function initialize() {
-            loadTheme();
-            loadNewTabPreference();
-            initStars();
-            document.getElementById('newtab-toggle').addEventListener('change', (e) => {
-            saveNewTabPreference(e.target.checked);
-            });
-        }
+    loadTheme();
+    loadNewTabPreference();
+    initStars();
+
+    // Populate site grids
+    populateGrid('games', 'games-grid');
+    populateGrid('ai', 'ai-grid');
+    populateGrid('tv', 'tv-grid');
+    populateGrid('proxies', 'proxy-grid');
+    populateGrid('music', 'music-grid');
+
+    // Populate themes
+    populateThemeGrid();
+
+    document.getElementById('newtab-toggle').addEventListener('change', (e) => {
+        saveNewTabPreference(e.target.checked);
+    });
+}
         
         window.onload = initialize;
 </script>
