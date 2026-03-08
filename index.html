@@ -13,12 +13,12 @@
         body { background: #000000; color: #ffffff; font-family: 'Inter', system-ui, sans-serif; margin: 0; height: 100vh; overflow: hidden; }
         .logo-font { font-family: 'Space Grotesk', sans-serif; }
         .star-svg { animation: pulse 4s infinite ease-in-out; filter: drop-shadow(0 0 20px var(--accent)); }
-        @keyframes pulse { 0%,100% { filter: drop-shadow(0 0 20px var(--accent)); } 50% { filter: drop-shadow(0 0 45px var(--accent)); } }
-        .nav-link { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); color: #ffffff; }
+        @keyframes pulse { 0%, 100% { filter: drop-shadow(0 0 20px var(--accent)); } 50% { filter: drop-shadow(0 0 45px var(--accent)); } }
+        .nav-link { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); color: #ffffff; }
         .nav-link:hover, .nav-link.active-tab { color: var(--accent)!important; background: rgba(255,255,255,0.08); }
         .nav-link i { color: inherit; }
         #current-tab-icon, #current-tab { color: var(--accent); transition: color 0.4s ease; }
-        .card { transition: all 0.4s cubic-bezier(0.4,0,0.2,1); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); }
+        .card { transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); }
         .card:hover { transform: translateY(-8px) scale(1.03); border-color: var(--accent); background: rgba(255,255,255,0.06); }
         .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); }
         .tail-container { max-width: 1280px; margin-left: auto; margin-right: auto; }
@@ -186,16 +186,16 @@
                 </div>
             </div>
 
-            <!-- ADMIN PANEL – Announcement Editor (this is the new/visible part) -->
+            <!-- ADMIN PANEL – NOW WITH CONTENT -->
             <div id="content-admin" class="tab-content hidden">
                 <div class="max-w-5xl mx-auto py-12">
                     <h2 class="text-4xl font-bold logo-font tracking-tight mb-10">Admin Panel</h2>
 
                     <div class="glass rounded-3xl p-8">
                         <h3 class="text-2xl font-semibold mb-6">Site Announcement</h3>
-                        <p class="text-white/70 mb-6">This message will appear as a yellow banner at the top of the site for all logged-in users.</p>
+                        <p class="text-white/70 mb-6">This message appears as a yellow banner at the top of the site for all logged-in users.</p>
 
-                        <textarea id="announce-text" rows="4" class="w-full mb-4" placeholder="Type your announcement here... (e.g. 'Site maintenance tonight at 8 PM')"></textarea>
+                        <textarea id="announce-text" rows="4" class="w-full mb-4" placeholder="Type announcement here... (e.g. 'Site maintenance tonight at 8 PM')"></textarea>
 
                         <div id="announce-preview" class="announcement-preview hidden mb-6 p-4">
                             <span id="preview-text"></span>
@@ -206,7 +206,7 @@
                             <button onclick="clearAnnouncement()" class="bg-red-600 hover:bg-red-700 px-8 py-4 rounded-xl">Clear Announcement</button>
                         </div>
 
-                        <p class="mt-6 text-sm text-white/60">Changes appear instantly for all users (refresh may be needed).</p>
+                        <p class="mt-6 text-sm text-white/60">Changes appear instantly site-wide (refresh may be needed).</p>
                     </div>
                 </div>
             </div>
@@ -270,16 +270,16 @@
         window.saveAnnouncement = async () => {
             const text = document.getElementById('announce-text').value.trim();
             if (!text) {
-                alert("Please enter a message first.");
+                alert("Enter a message first.");
                 return;
             }
             await setDoc(doc(db, "announcements", "current"), { text });
-            alert("Announcement published!");
+            alert("Announcement saved and published!");
             loadAnnouncement();
         };
 
         window.clearAnnouncement = async () => {
-            if (!confirm("Clear the announcement banner for everyone?")) return;
+            if (!confirm("Remove the announcement banner for everyone?")) return;
             await deleteDoc(doc(db, "announcements", "current"));
             alert("Announcement cleared.");
             loadAnnouncement();
