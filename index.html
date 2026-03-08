@@ -348,7 +348,7 @@
                 </div>
             </div>
 
-            <!-- ADMIN PANEL (with Firestore add/delete) -->
+            <!-- ADMIN PANEL -->
             <div id="content-admin" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
                     <h2 class="text-3xl font-bold mb-8">Admin Panel</h2>
@@ -365,7 +365,7 @@
                         </div>
 
                         <div id="sites-list" class="space-y-4">
-                            <!-- Sites from Firestore with delete buttons -->
+                            <!-- Sites loaded from Firestore -->
                         </div>
                     </div>
                 </div>
@@ -397,7 +397,6 @@
         window.db = db;
         window.currentUser = null;
 
-        // Your existing auth logic (sign in/up with verification, etc.)
         function updateUIForAuth(user) {
             window.currentUser = user;
             const statusEl = document.getElementById('user-status');
@@ -409,9 +408,7 @@
             const adminEmail = "gunnarbooth@gmail.com";
 
             if (user) {
-                document.querySelectorAll('#nav-links .nav-link').forEach(tab => {
-                    tab.style.display = "flex";
-                });
+                document.querySelectorAll('#nav-links .nav-link').forEach(tab => tab.style.display = "flex");
                 if (userInfo) {
                     userInfo.classList.remove('hidden');
                     document.getElementById('user-email').textContent = user.email;
@@ -420,17 +417,11 @@
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
                 accountTitle.textContent = 'Account';
                 if (adminTab) {
-                    if (user.email === adminEmail) {
-                        adminTab.classList.remove('hidden');
-                    } else {
-                        adminTab.classList.add('hidden');
-                    }
+                    adminTab.classList.toggle('hidden', user.email !== adminEmail);
                 }
                 switchTab(0);
             } else {
-                document.querySelectorAll('#nav-links .nav-link').forEach(tab => {
-                    tab.style.display = "none";
-                });
+                document.querySelectorAll('#nav-links .nav-link').forEach(tab => tab.style.display = "none");
                 const accountTab = document.getElementById('tab-7');
                 if (accountTab) accountTab.style.display = "flex";
                 if (adminTab) adminTab.classList.add('hidden');
@@ -442,7 +433,7 @@
             }
         }
 
-        firebaseAuth.onAuthStateChanged(firebaseAuth, updateUIForAuth);
+        onAuthStateChanged(auth, updateUIForAuth);
 
         const authBtn = document.getElementById('auth-btn');
         const toggleLink = document.getElementById('toggle-link');
@@ -455,18 +446,18 @@
                 const password = document.getElementById('password').value;
                 try {
                     if (isSignIn) {
-                        const userCredential = await signInWithEmailAndPassword(firebaseAuth, email, password);
+                        const userCredential = await signInWithEmailAndPassword(auth, email, password);
                         if (!userCredential.user.emailVerified) {
-                            alert("Please verify your email first. Check your inbox (including spam) for the verification link.");
-                            await signOut(firebaseAuth);
+                            alert("Please verify your email first. Check inbox/spam for the link.");
+                            await signOut(auth);
                             return;
                         }
                         updateUIForAuth(userCredential.user);
                     } else {
-                        const userCredential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
+                        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                         await sendEmailVerification(userCredential.user);
-                        alert("Verification email sent! Please check your inbox (including spam) and click the link to verify before logging in.");
-                        await signOut(firebaseAuth);
+                        alert("Verification email sent! Check inbox/spam and click the link before logging in.");
+                        await signOut(auth);
                         updateUIForAuth(null);
                     }
                 } catch (error) {
@@ -486,9 +477,9 @@
         }
 
         window.deleteAccount = async () => {
-            if (!confirm("Are you sure you want to permanently delete your account? This cannot be undone.")) return;
+            if (!confirm("Delete account permanently?")) return;
             try {
-                const user = firebaseAuth.currentUser;
+                const user = auth.currentUser;
                 if (user) {
                     await deleteUser(user);
                     alert("Account deleted.");
@@ -499,12 +490,12 @@
         };
 
         window.changePassword = async () => {
-            const user = firebaseAuth.currentUser;
+            const user = auth.currentUser;
             if (!user || !user.email) return alert("You must be logged in.");
             const messageEl = document.getElementById('auth-message');
             try {
-                await sendPasswordResetEmail(firebaseAuth, user.email);
-                messageEl.textContent = "Password reset email sent! Check your inbox (including spam).";
+                await sendPasswordResetEmail(auth, user.email);
+                messageEl.textContent = "Password reset email sent! Check inbox/spam.";
                 messageEl.className = "success";
             } catch (error) {
                 messageEl.textContent = "Error: " + error.message;
@@ -513,18 +504,18 @@
         };
 
         window.changeEmail = async () => {
-            const user = firebaseAuth.currentUser;
+            const user = auth.currentUser;
             if (!user) return alert("You must be logged in.");
-            const newEmail = prompt("Enter your new email address:", user.email);
+            const newEmail = prompt("New email:", user.email);
             if (!newEmail || newEmail === user.email) return alert("No change made.");
-            const password = prompt("Enter your current password to confirm:");
+            const password = prompt("Current password to confirm:");
             if (!password) return;
             const messageEl = document.getElementById('auth-message');
             try {
                 const credential = EmailAuthProvider.credential(user.email, password);
                 await reauthenticateWithCredential(user, credential);
                 await updateEmail(user, newEmail);
-                messageEl.textContent = "Email updated successfully! Please verify the new email (check inbox/spam).";
+                messageEl.textContent = "Email updated! Verify new email (check inbox/spam).";
                 messageEl.className = "success";
                 document.getElementById('user-email').textContent = newEmail;
             } catch (error) {
@@ -533,23 +524,25 @@
             }
         };
 
+        // ──────────────────────────────────────────────
         // Dynamic sites from Firestore
+        // ──────────────────────────────────────────────
         async function populateGrid(category, containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
-            container.innerHTML = '<p class="text-center text-white/50 py-10">Loading sites...</p>';
+            container.innerHTML = '<p class="text-center text-white/50 py-10">Loading...</p>';
 
             try {
                 const q = query(collection(db, "sites"), where("category", "==", category));
-                const querySnapshot = await getDocs(q);
+                const snapshot = await getDocs(q);
                 container.innerHTML = '';
 
-                if (querySnapshot.empty) {
-                    container.innerHTML = '<p class="text-center text-white/50 py-10">No sites in this category yet.</p>';
+                if (snapshot.empty) {
+                    container.innerHTML = '<p class="text-center text-white/50 py-10">No sites yet.</p>';
                     return;
                 }
 
-                querySnapshot.forEach((docSnap) => {
+                snapshot.forEach(docSnap => {
                     const site = docSnap.data();
                     const card = document.createElement('div');
                     card.className = `card rounded-3xl p-6 cursor-pointer group`;
@@ -566,7 +559,7 @@
                     container.appendChild(card);
                 });
             } catch (err) {
-                container.innerHTML = `<p class="text-center text-red-400 py-10">Error loading sites: ${err.message}</p>`;
+                container.innerHTML = `<p class="text-center text-red-400 py-10">Error: ${err.message}</p>`;
             }
         }
 
@@ -597,17 +590,16 @@
                     timestamp: new Date()
                 });
                 alert("Site added!");
-                document.getElementById('site-name').value = '';
-                document.getElementById('site-url').value = '';
-                document.getElementById('site-category').value = '';
-                document.getElementById('site-icon').value = '';
+                ['site-name', 'site-url', 'site-category', 'site-icon'].forEach(id => {
+                    document.getElementById(id).value = '';
+                });
                 loadAdminSites();
             } catch (err) {
                 alert("Error: " + err.message);
             }
         };
 
-        // Admin: Load sites with delete buttons
+        // Admin: Load sites list with delete
         async function loadAdminSites() {
             const list = document.getElementById('sites-list');
             if (!list) return;
@@ -618,7 +610,7 @@
                 list.innerHTML = '';
 
                 if (snapshot.empty) {
-                    list.innerHTML = '<p class="text-white/50">No sites yet.</p>';
+                    list.innerHTML = '<p class="text-white/50 py-4">No sites yet.</p>';
                     return;
                 }
 
@@ -626,9 +618,9 @@
                     const site = docSnap.data();
                     const id = docSnap.id;
                     const row = document.createElement('div');
-                    row.className = 'admin-row';
+                    row.className = 'flex justify-between items-center p-4 bg-black/40 rounded-xl border border-white/10';
                     row.innerHTML = `
-                        <div>
+                        <div class="flex-1">
                             <div class="font-semibold">${site.name} (${site.category})</div>
                             <div class="text-sm text-white/60 break-all">${site.url}</div>
                         </div>
@@ -639,12 +631,12 @@
                     list.appendChild(row);
                 });
             } catch (err) {
-                list.innerHTML = `<p class="error">Error: ${err.message}</p>`;
+                list.innerHTML = `<p class="text-red-400">Error: ${err.message}</p>`;
             }
         }
 
         window.deleteSite = async (id) => {
-            if (!confirm("Delete this site permanently?")) return;
+            if (!confirm("Delete site permanently?")) return;
             try {
                 await deleteDoc(doc(db, "sites", id));
                 alert("Deleted!");
@@ -654,7 +646,7 @@
             }
         };
 
-        // Switch tab with admin load
+        // Switch tab handler with admin load
         function switchTab(index) {
             if (!window.currentUser && index !== 7) {
                 switchTab(7);
@@ -677,7 +669,7 @@
             }
         }
 
-        // Your existing tabIcons, tabTitles, contentIds, themes, etc.
+        // Your original constants and functions
         const tabIcons = [
             'fa-house', 'fa-gamepad', 'fa-brain', 'fa-tv', 'fa-shield-halved',
             'fa-music', 'fa-gear', 'fa-user', 'fa-heart', 'fa-crown'
@@ -743,7 +735,7 @@
             setTheme('#ffffff');
             document.getElementById('newtab-toggle').checked = true;
             saveNewTabPreference(true);
-            signOut(firebaseAuth).then(() => {
+            signOut(auth).then(() => {
                 const msg = document.getElementById('reset-message');
                 msg.textContent = "Reset complete! Signing out and refreshing...";
                 msg.classList.remove('hidden');
@@ -816,7 +808,7 @@
             });
             populateThemeGrid();
 
-            // Load dynamic sites
+            // Load all grids from Firestore
             populateGrid('games', 'games-grid');
             populateGrid('ai', 'ai-grid');
             populateGrid('tv', 'tv-grid');
