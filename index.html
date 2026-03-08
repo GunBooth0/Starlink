@@ -484,7 +484,7 @@
                     populateGrid('proxies', 'proxy-grid');
                     populateGrid('music', 'music-grid');
                     switchTab(0); // always start on Home
-                }, 50);
+                }, 100);  // slightly longer delay to ensure nav is rendered
 
             } else {
                 statusEl.textContent = '';
@@ -616,7 +616,7 @@
         const tabIcons = [
             'fa-house', 'fa-gamepad', 'fa-brain', 'fa-tv', 'fa-shield-halved',
             'fa-music', 'fa-gear', 'fa-user', 'fa-heart', 'fa-paper-plane',
-            'fa-screwdriver-wrench'   // index 10 = Admin Panel
+            'fa-screwdriver-wrench'   // 10 = Admin Panel
         ];
         const tabTitles = [
             "Home", "Games", "AI Tools", "TV & Streaming", "Proxies",
@@ -630,28 +630,36 @@
         ];
 
         function switchTab(index) {
+            // Force fallback for unauthorized access
             if (!window.currentUser && index !== 7) {
                 index = 7;
             }
 
-            // Remove active class from all nav links
+            // Clear active class from all nav links
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
 
-            // Add active to the selected one
-            const selectedLink = document.getElementById(`tab-${index}`);
-            if (selectedLink) selectedLink.classList.add('active-tab');
+            // Set active on the selected link
+            const activeTab = document.getElementById(`tab-${index}`);
+            if (activeTab) activeTab.classList.add('active-tab');
 
-            // Hide all tab contents, show the selected one
+            // Hide all contents, show selected
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            const contentEl = document.getElementById(contentIds[index]);
-            if (contentEl) contentEl.classList.remove('hidden');
+            const content = document.getElementById(contentIds[index]);
+            if (content) content.classList.remove('hidden');
 
-            // Update the top bar title and icon
+            // Force update top bar icon and title
             const titleEl = document.getElementById('current-tab');
-            const iconEl  = document.getElementById('current-tab-icon');
+            const iconEl = document.getElementById('current-tab-icon');
 
             if (titleEl) titleEl.textContent = tabTitles[index] || "Home";
-            if (iconEl) iconEl.className = `text-3xl fa-solid ${tabIcons[index] || 'fa-house'}`;
+            if (iconEl) {
+                // Clear previous classes and set new one
+                iconEl.className = '';
+                iconEl.classList.add('text-3xl', 'fa-solid', tabIcons[index] || 'fa-house');
+            }
+
+            // Debug log (you can remove later)
+            console.log(`Switched to tab index ${index}: "${tabTitles[index] || 'Home'}" with icon ${tabIcons[index] || 'fa-house'}`);
         }
 
         const themes = [
