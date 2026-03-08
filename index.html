@@ -352,57 +352,25 @@
                 </div>
             </div>
         </div>
+    </div>
             <!-- ADMIN -->
-<div id="content-admin" class="tab-content hidden">
-    <div class="max-w-4xl mx-auto py-16">
+            <div id="content-admin" class="tab-content hidden">
+                <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
+                    <h2 class="text-3xl font-bold mb-6">Admin Panel</h2>
 
-        <h1 class="text-5xl font-bold mb-12 text-center">Admin Panel</h1>
+                        <div class="space-y-6">
+                <div class="bg-black/40 p-6 rounded-2xl border border-white/10">
+                <h3 class="text-xl font-semibold mb-3">Admin Controls</h3>
 
-        <div class="space-y-6">
-
-            <!-- Add Sites Card -->
-            <div onclick="openAdminSection('add-sites')" 
-                 class="glass p-8 rounded-3xl border border-white/10 hover:border-[var(--accent)] transition cursor-pointer">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h3 class="text-2xl font-semibold">Add Sites</h3>
-                        <p class="text-white/60 mt-1">Add new websites to Starlink</p>
-                    </div>
-                    <div class="text-3xl">➕</div>
-                </div>
+                <button onclick="alert('User management coming soon')"
+                    class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-xl">
+                    Manage Users
+                </button>
             </div>
-
-            <!-- Change Roles Card -->
-            <div onclick="openAdminSection('roles')" 
-                 class="glass p-8 rounded-3xl border border-white/10 hover:border-[var(--accent)] transition cursor-pointer">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h3 class="text-2xl font-semibold">Change Roles</h3>
-                        <p class="text-white/60 mt-1">Promote or demote users</p>
-                    </div>
-                    <div class="text-3xl">👥</div>
-                </div>
-            </div>
-
-            <!-- Future Feature Card -->
-            <div onclick="openAdminSection('logs')" 
-                 class="glass p-8 rounded-3xl border border-white/10 hover:border-[var(--accent)] transition cursor-pointer">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h3 class="text-2xl font-semibold">Admin Logs</h3>
-                        <p class="text-white/60 mt-1">View system activity</p>
-                    </div>
-                    <div class="text-3xl">📜</div>
-                </div>
-            </div>
-
         </div>
-
-        <!-- Dynamic Section Container -->
-        <div id="admin-dynamic-section" class="mt-12"></div>
-
     </div>
 </div>
+
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
@@ -448,9 +416,10 @@
 
     if (user) {
         // Show all tabs
-        document.querySelectorAll('.nav-link').forEach(tab => {
-    tab.style.display = "flex";
-});
+        document.querySelectorAll('#sidebar .nav-link').forEach(tab => {
+            tab.style.display = "flex";
+        });
+
         userInfo.classList.remove("hidden");
         authForm.classList.add("hidden");
 
@@ -600,58 +569,7 @@
         };
        
 
-function openAdminSection(section) {
-    const container = document.getElementById("admin-dynamic-section");
 
-    if (section === "add-sites") {
-        container.innerHTML = `
-            <div class="glass p-8 rounded-3xl border border-white/10 space-y-6">
-                <h2 class="text-2xl font-semibold">Add New Site</h2>
-
-                <input id="admin-site-name" type="text" placeholder="Site Name"
-                    class="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white">
-
-                <input id="admin-site-url" type="text" placeholder="https://example.com"
-                    class="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white">
-
-                <select id="admin-site-category"
-                    class="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white">
-                    <option value="games">Games</option>
-                    <option value="ai">AI Tools</option>
-                    <option value="tv">TV & Streaming</option>
-                    <option value="proxies">Proxies</option>
-                    <option value="music">Music</option>
-                </select>
-
-                <button onclick="addAdminSite()"
-                    class="bg-[var(--accent)] text-black font-semibold py-3 px-6 rounded-2xl">
-                    Add Site
-                </button>
-
-                <p id="admin-message" class="text-sm"></p>
-            </div>
-        `;
-    }
-    
-window.openAdminSection = openAdminSection;
-    if (section === "roles") {
-        container.innerHTML = `
-            <div class="glass p-8 rounded-3xl border border-white/10">
-                <h2 class="text-2xl font-semibold mb-4">Change User Roles</h2>
-                <p class="text-white/60">Role system coming next 👀</p>
-            </div>
-        `;
-    }
-
-    if (section === "logs") {
-        container.innerHTML = `
-            <div class="glass p-8 rounded-3xl border border-white/10">
-                <h2 class="text-2xl font-semibold mb-4">Admin Logs</h2>
-                <p class="text-white/60">Logging system coming soon.</p>
-            </div>
-        `;
-    }
-}
     </script>
 
     <script>
@@ -868,47 +786,7 @@ window.openAdminSection = openAdminSection;
         saveNewTabPreference(e.target.checked);
     });
 }
-        function addAdminSite() {
-    if (!window.currentUser) return;
-
-    const adminEmail = "gunnarbooth@gmail.com";
-    if (window.currentUser.email !== adminEmail) {
-        alert("Not authorized.");
-        return;
-    }
-
-    const name = document.getElementById("admin-site-name").value.trim();
-    const url = document.getElementById("admin-site-url").value.trim();
-    const category = document.getElementById("admin-site-category").value;
-    const message = document.getElementById("admin-message");
-
-    if (!name || !url) {
-        message.textContent = "Please fill in all fields.";
-        message.className = "text-red-400";
-        return;
-    }
-
-    sites[category].push({
-        name: name,
-        url: url,
-        desc: "",
-        icon: "⭐"
-    });
-
-    populateGrid(category,
-        category === "games" ? "games-grid" :
-        category === "ai" ? "ai-grid" :
-        category === "tv" ? "tv-grid" :
-        category === "proxies" ? "proxy-grid" :
-        "music-grid"
-    );
-
-    document.getElementById("admin-site-name").value = "";
-    document.getElementById("admin-site-url").value = "";
-
-    message.textContent = "Site added successfully!";
-    message.className = "text-green-400";
-}
+        
         window.onload = initialize;
 </script>
 </body>
