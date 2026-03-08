@@ -164,6 +164,7 @@
 </head>
 <body>
     <div id="star-bg"></div>
+
     <!-- SIDEBAR -->
     <div class="w-72 bg-black border-r border-white/10 flex flex-col fixed h-screen z-50">
         <div class="p-8 flex items-center gap-x-4 border-b border-white/10">
@@ -177,6 +178,7 @@
         </div>
         <div class="flex-1 px-6 py-8 overflow-y-auto" id="nav-links"></div>
     </div>
+
     <!-- MAIN CONTENT -->
     <div class="flex-1 ml-72 main-content">
         <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50 top-0">
@@ -223,6 +225,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- HOME -->
             <div id="content-home" class="tab-content hidden">
                 <div class="max-w-4xl mx-auto text-center pt-12">
@@ -237,26 +240,32 @@
                     <div class="mt-8 text-white/50 text-lg">By: Gunnar Booth</div>
                 </div>
             </div>
+
             <!-- GAMES -->
             <div id="content-games" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="games-grid"></div>
             </div>
+
             <!-- AI TOOLS -->
             <div id="content-ai" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="ai-grid"></div>
             </div>
+
             <!-- TV & STREAMING -->
             <div id="content-tv" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="tv-grid"></div>
             </div>
+
             <!-- PROXIES -->
             <div id="content-proxies" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="proxy-grid"></div>
             </div>
+
             <!-- MUSIC -->
             <div id="content-music" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div>
             </div>
+
             <!-- SETTINGS -->
             <div id="content-settings" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
@@ -285,6 +294,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- CREDITS -->
             <div id="content-credits" class="tab-content hidden">
                 <div class="max-w-3xl mx-auto text-center py-20">
@@ -301,6 +311,7 @@
                     </a>
                 </div>
             </div>
+
             <!-- ADMIN PANEL -->
             <div id="content-admin" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
@@ -333,9 +344,17 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import { 
+            getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+            signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, 
+            updateEmail, reauthenticateWithCredential, EmailAuthProvider, 
+            sendEmailVerification 
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { 
+            getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, 
+            deleteDoc, query, where, enableIndexedDbPersistence 
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDpn6rgntLkwxE6xRu9xG81mhlyFcTDMGg",
@@ -350,6 +369,19 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+
+        // Enable offline support (this fixes most "client is offline" errors)
+        enableIndexedDbPersistence(db)
+            .then(() => console.log("Firestore offline persistence enabled"))
+            .catch((err) => {
+                if (err.code === 'failed-precondition') {
+                    console.warn("Persistence failed: multiple tabs open");
+                } else if (err.code === 'unimplemented') {
+                    console.warn("Persistence not supported in this browser");
+                } else {
+                    console.error("Persistence setup error:", err);
+                }
+            });
 
         window.firebaseAuth = {
             createUserWithEmailAndPassword,
@@ -380,12 +412,31 @@
             const currentIconEl = document.getElementById('current-tab-icon');
 
             if (user) {
-                const userDocRef = doc(db, 'users', user.uid);
-                const userDoc = await getDoc(userDocRef);
-                if (userDoc.exists()) {
-                    const data = userDoc.data();
-                    window.isAdmin = data.role === 'admin';
+                let isAdmin = false;
+
+                try {
+                    const userDocRef = doc(db, 'users', user.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+
+                    if (userDocSnap.exists()) {
+                        const data = userDocSnap.data();
+                        isAdmin = data.role === 'admin';
+                    } else {
+                        // Create default user document if missing
+                        await setDoc(userDocRef, {
+                            email: user.email,
+                            role: 'user',
+                            createdAt: new Date()
+                        });
+                        console.log("Created default user document");
+                    }
+                } catch (err) {
+                    console.error("Failed to read/create user document:", err);
+                    // Fallback: allow login anyway, treat as regular user
+                    isAdmin = false;
                 }
+
+                window.isAdmin = isAdmin;
 
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
                 if (userInfo) {
@@ -395,6 +446,7 @@
                 if (authForm) authForm.classList.add('hidden');
                 if (messageEl) messageEl.textContent = '';
                 if (accountTitle) accountTitle.textContent = 'Account';
+
                 let navHTML = `
                     <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-0">
                         <i class="fa-solid fa-house w-5"></i> <span>Home</span>
@@ -427,14 +479,17 @@
                         <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
                     </div>
                 `;
-                if (window.isAdmin) {
+
+                if (isAdmin) {
                     navHTML += `
                         <div onclick="switchTab(10)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-10">
                             <i class="fa-solid fa-user-shield w-5"></i> <span>Admin Panel</span>
                         </div>
                     `;
                 }
+
                 navLinks.innerHTML = navHTML;
+
                 setTimeout(() => {
                     populateThemeGrid();
                     populateGrid('games', 'games-grid');
@@ -460,7 +515,7 @@
             }
         }
 
-        firebaseAuth.onAuthStateChanged(firebaseAuth.auth, updateUIForAuth);
+        firebaseAuth.onAuthStateChanged(auth, updateUIForAuth);
 
         const authBtn = document.getElementById('auth-btn');
         const toggleLink = document.getElementById('toggle-link');
@@ -469,33 +524,35 @@
 
         if (authBtn) {
             authBtn.addEventListener('click', async () => {
-                const email = document.getElementById('email').value;
+                const email = document.getElementById('email').value.trim();
                 const password = document.getElementById('password').value;
+
+                if (!email || !password) {
+                    alert("Please enter both email and password.");
+                    return;
+                }
+
                 try {
                     if (isSignIn) {
-                        const userCredential = await firebaseAuth.signInWithEmailAndPassword(firebaseAuth.auth, email, password);
+                        const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
                         if (!userCredential.user.emailVerified) {
-                            alert("Please verify your email before logging in.");
-                            await firebaseAuth.signOut(firebaseAuth.auth);
+                            alert("Please verify your email before logging in. Check your inbox/spam.");
+                            await signOut(auth);
                             return;
                         }
-                        
+
                         await updateUIForAuth(userCredential.user);
-                        
                     } else {
-                        const userCredential = await firebaseAuth.createUserWithEmailAndPassword(firebaseAuth.auth, email, password);
-                        await setDoc(doc(db, 'users', userCredential.user.uid), {
-                            email: email,
-                            role: 'user'
-                        });
-                        await firebaseAuth.sendEmailVerification(userCredential.user);
-                        alert("Verification email sent! Please check your inbox before logging in.");
-                        await firebaseAuth.signOut(firebaseAuth.auth);
-                        await updateUIForAuth(firebaseAuth.auth.currentUser);
+                        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                        await sendEmailVerification(userCredential.user);
+                        alert("Sign-up successful! Verification email sent. Please check your inbox (including spam) and verify before signing in.");
+                        await signOut(auth);
+                        updateUIForAuth(null);
                     }
                 } catch (error) {
-                    alert(error.message);
+                    console.error("Auth error:", error);
+                    alert(error.message || "Authentication failed. Please try again.");
                 }
             });
         }
@@ -503,7 +560,6 @@
         if (toggleLink) {
             toggleLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                
                 isSignIn = !isSignIn;
                 formTitle.textContent = isSignIn ? 'Sign In' : 'Sign Up';
                 authBtn.textContent = isSignIn ? 'Sign In' : 'Sign Up';
@@ -514,33 +570,33 @@
         window.deleteAccount = async () => {
             if (!confirm("Are you sure you want to permanently delete your account? This cannot be undone.")) return;
             try {
-                const user = firebaseAuth.auth.currentUser;
+                const user = auth.currentUser;
                 if (user) {
                     await deleteDoc(doc(db, 'users', user.uid));
-                    await firebaseAuth.deleteUser(user);
-                    alert("Account deleted.");
+                    await deleteUser(user);
+                    alert("Account deleted successfully.");
+                    location.reload();
                 }
             } catch (error) {
-                alert("Error: " + error.message);
+                alert("Error deleting account: " + error.message);
             }
         };
 
         window.changePassword = async () => {
-            const user = firebaseAuth.auth.currentUser;
-            if (!user || !user.email) return alert("You must be logged in.");
-            const messageEl = document.getElementById('auth-message');
+            const user = auth.currentUser;
+            if (!user?.email) return alert("You must be logged in.");
             try {
-                await firebaseAuth.sendPasswordResetEmail(firebaseAuth.auth, user.email);
-                messageEl.textContent = "Password reset email sent! Check your inbox (including spam).";
-                messageEl.className = "success";
+                await sendPasswordResetEmail(auth, user.email);
+                document.getElementById('auth-message').textContent = "Password reset email sent! Check your inbox/spam.";
+                document.getElementById('auth-message').className = "success";
             } catch (error) {
-                messageEl.textContent = "Error: " + error.message;
-                messageEl.className = "error";
+                document.getElementById('auth-message').textContent = "Error: " + error.message;
+                document.getElementById('auth-message').className = "error";
             }
         };
 
         window.changeEmail = async () => {
-            const user = firebaseAuth.auth.currentUser;
+            const user = auth.currentUser;
             if (!user) return alert("You must be logged in.");
 
             const newEmail = prompt("Enter your new email address:", user.email);
@@ -549,24 +605,18 @@
             const password = prompt("Enter your current password to confirm:");
             if (!password) return;
 
-            const messageEl = document.getElementById('auth-message');
             try {
-                // Re-authenticate
-                const credential = firebaseAuth.EmailAuthProvider.credential(user.email, password);
-                await firebaseAuth.reauthenticateWithCredential(user, credential);
-
-                // Update email
-                await firebaseAuth.updateEmail(user, newEmail);
-
-                // Update in Firestore
+                const credential = EmailAuthProvider.credential(user.email, password);
+                await reauthenticateWithCredential(user, credential);
+                await updateEmail(user, newEmail);
                 await setDoc(doc(db, 'users', user.uid), { email: newEmail }, { merge: true });
 
-                messageEl.textContent = "Email updated successfully! Please verify the new email (check inbox/spam).";
-                messageEl.className = "success";
+                document.getElementById('auth-message').textContent = "Email updated! Please verify the new email.";
+                document.getElementById('auth-message').className = "success";
                 document.getElementById('user-email').textContent = newEmail;
             } catch (error) {
-                messageEl.textContent = "Error: " + error.message;
-                messageEl.className = "error";
+                document.getElementById('auth-message').textContent = "Error: " + error.message;
+                document.getElementById('auth-message').className = "error";
             }
         };
     </script>
@@ -587,9 +637,7 @@
                 switchTab(7);
                 return;
             }
-            if (index === 10 && !window.isAdmin) {
-                return;
-            }
+            if (index === 10 && !window.isAdmin) return;
 
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
             const activeTab = document.getElementById(`tab-${index}`);
@@ -630,27 +678,28 @@
             { name: "Coral", color: "#f87171" },
             { name: "Electric Violet", color: "#a855f7" }
         ];
+
         function setTheme(color) {
             document.documentElement.style.setProperty('--accent', color);
             localStorage.setItem('starlinkAccent', color);
         }
+
         function loadTheme() {
             const saved = localStorage.getItem('starlinkAccent');
             setTheme(saved || '#ffffff');
         }
+
         function saveNewTabPreference(value) {
             localStorage.setItem('starlinkNewTab', value ? 'true' : 'false');
         }
+
         function loadNewTabPreference() {
             const saved = localStorage.getItem('starlinkNewTab');
             const checkbox = document.getElementById('newtab-toggle');
-            if (saved === null) {
-                checkbox.checked = true;
-                saveNewTabPreference(true);
-            } else {
-                checkbox.checked = saved === 'true';
-            }
+            checkbox.checked = saved !== 'false';
+            saveNewTabPreference(checkbox.checked);
         }
+
         function resetEverything() {
             if (!confirm("Reset all settings to default? This will also sign you out.")) return;
             localStorage.removeItem('starlinkAccent');
@@ -658,19 +707,12 @@
             setTheme('#ffffff');
             document.getElementById('newtab-toggle').checked = true;
             saveNewTabPreference(true);
-            firebaseAuth.signOut(firebaseAuth.auth).then(() => {
-                const msg = document.getElementById('reset-message');
-                msg.textContent = "Reset complete! Signing out and refreshing...";
-                msg.classList.remove('hidden');
-                setTimeout(() => {
-                    msg.classList.add('hidden');
-                    location.reload();
-                }, 2000);
-            }).catch((error) => {
-                console.error("Sign out error:", error);
-                location.reload();
+            signOut(auth).then(() => {
+                document.getElementById('reset-message').classList.remove('hidden');
+                setTimeout(() => location.reload(), 1800);
             });
         }
+
         function createStar(x, y) {
             const star = document.createElement('div');
             star.className = 'star';
@@ -685,6 +727,7 @@
             document.getElementById('star-bg').appendChild(star);
             setTimeout(() => star.remove(), duration * 1000 + 2000);
         }
+
         function initStars(count = 100) {
             for (let i = 0; i < count; i++) {
                 const x = Math.random() * window.innerWidth;
@@ -692,33 +735,40 @@
                 createStar(x, y);
             }
         }
+
         document.addEventListener('click', (e) => {
-            if (e.target.closest('button, a, .nav-link, input, label, svg, .card')) return;
+            if (e.target.closest('button, a, .nav-link, input, label, svg, .card, select')) return;
             createStar(e.clientX, e.clientY);
         });
+
         async function populateGrid(category, containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
             container.innerHTML = '';
-            const q = query(collection(db, 'sites'), where('category', '==', category));
-            const snap = await getDocs(q);
-            snap.forEach((d) => {
-                const site = d.data();
-                const card = document.createElement('div');
-                card.className = `card rounded-3xl p-6 cursor-pointer group`;
-                card.innerHTML = `
-                    <div class="text-5xl mb-6 transition-transform group-hover:scale-125">${site.icon}</div>
-                    <div class="font-semibold text-xl mb-2">${site.name}</div>
-                    <div class="text-white/60 text-sm">${site.desc}</div>
-                `;
-                card.onclick = () => {
-                    const newTab = document.getElementById('newtab-toggle').checked;
-                    if (newTab) window.open(site.url, '_blank');
-                    else window.location.href = site.url;
-                };
-                container.appendChild(card);
-            });
+            try {
+                const q = query(collection(db, 'sites'), where('category', '==', category));
+                const snap = await getDocs(q);
+                snap.forEach((d) => {
+                    const site = d.data();
+                    const card = document.createElement('div');
+                    card.className = `card rounded-3xl p-6 cursor-pointer group`;
+                    card.innerHTML = `
+                        <div class="text-5xl mb-6 transition-transform group-hover:scale-125">${site.icon}</div>
+                        <div class="font-semibold text-xl mb-2">${site.name}</div>
+                        <div class="text-white/60 text-sm">${site.desc || ''}</div>
+                    `;
+                    card.onclick = () => {
+                        const newTab = document.getElementById('newtab-toggle').checked;
+                        if (newTab) window.open(site.url, '_blank');
+                        else window.location = site.url;
+                    };
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                console.error("Error loading sites:", err);
+            }
         }
+
         function populateThemeGrid() {
             const container = document.getElementById('theme-grid');
             if (!container) return;
@@ -736,84 +786,122 @@
                 container.appendChild(el);
             });
         }
+
         function requestSite() {
             window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
         }
+
         async function loadUsers() {
             const container = document.getElementById('user-list');
+            if (!container) return;
             container.innerHTML = '';
-            const snap = await getDocs(collection(db, 'users'));
-            snap.forEach((d) => {
-                const data = d.data();
-                const uid = d.id;
-                const div = document.createElement('div');
-                div.className = 'flex items-center justify-between py-2 border-b border-white/10';
-                div.innerHTML = `
-                    <span class="text-lg">${data.email}</span>
-                    <select id="role-${uid}" class="w-32 ml-4">
-                        <option value="user" ${data.role === 'user' ? 'selected' : ''}>User</option>
-                        <option value="admin" ${data.role === 'admin' ? 'selected' : ''}>Admin</option>
-                    </select>
-                    <button onclick="updateRole('${uid}')" class="github-style-btn w-auto px-4 py-2 ml-4">Save</button>
-                `;
-                container.appendChild(div);
-            });
+            try {
+                const snap = await getDocs(collection(db, 'users'));
+                snap.forEach((d) => {
+                    const data = d.data();
+                    const uid = d.id;
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between py-2 border-b border-white/10';
+                    div.innerHTML = `
+                        <span class="text-lg">${data.email || '—'}</span>
+                        <select id="role-${uid}" class="w-32 ml-4">
+                            <option value="user" ${data.role !== 'admin' ? 'selected' : ''}>User</option>
+                            <option value="admin" ${data.role === 'admin' ? 'selected' : ''}>Admin</option>
+                        </select>
+                        <button onclick="updateRole('${uid}')" class="github-style-btn w-auto px-4 py-2 ml-4">Save</button>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (err) {
+                console.error("Error loading users:", err);
+            }
         }
+
         window.updateRole = async (uid) => {
             const select = document.getElementById(`role-${uid}`);
-            const role = select.value;
-            await setDoc(doc(db, 'users', uid), { role }, { merge: true });
-            alert('Role updated');
-            loadUsers();
-        }
+            if (!select) return;
+            try {
+                await setDoc(doc(db, 'users', uid), { role: select.value }, { merge: true });
+                alert('Role updated');
+                loadUsers();
+            } catch (err) {
+                alert('Error updating role: ' + err.message);
+            }
+        };
+
         async function loadSitesAdmin() {
             const container = document.getElementById('site-list');
+            if (!container) return;
             container.innerHTML = '';
-            const snap = await getDocs(collection(db, 'sites'));
-            snap.forEach((d) => {
-                const site = d.data();
-                const id = d.id;
-                const div = document.createElement('div');
-                div.className = 'flex items-center justify-between py-2 border-b border-white/10';
-                div.innerHTML = `
-                    <span class="text-lg">${site.name} (${site.category}) - ${site.url}</span>
-                    <button onclick="deleteSite('${id}')" class="github-style-btn w-auto px-4 py-2 bg-red-600">Delete</button>
-                `;
-                container.appendChild(div);
-            });
+            try {
+                const snap = await getDocs(collection(db, 'sites'));
+                snap.forEach((d) => {
+                    const site = d.data();
+                    const id = d.id;
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between py-2 border-b border-white/10';
+                    div.innerHTML = `
+                        <span class="text-lg">${site.name} (${site.category}) – ${site.url}</span>
+                        <button onclick="deleteSite('${id}')" class="github-style-btn w-auto px-4 py-2 bg-red-600 hover:bg-red-700">Delete</button>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (err) {
+                console.error("Error loading sites:", err);
+            }
         }
+
         window.deleteSite = async (id) => {
-            if (confirm('Are you sure you want to delete this site?')) {
+            if (!confirm('Delete this site?')) return;
+            try {
                 await deleteDoc(doc(db, 'sites', id));
                 loadSitesAdmin();
+            } catch (err) {
+                alert('Error deleting site: ' + err.message);
             }
-        }
+        };
+
         window.addSite = async () => {
-            const category = document.getElementById('add-category').value;
-            const name = document.getElementById('add-name').value;
-            const url = document.getElementById('add-url').value;
-            const desc = document.getElementById('add-desc').value;
-            const icon = document.getElementById('add-icon').value;
-            if (!name || !url || !icon || !category) {
-                alert('Please fill all required fields');
+            const category = document.getElementById('add-category')?.value;
+            const name = document.getElementById('add-name')?.value.trim();
+            const url = document.getElementById('add-url')?.value.trim();
+            const desc = document.getElementById('add-desc')?.value.trim();
+            const icon = document.getElementById('add-icon')?.value.trim();
+
+            if (!category || !name || !url || !icon) {
+                alert('Please fill all required fields (category, name, URL, icon)');
                 return;
             }
-            await addDoc(collection(db, 'sites'), { category, name, url, desc, icon });
-            document.getElementById('add-name').value = '';
-            document.getElementById('add-url').value = '';
-            document.getElementById('add-desc').value = '';
-            document.getElementById('add-icon').value = '';
-            alert('Site added');
-            loadSitesAdmin();
-        }
+
+            try {
+                await addDoc(collection(db, 'sites'), {
+                    category,
+                    name,
+                    url,
+                    desc: desc || '',
+                    icon,
+                    addedAt: new Date()
+                });
+                document.getElementById('add-name').value = '';
+                document.getElementById('add-url').value = '';
+                document.getElementById('add-desc').value = '';
+                document.getElementById('add-icon').value = '';
+                alert('Site added successfully');
+                loadSitesAdmin();
+            } catch (err) {
+                alert('Error adding site: ' + err.message);
+            }
+        };
+
         function initialize() {
             loadTheme();
             loadNewTabPreference();
-            initStars();
+            initStars(80);
             document.getElementById('newtab-toggle').addEventListener('change', (e) => {
                 saveNewTabPreference(e.target.checked);
             });
         }
+
         window.onload = initialize;
     </script>
 </body>
