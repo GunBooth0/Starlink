@@ -204,6 +204,12 @@
                             <span id="toggle-link" class="text-[var(--accent)] cursor-pointer hover:underline">Don't have an account? Sign Up</span>
                         </p>
                     </div>
+
+                    <div id="signup-success-message" class="hidden text-center mt-8 text-green-400 text-lg">
+                        Account created!<br>
+                        Verification email sent — please check your inbox (and spam folder).<br><br>
+                        Once verified, come back and sign in.
+                    </div>
                    
                     <div id="user-info" class="hidden text-center mt-12">
                         <p class="text-2xl mb-8">Logged in as: <span id="user-email" class="font-bold text-[var(--accent)]"></span></p>
@@ -223,6 +229,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- HOME -->
             <div id="content-home" class="tab-content hidden">
                 <div class="max-w-4xl mx-auto text-center pt-12">
@@ -324,7 +331,7 @@
                     </div>
 
                     <div class="mt-12 text-center text-white/50 text-sm">
-                        Only visible when logged in with your admin email
+                        Only visible when logged in with gunbooth@hotmail.com
                     </div>
                 </div>
             </div>
@@ -333,10 +340,8 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        // ────────────────────────────────────────────────
-        //  CHANGE THIS TO YOUR ACTUAL EMAIL
-        // ────────────────────────────────────────────────
-        const ADMIN_EMAIL = "gunbooth@hotmail.com";   // ←←← PUT YOUR EMAIL HERE
+        // CHANGE THIS ONLY if you switch to a different admin email
+        const ADMIN_EMAIL = "gunbooth@hotmail.com";
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
@@ -370,7 +375,7 @@
         window.currentUser = null;
 
         function isAdmin(user) {
-            return user && user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+            return user && user.email && user.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim();
         }
 
         function updateUIForAuth(user) {
@@ -379,12 +384,36 @@
             const navLinks = document.getElementById('nav-links');
             const userInfo = document.getElementById('user-info');
             const authForm = document.getElementById('auth-form');
+            const signupSuccess = document.getElementById('signup-success-message');
             const messageEl = document.getElementById('auth-message');
             const accountTitle = document.getElementById('account-title');
             const currentTabEl = document.getElementById('current-tab');
             const currentIconEl = document.getElementById('current-tab-icon');
 
+            // Hide signup success message by default
+            if (signupSuccess) signupSuccess.classList.add('hidden');
+
             if (user) {
+                if (!user.emailVerified) {
+                    // Unverified → treat as not logged in
+                    statusEl.textContent = '';
+                    currentTabEl.textContent = 'Email Verification Required';
+                    currentIconEl.className = 'text-3xl fa-solid fa-envelope';
+                    if (userInfo) userInfo.classList.add('hidden');
+                    if (authForm) authForm.classList.remove('hidden');
+                    accountTitle.textContent = 'Verify Your Email';
+                    messageEl.textContent = "Please check your inbox and verify your email before continuing.";
+                    messageEl.className = "error";
+                    navLinks.innerHTML = `
+                        <div class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-7">
+                            <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+                        </div>
+                    `;
+                    switchTab(7);
+                    return;
+                }
+
+                // Verified logged-in user
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
                 if (userInfo) {
                     userInfo.classList.remove('hidden');
@@ -392,12 +421,13 @@
                 }
                 if (authForm) authForm.classList.add('hidden');
                 if (messageEl) messageEl.textContent = '';
-                if (accountTitle) accountTitle.textContent = 'Account';
+
+                accountTitle.textContent = 'Account';
 
                 let adminLink = '';
                 if (isAdmin(user)) {
                     adminLink = `
-                        <div onclick="switchTab(99)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-2 text-orange-400 hover:text-orange-300" id="tab-99">
+                        <div onclick="switchTab(99)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-2 text-orange-400 hover:text-orange-300 active-tab" id="tab-99">
                             <i class="fa-solid fa-screwdriver-wrench w-5"></i> <span>Admin Panel</span>
                         </div>
                         <div class="border-t border-white/20 my-3 mx-6"></div>
@@ -444,15 +474,19 @@
                     populateGrid('tv', 'tv-grid');
                     populateGrid('proxies', 'proxy-grid');
                     populateGrid('music', 'music-grid');
+                    // Go to home (or admin if you're admin)
                     switchTab(isAdmin(user) ? 99 : 0);
                 }, 50);
+
             } else {
+                // Not logged in
                 statusEl.textContent = '';
                 currentTabEl.textContent = 'Sign In Required';
                 currentIconEl.className = 'text-3xl fa-solid fa-lock';
                 if (userInfo) userInfo.classList.add('hidden');
                 if (authForm) authForm.classList.remove('hidden');
                 if (accountTitle) accountTitle.textContent = 'Sign In Required';
+                if (messageEl) messageEl.textContent = '';
                 navLinks.innerHTML = `
                     <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-7">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
@@ -467,34 +501,37 @@
         const authBtn = document.getElementById('auth-btn');
         const toggleLink = document.getElementById('toggle-link');
         const formTitle = document.getElementById('form-title');
+        const signupSuccess = document.getElementById('signup-success-message');
         let isSignIn = true;
 
         if (authBtn) {
             authBtn.addEventListener('click', async () => {
-                const email = document.getElementById('email').value;
+                const email = document.getElementById('email').value.trim();
                 const password = document.getElementById('password').value;
                 try {
                     if (isSignIn) {
+                        // Sign In
                         const userCredential = await firebaseAuth.signInWithEmailAndPassword(firebaseAuth.auth, email, password);
 
                         if (!userCredential.user.emailVerified) {
-                            alert("Please verify your email before logging in.");
+                            alert("Please verify your email first. Check your inbox/spam folder.");
                             await firebaseAuth.signOut(firebaseAuth.auth);
                             return;
                         }
                         
                         updateUIForAuth(userCredential.user);
-                        
                     } else {
+                        // Sign Up
                         const userCredential = await firebaseAuth.createUserWithEmailAndPassword(auth, email, password);
-
                         await sendEmailVerification(userCredential.user);
 
-                        alert("Verification email sent! Please check your inbox before logging in.");
+                        // Show success message, keep form visible, stay on Account tab
+                        if (signupSuccess) signupSuccess.classList.remove('hidden');
+                        alert("Account created! Verification email sent — check your inbox (and spam).");
 
-                        await signOut(auth);
-
-                        updateUIForAuth(auth.currentUser);
+                        // Do NOT sign in automatically — stay signed out
+                        await firebaseAuth.signOut(auth);
+                        updateUIForAuth(null);   // force "not logged in" UI
                     }
                 } catch (error) {
                     alert(error.message);
@@ -505,11 +542,12 @@
         if (toggleLink) {
             toggleLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                
                 isSignIn = !isSignIn;
                 formTitle.textContent = isSignIn ? 'Sign In' : 'Sign Up';
                 authBtn.textContent = isSignIn ? 'Sign In' : 'Sign Up';
                 toggleLink.textContent = isSignIn ? "Don't have an account? Sign Up" : 'Already have an account? Sign In';
+                // Hide success message when toggling
+                if (signupSuccess) signupSuccess.classList.add('hidden');
             });
         }
 
@@ -556,7 +594,7 @@
                 await firebaseAuth.reauthenticateWithCredential(user, credential);
                 await firebaseAuth.updateEmail(user, newEmail);
 
-                messageEl.textContent = "Email updated successfully! Please verify the new email (check inbox/spam).";
+                messageEl.textContent = "Email updated! Please verify the new email (check inbox/spam). You may need to sign out & in again.";
                 messageEl.className = "success";
                 document.getElementById('user-email').textContent = newEmail;
             } catch (error) {
@@ -589,11 +627,12 @@
             if (activeTab) activeTab.classList.add('active-tab');
 
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            const content = document.getElementById(contentIds[index] || contentIds[0]);
+            const contentId = contentIds[index] || 'content-account';
+            const content = document.getElementById(contentId);
             if (content) content.classList.remove('hidden');
 
-            document.getElementById('current-tab').textContent = tabTitles[index] || "Home";
-            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index] || 'fa-house'}`;
+            document.getElementById('current-tab').textContent = tabTitles[index] || "Account";
+            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index] || 'fa-lock'}`;
         }
 
         const themes = [
