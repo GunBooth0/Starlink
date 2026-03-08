@@ -483,8 +483,7 @@
                     populateGrid('tv', 'tv-grid');
                     populateGrid('proxies', 'proxy-grid');
                     populateGrid('music', 'music-grid');
-                    // Always start on Home (index 0) for everyone, including admin
-                    switchTab(0);
+                    switchTab(0); // always start on Home
                 }, 50);
 
             } else {
@@ -617,7 +616,7 @@
         const tabIcons = [
             'fa-house', 'fa-gamepad', 'fa-brain', 'fa-tv', 'fa-shield-halved',
             'fa-music', 'fa-gear', 'fa-user', 'fa-heart', 'fa-paper-plane',
-            'fa-screwdriver-wrench'  // 10 = admin
+            'fa-screwdriver-wrench'   // index 10 = Admin Panel
         ];
         const tabTitles = [
             "Home", "Games", "AI Tools", "TV & Streaming", "Proxies",
@@ -632,21 +631,27 @@
 
         function switchTab(index) {
             if (!window.currentUser && index !== 7) {
-                switchTab(7);
-                return;
+                index = 7;
             }
 
+            // Remove active class from all nav links
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
-            const activeTab = document.getElementById(`tab-${index}`);
-            if (activeTab) activeTab.classList.add('active-tab');
 
+            // Add active to the selected one
+            const selectedLink = document.getElementById(`tab-${index}`);
+            if (selectedLink) selectedLink.classList.add('active-tab');
+
+            // Hide all tab contents, show the selected one
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            const content = document.getElementById(contentIds[index]);
-            if (content) content.classList.remove('hidden');
+            const contentEl = document.getElementById(contentIds[index]);
+            if (contentEl) contentEl.classList.remove('hidden');
 
-            // Update top bar with correct title and icon for the selected tab
-            document.getElementById('current-tab').textContent = tabTitles[index] || "Home";
-            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index] || 'fa-house'}`;
+            // Update the top bar title and icon
+            const titleEl = document.getElementById('current-tab');
+            const iconEl  = document.getElementById('current-tab-icon');
+
+            if (titleEl) titleEl.textContent = tabTitles[index] || "Home";
+            if (iconEl) iconEl.className = `text-3xl fa-solid ${tabIcons[index] || 'fa-house'}`;
         }
 
         const themes = [
