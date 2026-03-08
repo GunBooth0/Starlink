@@ -405,40 +405,63 @@
 
  function updateUIForAuth(user) {
     window.currentUser = user;
+
     const statusEl = document.getElementById('user-status');
     const userInfo = document.getElementById('user-info');
     const authForm = document.getElementById('auth-form');
     const accountTitle = document.getElementById('account-title');
-    const currentTabEl = document.getElementById('current-tab');
-    const currentIconEl = document.getElementById('current-tab-icon');
     const adminTab = document.getElementById("admin-tab");
     const adminEmail = "gunnarbooth@gmail.com";
 
     if (user) {
-        // Show all tabs when logged in
-document.querySelectorAll('.nav-link').forEach(tab => {
-    tab.style.display = "flex";
-});
+        // SHOW ALL TABS
+        document.querySelectorAll('.nav-link').forEach(tab => {
+            tab.style.display = "flex";
+        });
 
-        // SHOW USER INFO
+        // Show user info
         userInfo.classList.remove("hidden");
         authForm.classList.add("hidden");
 
         document.getElementById("user-email").textContent = user.email;
         statusEl.textContent = user.email;
-
         accountTitle.textContent = "Your Account";
-        // 🔐 Fetch role from Firestore
-if (user) {
-    firebase.firestore().collection("users")
-  .where("email", "==", user.email)
-  .get()
-  .then(snapshot => {
 
-    let role = "user";
+        // Admin visibility
+        if (adminTab) {
+            if (user.email === adminEmail) {
+                adminTab.classList.remove("hidden");
+            } else {
+                adminTab.classList.add("hidden");
+            }
+        }
 
-    snapshot.forEach(doc => {
-        role = doc.data().role;
+        // Go to Home after login
+        switchTab(0);
+
+    } else {
+        // HIDE ALL TABS EXCEPT ACCOUNT
+        document.querySelectorAll('.nav-link').forEach((tab, index) => {
+            if (index === 7) {
+                tab.style.display = "flex"; // Account
+            } else {
+                tab.style.display = "none";
+            }
+        });
+
+        if (adminTab) {
+            adminTab.classList.add("hidden");
+        }
+
+        userInfo.classList.add("hidden");
+        authForm.classList.remove("hidden");
+        statusEl.textContent = "Not signed in";
+        accountTitle.textContent = "Sign In Required";
+
+        // Force Account tab
+        switchTab(7);
+    }
+}
     });
 
     if (role === "admin") {
