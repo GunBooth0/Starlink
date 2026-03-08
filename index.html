@@ -13,6 +13,7 @@
       --border: rgba(100, 100, 255, 0.18);
       --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
       --blur: blur(12px);
+      --error: #ff6b6b;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
@@ -54,6 +55,25 @@
       align-items: center;
       gap: 1rem;
       font-size: 0.95rem;
+    }
+    #auth-section {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    #auth-section input {
+      width: 180px;
+      background: rgba(30,30,50,0.6);
+      border: 1px solid var(--border);
+      backdrop-filter: var(--blur);
+      padding: 0.6rem;
+      border-radius: 8px;
+      color: var(--text);
+    }
+    #auth-error {
+      color: var(--error);
+      font-size: 0.85rem;
+      max-width: 300px;
     }
     #announcement {
       background: rgba(30, 30, 60, 0.6);
@@ -160,7 +180,7 @@
       border: 1px solid var(--border);
       padding: 0.8rem 1.2rem;
       border-radius: 10px;
-      margin: 0.6rem 0;
+      margin: 0.4rem 0.4rem 0.4rem 0;
       backdrop-filter: var(--blur);
     }
     button {
@@ -170,6 +190,9 @@
       font-weight: 500;
     }
     button:hover { opacity: 0.9; transform: scale(1.02); }
+    button#signout-btn {
+      background: #dc2626;
+    }
     .hidden { display: none !important; }
     .user-list .user-item {
       display: flex;
@@ -185,6 +208,8 @@
       .container { flex-direction: column; }
       aside { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
       main { padding: 1.5rem; }
+      #auth-section { flex-direction: column; align-items: flex-end; }
+      #auth-section input { width: 100%; }
     }
   </style>
 </head>
@@ -201,7 +226,14 @@
     </div>
     <div id="user-info">
       <span id="user-name">Not signed in</span>
-      <button id="auth-btn" onclick="toggleAuth()">Sign in with Google</button>
+      <div id="auth-section">
+        <input type="email" id="email-input" placeholder="Email" autocomplete="email"/>
+        <input type="password" id="password-input" placeholder="Password" autocomplete="current-password"/>
+        <button id="signin-btn">Sign In</button>
+        <button id="signup-btn">Sign Up</button>
+        <button id="signout-btn" class="hidden">Sign Out</button>
+      </div>
+      <div id="auth-error"></div>
     </div>
   </header>
 
@@ -250,7 +282,7 @@
     </main>
   </div>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK Compat (v12.x) -->
   <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore-compat.js"></script>
@@ -258,17 +290,17 @@
   <script>
     // ====================== YOUR CONFIG GOES HERE ======================
     const firebaseConfig = {
-  apiKey: "AIzaSyDI979T4jI-ZbGbRDFo-kNZPyG3Pc8gkXw",
-  authDomain: "starlink-42031.firebaseapp.com",
-  projectId: "starlink-42031",
-  storageBucket: "starlink-42031.firebasestorage.app",
-  messagingSenderId: "264424976547",
-  appId: "1:264424976547:web:6725648e3ae60397870f16",
-  measurementId: "G-Z2B3TBENYK"
-};
+      // PASTE YOUR FIREBASE CONFIG HERE (apiKey, authDomain, projectId, etc.)
+      apiKey: "",
+      authDomain: "",
+      projectId: "",
+      storageBucket: "",
+      messagingSenderId: "",
+      appId: ""
+    };
     // ==================================================================
 
-    const ADMIN_EMAIL = "gunnarbooth@gmail.com";  // ← your Google email
+    const ADMIN_EMAIL = "YOUR_ADMIN_EMAIL@example.com";  // ← CHANGE TO YOUR EMAIL
 
     let app, auth, db;
     let currentUser = null;
@@ -280,7 +312,7 @@
 
     function initFirebase() {
       if (!firebaseConfig.apiKey) {
-        alert("Please paste your Firebase config!");
+        alert("Please paste your Firebase config in the code!");
         return;
       }
       app = firebase.initializeApp(firebaseConfig);
@@ -290,31 +322,37 @@
       auth.onAuthStateChanged(async (user) => {
         currentUser = user;
         const userNameEl = document.getElementById("user-name");
-        const authBtn = document.getElementById("auth-btn");
+        const signoutBtn = document.getElementById("signout-btn");
         const addCatForm = document.getElementById("add-category-form");
         const adminBtn = document.getElementById("admin-menu-btn");
+        const authError = document.getElementById("auth-error");
 
         if (user) {
-          userNameEl.textContent = user.displayName || user.email;
-          authBtn.textContent = "Sign Out";
+          userNameEl.textContent = user.email;
+          signoutBtn.classList.remove("hidden");
           addCatForm.classList.remove("hidden");
           if (user.email === ADMIN_EMAIL) adminBtn.classList.remove("hidden");
           await db.collection("users").doc(user.uid).set({
             email: user.email,
-            displayName: user.displayName || "User",
             lastLogin: firebase.firestore.FieldValue.serverTimestamp()
           }, { merge: true });
         } else {
           userNameEl.textContent = "Not signed in";
-          authBtn.textContent = "Sign in with Google";
+          signoutBtn.classList.add("hidden");
           addCatForm.classList.add("hidden");
           adminBtn.classList.add("hidden");
           hideAdminPanel();
         }
+        authError.textContent = "";
         renderCategories();
       });
 
       loadRealtimeData();
+
+      // Button listeners
+      document.getElementById("signin-btn").onclick = signIn;
+      document.getElementById("signup-btn").onclick = signUp;
+      document.getElementById("signout-btn").onclick = () => auth.signOut();
     }
 
     function loadRealtimeData() {
@@ -341,19 +379,47 @@
       });
     }
 
-    function toggleAuth() {
-      if (currentUser) {
-        auth.signOut();
-      } else {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).catch(err => {
-          console.error("Auth error:", err);
-          if (err.code === 'auth/popup-blocked') {
-            alert("Popup was blocked! Please allow popups for this site or disable ad blockers.");
-          } else {
-            alert("Sign in error: " + err.message);
-          }
-        });
+    async function signIn() {
+      const email = document.getElementById("email-input").value.trim();
+      const password = document.getElementById("password-input").value;
+      const errorEl = document.getElementById("auth-error");
+      errorEl.textContent = "";
+
+      if (!email || !password) {
+        errorEl.textContent = "Enter email and password";
+        return;
+      }
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+      } catch (err) {
+        errorEl.textContent = err.message.includes("wrong-password") ? "Incorrect password" :
+                              err.message.includes("user-not-found") ? "No account with this email" :
+                              err.message;
+      }
+    }
+
+    async function signUp() {
+      const email = document.getElementById("email-input").value.trim();
+      const password = document.getElementById("password-input").value;
+      const errorEl = document.getElementById("auth-error");
+      errorEl.textContent = "";
+
+      if (!email || !password) {
+        errorEl.textContent = "Enter email and password";
+        return;
+      }
+      if (password.length < 6) {
+        errorEl.textContent = "Password must be at least 6 characters";
+        return;
+      }
+
+      try {
+        await auth.createUserWithEmailAndPassword(email, password);
+      } catch (err) {
+        errorEl.textContent = err.message.includes("email-already-in-use") ? "Email already in use" :
+                              err.message.includes("invalid-email") ? "Invalid email format" :
+                              err.message;
       }
     }
 
@@ -434,7 +500,7 @@
     }
 
     function showAdminPanel() {
-      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return alert("Admin only");
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return alert("Admin access restricted");
       document.getElementById("browse-main").style.display = "none";
       document.getElementById("admin-section").style.display = "block";
       renderUsersList();
@@ -469,8 +535,7 @@
         div.className = "user-item";
         div.innerHTML = `
           <div>
-            <strong>${user.displayName || user.email}</strong><br>
-            <small style="opacity:0.7;">${user.email}</small>
+            <strong>${user.email}</strong>
           </div>
           <button onclick="deleteUser('${user.id}')" style="background:#dc2626;">Delete</button>
         `;
