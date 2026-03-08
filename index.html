@@ -13,12 +13,12 @@
         body { background: #000000; color: #ffffff; font-family: 'Inter', system-ui, sans-serif; margin: 0; height: 100vh; overflow: hidden; }
         .logo-font { font-family: 'Space Grotesk', sans-serif; }
         .star-svg { animation: pulse 4s infinite ease-in-out; filter: drop-shadow(0 0 20px var(--accent)); }
-        @keyframes pulse { 0%, 100% { filter: drop-shadow(0 0 20px var(--accent)); } 50% { filter: drop-shadow(0 0 45px var(--accent)); } }
-        .nav-link { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); color: #ffffff; }
+        @keyframes pulse { 0%,100% { filter: drop-shadow(0 0 20px var(--accent)); } 50% { filter: drop-shadow(0 0 45px var(--accent)); } }
+        .nav-link { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); color: #ffffff; }
         .nav-link:hover, .nav-link.active-tab { color: var(--accent)!important; background: rgba(255,255,255,0.08); }
         .nav-link i { color: inherit; }
         #current-tab-icon, #current-tab { color: var(--accent); transition: color 0.4s ease; }
-        .card { transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); }
+        .card { transition: all 0.4s cubic-bezier(0.4,0,0.2,1); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); }
         .card:hover { transform: translateY(-8px) scale(1.03); border-color: var(--accent); background: rgba(255,255,255,0.06); }
         .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); }
         .tail-container { max-width: 1280px; margin-left: auto; margin-right: auto; }
@@ -27,7 +27,6 @@
         @keyframes floatUp { 0% { transform: translateY(110vh); } 100% { transform: translateY(-30vh); } }
         .main-content { overflow-y: auto; height: 100vh; padding-top: 4rem; }
 
-        /* Login inputs normal */
         #auth-form input[type="email"], #auth-form input[type="password"] {
             background: rgba(255,255,255,0.08);
             border: 1px solid rgba(255,255,255,0.25);
@@ -47,7 +46,6 @@
         }
         #auth-form input::placeholder { color: rgba(255,255,255,0.5); }
 
-        /* Announcement fields */
         #announce-text {
             background: rgba(255,255,255,0.08);
             border: 1px solid rgba(255,255,255,0.25);
@@ -76,15 +74,14 @@
         .success { color: #10b981; }
         .error { color: #ef4444; }
         .announcement-preview { background: rgba(255,255,255,0.1); border-left: 4px solid var(--accent); padding: 1rem; margin: 1rem 0; border-radius: 0.5rem; }
-        #content-admin .glass { min-height: 600px !important; display: block !important; padding: 2rem; }
-        #announcement-banner { transition: all 0.4s ease; }
+        #content-admin .glass { min-height: 600px !important; display: block !important; padding: 2rem; background: rgba(255, 0, 0, 0.2); } /* Temporary red tint to prove it's loaded */
     </style>
 </head>
 <body>
     <div id="star-bg"></div>
 
-    <!-- Announcement Banner - shows on ALL tabs -->
-    <div id="announcement-banner" class="hidden fixed top-0 left-0 right-0 bg-yellow-600/80 text-black text-center py-3 z-50 font-medium shadow-lg">
+    <!-- Announcement Banner -->
+    <div id="announcement-banner" class="hidden fixed top-0 left-0 right-0 bg-yellow-600/80 text-black text-center py-2 z-50 font-medium">
         <span id="announcement-text"></span>
     </div>
 
@@ -292,7 +289,7 @@
 
         window.currentUser = null;
 
-        // Global announcement functions (moved here so switchTab can see them)
+        // Global announcement functions
         window.loadAnnouncement = async function() {
             try {
                 const annDoc = await getDoc(doc(db, "announcements", "current"));
@@ -436,7 +433,7 @@
                     populateGrid('music', 'music-grid');
                     switchTab(0);
                     if (isAdmin(user)) {
-                        if (window.loadAnnouncement) window.loadAnnouncement();
+                        window.loadAnnouncement();
                     }
                 }, 500);
 
@@ -584,7 +581,18 @@
             const content = document.getElementById(contentIds[index]);
             if (content) {
                 content.classList.remove('hidden');
-                // Refresh announcement banner on EVERY tab switch (safe check)
+                // Extra force for admin panel visibility
+                if (index === 10) {
+                    console.log('Admin panel unhidden');
+                    content.style.display = 'block';
+                    content.style.minHeight = '100vh';
+                    const glass = content.querySelector('.glass');
+                    if (glass) {
+                        glass.style.display = 'block';
+                        glass.style.minHeight = '600px';
+                    }
+                }
+                // Refresh banner on every tab switch
                 if (window.loadAnnouncement) window.loadAnnouncement();
             }
 
