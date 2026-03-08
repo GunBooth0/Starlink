@@ -13,21 +13,21 @@
         body { background: #000000; color: #ffffff; font-family: 'Inter', system-ui, sans-serif; margin: 0; height: 100vh; overflow: hidden; }
         .logo-font { font-family: 'Space Grotesk', sans-serif; }
         .star-svg { animation: pulse 4s infinite ease-in-out; filter: drop-shadow(0 0 20px var(--accent)); }
-        @keyframes pulse { 0%,100% { filter: drop-shadow(0 0 20px var(--accent)); } 50% { filter: drop-shadow(0 0 45px var(--accent)); } }
-        .nav-link { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); color: #ffffff; }
+        @keyframes pulse { 0%, 100% { filter: drop-shadow(0 0 20px var(--accent)); } 50% { filter: drop-shadow(0 0 45px var(--accent)); } }
+        .nav-link { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); color: #ffffff; }
         .nav-link:hover, .nav-link.active-tab { color: var(--accent)!important; background: rgba(255,255,255,0.08); }
         .nav-link i { color: inherit; }
         #current-tab-icon, #current-tab { color: var(--accent); transition: color 0.4s ease; }
-        .card { transition: all 0.4s cubic-bezier(0.4,0,0.2,1); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); }
+        .card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); }
         .card:hover { transform: translateY(-8px) scale(1.03); border-color: var(--accent); background: rgba(255,255,255,0.06); }
         .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); }
         .tail-container { max-width: 1280px; margin-left: auto; margin-right: auto; }
         #star-bg { position: fixed; inset: 0; z-index: -1; pointer-events: auto; }
-        .star { position: absolute; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent),0 0 16px var(--accent); pointer-events: none; animation: floatUp linear infinite; }
+        .star { position: absolute; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent); pointer-events: none; animation: floatUp linear infinite; }
         @keyframes floatUp { 0% { transform: translateY(110vh); } 100% { transform: translateY(-30vh); } }
         .main-content { overflow-y: auto; height: 100vh; padding-top: 4rem; }
 
-        /* Login inputs normal */
+        /* Login inputs - normal size & rounding */
         #auth-form input[type="email"], #auth-form input[type="password"] {
             background: rgba(255,255,255,0.08);
             border: 1px solid rgba(255,255,255,0.25);
@@ -47,7 +47,7 @@
         }
         #auth-form input::placeholder { color: rgba(255,255,255,0.5); }
 
-        /* Admin fields only */
+        /* Announcement fields only */
         #announce-text {
             background: rgba(255,255,255,0.08);
             border: 1px solid rgba(255,255,255,0.25);
@@ -76,16 +76,15 @@
         .success { color: #10b981; }
         .error { color: #ef4444; }
         .announcement-preview { background: rgba(255,255,255,0.1); border-left: 4px solid var(--accent); padding: 1rem; margin: 1rem 0; border-radius: 0.5rem; }
-        .tab-content { display: none; }
-        .tab-content:not(.hidden) { display: block !important; }
-        #content-admin .glass { min-height: 600px !important; }
+        #content-admin .glass { min-height: 600px !important; display: block !important; padding: 2rem; }
+        #announcement-banner { transition: all 0.4s ease; }
     </style>
 </head>
 <body>
     <div id="star-bg"></div>
 
-    <!-- Announcement Banner -->
-    <div id="announcement-banner" class="hidden fixed top-0 left-0 right-0 bg-yellow-600/80 text-black text-center py-2 z-50 font-medium">
+    <!-- Announcement Banner – visible on ALL tabs when active -->
+    <div id="announcement-banner" class="hidden fixed top-0 left-0 right-0 bg-yellow-600/80 text-black text-center py-3 z-50 font-medium shadow-lg">
         <span id="announcement-text"></span>
     </div>
 
@@ -220,7 +219,7 @@
                     <p class="text-2xl text-white/80 mb-6">
                         Created, designed, and built entirely by <span class="font-semibold text-[var(--accent)]">Gunnar Booth</span>
                     </p>
-                    <a href="https://github.com/gunbooth0/starlink" target="_blank" rel="noopener noreferrer" class="github-style-btn inline-flex">
+                    <a href="https://github.com/gunbooth0/Starlink" target="_blank" rel="noopener noreferrer" class="github-style-btn inline-flex">
                         <i class="fa-brands fa-github text-3xl"></i>
                         View Source on GitHub
                     </a>
@@ -228,15 +227,15 @@
             </div>
 
             <!-- ADMIN PANEL -->
-            <div id="content-admin" class="tab-content">
+            <div id="content-admin" class="tab-content hidden">
                 <div class="max-w-5xl mx-auto py-12">
                     <h2 class="text-4xl font-bold logo-font tracking-tight mb-10">Admin Panel</h2>
 
                     <div class="glass rounded-3xl p-8">
                         <h3 class="text-2xl font-semibold mb-6">Site Announcement</h3>
-                        <p class="text-white/70 mb-6">This message appears as a yellow banner at the top of the site for all logged-in users.</p>
+                        <p class="text-white/70 mb-6">This message appears as a yellow banner at the top of every tab for all logged-in users until cleared.</p>
 
-                        <textarea id="announce-text" rows="4" class="w-full mb-4" placeholder="Type announcement here... (e.g. 'Site maintenance tonight at 8 PM')"></textarea>
+                        <textarea id="announce-text" rows="4" class="w-full mb-4" placeholder="Type announcement here... (e.g. 'Maintenance tonight at 8 PM')"></textarea>
 
                         <div id="announce-preview" class="announcement-preview hidden mb-6 p-4">
                             <span id="preview-text"></span>
@@ -247,7 +246,7 @@
                             <button onclick="clearAnnouncement()" class="bg-red-600 hover:bg-red-700 px-8 py-4 rounded-xl">Clear Announcement</button>
                         </div>
 
-                        <p class="mt-6 text-sm text-white/60">Changes appear instantly site-wide (refresh may be needed).</p>
+                        <p class="mt-6 text-sm text-white/60">Banner shows on ALL tabs immediately after saving. Clear to remove it site-wide.</p>
                     </div>
                 </div>
             </div>
@@ -301,14 +300,19 @@
         async function loadAnnouncement() {
             try {
                 const annDoc = await getDoc(doc(db, "announcements", "current"));
+                const banner = document.getElementById('announcement-banner');
+                const textEl = document.getElementById('announcement-text');
+
                 if (annDoc.exists() && annDoc.data().text) {
-                    document.getElementById('announcement-text').textContent = annDoc.data().text;
-                    document.getElementById('announcement-banner').classList.remove('hidden');
+                    textEl.textContent = annDoc.data().text;
+                    banner.classList.remove('hidden');
+                    banner.style.display = 'block';
                 } else {
-                    document.getElementById('announcement-banner').classList.add('hidden');
+                    banner.classList.add('hidden');
+                    banner.style.display = 'none';
                 }
             } catch (e) {
-                console.error("Load error:", e);
+                console.error("Banner load failed:", e);
             }
         }
 
@@ -317,19 +321,21 @@
             if (!text) return alert("Enter a message first.");
             try {
                 await setDoc(doc(db, "announcements", "current"), { text });
-                alert("Announcement saved and published!");
+                alert("Announcement saved! It now appears on all tabs.");
                 loadAnnouncement();
+                // Extra call to ensure banner updates everywhere
+                setTimeout(loadAnnouncement, 300);
             } catch (e) {
-                alert("Save failed — check console.");
+                alert("Save failed – check console for details.");
                 console.error("Save error:", e);
             }
         };
 
         window.clearAnnouncement = async () => {
-            if (!confirm("Clear announcement banner for everyone?")) return;
+            if (!confirm("Remove announcement from all tabs?")) return;
             try {
                 await deleteDoc(doc(db, "announcements", "current"));
-                alert("Announcement cleared.");
+                alert("Announcement cleared site-wide.");
                 loadAnnouncement();
             } catch (e) {
                 console.error("Clear error:", e);
@@ -432,7 +438,7 @@
                     if (isAdmin(user)) {
                         loadAnnouncement();
                     }
-                }, 100);
+                }, 500);
 
             } else {
                 statusEl.textContent = '';
@@ -570,27 +576,16 @@
                 index = 7;
             }
 
-            // Hide ALL tabs first to prevent leaks/duplication
-            document.querySelectorAll('.tab-content').forEach(el => {
-                el.classList.add('hidden');
-                el.style.display = 'none';
-            });
-
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
             const activeTab = document.getElementById(`tab-${index}`);
             if (activeTab) activeTab.classList.add('active-tab');
 
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             const content = document.getElementById(contentIds[index]);
             if (content) {
                 content.classList.remove('hidden');
-                content.style.display = 'block';
-                // Extra force for admin panel
-                if (index === 10) {
-                    const glass = content.querySelector('.glass');
-                    if (glass) {
-                        glass.style.display = 'block';
-                        glass.style.minHeight = '600px';
-                    }
-                }
+                // Refresh announcement banner on EVERY tab switch
+                loadAnnouncement();
             }
 
             document.getElementById('current-tab').textContent = tabTitles[index] || "Home";
