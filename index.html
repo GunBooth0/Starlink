@@ -28,6 +28,11 @@
       border-bottom: 1px solid #222;
       display: flex;
       align-items: center;
+      justify-content: space-between;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
       gap: 1rem;
     }
     .logo {
@@ -38,9 +43,15 @@
       font-size: 1.8rem;
       letter-spacing: 1px;
     }
+    #user-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.95rem;
+    }
     #announcement {
       background: #222;
-      color: #ffdd00;
+      color: #ffffff; /* WHITE as requested */
       text-align: center;
       padding: 0.8rem;
       font-weight: bold;
@@ -56,11 +67,11 @@
       padding: 1.5rem;
       border-right: 1px solid #222;
       overflow-y: auto;
+      display: flex;
+      flex-direction: column;
     }
-    aside h2 {
-      margin-bottom: 1rem;
-      font-size: 1.1rem;
-      opacity: 0.8;
+    #categories-list {
+      flex: 1;
     }
     .category {
       padding: 0.8rem 1rem;
@@ -73,9 +84,19 @@
     .category.active {
       background: var(--hover);
     }
+    .add-form {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #333;
+    }
+    .add-form input {
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
     main {
       flex: 1;
       padding: 2rem;
+      overflow-y: auto;
     }
     .sites-grid {
       display: grid;
@@ -108,13 +129,15 @@
     }
     #admin-section {
       display: none;
-      margin-top: 3rem;
-      padding: 1.5rem;
       background: #111;
       border: 1px solid #444;
       border-radius: 8px;
+      padding: 2rem;
     }
-    button, input, textarea {
+    #admin-section h2 {
+      margin-bottom: 1.5rem;
+    }
+    button, input, textarea, select {
       background: #222;
       color: white;
       border: 1px solid #444;
@@ -130,97 +153,251 @@
       background: #555;
     }
     .hidden { display: none !important; }
+    .user-list {
+      margin-top: 2rem;
+    }
+    .user-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.8rem;
+      background: #1a1a1a;
+      margin-bottom: 0.5rem;
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
 
+  <!-- FIREBASE SETUP INSTRUCTIONS (READ THIS FIRST) -->
+  <!-- 
+  1. Go to https://console.firebase.google.com → Create project "Starlink"
+  2. Project settings → Add app → Web → Name it "Starlink" → Copy the firebaseConfig object
+  3. Paste it below where it says "PASTE YOUR FIREBASE CONFIG HERE"
+  4. Authentication → Sign-in method → Enable "Google"
+  5. Firestore Database → Create database (start in production mode)
+     Set these rules in the Rules tab:
+     rules_version = '2';
+     service cloud.firestore {
+       match /databases/{database}/documents {
+         match /{document=**} {
+           allow read, write: if request.auth != null;
+         }
+       }
+     }
+  6. Replace YOUR_ADMIN_EMAIL with the Google email you will sign in with
+  7. After first sign-in, the site will work for everyone. Only YOUR email sees the Admin Panel.
+  -->
+
   <div id="announcement"></div>
 
   <header>
-    <svg class="logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="white"/>
-    </svg>
-    <h1>Starlink</h1>
+    <div class="header-left">
+      <svg class="logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="white"/>
+      </svg>
+      <h1>Starlink</h1>
+    </div>
+    <div id="user-info">
+      <span id="user-name">Not signed in</span>
+      <button id="auth-btn" onclick="toggleAuth()">Sign in with Google</button>
+    </div>
   </header>
 
   <div class="container">
     <aside>
-      <h2>Categories</h2>
       <div id="categories-list"></div>
+
+      <!-- Public add category (visible after sign in) -->
+      <div id="add-category-form" class="add-form hidden">
+        <input type="text" id="new-category-name" placeholder="New category name" />
+        <button onclick="addNewCategory()">+ Add Category</button>
+      </div>
+
+      <hr style="border-color:#333; margin:1.5rem 0;">
+      <button onclick="showAdminPanel()" id="admin-menu-btn" class="hidden" style="width:100%; padding:1rem; font-size:1rem;">
+        Admin Panel
+      </button>
     </aside>
 
     <main>
-      <h2 id="current-category">Select a category</h2>
-      <div class="sites-grid" id="sites-grid"></div>
+      <!-- Browse mode (categories + sites) -->
+      <div id="browse-main">
+        <h2 id="current-category">Select a category</h2>
+        
+        <!-- Public add site form (visible after sign in + category selected) -->
+        <div id="add-site-form" class="hidden" style="margin-bottom:1.5rem; padding:1rem; background:#111; border-radius:8px;">
+          <h3>Add site to this category</h3>
+          <input type="text" id="new-site-name" placeholder="Site name" style="width:48%; margin-right:2%;">
+          <input type="text" id="new-site-url" placeholder="https://example.com" style="width:48%;">
+          <button onclick="addNewSite()">+ Add Site</button>
+        </div>
 
+        <div class="sites-grid" id="sites-grid"></div>
+      </div>
+
+      <!-- Admin Panel (ONLY YOU see this) -->
       <div id="admin-section">
-        <h2>Admin Panel (You only)</h2>
-        <hr style="border-color:#444; margin:1.5rem 0;">
-
-        <h3>Global Announcement</h3>
-        <textarea id="announce-text" rows="2" placeholder="Type announcement here..."></textarea>
+        <h2>Admin Panel</h2>
+        
+        <h3>Global Announcement (white text)</h3>
+        <textarea id="announce-text" rows="3" placeholder="Type announcement here..."></textarea>
         <button onclick="saveAnnouncement()">Save Announcement</button>
-        <button onclick="clearAnnouncement()">Clear</button>
+        <button onclick="clearAnnouncement()">Clear Announcement</button>
 
-        <!-- More admin features coming in next updates -->
+        <div class="user-list" id="users-list-container">
+          <h3 style="margin-top:2rem;">All Signed-in Users</h3>
+          <div id="users-list"></div>
+        </div>
       </div>
     </main>
   </div>
 
+  <!-- Firebase SDK v12.10.0 (latest as of March 2026) - Compat for single HTML file -->
+  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore-compat.js"></script>
+
   <script>
-    // ────────────────────────────────────────────────
-    // Data structure (saved in localStorage)
-    // ────────────────────────────────────────────────
-    let data = {
-      categories: [],           // [{name: "News", id: "c1"}, ...]
-      sites: [],                // [{id:"s1", categoryId:"c1", name:"Example", url:"https://..."}]
-      announcement: ""
+    // ====================== YOUR CONFIG GOES HERE ======================
+    const firebaseConfig = {
+      // PASTE YOUR FIREBASE CONFIG HERE (from Firebase console → Project settings → Your apps)
+      apiKey: "",
+      authDomain: "",
+      projectId: "",
+      storageBucket: "",
+      messagingSenderId: "",
+      appId: ""
     };
+    // ==================================================================
 
-    const STORAGE_KEY = "starlinkData";
+    // CHANGE THIS TO YOUR GOOGLE EMAIL (only you will see Admin Panel)
+    const ADMIN_EMAIL = "YOUR_ADMIN_EMAIL@example.com";
 
-    // Load from localStorage or use default
-    function loadData() {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        data = JSON.parse(saved);
+    // Global variables
+    let app, auth, db;
+    let currentUser = null;
+    let currentCategoryId = null;
+    let categories = [];
+    let sites = [];
+    let announcementText = "";
+    let usersData = [];
+
+    // Initialize Firebase
+    function initFirebase() {
+      if (!firebaseConfig.apiKey) {
+        alert("Please paste your Firebase config in the code first!");
+        return;
       }
-      renderCategories();
-      showAnnouncement();
-      // For now admin always visible – later we'll hide behind password/prompt
-      document.getElementById("admin-section").style.display = "block";
+      app = firebase.initializeApp(firebaseConfig);
+      auth = firebase.auth();
+      db = firebase.firestore();
+
+      // Auth state listener
+      auth.onAuthStateChanged(async (user) => {
+        currentUser = user;
+        const userNameEl = document.getElementById("user-name");
+        const authBtn = document.getElementById("auth-btn");
+        const addCatForm = document.getElementById("add-category-form");
+        const adminBtn = document.getElementById("admin-menu-btn");
+
+        if (user) {
+          userNameEl.textContent = user.displayName || user.email;
+          authBtn.textContent = "Sign Out";
+          addCatForm.classList.remove("hidden");
+          if (user.email === ADMIN_EMAIL) adminBtn.classList.remove("hidden");
+          // Save/update user in Firestore
+          await db.collection("users").doc(user.uid).set({
+            email: user.email,
+            displayName: user.displayName || "User",
+            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        } else {
+          userNameEl.textContent = "Not signed in";
+          authBtn.textContent = "Sign in with Google";
+          addCatForm.classList.add("hidden");
+          adminBtn.classList.add("hidden");
+          hideAdminPanel();
+        }
+        renderCategories();
+      });
+
+      // Realtime listeners
+      loadRealtimeData();
     }
 
-    function saveData() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    function loadRealtimeData() {
+      // Categories
+      db.collection("categories").orderBy("name").onSnapshot(snapshot => {
+        categories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderCategories();
+      });
+
+      // Sites
+      db.collection("sites").onSnapshot(snapshot => {
+        sites = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (currentCategoryId) renderSites();
+      });
+
+      // Announcement
+      db.collection("settings").doc("announcement").onSnapshot(doc => {
+        announcementText = doc.exists ? (doc.data().text || "") : "";
+        showAnnouncement();
+      });
+
+      // Users
+      db.collection("users").orderBy("email").onSnapshot(snapshot => {
+        usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (document.getElementById("admin-section").style.display === "block") {
+          renderUsersList();
+        }
+      });
     }
 
-    // ────────────────────────────────────────────────
-    // Render functions
-    // ────────────────────────────────────────────────
+    function toggleAuth() {
+      if (currentUser) {
+        auth.signOut();
+      } else {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).catch(err => alert("Sign in error: " + err.message));
+      }
+    }
+
+    // Render categories in sidebar (NO "Categories" header as requested)
     function renderCategories() {
       const list = document.getElementById("categories-list");
       list.innerHTML = "";
-      data.categories.forEach(cat => {
+      if (categories.length === 0) {
+        list.innerHTML = `<div style="padding:1rem; opacity:0.6;">No categories yet.<br>Sign in and add some!</div>`;
+        return;
+      }
+      categories.forEach(cat => {
         const div = document.createElement("div");
-        div.className = "category";
+        div.className = `category ${cat.id === currentCategoryId ? 'active' : ''}`;
         div.textContent = cat.name;
-        div.onclick = () => showCategory(cat.id);
+        div.onclick = () => {
+          currentCategoryId = cat.id;
+          renderCategories(); // refresh active state
+          renderSites();
+          document.getElementById("add-site-form").classList.toggle("hidden", !currentUser);
+        };
         list.appendChild(div);
       });
     }
 
-    let currentCatId = null;
-
-    function showCategory(catId) {
-      currentCatId = catId;
-      const cat = data.categories.find(c => c.id === catId);
-      document.getElementById("current-category").textContent = cat ? cat.name : "Select a category";
-
+    function renderSites() {
       const grid = document.getElementById("sites-grid");
+      const title = document.getElementById("current-category");
       grid.innerHTML = "";
 
-      const filtered = data.sites.filter(s => s.categoryId === catId);
+      const cat = categories.find(c => c.id === currentCategoryId);
+      title.textContent = cat ? cat.name : "Select a category";
+
+      const filtered = sites.filter(s => s.categoryId === currentCategoryId);
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; opacity:0.6; padding:2rem;">No sites yet in this category.</div>`;
+        return;
+      }
       filtered.forEach(site => {
         const card = document.createElement("div");
         card.className = "site-card";
@@ -234,47 +411,117 @@
 
     function showAnnouncement() {
       const el = document.getElementById("announcement");
-      if (data.announcement.trim()) {
-        el.textContent = data.announcement;
+      if (announcementText.trim()) {
+        el.textContent = announcementText;
         el.style.display = "block";
       } else {
         el.style.display = "none";
       }
     }
 
-    // ────────────────────────────────────────────────
-    // Admin actions (basic announcement for now)
-    // ────────────────────────────────────────────────
+    // Public add category (anyone signed in)
+    async function addNewCategory() {
+      if (!currentUser) {
+        alert("Please sign in first");
+        return;
+      }
+      const name = document.getElementById("new-category-name").value.trim();
+      if (!name) return alert("Enter a name");
+      await db.collection("categories").add({
+        name: name,
+        createdBy: currentUser.uid
+      });
+      document.getElementById("new-category-name").value = "";
+      alert("Category added!");
+    }
+
+    // Public add site (anyone signed in, to current category)
+    async function addNewSite() {
+      if (!currentUser || !currentCategoryId) return;
+      const name = document.getElementById("new-site-name").value.trim();
+      const url = document.getElementById("new-site-url").value.trim();
+      if (!name || !url) return alert("Fill both fields");
+      await db.collection("sites").add({
+        name: name,
+        url: url.startsWith("http") ? url : "https://" + url,
+        categoryId: currentCategoryId,
+        createdBy: currentUser.uid
+      });
+      document.getElementById("new-site-name").value = "";
+      document.getElementById("new-site-url").value = "";
+      alert("Site added!");
+    }
+
+    // Admin only functions
+    function showAdminPanel() {
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        alert("Admin access restricted to owner only.");
+        return;
+      }
+      document.getElementById("browse-main").style.display = "none";
+      const adminSec = document.getElementById("admin-section");
+      adminSec.style.display = "block";
+      renderUsersList();
+    }
+
+    function hideAdminPanel() {
+      document.getElementById("browse-main").style.display = "block";
+      document.getElementById("admin-section").style.display = "none";
+    }
+
     function saveAnnouncement() {
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
       const text = document.getElementById("announce-text").value.trim();
-      data.announcement = text;
-      saveData();
-      showAnnouncement();
-      alert("Announcement saved!");
+      db.collection("settings").doc("announcement").set({ text: text }, { merge: true });
+      alert("Announcement saved (white text)!");
     }
 
     function clearAnnouncement() {
-      data.announcement = "";
-      saveData();
-      showAnnouncement();
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+      db.collection("settings").doc("announcement").set({ text: "" });
       document.getElementById("announce-text").value = "";
     }
 
-    // Init
-    loadData();
-
-    // For testing: add a sample category & site if empty
-    if (data.categories.length === 0) {
-      data.categories.push({ id: "c1", name: "Favorites" });
-      data.sites.push({
-        id: "s1",
-        categoryId: "c1",
-        name: "Google",
-        url: "https://google.com"
+    function renderUsersList() {
+      const container = document.getElementById("users-list");
+      container.innerHTML = "";
+      if (usersData.length === 0) {
+        container.innerHTML = "<p>No users yet.</p>";
+        return;
+      }
+      usersData.forEach(user => {
+        const div = document.createElement("div");
+        div.className = "user-item";
+        div.innerHTML = `
+          <div>
+            <strong>${user.displayName || user.email}</strong><br>
+            <small>${user.email}</small>
+          </div>
+          <button onclick="deleteUser('${user.id}')" style="background:#c00;">Delete</button>
+        `;
+        container.appendChild(div);
       });
-      saveData();
-      loadData();
     }
+
+    async function deleteUser(uid) {
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+      if (confirm("Delete this user from the list? (Does NOT delete their Google account)")) {
+        await db.collection("users").doc(uid).delete();
+      }
+    }
+
+    // Click outside admin to go back to browse
+    document.addEventListener("click", (e) => {
+      const admin = document.getElementById("admin-section");
+      if (admin.style.display === "block" && !admin.contains(e.target) && e.target.id !== "admin-menu-btn") {
+        hideAdminPanel();
+      }
+    });
+
+    // Init everything
+    window.onload = () => {
+      initFirebase();
+    };
   </script>
 </body>
 </html>
