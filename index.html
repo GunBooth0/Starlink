@@ -413,14 +413,6 @@
     const currentIconEl = document.getElementById('current-tab-icon');
     const adminTab = document.getElementById("admin-tab");
     const adminEmail = "gunnarbooth@gmail.com";
-     
-     if (adminTab) {
-    if (user.email === adminEmail) {
-        adminTab.classList.remove("hidden");
-    } else {
-        adminTab.classList.add("hidden");
-    }
-}
 
     if (user) {
         // Show all tabs when logged in
@@ -437,7 +429,8 @@ document.querySelectorAll('.nav-link').forEach(tab => {
 
         accountTitle.textContent = "Your Account";
         // 🔐 Fetch role from Firestore
-firebase.firestore().collection("users")
+if (user) {
+    firebase.firestore().collection("users")
   .where("email", "==", user.email)
   .get()
   .then(snapshot => {
