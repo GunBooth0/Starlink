@@ -354,56 +354,52 @@
         </div>
             <!-- ADMIN -->
 <div id="content-admin" class="tab-content hidden">
-    <div class="max-w-4xl mx-auto py-12">
-        
-        <div class="glass rounded-3xl p-10 border border-white/10">
-            
-            <div class="flex items-center justify-between mb-10">
-                <div>
-                    <h2 class="text-3xl font-bold">Admin Panel</h2>
-                    <p class="text-white/60 mt-1">Add new sites to Starlink instantly</p>
+    <div class="max-w-4xl mx-auto py-16">
+
+        <h1 class="text-5xl font-bold mb-12">Admin Panel</h1>
+
+        <div class="space-y-6">
+
+            <!-- Add Sites Card -->
+            <div onclick="openAdminSection('add-sites')" 
+                 class="glass p-8 rounded-3xl border border-white/10 hover:border-[var(--accent)] transition cursor-pointer">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-2xl font-semibold">Add Sites</h3>
+                        <p class="text-white/60 mt-1">Add new websites to Starlink</p>
+                    </div>
+                    <div class="text-3xl">➕</div>
                 </div>
-                <div class="text-4xl">👑</div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                <div>
-                    <label class="block text-sm text-white/60 mb-2">Site Name</label>
-                    <input id="admin-site-name" type="text" placeholder="Ex: Cool Math Games"
-                        class="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)] transition">
+            <!-- Change Roles Card -->
+            <div onclick="openAdminSection('roles')" 
+                 class="glass p-8 rounded-3xl border border-white/10 hover:border-[var(--accent)] transition cursor-pointer">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-2xl font-semibold">Change Roles</h3>
+                        <p class="text-white/60 mt-1">Promote or demote users</p>
+                    </div>
+                    <div class="text-3xl">👥</div>
                 </div>
-
-                <div>
-                    <label class="block text-sm text-white/60 mb-2">Site URL</label>
-                    <input id="admin-site-url" type="text" placeholder="https://example.com"
-                        class="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)] transition">
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block text-sm text-white/60 mb-2">Category</label>
-                    <select id="admin-site-category"
-                        class="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)] transition">
-                        <option value="games">Games</option>
-                        <option value="ai">AI Tools</option>
-                        <option value="tv">TV & Streaming</option>
-                        <option value="proxies">Proxies</option>
-                        <option value="music">Music</option>
-                    </select>
-                </div>
-
             </div>
 
-            <div class="mt-10">
-                <button onclick="addAdminSite()"
-                    class="w-full bg-[var(--accent)] text-black font-semibold py-4 rounded-2xl text-lg transition hover:scale-[1.02] hover:shadow-lg">
-                    Add Site
-                </button>
+            <!-- Future Feature Card -->
+            <div onclick="openAdminSection('logs')" 
+                 class="glass p-8 rounded-3xl border border-white/10 hover:border-[var(--accent)] transition cursor-pointer">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-2xl font-semibold">Admin Logs</h3>
+                        <p class="text-white/60 mt-1">View system activity</p>
+                    </div>
+                    <div class="text-3xl">📜</div>
+                </div>
             </div>
-
-            <p id="admin-message" class="text-center mt-6 text-sm"></p>
 
         </div>
+
+        <!-- Dynamic Section Container -->
+        <div id="admin-dynamic-section" class="mt-12"></div>
 
     </div>
 </div>
@@ -605,7 +601,57 @@
         };
        
 
+function openAdminSection(section) {
+    const container = document.getElementById("admin-dynamic-section");
 
+    if (section === "add-sites") {
+        container.innerHTML = `
+            <div class="glass p-8 rounded-3xl border border-white/10 space-y-6">
+                <h2 class="text-2xl font-semibold">Add New Site</h2>
+
+                <input id="admin-site-name" type="text" placeholder="Site Name"
+                    class="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white">
+
+                <input id="admin-site-url" type="text" placeholder="https://example.com"
+                    class="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white">
+
+                <select id="admin-site-category"
+                    class="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white">
+                    <option value="games">Games</option>
+                    <option value="ai">AI Tools</option>
+                    <option value="tv">TV & Streaming</option>
+                    <option value="proxies">Proxies</option>
+                    <option value="music">Music</option>
+                </select>
+
+                <button onclick="addAdminSite()"
+                    class="bg-[var(--accent)] text-black font-semibold py-3 px-6 rounded-2xl">
+                    Add Site
+                </button>
+
+                <p id="admin-message" class="text-sm"></p>
+            </div>
+        `;
+    }
+
+    if (section === "roles") {
+        container.innerHTML = `
+            <div class="glass p-8 rounded-3xl border border-white/10">
+                <h2 class="text-2xl font-semibold mb-4">Change User Roles</h2>
+                <p class="text-white/60">Role system coming next 👀</p>
+            </div>
+        `;
+    }
+
+    if (section === "logs") {
+        container.innerHTML = `
+            <div class="glass p-8 rounded-3xl border border-white/10">
+                <h2 class="text-2xl font-semibold mb-4">Admin Logs</h2>
+                <p class="text-white/60">Logging system coming soon.</p>
+            </div>
+        `;
+    }
+}
     </script>
 
     <script>
