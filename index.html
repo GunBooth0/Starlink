@@ -26,24 +26,68 @@
         .star { position: absolute; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent); pointer-events: none; animation: floatUp linear infinite; }
         @keyframes floatUp { 0% { transform: translateY(110vh); } 100% { transform: translateY(-30vh); } }
         .main-content { overflow-y: auto; height: 100vh; padding-top: 4rem; }
-        input[type="email"], input[type="password"], textarea { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); color: white; padding: 1rem 1.25rem; border-radius: 1rem; width: 100%; margin-bottom: 1.25rem; font-size: 1rem; transition: all 0.3s ease; }
-        input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(255,255,255,0.15); background: rgba(255,255,255,0.12); }
+        input[type="email"], input[type="password"], textarea, select { 
+            background: rgba(255,255,255,0.08); 
+            border: 1px solid rgba(255,255,255,0.25); 
+            color: white; 
+            padding: 1rem 1.25rem; 
+            border-radius: 1rem; 
+            width: 100%; 
+            margin-bottom: 1.25rem; 
+            font-size: 1rem; 
+            transition: all 0.3s ease; 
+        }
+        input:focus, textarea:focus, select:focus { 
+            outline: none; 
+            border-color: var(--accent); 
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.15); 
+            background: rgba(255,255,255,0.12); 
+        }
         input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.5); }
-        button { padding: 1.25rem 2rem; border-radius: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin: 1rem 0; width: 100%; font-size: 1.2rem; }
+        button { 
+            padding: 1.25rem 2rem; 
+            border-radius: 1rem; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            margin: 1rem 0; 
+            font-size: 1.2rem; 
+        }
         .auth-btn { background: var(--accent); color: #000; }
         .auth-btn:hover { background: white; transform: translateY(-2px); }
-        .github-style-btn { background: black; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 1rem 1.5rem; border-radius: 1rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.75rem; width: 100%; justify-content: center; font-size: 1.1rem; }
+        .github-style-btn { 
+            background: black; 
+            border: 1px solid rgba(255,255,255,0.3); 
+            color: white; 
+            padding: 1rem 1.5rem; 
+            border-radius: 1rem; 
+            font-weight: 500; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.75rem; 
+            width: 100%; 
+            justify-content: center; 
+            font-size: 1.1rem; 
+        }
         .github-style-btn:hover { border-color: var(--accent); transform: translateY(-2px); }
         #auth-message { margin-top: 1.5rem; text-align: center; font-size: 1.1rem; }
         .success { color: #10b981; }
         .error { color: #ef4444; }
-        .announcement-preview { background: rgba(255,255,255,0.1); border-left: 4px solid var(--accent); padding: 1rem; margin: 1rem 0; border-radius: 0.5rem; }
+        .announcement-preview { 
+            background: rgba(255,255,255,0.1); 
+            border-left: 4px solid var(--accent); 
+            padding: 1rem; 
+            margin: 1rem 0; 
+            border-radius: 0.5rem; 
+        }
     </style>
 </head>
 <body>
     <div id="star-bg"></div>
 
-    <!-- Announcement Banner -->
+    <!-- Announcement Banner (shows site-wide for logged-in users) -->
     <div id="announcement-banner" class="hidden fixed top-0 left-0 right-0 bg-yellow-600/80 text-black text-center py-2 z-50 font-medium">
         <span id="announcement-text"></span>
     </div>
@@ -186,7 +230,7 @@
                 </div>
             </div>
 
-            <!-- ADMIN PANEL – Now with Announcement Editor -->
+            <!-- ADMIN PANEL – with Announcement Editor -->
             <div id="content-admin" class="tab-content hidden">
                 <div class="max-w-5xl mx-auto py-12">
                     <h2 class="text-4xl font-bold logo-font tracking-tight mb-10">Admin Panel</h2>
@@ -195,7 +239,7 @@
                         <h3 class="text-2xl font-semibold mb-6">Site Announcement</h3>
                         <p class="text-white/70 mb-6">This message appears as a yellow banner at the top of the site for all logged-in users.</p>
 
-                        <textarea id="announce-text" rows="4" class="w-full mb-4" placeholder="Type announcement here... (e.g. 'Site maintenance at 8 PM')"></textarea>
+                        <textarea id="announce-text" rows="4" class="w-full mb-4" placeholder="Type announcement here... (e.g. 'Maintenance tonight at 8 PM')"></textarea>
 
                         <div id="announce-preview" class="announcement-preview hidden mb-6 p-4">
                             <span id="preview-text"></span>
@@ -206,7 +250,7 @@
                             <button onclick="clearAnnouncement()" class="bg-red-600 hover:bg-red-700 px-8 py-4 rounded-xl">Clear Announcement</button>
                         </div>
 
-                        <p class="mt-6 text-sm text-white/60">Changes take effect immediately for all users (refresh may be needed).</p>
+                        <p class="mt-6 text-sm text-white/60">Changes appear instantly site-wide (refresh may be needed).</p>
                     </div>
                 </div>
             </div>
@@ -274,12 +318,12 @@
                 return;
             }
             await setDoc(doc(db, "announcements", "current"), { text });
-            alert("Announcement published!");
+            alert("Announcement saved and published!");
             loadAnnouncement();
         };
 
         window.clearAnnouncement = async () => {
-            if (!confirm("Remove announcement for everyone?")) return;
+            if (!confirm("Remove the announcement banner for everyone?")) return;
             await deleteDoc(doc(db, "announcements", "current"));
             alert("Announcement cleared.");
             loadAnnouncement();
@@ -305,10 +349,10 @@
                     currentTabEl.textContent = 'Verify Email';
                     currentIconEl.className = 'text-3xl fa-solid fa-envelope';
                     accountTitle.textContent = 'Verify Your Email';
-                    messageEl.textContent = "Please verify your email first.";
+                    if (messageEl) messageEl.textContent = "Please verify your email first.";
                     messageEl.className = "error";
-                    userInfo.classList.add('hidden');
-                    authForm.classList.remove('hidden');
+                    if (userInfo) userInfo.classList.add('hidden');
+                    if (authForm) authForm.classList.remove('hidden');
                     navLinks.innerHTML = `
                         <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-7">
                             <i class="fa-solid fa-user w-5"></i> <span>Account</span>
@@ -319,10 +363,12 @@
                 }
 
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
-                userInfo.classList.remove('hidden');
-                document.getElementById('user-email').textContent = user.email;
-                authForm.classList.add('hidden');
-                messageEl.textContent = '';
+                if (userInfo) {
+                    userInfo.classList.remove('hidden');
+                    document.getElementById('user-email').textContent = user.email;
+                }
+                if (authForm) authForm.classList.add('hidden');
+                if (messageEl) messageEl.textContent = '';
                 accountTitle.textContent = 'Account';
 
                 let adminLink = '';
