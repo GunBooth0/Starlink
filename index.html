@@ -13,21 +13,21 @@
         body { background: #000000; color: #ffffff; font-family: 'Inter', system-ui, sans-serif; margin: 0; height: 100vh; overflow: hidden; }
         .logo-font { font-family: 'Space Grotesk', sans-serif; }
         .star-svg { animation: pulse 4s infinite ease-in-out; filter: drop-shadow(0 0 20px var(--accent)); }
-        @keyframes pulse { 0%, 100% { filter: drop-shadow(0 0 20px var(--accent)); } 50% { filter: drop-shadow(0 0 45px var(--accent)); } }
-        .nav-link { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); color: #ffffff; }
+        @keyframes pulse { 0%,100% { filter: drop-shadow(0 0 20px var(--accent)); } 50% { filter: drop-shadow(0 0 45px var(--accent)); } }
+        .nav-link { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); color: #ffffff; }
         .nav-link:hover, .nav-link.active-tab { color: var(--accent)!important; background: rgba(255,255,255,0.08); }
         .nav-link i { color: inherit; }
         #current-tab-icon, #current-tab { color: var(--accent); transition: color 0.4s ease; }
-        .card { transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); }
+        .card { transition: all 0.4s cubic-bezier(0.4,0,0.2,1); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); }
         .card:hover { transform: translateY(-8px) scale(1.03); border-color: var(--accent); background: rgba(255,255,255,0.06); }
         .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); }
         .tail-container { max-width: 1280px; margin-left: auto; margin-right: auto; }
         #star-bg { position: fixed; inset: 0; z-index: -1; pointer-events: auto; }
-        .star { position: absolute; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent); pointer-events: none; animation: floatUp linear infinite; }
+        .star { position: absolute; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent),0 0 16px var(--accent); pointer-events: none; animation: floatUp linear infinite; }
         @keyframes floatUp { 0% { transform: translateY(110vh); } 100% { transform: translateY(-30vh); } }
         .main-content { overflow-y: auto; height: 100vh; padding-top: 4rem; }
 
-        /* Login/signup inputs — restored to original look (no global override) */
+        /* Login/signup inputs - normal look */
         #auth-form input[type="email"], #auth-form input[type="password"] {
             background: rgba(255,255,255,0.08);
             border: 1px solid rgba(255,255,255,0.25);
@@ -48,7 +48,7 @@
         #auth-form input::placeholder { color: rgba(255,255,255,0.5); }
 
         /* Admin announcement fields only */
-        #announce-text, #announce-text:focus {
+        #announce-text {
             background: rgba(255,255,255,0.08);
             border: 1px solid rgba(255,255,255,0.25);
             color: white;
@@ -76,7 +76,7 @@
         .success { color: #10b981; }
         .error { color: #ef4444; }
         .announcement-preview { background: rgba(255,255,255,0.1); border-left: 4px solid var(--accent); padding: 1rem; margin: 1rem 0; border-radius: 0.5rem; }
-        #content-admin .glass { min-height: 500px !important; display: block !important; } /* FORCE SHOW */
+        #content-admin .glass { min-height: 600px !important; display: block !important; padding: 2rem; } /* Force visibility */
     </style>
 </head>
 <body>
@@ -112,7 +112,7 @@
         </div>
 
         <div class="pt-24 pb-20 px-10 tail-container">
-            <!-- ACCOUNT TAB (unchanged) -->
+            <!-- ACCOUNT TAB -->
             <div id="content-account" class="tab-content">
                 <div class="max-w-md mx-auto py-12">
                     <h2 class="text-3xl font-bold text-center mb-8" id="account-title">Sign In Required</h2>
@@ -139,7 +139,7 @@
                 </div>
             </div>
 
-            <!-- HOME (unchanged) -->
+            <!-- HOME -->
             <div id="content-home" class="tab-content hidden">
                 <div class="max-w-4xl mx-auto text-center pt-12">
                     <svg width="180" height="180" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
@@ -154,16 +154,85 @@
                 </div>
             </div>
 
-            <!-- ... other tabs unchanged ... -->
+            <!-- GAMES -->
+            <div id="content-games" class="tab-content hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="games-grid"></div>
+            </div>
 
-            <!-- ADMIN PANEL – FORCED VISIBLE + TEST TEXT -->
+            <!-- AI TOOLS -->
+            <div id="content-ai" class="tab-content hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="ai-grid"></div>
+            </div>
+
+            <!-- TV & STREAMING -->
+            <div id="content-tv" class="tab-content hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="tv-grid"></div>
+            </div>
+
+            <!-- PROXIES -->
+            <div id="content-proxies" class="tab-content hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="proxy-grid"></div>
+            </div>
+
+            <!-- MUSIC -->
+            <div id="content-music" class="tab-content hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div>
+            </div>
+
+            <!-- SETTINGS -->
+            <div id="content-settings" class="tab-content hidden">
+                <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
+                    <h3 class="text-2xl font-semibold mb-6">Appearance • Choose Theme</h3>
+                    <p class="text-white/70 mb-8">Click a color to instantly change the accent, stars, glow, and sidebar highlights</p>
+                    <div id="theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div>
+                    <div class="mt-12 pt-8 border-t border-white/10">
+                        <h3 class="text-2xl font-semibold mb-6">Link Behavior</h3>
+                        <div class="flex justify-between items-center py-4">
+                            <div class="flex items-center gap-x-3 text-lg">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                <span>Open links in new tab</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer" id="newtab-toggle">
+                                <div class="w-14 h-7 bg-white/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]"></div>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mt-12 pt-8 border-t border-white/10">
+                        <h3 class="text-2xl font-semibold mb-6 text-red-400">Danger Zone</h3>
+                        <button onclick="resetEverything()" class="bg-red-600 hover:bg-red-700 text-white font-medium py-4 px-8 rounded-xl transition-colors text-lg">
+                            Reset Everything (theme, preferences & sign out)
+                        </button>
+                        <p id="reset-message" class="text-sm text-white/60 mt-3 hidden">Reset complete! Signing out and refreshing...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CREDITS -->
+            <div id="content-credits" class="tab-content hidden">
+                <div class="max-w-3xl mx-auto text-center py-20">
+                    <svg width="120" height="120" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+                    </svg>
+                    <h1 class="logo-font text-6xl font-bold tracking-tight mb-8">Credits</h1>
+                    <p class="text-2xl text-white/80 mb-6">
+                        Created, designed, and built entirely by <span class="font-semibold text-[var(--accent)]">Gunnar Booth</span>
+                    </p>
+                    <a href="https://github.com/gunbooth0/starlink" target="_blank" rel="noopener noreferrer" class="github-style-btn inline-flex">
+                        <i class="fa-brands fa-github text-3xl"></i>
+                        View Source on GitHub
+                    </a>
+                </div>
+            </div>
+
+            <!-- ADMIN PANEL – FORCED VISIBLE -->
             <div id="content-admin" class="tab-content hidden">
                 <div class="max-w-5xl mx-auto py-12">
                     <h2 class="text-4xl font-bold logo-font tracking-tight mb-10">Admin Panel</h2>
 
                     <div class="glass rounded-3xl p-8 min-h-[600px] block">
                         <h3 class="text-3xl font-bold mb-8 text-red-400">TEST VISIBLE – ADMIN PANEL WORKING</h3>
-                        <p class="text-xl mb-6">If you see this text, the panel is loaded. Type below and save to test the banner.</p>
+                        <p class="text-xl mb-6">You should see this text now. Type below and save to test banner.</p>
 
                         <textarea id="announce-text" rows="5" class="w-full mb-6 p-4 rounded-xl bg-white/10 border border-white/30 text-white text-lg" placeholder="Type announcement here..."></textarea>
 
@@ -176,7 +245,7 @@
                             <button onclick="clearAnnouncement()" class="bg-red-600 hover:bg-red-700 px-10 py-5 text-xl rounded-xl w-full sm:w-auto">Clear Announcement</button>
                         </div>
 
-                        <p class="mt-8 text-lg text-white/80">After saving, switch to Home tab — look for yellow banner at very top of screen.</p>
+                        <p class="mt-8 text-lg text-white/80">After saving, switch to Home tab — yellow banner should appear at top.</p>
                     </div>
                 </div>
             </div>
@@ -246,16 +315,16 @@
             if (!text) return alert("Enter a message first.");
             try {
                 await setDoc(doc(db, "announcements", "current"), { text });
-                alert("Saved! Check top banner after switching tabs.");
+                alert("Saved! Switch tabs to see banner.");
                 loadAnnouncement();
             } catch (e) {
-                alert("Save failed — check console (F12) for details.");
+                alert("Save failed — check console.");
                 console.error("Save error:", e);
             }
         };
 
         window.clearAnnouncement = async () => {
-            if (!confirm("Clear banner for everyone?")) return;
+            if (!confirm("Clear banner?")) return;
             try {
                 await deleteDoc(doc(db, "announcements", "current"));
                 alert("Cleared!");
@@ -360,14 +429,8 @@
                     switchTab(0);
                     if (isAdmin(user)) {
                         loadAnnouncement();
-                        // Force show admin content
-                        const adminGlass = document.querySelector('#content-admin .glass');
-                        if (adminGlass) {
-                            adminGlass.style.minHeight = '600px';
-                            adminGlass.style.display = 'block';
-                        }
                     }
-                }, 500); // Extra delay for safety
+                }, 500);
 
             } else {
                 statusEl.textContent = '';
@@ -513,10 +576,21 @@
             const content = document.getElementById(contentIds[index]);
             if (content) {
                 content.classList.remove('hidden');
-                // Force admin content visible
-                if (index === 10) {
-                    const glass = content.querySelector('.glass');
-                    if (glass) glass.style.display = 'block';
+                // Load new-tab preference ONLY when Settings tab is opened
+                if (index === 6) {
+                    const checkbox = document.getElementById('newtab-toggle');
+                    if (checkbox) {
+                        const saved = localStorage.getItem('starlinkNewTab');
+                        if (saved === null) {
+                            checkbox.checked = true;
+                            localStorage.setItem('starlinkNewTab', 'true');
+                        } else {
+                            checkbox.checked = saved === 'true';
+                        }
+                        checkbox.addEventListener('change', (e) => {
+                            localStorage.setItem('starlinkNewTab', e.target.checked ? 'true' : 'false');
+                        });
+                    }
                 }
             }
 
@@ -561,23 +635,10 @@
             localStorage.setItem('starlinkNewTab', value ? 'true' : 'false');
         }
 
-        function loadNewTabPreference() {
-            const saved = localStorage.getItem('starlinkNewTab');
-            const checkbox = document.getElementById('newtab-toggle');
-            if (saved === null) {
-                checkbox.checked = true;
-                saveNewTabPreference(true);
-            } else {
-                checkbox.checked = saved === 'true';
-            }
-        }
-
         function resetEverything() {
             if (!confirm("Reset everything and sign out?")) return;
             localStorage.clear();
             setTheme('#ffffff');
-            document.getElementById('newtab-toggle').checked = true;
-            saveNewTabPreference(true);
             firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
         }
 
@@ -647,7 +708,7 @@
                     <div class="font-semibold text-xl mb-2">${site.name}</div>
                 `;
                 card.onclick = () => {
-                    const newTab = document.getElementById('newtab-toggle').checked;
+                    const newTab = localStorage.getItem('starlinkNewTab') !== 'false';
                     if (newTab) window.open(site.url, '_blank');
                     else window.location.href = site.url;
                 };
@@ -679,11 +740,7 @@
 
         function initialize() {
             loadTheme();
-            loadNewTabPreference();
             initStars();
-            document.getElementById('newtab-toggle').addEventListener('change', (e) => {
-                saveNewTabPreference(e.target.checked);
-            });
             populateThemeGrid();
             populateGrid('games', 'games-grid');
             populateGrid('ai', 'ai-grid');
