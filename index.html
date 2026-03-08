@@ -43,7 +43,7 @@
 <body>
     <div id="star-bg"></div>
 
-    <!-- Announcement Banner -->
+    <!-- Announcement Banner (shows for all logged-in users) -->
     <div id="announcement-banner" class="hidden fixed top-0 left-0 right-0 bg-yellow-600/80 text-black text-center py-2 z-50 font-medium">
         <span id="announcement-text"></span>
     </div>
@@ -186,13 +186,13 @@
                 </div>
             </div>
 
-            <!-- ADMIN PANEL – with announcement only for now -->
+            <!-- ADMIN PANEL – Announcement Section -->
             <div id="content-admin" class="tab-content hidden">
                 <div class="max-w-5xl mx-auto py-12">
                     <h2 class="text-4xl font-bold logo-font tracking-tight mb-10">Admin Panel</h2>
                     <div class="glass rounded-3xl p-8">
                         <h3 class="text-2xl font-semibold mb-4">Site Announcement</h3>
-                        <p class="text-white/70 mb-6">This message shows at the top of the site for all logged-in users.</p>
+                        <p class="text-white/70 mb-6">This message will appear as a yellow banner at the top of the site for all logged-in users.</p>
                         <textarea id="announce-text" rows="4" class="w-full mb-4" placeholder="Type your announcement here..."></textarea>
                         <div id="announce-preview" class="announcement-preview hidden mb-4 p-4">
                             <span id="preview-text"></span>
@@ -250,6 +250,34 @@
             if (!user || !user.email) return false;
             return user.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim();
         }
+
+        async function loadAnnouncement() {
+            const annDoc = await getDoc(doc(db, "announcements", "current"));
+            if (annDoc.exists() && annDoc.data().text) {
+                document.getElementById('announcement-text').textContent = annDoc.data().text;
+                document.getElementById('announcement-banner').classList.remove('hidden');
+            } else {
+                document.getElementById('announcement-banner').classList.add('hidden');
+            }
+        }
+
+        window.saveAnnouncement = async () => {
+            const text = document.getElementById('announce-text').value.trim();
+            if (!text) {
+                alert("Please enter a message first.");
+                return;
+            }
+            await setDoc(doc(db, "announcements", "current"), { text });
+            alert("Announcement saved and published!");
+            loadAnnouncement();
+        };
+
+        window.clearAnnouncement = async () => {
+            if (!confirm("Clear the announcement banner for everyone?")) return;
+            await deleteDoc(doc(db, "announcements", "current"));
+            alert("Announcement cleared.");
+            loadAnnouncement();
+        };
 
         function updateUIForAuth(user) {
             window.currentUser = user;
@@ -344,6 +372,9 @@
                     populateGrid('proxies', 'proxy-grid');
                     populateGrid('music', 'music-grid');
                     switchTab(0);
+                    if (isAdmin(user)) {
+                        loadAnnouncement();
+                    }
                 }, 100);
 
             } else {
@@ -663,41 +694,6 @@
         }
 
         window.onload = initialize;
-
-        // ────────────────────────────────────────────────
-        // ADMIN ANNOUNCEMENT FEATURE – TEST THIS FIRST
-        // ────────────────────────────────────────────────
-
-        async function loadAnnouncement() {
-            const annDoc = await getDoc(doc(db, "announcements", "current"));
-            if (annDoc.exists() && annDoc.data().text) {
-                document.getElementById('announcement-text').textContent = annDoc.data().text;
-                document.getElementById('announcement-banner').classList.remove('hidden');
-            } else {
-                document.getElementById('announcement-banner').classList.add('hidden');
-            }
-        }
-
-        window.saveAnnouncement = async () => {
-            const text = document.getElementById('announce-text').value.trim();
-            if (!text) {
-                alert("Enter a message first.");
-                return;
-            }
-            await setDoc(doc(db, "announcements", "current"), { text });
-            alert("Announcement saved! Refresh or switch tabs to see the banner.");
-            loadAnnouncement();
-        };
-
-        window.clearAnnouncement = async () => {
-            if (!confirm("Remove the announcement banner?")) return;
-            await deleteDoc(doc(db, "announcements", "current"));
-            alert("Announcement cleared.");
-            loadAnnouncement();
-        };
-
-        // Call loadAnnouncement after login if admin
-        // (added inside updateUIForAuth after switchTab(0) in admin block)
     </script>
 </body>
 </html>
