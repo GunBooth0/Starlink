@@ -18,7 +18,7 @@
         .nav-link:hover, .nav-link.active-tab { color: var(--accent)!important; background: rgba(255,255,255,0.08); }
         .nav-link i { color: inherit; }
         #current-tab-icon, #current-tab { color: var(--accent); transition: color 0.4s ease; }
-        .card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); }
+        .card { transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); }
         .card:hover { transform: translateY(-8px) scale(1.03); border-color: var(--accent); background: rgba(255,255,255,0.06); }
         .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); }
         .tail-container { max-width: 1280px; margin-left: auto; margin-right: auto; }
@@ -27,7 +27,7 @@
         @keyframes floatUp { 0% { transform: translateY(110vh); } 100% { transform: translateY(-30vh); } }
         .main-content { overflow-y: auto; height: 100vh; padding-top: 4rem; }
 
-        /* Login inputs - normal size & rounding */
+        /* Login inputs normal */
         #auth-form input[type="email"], #auth-form input[type="password"] {
             background: rgba(255,255,255,0.08);
             border: 1px solid rgba(255,255,255,0.25);
@@ -47,7 +47,7 @@
         }
         #auth-form input::placeholder { color: rgba(255,255,255,0.5); }
 
-        /* Announcement fields only */
+        /* Announcement fields */
         #announce-text {
             background: rgba(255,255,255,0.08);
             border: 1px solid rgba(255,255,255,0.25);
@@ -83,7 +83,7 @@
 <body>
     <div id="star-bg"></div>
 
-    <!-- Announcement Banner – visible on ALL tabs when active -->
+    <!-- Announcement Banner - shows on ALL tabs -->
     <div id="announcement-banner" class="hidden fixed top-0 left-0 right-0 bg-yellow-600/80 text-black text-center py-3 z-50 font-medium shadow-lg">
         <span id="announcement-text"></span>
     </div>
@@ -292,12 +292,8 @@
 
         window.currentUser = null;
 
-        function isAdmin(user) {
-            if (!user || !user.email) return false;
-            return user.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim();
-        }
-
-        async function loadAnnouncement() {
+        // Global announcement functions
+        window.loadAnnouncement = async function() {
             try {
                 const annDoc = await getDoc(doc(db, "announcements", "current"));
                 const banner = document.getElementById('announcement-banner');
@@ -314,33 +310,37 @@
             } catch (e) {
                 console.error("Banner load failed:", e);
             }
-        }
+        };
 
-        window.saveAnnouncement = async () => {
+        window.saveAnnouncement = async function() {
             const text = document.getElementById('announce-text')?.value?.trim();
             if (!text) return alert("Enter a message first.");
             try {
                 await setDoc(doc(db, "announcements", "current"), { text });
                 alert("Announcement saved! It now appears on all tabs.");
-                loadAnnouncement();
-                // Extra call to ensure banner updates everywhere
-                setTimeout(loadAnnouncement, 300);
+                window.loadAnnouncement();
+                setTimeout(window.loadAnnouncement, 300);
             } catch (e) {
-                alert("Save failed – check console for details.");
+                alert("Save failed – check console.");
                 console.error("Save error:", e);
             }
         };
 
-        window.clearAnnouncement = async () => {
+        window.clearAnnouncement = async function() {
             if (!confirm("Remove announcement from all tabs?")) return;
             try {
                 await deleteDoc(doc(db, "announcements", "current"));
                 alert("Announcement cleared site-wide.");
-                loadAnnouncement();
+                window.loadAnnouncement();
             } catch (e) {
                 console.error("Clear error:", e);
             }
         };
+
+        function isAdmin(user) {
+            if (!user || !user.email) return false;
+            return user.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim();
+        }
 
         function updateUIForAuth(user) {
             window.currentUser = user;
@@ -436,7 +436,7 @@
                     populateGrid('music', 'music-grid');
                     switchTab(0);
                     if (isAdmin(user)) {
-                        loadAnnouncement();
+                        window.loadAnnouncement();
                     }
                 }, 500);
 
@@ -585,7 +585,7 @@
             if (content) {
                 content.classList.remove('hidden');
                 // Refresh announcement banner on EVERY tab switch
-                loadAnnouncement();
+                if (window.loadAnnouncement) window.loadAnnouncement();
             }
 
             document.getElementById('current-tab').textContent = tabTitles[index] || "Home";
