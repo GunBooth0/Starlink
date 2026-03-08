@@ -307,10 +307,10 @@
                     </a>
                 </div>
             </div>
-            <!-- ADMIN PANEL (only visible to you) -->
+            <!-- ADMIN PANEL -->
             <div id="content-admin" class="tab-content hidden">
                 <div class="max-w-5xl mx-auto py-12">
-                    <h2 class="text-4xl font-bold logo-font tracking-tight mb-10 text-orange-400">Admin Panel</h2>
+                    <h2 class="text-4xl font-bold logo-font tracking-tight mb-10">Admin Panel</h2>
                     
                     <div class="glass rounded-3xl p-8 mb-10">
                         <h3 class="text-2xl font-semibold mb-6">Quick Stats</h3>
@@ -330,7 +330,7 @@
                     </div>
 
                     <div class="mt-12 text-center text-white/50 text-sm">
-                        Only visible when logged in with gunbooth@hotmail.com
+                        Only visible when logged in with your admin email
                     </div>
                 </div>
             </div>
@@ -339,7 +339,6 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        // CHANGE THIS ONLY if you switch to a different admin email
         const ADMIN_EMAIL = "gunbooth@hotmail.com";
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
@@ -375,10 +374,7 @@
 
         function isAdmin(user) {
             if (!user || !user.email) return false;
-            const userEmail = user.email.toLowerCase().trim();
-            const adminEmail = ADMIN_EMAIL.toLowerCase().trim();
-            console.log("[ADMIN CHECK] User email:", userEmail, "Expected:", adminEmail);
-            return userEmail === adminEmail;
+            return user.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim();
         }
 
         function updateUIForAuth(user) {
@@ -428,7 +424,7 @@
                 let adminLink = '';
                 if (isAdmin(user)) {
                     adminLink = `
-                        <div onclick="switchTab(99)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-2 text-orange-400 hover:text-orange-300" id="tab-99">
+                        <div onclick="switchTab(99)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-2" id="tab-99">
                             <i class="fa-solid fa-screwdriver-wrench w-5"></i> <span>Admin Panel</span>
                         </div>
                         <div class="border-t border-white/20 my-3 mx-6"></div>
@@ -527,7 +523,7 @@
 
                         await firebaseAuth.signOut(auth);
 
-                        // Force signed-out UI without flash
+                        // Force signed-out UI
                         document.getElementById('nav-links').innerHTML = `
                             <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-7">
                                 <i class="fa-solid fa-user w-5"></i> <span>Account</span>
@@ -609,7 +605,7 @@
         const tabIcons = [
             'fa-house', 'fa-gamepad', 'fa-brain', 'fa-tv', 'fa-shield-halved',
             'fa-music', 'fa-gear', 'fa-user', 'fa-heart', 'fa-paper-plane',
-            'fa-screwdriver-wrench'   // admin
+            'fa-screwdriver-wrench'
         ];
         const tabTitles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings", "Account", "Credits", "Request a Site", "Admin Panel"];
         const contentIds = [
