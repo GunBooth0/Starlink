@@ -596,10 +596,20 @@
     const navLinks = document.getElementById("nav-links");
 
         function switchTab(index) {
-            if (!window.currentUser && index !== 7) {
-                switchTab(7);
-                return;
-            }
+
+    // 🔒 Force Account tab if not logged in
+    if (!window.currentUser && index !== 7) {
+        index = 7;
+    }
+
+    // 👑 Block Admin tab unless correct email
+    const adminEmail = "gunnarbooth@gmail.com";
+
+    if (index === 9) {
+        if (!window.currentUser || window.currentUser.email !== adminEmail) {
+            index = 7; // send to Account instead
+        }
+    }
 
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
             const activeTab = document.getElementById(`tab-${index}`);
@@ -766,8 +776,7 @@
         function requestSite() {
             window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
         }
-        function showAdminPanel() {
-            alert("Admin Panel Clicked");
+        
 }
         function initialize() {
             loadTheme();
