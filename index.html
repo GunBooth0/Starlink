@@ -791,7 +791,47 @@
         saveNewTabPreference(e.target.checked);
     });
 }
-        
+        function addAdminSite() {
+    if (!window.currentUser) return;
+
+    const adminEmail = "gunnarbooth@gmail.com";
+    if (window.currentUser.email !== adminEmail) {
+        alert("Not authorized.");
+        return;
+    }
+
+    const name = document.getElementById("admin-site-name").value.trim();
+    const url = document.getElementById("admin-site-url").value.trim();
+    const category = document.getElementById("admin-site-category").value;
+    const message = document.getElementById("admin-message");
+
+    if (!name || !url) {
+        message.textContent = "Please fill in all fields.";
+        message.className = "text-red-400";
+        return;
+    }
+
+    sites[category].push({
+        name: name,
+        url: url,
+        desc: "",
+        icon: "⭐"
+    });
+
+    populateGrid(category,
+        category === "games" ? "games-grid" :
+        category === "ai" ? "ai-grid" :
+        category === "tv" ? "tv-grid" :
+        category === "proxies" ? "proxy-grid" :
+        "music-grid"
+    );
+
+    document.getElementById("admin-site-name").value = "";
+    document.getElementById("admin-site-url").value = "";
+
+    message.textContent = "Site added successfully!";
+    message.className = "text-green-400";
+}
         window.onload = initialize;
 </script>
 </body>
