@@ -164,6 +164,7 @@
 </head>
 <body>
     <div id="star-bg"></div>
+
     <!-- SIDEBAR -->
     <div class="w-72 bg-black border-r border-white/10 flex flex-col fixed h-screen z-50">
         <div class="p-8 flex items-center gap-x-4 border-b border-white/10">
@@ -177,6 +178,7 @@
         </div>
         <div class="flex-1 px-6 py-8 overflow-y-auto" id="nav-links"></div>
     </div>
+
     <!-- MAIN CONTENT -->
     <div class="flex-1 ml-72 main-content">
         <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50 top-0">
@@ -186,6 +188,7 @@
                 <span id="user-status" class="ml-auto text-sm text-white/70"></span>
             </div>
         </div>
+
         <div class="pt-24 pb-20 px-10 tail-container">
             <!-- ACCOUNT TAB -->
             <div id="content-account" class="tab-content">
@@ -229,6 +232,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- HOME -->
             <div id="content-home" class="tab-content hidden">
                 <div class="max-w-4xl mx-auto text-center pt-12">
@@ -243,26 +247,32 @@
                     <div class="mt-8 text-white/50 text-lg">By: Gunnar Booth</div>
                 </div>
             </div>
+
             <!-- GAMES -->
             <div id="content-games" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="games-grid"></div>
             </div>
+
             <!-- AI TOOLS -->
             <div id="content-ai" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="ai-grid"></div>
             </div>
+
             <!-- TV & STREAMING -->
             <div id="content-tv" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="tv-grid"></div>
             </div>
+
             <!-- PROXIES -->
             <div id="content-proxies" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="proxy-grid"></div>
             </div>
+
             <!-- MUSIC -->
             <div id="content-music" class="tab-content hidden">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div>
             </div>
+
             <!-- SETTINGS -->
             <div id="content-settings" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
@@ -291,6 +301,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- CREDITS -->
             <div id="content-credits" class="tab-content hidden">
                 <div class="max-w-3xl mx-auto text-center py-20">
@@ -307,6 +318,7 @@
                     </a>
                 </div>
             </div>
+
             <!-- ADMIN PANEL -->
             <div id="content-admin" class="tab-content hidden">
                 <div class="max-w-5xl mx-auto py-12">
@@ -471,7 +483,9 @@
                     populateGrid('tv', 'tv-grid');
                     populateGrid('proxies', 'proxy-grid');
                     populateGrid('music', 'music-grid');
-                    switchTab(isAdmin(user) ? 99 : 0);
+                    // If admin → start on Admin Panel, otherwise Home
+                    const startTab = isAdmin(user) ? 99 : 0;
+                    switchTab(startTab);
                 }, 50);
 
             } else {
@@ -523,7 +537,6 @@
 
                         await firebaseAuth.signOut(auth);
 
-                        // Force signed-out UI
                         document.getElementById('nav-links').innerHTML = `
                             <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-7">
                                 <i class="fa-solid fa-user w-5"></i> <span>Account</span>
@@ -605,12 +618,17 @@
         const tabIcons = [
             'fa-house', 'fa-gamepad', 'fa-brain', 'fa-tv', 'fa-shield-halved',
             'fa-music', 'fa-gear', 'fa-user', 'fa-heart', 'fa-paper-plane',
-            'fa-screwdriver-wrench'
+            'fa-screwdriver-wrench'  // admin
         ];
-        const tabTitles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings", "Account", "Credits", "Request a Site", "Admin Panel"];
+        const tabTitles = [
+            "Home", "Games", "AI Tools", "TV & Streaming", "Proxies",
+            "Music", "Settings", "Account", "Credits", "Request a Site",
+            "Admin Panel"
+        ];
         const contentIds = [
             'content-home', 'content-games', 'content-ai', 'content-tv', 'content-proxies',
-            'content-music', 'content-settings', 'content-account', 'content-credits', 'content-admin'
+            'content-music', 'content-settings', 'content-account', 'content-credits',
+            'content-admin'
         ];
 
         function switchTab(index) {
@@ -627,8 +645,9 @@
             const content = document.getElementById(contentIds[index]);
             if (content) content.classList.remove('hidden');
 
-            document.getElementById('current-tab').textContent = tabTitles[index];
-            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
+            // Update top bar title + icon
+            document.getElementById('current-tab').textContent = tabTitles[index] || "Home";
+            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index] || 'fa-house'}`;
         }
 
         const themes = [
@@ -653,17 +672,21 @@
             { name: "Coral", color: "#f87171" },
             { name: "Electric Violet", color: "#a855f7" }
         ];
+
         function setTheme(color) {
             document.documentElement.style.setProperty('--accent', color);
             localStorage.setItem('starlinkAccent', color);
         }
+
         function loadTheme() {
             const saved = localStorage.getItem('starlinkAccent');
             setTheme(saved || '#ffffff');
         }
+
         function saveNewTabPreference(value) {
             localStorage.setItem('starlinkNewTab', value ? 'true' : 'false');
         }
+
         function loadNewTabPreference() {
             const saved = localStorage.getItem('starlinkNewTab');
             const checkbox = document.getElementById('newtab-toggle');
@@ -674,6 +697,7 @@
                 checkbox.checked = saved === 'true';
             }
         }
+
         function resetEverything() {
             if (!confirm("Reset all settings to default? This will also sign you out.")) return;
             localStorage.removeItem('starlinkAccent');
@@ -694,6 +718,7 @@
                 location.reload();
             });
         }
+
         function createStar(x, y) {
             const star = document.createElement('div');
             star.className = 'star';
@@ -708,6 +733,7 @@
             document.getElementById('star-bg').appendChild(star);
             setTimeout(() => star.remove(), duration * 1000 + 2000);
         }
+
         function initStars(count = 100) {
             for (let i = 0; i < count; i++) {
                 const x = Math.random() * window.innerWidth;
@@ -715,10 +741,12 @@
                 createStar(x, y);
             }
         }
+
         document.addEventListener('click', (e) => {
             if (e.target.closest('button, a, .nav-link, input, label, svg, .card')) return;
             createStar(e.clientX, e.clientY);
         });
+
         const sites = {
             games: [
                 { name: "Shell Shockers", url: "https://egghead.institute/", desc: "", icon: "🎮" },
@@ -744,6 +772,7 @@
                 { name: "Amazon Music", url: "https://music.amazon.com/", desc: "", icon: "🎵" },
             ]
         };
+
         function populateGrid(category, containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -764,6 +793,7 @@
                 container.appendChild(card);
             });
         }
+
         function populateThemeGrid() {
             const container = document.getElementById('theme-grid');
             if (!container) return;
@@ -781,9 +811,11 @@
                 container.appendChild(el);
             });
         }
+
         function requestSite() {
             window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
         }
+
         function initialize() {
             loadTheme();
             loadNewTabPreference();
@@ -792,6 +824,7 @@
                 saveNewTabPreference(e.target.checked);
             });
         }
+
         window.onload = initialize;
     </script>
 </body>
