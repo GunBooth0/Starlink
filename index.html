@@ -355,22 +355,27 @@
     </div>
             <!-- ADMIN -->
             <div id="content-admin" class="tab-content hidden">
-                <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
-                    <h2 class="text-3xl font-bold mb-6">Admin Panel</h2>
+                <h3 class="text-xl font-semibold mb-6">Add New Site</h3>
 
-                        <div class="space-y-6">
-                <div class="bg-black/40 p-6 rounded-2xl border border-white/10">
-                <h3 class="text-xl font-semibold mb-3">Admin Controls</h3>
+<div class="space-y-4">
+    <input id="admin-site-name" type="text" placeholder="Site Name">
+    <input id="admin-site-url" type="text" placeholder="Site URL (https://example.com)">
+    
+    <select id="admin-site-category" class="w-full p-4 rounded-xl bg-black border border-white/20 text-white">
+        <option value="games">Games</option>
+        <option value="ai">AI Tools</option>
+        <option value="tv">TV & Streaming</option>
+        <option value="proxies">Proxies</option>
+        <option value="music">Music</option>
+    </select>
 
-                <button onclick="alert('User management coming soon')"
-                    class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-xl">
-                    Manage Users
-                </button>
-            </div>
-        </div>
-    </div>
+    <button onclick="addAdminSite()" 
+        class="bg-[var(--accent)] text-black font-semibold py-3 rounded-xl">
+        Add Site
+    </button>
+
+    <p id="admin-message" class="text-sm mt-2"></p>
 </div>
-
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
