@@ -220,6 +220,7 @@
     <div onclick="switchTab(9)" 
          class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2 hidden" 
          id="tab-9">
+         data-admin="true">
         <i class="fa-solid fa-crown w-5"></i>
         <span>Admin Panel</span>
     </div>
@@ -410,7 +411,7 @@
     const userInfo = document.getElementById('user-info');
     const authForm = document.getElementById('auth-form');
     const accountTitle = document.getElementById('account-title');
-    const adminTab = document.getElementById("admin-tab");
+    const adminTab = document.querySelector('[data-admin="true"]');
     const adminEmail = "gunnarbooth@gmail.com";
 
     if (user) {
