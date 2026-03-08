@@ -415,6 +415,10 @@
     const adminEmail = "gunnarbooth@gmail.com";
 
     if (user) {
+        // Show all tabs when logged in
+document.querySelectorAll('.nav-link').forEach(tab => {
+    tab.style.display = "flex";
+});
 
         // SHOW USER INFO
         userInfo.classList.remove("hidden");
@@ -447,18 +451,30 @@
 
     } else {
 
-        // LOGGED OUT STATE
-        userInfo.classList.add("hidden");
-        authForm.classList.remove("hidden");
+    // LOGGED OUT STATE
+    userInfo.classList.add("hidden");
+    authForm.classList.remove("hidden");
 
-        if (adminTab) adminTab.classList.add("hidden");
+    if (adminTab) adminTab.classList.add("hidden");
 
-        statusEl.textContent = '';
-        accountTitle.textContent = "Sign In Required";
-        currentTabEl.textContent = "Sign In Required";
-        currentIconEl.className = "text-3xl fa-solid fa-lock";
-    
+    statusEl.textContent = '';
+    accountTitle.textContent = "Sign In Required";
+    currentTabEl.textContent = "Sign In Required";
+    currentIconEl.className = "text-3xl fa-solid fa-lock";
+
+    // 🔒 Hide all sidebar tabs except Account
+    document.querySelectorAll('.nav-link').forEach(tab => {
+        tab.style.display = "none";
+    });
+
+    const accountTab = document.getElementById("tab-7");
+    if (accountTab) accountTab.style.display = "flex";
+
+    // Force switch to Account tab
+    switchTab(7);
+        
     }
+     
  }
             
         firebaseAuth.onAuthStateChanged(firebaseAuth.auth, updateUIForAuth);
