@@ -428,10 +428,29 @@ document.querySelectorAll('.nav-link').forEach(tab => {
         statusEl.textContent = user.email;
 
         accountTitle.textContent = "Your Account";
+        // 🔐 Fetch role from Firestore
+firebase.firestore().collection("users")
+  .where("email", "==", user.email)
+  .get()
+  .then(snapshot => {
+
+    let role = "user";
+
+    snapshot.forEach(doc => {
+        role = doc.data().role;
+    });
+
+    if (role === "admin") {
+        adminTab.classList.remove("hidden");
+    } else {
+        adminTab.classList.add("hidden");
+    }
+
+});
 
         // ADMIN VISIBILITY
         if (adminTab) {
-            if (user.email === adminEmail) {
+             {
                 adminTab.classList.remove("hidden");
             } else {
                 adminTab.classList.add("hidden");
