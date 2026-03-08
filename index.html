@@ -633,7 +633,8 @@ function openAdminSection(section) {
             </div>
         `;
     }
-
+    
+window.openAdminSection = openAdminSection;
     if (section === "roles") {
         container.innerHTML = `
             <div class="glass p-8 rounded-3xl border border-white/10">
