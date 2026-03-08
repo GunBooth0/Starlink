@@ -186,7 +186,7 @@
                 </div>
             </div>
 
-            <!-- ADMIN PANEL – NOW WITH CONTENT -->
+            <!-- ADMIN PANEL – WITH WORKING CONTENT -->
             <div id="content-admin" class="tab-content hidden">
                 <div class="max-w-5xl mx-auto py-12">
                     <h2 class="text-4xl font-bold logo-font tracking-tight mb-10">Admin Panel</h2>
@@ -195,15 +195,15 @@
                         <h3 class="text-2xl font-semibold mb-6">Site Announcement</h3>
                         <p class="text-white/70 mb-6">This message appears as a yellow banner at the top of the site for all logged-in users.</p>
 
-                        <textarea id="announce-text" rows="4" class="w-full mb-4" placeholder="Type announcement here... (e.g. 'Site maintenance tonight at 8 PM')"></textarea>
+                        <textarea id="announce-text" rows="4" class="w-full mb-4 p-4 rounded-xl bg-white/10 border border-white/30 text-white" placeholder="Type your announcement here... (e.g. 'Site maintenance tonight at 8 PM')"></textarea>
 
                         <div id="announce-preview" class="announcement-preview hidden mb-6 p-4">
                             <span id="preview-text"></span>
                         </div>
 
                         <div class="flex flex-col sm:flex-row gap-4">
-                            <button onclick="saveAnnouncement()" class="auth-btn px-8 py-4">Save & Publish</button>
-                            <button onclick="clearAnnouncement()" class="bg-red-600 hover:bg-red-700 px-8 py-4 rounded-xl">Clear Announcement</button>
+                            <button onclick="saveAnnouncement()" class="auth-btn px-8 py-4 w-full sm:w-auto">Save & Publish</button>
+                            <button onclick="clearAnnouncement()" class="bg-red-600 hover:bg-red-700 px-8 py-4 rounded-xl w-full sm:w-auto">Clear Announcement</button>
                         </div>
 
                         <p class="mt-6 text-sm text-white/60">Changes appear instantly site-wide (refresh may be needed).</p>
