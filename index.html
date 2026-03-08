@@ -444,7 +444,7 @@
                 }
 
                 navLinks.innerHTML = adminLink + `
-                    <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-0">
+                    <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
                         <i class="fa-solid fa-house w-5"></i> <span>Home</span>
                     </div>
                     <div onclick="switchTab(1)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-1">
@@ -483,9 +483,8 @@
                     populateGrid('tv', 'tv-grid');
                     populateGrid('proxies', 'proxy-grid');
                     populateGrid('music', 'music-grid');
-                    // If admin → start on Admin Panel, otherwise Home
-                    const startTab = isAdmin(user) ? 99 : 0;
-                    switchTab(startTab);
+                    // Always start on Home (index 0) for everyone, including admin
+                    switchTab(0);
                 }, 50);
 
             } else {
@@ -618,7 +617,7 @@
         const tabIcons = [
             'fa-house', 'fa-gamepad', 'fa-brain', 'fa-tv', 'fa-shield-halved',
             'fa-music', 'fa-gear', 'fa-user', 'fa-heart', 'fa-paper-plane',
-            'fa-screwdriver-wrench'  // admin
+            'fa-screwdriver-wrench'  // 10 = admin
         ];
         const tabTitles = [
             "Home", "Games", "AI Tools", "TV & Streaming", "Proxies",
@@ -645,7 +644,7 @@
             const content = document.getElementById(contentIds[index]);
             if (content) content.classList.remove('hidden');
 
-            // Update top bar title + icon
+            // Update top bar with correct title and icon for the selected tab
             document.getElementById('current-tab').textContent = tabTitles[index] || "Home";
             document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index] || 'fa-house'}`;
         }
