@@ -436,7 +436,7 @@
                 let adminLink = '';
                 if (isAdmin(user)) {
                     adminLink = `
-                        <div onclick="switchTab(99)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-2" id="tab-99">
+                        <div onclick="switchTab(10)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-2" id="tab-10">
                             <i class="fa-solid fa-screwdriver-wrench w-5"></i> <span>Admin Panel</span>
                         </div>
                         <div class="border-t border-white/20 my-3 mx-6"></div>
@@ -484,7 +484,7 @@
                     populateGrid('proxies', 'proxy-grid');
                     populateGrid('music', 'music-grid');
                     switchTab(0); // always start on Home
-                }, 100);  // slightly longer delay to ensure nav is rendered
+                }, 100);
 
             } else {
                 statusEl.textContent = '';
@@ -616,7 +616,7 @@
         const tabIcons = [
             'fa-house', 'fa-gamepad', 'fa-brain', 'fa-tv', 'fa-shield-halved',
             'fa-music', 'fa-gear', 'fa-user', 'fa-heart', 'fa-paper-plane',
-            'fa-screwdriver-wrench'   // 10 = Admin Panel
+            'fa-screwdriver-wrench'   // index 10 = Admin Panel
         ];
         const tabTitles = [
             "Home", "Games", "AI Tools", "TV & Streaming", "Proxies",
@@ -630,15 +630,15 @@
         ];
 
         function switchTab(index) {
-            // Force fallback for unauthorized access
+            // Prevent access to other tabs if not logged in
             if (!window.currentUser && index !== 7) {
                 index = 7;
             }
 
-            // Clear active class from all nav links
+            // Remove active from all links
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
 
-            // Set active on the selected link
+            // Add active to selected link
             const activeTab = document.getElementById(`tab-${index}`);
             if (activeTab) activeTab.classList.add('active-tab');
 
@@ -647,19 +647,16 @@
             const content = document.getElementById(contentIds[index]);
             if (content) content.classList.remove('hidden');
 
-            // Force update top bar icon and title
+            // Update top bar (this is the critical part)
             const titleEl = document.getElementById('current-tab');
             const iconEl = document.getElementById('current-tab-icon');
 
-            if (titleEl) titleEl.textContent = tabTitles[index] || "Home";
-            if (iconEl) {
-                // Clear previous classes and set new one
-                iconEl.className = '';
-                iconEl.classList.add('text-3xl', 'fa-solid', tabIcons[index] || 'fa-house');
-            }
+            titleEl.textContent = tabTitles[index] || "Home";
+            // Clear old classes and set new ones
+            iconEl.className = 'text-3xl fa-solid';
+            iconEl.classList.add(tabIcons[index] || 'fa-house');
 
-            // Debug log (you can remove later)
-            console.log(`Switched to tab index ${index}: "${tabTitles[index] || 'Home'}" with icon ${tabIcons[index] || 'fa-house'}`);
+            console.log(`Switched to tab ${index}: "${tabTitles[index] || 'Home'}" with icon ${tabIcons[index] || 'fa-house'}`);
         }
 
         const themes = [
