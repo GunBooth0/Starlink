@@ -18,7 +18,7 @@
         .nav-link:hover, .nav-link.active-tab { color: var(--accent)!important; background: rgba(255,255,255,0.08); }
         .nav-link i { color: inherit; }
         #current-tab-icon, #current-tab { color: var(--accent); transition: color 0.4s ease; }
-        .card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); }
+        .card { transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); }
         .card:hover { transform: translateY(-8px) scale(1.03); border-color: var(--accent); background: rgba(255,255,255,0.06); }
         .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); }
         .tail-container { max-width: 1280px; margin-left: auto; margin-right: auto; }
@@ -74,7 +74,8 @@
         .success { color: #10b981; }
         .error { color: #ef4444; }
         .announcement-preview { background: rgba(255,255,255,0.1); border-left: 4px solid var(--accent); padding: 1rem; margin: 1rem 0; border-radius: 0.5rem; }
-        #content-admin .glass { min-height: 600px !important; display: block !important; padding: 2rem; background: rgba(0,255,0,0.1); } /* Temporary green tint to prove loading */
+        .tab-content { display: none; } /* Default hide all */
+        #content-admin .glass { min-height: 600px !important; display: block !important; padding: 2rem; background: rgba(0, 255, 0, 0.1); } /* Green tint proof */
     </style>
 </head>
 <body>
@@ -138,7 +139,7 @@
             </div>
 
             <!-- HOME -->
-            <div id="content-home" class="tab-content hidden">
+            <div id="content-home" class="tab-content">
                 <div class="max-w-4xl mx-auto text-center pt-12">
                     <svg width="180" height="180" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
                         <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
@@ -153,32 +154,32 @@
             </div>
 
             <!-- GAMES -->
-            <div id="content-games" class="tab-content hidden">
+            <div id="content-games" class="tab-content">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="games-grid"></div>
             </div>
 
             <!-- AI TOOLS -->
-            <div id="content-ai" class="tab-content hidden">
+            <div id="content-ai" class="tab-content">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="ai-grid"></div>
             </div>
 
             <!-- TV & STREAMING -->
-            <div id="content-tv" class="tab-content hidden">
+            <div id="content-tv" class="tab-content">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="tv-grid"></div>
             </div>
 
             <!-- PROXIES -->
-            <div id="content-proxies" class="tab-content hidden">
+            <div id="content-proxies" class="tab-content">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="proxy-grid"></div>
             </div>
 
             <!-- MUSIC -->
-            <div id="content-music" class="tab-content hidden">
+            <div id="content-music" class="tab-content">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div>
             </div>
 
             <!-- SETTINGS -->
-            <div id="content-settings" class="tab-content hidden">
+            <div id="content-settings" class="tab-content">
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
                     <h3 class="text-2xl font-semibold mb-6">Appearance • Choose Theme</h3>
                     <p class="text-white/70 mb-8">Click a color to instantly change the accent, stars, glow, and sidebar highlights</p>
@@ -207,7 +208,7 @@
             </div>
 
             <!-- CREDITS -->
-            <div id="content-credits" class="tab-content hidden">
+            <div id="content-credits" class="tab-content">
                 <div class="max-w-3xl mx-auto text-center py-20">
                     <svg width="120" height="120" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
                         <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
@@ -224,7 +225,7 @@
             </div>
 
             <!-- ADMIN PANEL -->
-            <div id="content-admin" class="tab-content hidden">
+            <div id="content-admin" class="tab-content">
                 <div class="max-w-5xl mx-auto py-12">
                     <h2 class="text-4xl font-bold logo-font tracking-tight mb-10">Admin Panel</h2>
 
@@ -289,7 +290,6 @@
 
         window.currentUser = null;
 
-        // Global announcement functions
         window.loadAnnouncement = async function() {
             try {
                 const annDoc = await getDoc(doc(db, "announcements", "current"));
@@ -435,7 +435,7 @@
                     if (isAdmin(user)) {
                         if (window.loadAnnouncement) window.loadAnnouncement();
                     }
-                }, 1000); // Increased delay to ensure DOM is ready
+                }, 1000); // Increased delay for DOM readiness
 
             } else {
                 statusEl.textContent = '';
@@ -573,28 +573,34 @@
                 index = 7;
             }
 
+            // Remove active style
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
             const activeTab = document.getElementById(`tab-${index}`);
             if (activeTab) activeTab.classList.add('active-tab');
 
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            // Hide ALL tab contents with inline style (reliable)
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.style.display = 'none';
+            });
+
             const content = document.getElementById(contentIds[index]);
             if (content) {
-                content.classList.remove('hidden');
                 content.style.display = 'block';
-                content.style.minHeight = '100vh';
 
-                // Extra force for admin panel
+                // Force admin panel visible
                 if (index === 10) {
                     console.log('Admin panel forced visible');
+                    content.style.minHeight = '100vh';
+                    content.style.overflow = 'visible';
                     const glass = content.querySelector('.glass');
                     if (glass) {
                         glass.style.display = 'block';
-                        glass.style.minHeight = '600px';
+                        glass.style.minHeight = '800px';
+                        glass.style.background = 'rgba(0,255,0,0.1)'; // Green tint proof
                     }
                 }
 
-                // Safe banner refresh (try/catch so it can't crash tab switch)
+                // Safe banner refresh
                 if (window.loadAnnouncement) {
                     try {
                         window.loadAnnouncement();
