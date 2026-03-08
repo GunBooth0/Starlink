@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
-     
+    
         :root {
             --accent: #ffffff;
         }
@@ -21,7 +21,7 @@
             height: 100vh;
             overflow: hidden;
         }
-     
+    
         .logo-font {
             font-family: 'Space Grotesk', sans-serif;
         }
@@ -37,7 +37,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             color: #ffffff;
         }
-     
+    
         .nav-link:hover,
         .nav-link.active-tab {
             color: var(--accent) !important;
@@ -56,7 +56,7 @@
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.12);
         }
-     
+    
         .card:hover {
             transform: translateY(-8px) scale(1.03);
             border-color: var(--accent);
@@ -176,55 +176,43 @@
             </div>
         </div>
         <div class="flex-1 px-6 py-8 overflow-y-auto" id="nav-links">
-
     <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-0">
         <i class="fa-solid fa-house w-5"></i> <span>Home</span>
     </div>
-
     <div onclick="switchTab(1)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-1">
         <i class="fa-solid fa-gamepad w-5"></i> <span>Games</span>
     </div>
-
     <div onclick="switchTab(2)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-2">
         <i class="fa-solid fa-brain w-5"></i> <span>AI Tools</span>
     </div>
-
     <div onclick="switchTab(3)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-3">
         <i class="fa-solid fa-tv w-5"></i> <span>TV & Streaming</span>
     </div>
-
     <div onclick="switchTab(4)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-4">
         <i class="fa-solid fa-shield-halved w-5"></i> <span>Proxies</span>
     </div>
-
     <div onclick="switchTab(5)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-5">
         <i class="fa-solid fa-music w-5"></i> <span>Music</span>
     </div>
-
     <div onclick="switchTab(6)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-6">
         <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
     </div>
-
     <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-7">
         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
     </div>
-
     <div onclick="switchTab(8)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-8">
         <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
     </div>
-
     <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2">
         <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
     </div>
-
-    <div onclick="switchTab(9)" 
+    <div onclick="switchTab(9)"
      class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2 hidden"
      id="tab-9"
      data-admin="true">
         <i class="fa-solid fa-crown w-5"></i>
         <span>Admin Panel</span>
     </div>
-
 </div>
     </div>
     <!-- MAIN CONTENT -->
@@ -241,20 +229,20 @@
             <div id="content-account" class="tab-content">
                 <div class="max-w-md mx-auto py-12">
                     <h2 class="text-3xl font-bold text-center mb-8" id="account-title">Sign In Required</h2>
-                   
+                  
                     <div id="auth-form" class="glass p-8 rounded-3xl">
                         <h3 class="text-xl font-semibold mb-6 text-center" id="form-title">Sign In</h3>
-                       
+                      
                         <input type="email" id="email" placeholder="Email address" required autocomplete="email">
                         <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
-                       
+                      
                         <button id="auth-btn" class="auth-btn mt-6">Sign In</button>
-                       
+                      
                         <p class="text-center mt-6 text-white/70 text-sm">
                             <span id="toggle-link" class="text-[var(--accent)] cursor-pointer hover:underline">Don't have an account? Sign Up</span>
                         </p>
                     </div>
-                   
+                  
                     <div id="user-info" class="hidden text-center mt-12">
                         <p class="text-2xl mb-8">Logged in as: <span id="user-email" class="font-bold text-[var(--accent)]"></span></p>
                         <button onclick="changeEmail()" class="github-style-btn">
@@ -351,31 +339,27 @@
                     </a>
                 </div>
             </div>
-        </div>
-    </div>
             <!-- ADMIN -->
             <div id="content-admin" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
                     <h2 class="text-3xl font-bold mb-6">Admin Panel</h2>
-
-                        <div class="space-y-6">
-                <div class="bg-black/40 p-6 rounded-2xl border border-white/10">
-                <h3 class="text-xl font-semibold mb-3">Admin Controls</h3>
-
-                <button onclick="alert('User management coming soon')"
-                    class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-xl">
-                    Manage Users
-                </button>
+                    <div class="space-y-6">
+                        <div class="bg-black/40 p-6 rounded-2xl border border-white/10">
+                            <h3 class="text-xl font-semibold mb-3">Admin Controls</h3>
+                            <button onclick="alert('User management coming soon')"
+                                class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-xl">
+                                Manage Users
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-
         const firebaseConfig = {
             apiKey: "AIzaSyDpn6rgntLkwxE6xRu9xG81mhlyFcTDMGg",
             authDomain: "starlink-auth-14477.firebaseapp.com",
@@ -385,10 +369,8 @@
             appId: "1:91401410744:web:f2a44d3d1a721317403c4d",
             measurementId: "G-9E2B15TVT6"
         };
-
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-
         window.firebaseAuth = {
             createUserWithEmailAndPassword,
             signInWithEmailAndPassword,
@@ -401,71 +383,55 @@
             EmailAuthProvider,
             auth
         };
-
         window.currentUser = null;
-
- function updateUIForAuth(user) {
-    window.currentUser = user;
-
-    const statusEl = document.getElementById('user-status');
-    const userInfo = document.getElementById('user-info');
-    const authForm = document.getElementById('auth-form');
-    const accountTitle = document.getElementById('account-title');
-    const adminTab = document.querySelector('[data-admin="true"]');
-    const adminEmail = "gunnarbooth@gmail.com";
-
-    if (user) {
-        // Show all tabs
-        document.querySelectorAll('#sidebar .nav-link').forEach(tab => {
-            tab.style.display = "flex";
-        });
-
-        userInfo.classList.remove("hidden");
-        authForm.classList.add("hidden");
-
-        document.getElementById("user-email").textContent = user.email;
-        statusEl.textContent = user.email;
-        accountTitle.textContent = "Your Account";
-
-        // Admin check
-        if (adminTab) {
-            if (user.email === adminEmail) {
-                adminTab.classList.remove("hidden");
+        function updateUIForAuth(user) {
+            window.currentUser = user;
+            const statusEl = document.getElementById('user-status');
+            const userInfo = document.getElementById('user-info');
+            const authForm = document.getElementById('auth-form');
+            const accountTitle = document.getElementById('account-title');
+            const adminTab = document.querySelector('[data-admin="true"]');
+            const adminEmail = "gunnarbooth@gmail.com";
+            if (user) {
+                // Show all tabs
+                document.querySelectorAll('#sidebar .nav-link').forEach(tab => {
+                    tab.style.display = "flex";
+                });
+                userInfo.classList.remove("hidden");
+                authForm.classList.add("hidden");
+                document.getElementById("user-email").textContent = user.email;
+                statusEl.textContent = user.email;
+                accountTitle.textContent = "Your Account";
+                // Admin check
+                if (adminTab) {
+                    if (user.email === adminEmail) {
+                        adminTab.classList.remove("hidden");
+                    } else {
+                        adminTab.classList.add("hidden");
+                    }
+                }
+                switchTab(0);
             } else {
-                adminTab.classList.add("hidden");
+                // Hide all tabs except Account
+                document.querySelectorAll('.nav-link').forEach(tab => {
+                    tab.style.display = "none";
+                });
+                const accountTab = document.getElementById("tab-7");
+                if (accountTab) accountTab.style.display = "flex";
+                if (adminTab) adminTab.classList.add("hidden");
+                userInfo.classList.add("hidden");
+                authForm.classList.remove("hidden");
+                statusEl.textContent = "Not signed in";
+                accountTitle.textContent = "Sign In Required";
+                switchTab(7);
             }
         }
-
-        switchTab(0);
-
-    } else {
-        // Hide all tabs except Account
-        document.querySelectorAll('.nav-link').forEach(tab => {
-            tab.style.display = "none";
-        });
-
-        const accountTab = document.getElementById("tab-7");
-        if (accountTab) accountTab.style.display = "flex";
-
-        if (adminTab) adminTab.classList.add("hidden");
-
-        userInfo.classList.add("hidden");
-        authForm.classList.remove("hidden");
-
-        statusEl.textContent = "Not signed in";
-        accountTitle.textContent = "Sign In Required";
-
-        switchTab(7);
-    }
-}
-            
+           
         firebaseAuth.onAuthStateChanged(firebaseAuth.auth, updateUIForAuth);
-
         const authBtn = document.getElementById('auth-btn');
         const toggleLink = document.getElementById('toggle-link');
         const formTitle = document.getElementById('form-title');
         let isSignIn = true;
-
         if (authBtn) {
             authBtn.addEventListener('click', async () => {
                 const email = document.getElementById('email').value;
@@ -473,46 +439,38 @@
                 try {
                     if (isSignIn) {
                         const userCredential = await firebaseAuth.signInWithEmailAndPassword(firebaseAuth.auth, email, password);
-
                         if (!userCredential.user.emailVerified) {
                             alert("Please verify your email before logging in.");
                             await firebaseAuth.signOut(firebaseAuth.auth);
                             return;
-                    
                         }
-                        
+                       
                         updateUIForAuth(userCredential.user);
-                        
+                       
                     } else {
                         const userCredential = await firebaseAuth.createUserWithEmailAndPassword(auth, email, password);
-
                         await sendEmailVerification(userCredential.user);
-
                         alert("Verification email sent! Please check your inbox before logging in.");
-
                         await signOut(auth);
-
                         updateUIForAuth(auth.currentUser);
-                        
+                       
                  }
-                    
+                   
             } catch (error) {
                 alert(error.message);
                 }
             });
         }
-
         if (toggleLink) {
             toggleLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                
+               
                 isSignIn = !isSignIn;
                 formTitle.textContent = isSignIn ? 'Sign In' : 'Sign Up';
                 authBtn.textContent = isSignIn ? 'Sign In' : 'Sign Up';
                 toggleLink.textContent = isSignIn ? "Don't have an account? Sign Up" : 'Already have an account? Sign In';
             });
         }
-
         window.deleteAccount = async () => {
             if (!confirm("Are you sure you want to permanently delete your account? This cannot be undone.")) return;
             try {
@@ -525,7 +483,6 @@
                 alert("Error: " + error.message);
             }
         };
-
         window.changePassword = async () => {
             const user = firebaseAuth.auth.currentUser;
             if (!user || !user.email) return alert("You must be logged in.");
@@ -539,26 +496,20 @@
                 messageEl.className = "error";
             }
         };
-
         window.changeEmail = async () => {
             const user = firebaseAuth.auth.currentUser;
             if (!user) return alert("You must be logged in.");
-
             const newEmail = prompt("Enter your new email address:", user.email);
             if (!newEmail || newEmail === user.email) return alert("No change made.");
-
             const password = prompt("Enter your current password to confirm:");
             if (!password) return;
-
             const messageEl = document.getElementById('auth-message');
             try {
                 // Re-authenticate
                 const credential = firebaseAuth.EmailAuthProvider.credential(user.email, password);
                 await firebaseAuth.reauthenticateWithCredential(user, credential);
-
                 // Update email
                 await firebaseAuth.updateEmail(user, newEmail);
-
                 messageEl.textContent = "Email updated successfully! Please verify the new email (check inbox/spam).";
                 messageEl.className = "success";
                 document.getElementById('user-email').textContent = newEmail;
@@ -567,11 +518,8 @@
                 messageEl.className = "error";
             }
         };
-       
-
-
+      
     </script>
-
     <script>
         const tabIcons = [
             'fa-house', 'fa-gamepad', 'fa-brain', 'fa-tv', 'fa-shield-halved',
@@ -590,27 +538,21 @@
         'content-credits',
         'content-admin'
     ];
-
     const navLinks = document.getElementById("nav-links");
-
         function switchTab(index) {
             if (!window.currentUser && index !== 7) {
                 switchTab(7);
                 return;
             }
-
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
             const activeTab = document.getElementById(`tab-${index}`);
             if (activeTab) activeTab.classList.add('active-tab');
-
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             const content = document.getElementById(contentIds[index]);
             if (content) content.classList.remove('hidden');
-
             document.getElementById('current-tab').textContent = tabTitles[index];
             document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
         }
-
         const themes = [
             { name: "White", color: "#ffffff" },
             { name: "Red", color: "#ef4444" },
@@ -716,6 +658,7 @@
             proxies: [
                 { name: "Space", url: "https://classroom.hkieca.com/", desc: "", icon: "🌐" },
                 { name: "Lunar", url: "https://uoasman.lol/", desc: "", icon: "🌐" },
+                { name: "Celestial", url: "https://celestialw.b-cdn.net/", desc: "", icon: "🌐" },
                 { name: "Truffled", url: "https://bog.n8-math.dev/", desc: "", icon: "🌐" },
                 { name: "Galaxy", url: "https://cc.curlycraftworks.com/onboarding/", desc: "", icon: "🌐" },
                 { name: "Fern", url: "https://geography.nseuropa.com/", desc: "", icon: "🌐" }
@@ -768,25 +711,22 @@
             alert("Admin Panel Clicked");
 }
         function initialize() {
-    loadTheme();
-    loadNewTabPreference();
-    initStars();
-
-    // Populate site grids
-    populateGrid('games', 'games-grid');
-    populateGrid('ai', 'ai-grid');
-    populateGrid('tv', 'tv-grid');
-    populateGrid('proxies', 'proxy-grid');
-    populateGrid('music', 'music-grid');
-
-    // Populate themes
-    populateThemeGrid();
-
-    document.getElementById('newtab-toggle').addEventListener('change', (e) => {
-        saveNewTabPreference(e.target.checked);
-    });
+            loadTheme();
+            loadNewTabPreference();
+            initStars();
+            // Populate site grids
+            populateGrid('games', 'games-grid');
+            populateGrid('ai', 'ai-grid');
+            populateGrid('tv', 'tv-grid');
+            populateGrid('proxies', 'proxy-grid');
+            populateGrid('music', 'music-grid');
+            // Populate themes
+            populateThemeGrid();
+            document.getElementById('newtab-toggle').addEventListener('change', (e) => {
+                saveNewTabPreference(e.target.checked);
+            });
 }
-        
+       
         window.onload = initialize;
 </script>
 </body>
