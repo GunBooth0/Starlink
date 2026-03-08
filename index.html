@@ -448,10 +448,9 @@
 
     if (user) {
         // Show all tabs
-        document.querySelectorAll('#sidebar .nav-link').forEach(tab => {
-            tab.style.display = "flex";
-        });
-
+        document.querySelectorAll('.nav-link').forEach(tab => {
+    tab.style.display = "flex";
+});
         userInfo.classList.remove("hidden");
         authForm.classList.add("hidden");
 
