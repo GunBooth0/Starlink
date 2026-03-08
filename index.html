@@ -370,18 +370,9 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Enable offline support (this fixes most "client is offline" errors)
-        enableIndexedDbPersistence(db)
-            .then(() => console.log("Firestore offline persistence enabled"))
-            .catch((err) => {
-                if (err.code === 'failed-precondition') {
-                    console.warn("Persistence failed: multiple tabs open");
-                } else if (err.code === 'unimplemented') {
-                    console.warn("Persistence not supported in this browser");
-                } else {
-                    console.error("Persistence setup error:", err);
-                }
-            });
+        enableIndexedDbPersistence(db).catch((err) => {
+            console.warn("Persistence could not be enabled:", err.code, err.message);
+        });
 
         window.firebaseAuth = {
             createUserWithEmailAndPassword,
@@ -400,6 +391,31 @@
         window.currentUser = null;
         window.isAdmin = false;
 
+        async function getUserRoleWithRetry(uid, maxAttempts = 3, delayMs = 400) {
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                try {
+                    const userDocRef = doc(db, 'users', uid);
+                    const snap = await getDoc(userDocRef);
+
+                    if (snap.exists()) {
+                        return snap.data().role || 'user';
+                    } else {
+                        await setDoc(userDocRef, {
+                            email: auth.currentUser?.email || '',
+                            role: 'user',
+                            createdAt: new Date()
+                        });
+                        return 'user';
+                    }
+                } catch (err) {
+                    console.warn(`User doc attempt ${attempt}/${maxAttempts} failed:`, err.code, err.message);
+                    if (attempt === maxAttempts) return 'user';
+                    await new Promise(r => setTimeout(r, delayMs));
+                }
+            }
+            return 'user';
+        }
+
         async function updateUIForAuth(user) {
             window.currentUser = user;
             const statusEl = document.getElementById('user-status');
@@ -412,31 +428,11 @@
             const currentIconEl = document.getElementById('current-tab-icon');
 
             if (user) {
-                let isAdmin = false;
+                // Small delay to let Firestore initialize connection
+                await new Promise(r => setTimeout(r, 350));
 
-                try {
-                    const userDocRef = doc(db, 'users', user.uid);
-                    const userDocSnap = await getDoc(userDocRef);
-
-                    if (userDocSnap.exists()) {
-                        const data = userDocSnap.data();
-                        isAdmin = data.role === 'admin';
-                    } else {
-                        // Create default user document if missing
-                        await setDoc(userDocRef, {
-                            email: user.email,
-                            role: 'user',
-                            createdAt: new Date()
-                        });
-                        console.log("Created default user document");
-                    }
-                } catch (err) {
-                    console.error("Failed to read/create user document:", err);
-                    // Fallback: allow login anyway, treat as regular user
-                    isAdmin = false;
-                }
-
-                window.isAdmin = isAdmin;
+                const role = await getUserRoleWithRetry(user.uid);
+                window.isAdmin = role === 'admin';
 
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
                 if (userInfo) {
@@ -480,7 +476,7 @@
                     </div>
                 `;
 
-                if (isAdmin) {
+                if (window.isAdmin) {
                     navHTML += `
                         <div onclick="switchTab(10)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-10">
                             <i class="fa-solid fa-user-shield w-5"></i> <span>Admin Panel</span>
@@ -498,7 +494,7 @@
                     populateGrid('proxies', 'proxy-grid');
                     populateGrid('music', 'music-grid');
                     switchTab(0);
-                }, 50);
+                }, 100);
             } else {
                 statusEl.textContent = '';
                 currentTabEl.textContent = 'Sign In Required';
@@ -515,7 +511,7 @@
             }
         }
 
-        firebaseAuth.onAuthStateChanged(auth, updateUIForAuth);
+        onAuthStateChanged(auth, updateUIForAuth);
 
         const authBtn = document.getElementById('auth-btn');
         const toggleLink = document.getElementById('toggle-link');
@@ -534,25 +530,29 @@
 
                 try {
                     if (isSignIn) {
-                        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                        const credential = await signInWithEmailAndPassword(auth, email, password);
 
-                        if (!userCredential.user.emailVerified) {
-                            alert("Please verify your email before logging in. Check your inbox/spam.");
+                        if (!credential.user.emailVerified) {
+                            alert("Please verify your email first. Check inbox/spam.");
                             await signOut(auth);
                             return;
                         }
 
-                        await updateUIForAuth(userCredential.user);
+                        await updateUIForAuth(credential.user);
                     } else {
-                        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                        await sendEmailVerification(userCredential.user);
-                        alert("Sign-up successful! Verification email sent. Please check your inbox (including spam) and verify before signing in.");
+                        const credential = await createUserWithEmailAndPassword(auth, email, password);
+                        await sendEmailVerification(credential.user);
+                        alert("Account created! Please check your email (including spam) to verify before signing in.");
                         await signOut(auth);
                         updateUIForAuth(null);
                     }
                 } catch (error) {
-                    console.error("Auth error:", error);
-                    alert(error.message || "Authentication failed. Please try again.");
+                    console.error("Auth error:", error.code, error.message);
+                    let msg = error.message;
+                    if (error.code?.includes('invalid-credential')) msg = "Incorrect email or password.";
+                    if (error.code?.includes('user-not-found')) msg = "No account found with that email.";
+                    if (error.code?.includes('too-many-requests')) msg = "Too many attempts — please wait a minute.";
+                    alert(msg || "Sign in/up failed. Try again.");
                 }
             });
         }
@@ -568,17 +568,17 @@
         }
 
         window.deleteAccount = async () => {
-            if (!confirm("Are you sure you want to permanently delete your account? This cannot be undone.")) return;
+            if (!confirm("Permanently delete account? This cannot be undone.")) return;
             try {
                 const user = auth.currentUser;
                 if (user) {
                     await deleteDoc(doc(db, 'users', user.uid));
                     await deleteUser(user);
-                    alert("Account deleted successfully.");
+                    alert("Account deleted.");
                     location.reload();
                 }
             } catch (error) {
-                alert("Error deleting account: " + error.message);
+                alert("Delete failed: " + error.message);
             }
         };
 
@@ -587,7 +587,7 @@
             if (!user?.email) return alert("You must be logged in.");
             try {
                 await sendPasswordResetEmail(auth, user.email);
-                document.getElementById('auth-message').textContent = "Password reset email sent! Check your inbox/spam.";
+                document.getElementById('auth-message').textContent = "Password reset email sent. Check inbox/spam.";
                 document.getElementById('auth-message').className = "success";
             } catch (error) {
                 document.getElementById('auth-message').textContent = "Error: " + error.message;
@@ -599,19 +599,19 @@
             const user = auth.currentUser;
             if (!user) return alert("You must be logged in.");
 
-            const newEmail = prompt("Enter your new email address:", user.email);
-            if (!newEmail || newEmail === user.email) return alert("No change made.");
+            const newEmail = prompt("New email address:", user.email);
+            if (!newEmail || newEmail === user.email) return alert("No change.");
 
-            const password = prompt("Enter your current password to confirm:");
+            const password = prompt("Current password to confirm:");
             if (!password) return;
 
             try {
-                const credential = EmailAuthProvider.credential(user.email, password);
-                await reauthenticateWithCredential(user, credential);
+                const cred = EmailAuthProvider.credential(user.email, password);
+                await reauthenticateWithCredential(user, cred);
                 await updateEmail(user, newEmail);
                 await setDoc(doc(db, 'users', user.uid), { email: newEmail }, { merge: true });
 
-                document.getElementById('auth-message').textContent = "Email updated! Please verify the new email.";
+                document.getElementById('auth-message').textContent = "Email changed. Verify new email.";
                 document.getElementById('auth-message').className = "success";
                 document.getElementById('user-email').textContent = newEmail;
             } catch (error) {
@@ -622,30 +622,19 @@
     </script>
 
     <script>
-        const tabIcons = [
-            'fa-house', 'fa-gamepad', 'fa-brain', 'fa-tv', 'fa-shield-halved',
-            'fa-music', 'fa-gear', 'fa-user', 'fa-heart', 'fa-paper-plane', 'fa-user-shield'
-        ];
-        const tabTitles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings", "Account", "Credits", "Request a Site", "Admin Panel"];
-        const contentIds = [
-            'content-home', 'content-games', 'content-ai', 'content-tv', 'content-proxies',
-            'content-music', 'content-settings', 'content-account', 'content-credits', null, 'content-admin'
-        ];
+        const tabIcons = ['fa-house','fa-gamepad','fa-brain','fa-tv','fa-shield-halved','fa-music','fa-gear','fa-user','fa-heart','fa-paper-plane','fa-user-shield'];
+        const tabTitles = ["Home","Games","AI Tools","TV & Streaming","Proxies","Music","Settings","Account","Credits","Request a Site","Admin Panel"];
+        const contentIds = ['content-home','content-games','content-ai','content-tv','content-proxies','content-music','content-settings','content-account','content-credits',null,'content-admin'];
 
         function switchTab(index) {
-            if (!window.currentUser && index !== 7) {
-                switchTab(7);
-                return;
-            }
+            if (!window.currentUser && index !== 7) return switchTab(7);
             if (index === 10 && !window.isAdmin) return;
 
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
-            const activeTab = document.getElementById(`tab-${index}`);
-            if (activeTab) activeTab.classList.add('active-tab');
+            document.getElementById(`tab-${index}`)?.classList.add('active-tab');
 
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            const content = document.getElementById(contentIds[index]);
-            if (content) content.classList.remove('hidden');
+            document.getElementById(contentIds[index])?.classList.remove('hidden');
 
             document.getElementById('current-tab').textContent = tabTitles[index];
             document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
@@ -657,26 +646,13 @@
         }
 
         const themes = [
-            { name: "White", color: "#ffffff" },
-            { name: "Red", color: "#ef4444" },
-            { name: "Blue", color: "#3b82f6" },
-            { name: "Green", color: "#10b981" },
-            { name: "Purple", color: "#8b5cf6" },
-            { name: "Pink", color: "#ec4899" },
-            { name: "Cyan", color: "#22d3ee" },
-            { name: "Yellow", color: "#f59e0b" },
-            { name: "Lime", color: "#84cc16" },
-            { name: "Teal", color: "#14b8a6" },
-            { name: "Rose", color: "#f43f5e" },
-            { name: "Indigo", color: "#6366f1" },
-            { name: "Orange", color: "#f97316" },
-            { name: "Magenta", color: "#d946ef" },
-            { name: "Sky Blue", color: "#0ea5e9" },
-            { name: "Lime Green", color: "#65a30d" },
-            { name: "Deep Purple", color: "#7c3aed" },
-            { name: "Neon Green", color: "#39ff14" },
-            { name: "Coral", color: "#f87171" },
-            { name: "Electric Violet", color: "#a855f7" }
+            {name:"White",color:"#ffffff"},{name:"Red",color:"#ef4444"},{name:"Blue",color:"#3b82f6"},
+            {name:"Green",color:"#10b981"},{name:"Purple",color:"#8b5cf6"},{name:"Pink",color:"#ec4899"},
+            {name:"Cyan",color:"#22d3ee"},{name:"Yellow",color:"#f59e0b"},{name:"Lime",color:"#84cc16"},
+            {name:"Teal",color:"#14b8a6"},{name:"Rose",color:"#f43f5e"},{name:"Indigo",color:"#6366f1"},
+            {name:"Orange",color:"#f97316"},{name:"Magenta",color:"#d946ef"},{name:"Sky Blue",color:"#0ea5e9"},
+            {name:"Lime Green",color:"#65a30d"},{name:"Deep Purple",color:"#7c3aed"},{name:"Neon Green",color:"#39ff14"},
+            {name:"Coral",color:"#f87171"},{name:"Electric Violet",color:"#a855f7"}
         ];
 
         function setTheme(color) {
@@ -685,8 +661,7 @@
         }
 
         function loadTheme() {
-            const saved = localStorage.getItem('starlinkAccent');
-            setTheme(saved || '#ffffff');
+            setTheme(localStorage.getItem('starlinkAccent') || '#ffffff');
         }
 
         function saveNewTabPreference(value) {
@@ -695,49 +670,42 @@
 
         function loadNewTabPreference() {
             const saved = localStorage.getItem('starlinkNewTab');
-            const checkbox = document.getElementById('newtab-toggle');
-            checkbox.checked = saved !== 'false';
-            saveNewTabPreference(checkbox.checked);
+            const cb = document.getElementById('newtab-toggle');
+            cb.checked = saved !== 'false';
+            saveNewTabPreference(cb.checked);
         }
 
         function resetEverything() {
-            if (!confirm("Reset all settings to default? This will also sign you out.")) return;
-            localStorage.removeItem('starlinkAccent');
-            localStorage.removeItem('starlinkNewTab');
+            if (!confirm("Reset settings & sign out?")) return;
+            localStorage.clear();
             setTheme('#ffffff');
             document.getElementById('newtab-toggle').checked = true;
             saveNewTabPreference(true);
-            signOut(auth).then(() => {
-                document.getElementById('reset-message').classList.remove('hidden');
-                setTimeout(() => location.reload(), 1800);
-            });
+            firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
         }
 
         function createStar(x, y) {
             const star = document.createElement('div');
             star.className = 'star';
-            star.style.left = `${x}px`;
-            star.style.top = `${y}px`;
+            star.style.left = x + 'px';
+            star.style.top = y + 'px';
             const size = Math.random() * 3 + 1;
-            star.style.width = star.style.height = `${size}px`;
+            star.style.width = star.style.height = size + 'px';
             const duration = Math.random() * 40 + 25;
-            star.style.animationDuration = `${duration}s`;
-            const drift = (Math.random() - 0.5) * 120;
-            star.style.transform = `translateX(${drift}px)`;
+            star.style.animationDuration = duration + 's';
+            star.style.transform = `translateX(${(Math.random()-0.5)*120}px)`;
             document.getElementById('star-bg').appendChild(star);
-            setTimeout(() => star.remove(), duration * 1000 + 2000);
+            setTimeout(() => star.remove(), duration*1000 + 2000);
         }
 
-        function initStars(count = 100) {
+        function initStars(count = 80) {
             for (let i = 0; i < count; i++) {
-                const x = Math.random() * window.innerWidth;
-                const y = Math.random() * window.innerHeight * 1.5;
-                createStar(x, y);
+                createStar(Math.random()*window.innerWidth, Math.random()*window.innerHeight*1.5);
             }
         }
 
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('button, a, .nav-link, input, label, svg, .card, select')) return;
+        document.addEventListener('click', e => {
+            if (e.target.closest('button,a,.nav-link,input,label,svg,.card,select')) return;
             createStar(e.clientX, e.clientY);
         });
 
@@ -748,42 +716,41 @@
             try {
                 const q = query(collection(db, 'sites'), where('category', '==', category));
                 const snap = await getDocs(q);
-                snap.forEach((d) => {
+                snap.forEach(d => {
                     const site = d.data();
                     const card = document.createElement('div');
-                    card.className = `card rounded-3xl p-6 cursor-pointer group`;
+                    card.className = 'card rounded-3xl p-6 cursor-pointer group';
                     card.innerHTML = `
                         <div class="text-5xl mb-6 transition-transform group-hover:scale-125">${site.icon}</div>
                         <div class="font-semibold text-xl mb-2">${site.name}</div>
-                        <div class="text-white/60 text-sm">${site.desc || ''}</div>
+                        <div class="text-white/60 text-sm">${site.desc||''}</div>
                     `;
                     card.onclick = () => {
-                        const newTab = document.getElementById('newtab-toggle').checked;
-                        if (newTab) window.open(site.url, '_blank');
-                        else window.location = site.url;
+                        const nt = document.getElementById('newtab-toggle').checked;
+                        nt ? window.open(site.url, '_blank') : location = site.url;
                     };
                     container.appendChild(card);
                 });
-            } catch (err) {
-                console.error("Error loading sites:", err);
+            } catch (e) {
+                console.error("Populate grid error:", e);
             }
         }
 
         function populateThemeGrid() {
-            const container = document.getElementById('theme-grid');
-            if (!container) return;
-            container.innerHTML = '';
+            const c = document.getElementById('theme-grid');
+            if (!c) return;
+            c.innerHTML = '';
             themes.forEach(t => {
                 const el = document.createElement('div');
                 el.className = 'cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-white/50 transition-all shadow-md';
                 el.innerHTML = `
-                    <div class="h-24 flex items-center justify-center" style="background:${t.color};">
+                    <div class="h-24 flex items-center justify-center" style="background:${t.color}">
                         <span class="text-5xl drop-shadow-xl">★</span>
                     </div>
                     <div class="text-center py-3 text-xs font-medium bg-black/70">${t.name}</div>
                 `;
                 el.onclick = () => setTheme(t.color);
-                container.appendChild(el);
+                c.appendChild(el);
             });
         }
 
@@ -792,12 +759,12 @@
         }
 
         async function loadUsers() {
-            const container = document.getElementById('user-list');
-            if (!container) return;
-            container.innerHTML = '';
+            const c = document.getElementById('user-list');
+            if (!c) return;
+            c.innerHTML = '';
             try {
                 const snap = await getDocs(collection(db, 'users'));
-                snap.forEach((d) => {
+                snap.forEach(d => {
                     const data = d.data();
                     const uid = d.id;
                     const div = document.createElement('div');
@@ -805,101 +772,81 @@
                     div.innerHTML = `
                         <span class="text-lg">${data.email || '—'}</span>
                         <select id="role-${uid}" class="w-32 ml-4">
-                            <option value="user" ${data.role !== 'admin' ? 'selected' : ''}>User</option>
-                            <option value="admin" ${data.role === 'admin' ? 'selected' : ''}>Admin</option>
+                            <option value="user" ${data.role !== 'admin'?'selected':''}>User</option>
+                            <option value="admin" ${data.role === 'admin'?'selected':''}>Admin</option>
                         </select>
                         <button onclick="updateRole('${uid}')" class="github-style-btn w-auto px-4 py-2 ml-4">Save</button>
                     `;
-                    container.appendChild(div);
+                    c.appendChild(div);
                 });
-            } catch (err) {
-                console.error("Error loading users:", err);
-            }
+            } catch (e) { console.error("Load users error:", e); }
         }
 
-        window.updateRole = async (uid) => {
-            const select = document.getElementById(`role-${uid}`);
-            if (!select) return;
+        window.updateRole = async uid => {
+            const sel = document.getElementById(`role-${uid}`);
+            if (!sel) return;
             try {
-                await setDoc(doc(db, 'users', uid), { role: select.value }, { merge: true });
+                await setDoc(doc(db, 'users', uid), {role: sel.value}, {merge:true});
                 alert('Role updated');
                 loadUsers();
-            } catch (err) {
-                alert('Error updating role: ' + err.message);
+            } catch (e) {
+                alert('Error: ' + e.message);
             }
         };
 
         async function loadSitesAdmin() {
-            const container = document.getElementById('site-list');
-            if (!container) return;
-            container.innerHTML = '';
+            const c = document.getElementById('site-list');
+            if (!c) return;
+            c.innerHTML = '';
             try {
                 const snap = await getDocs(collection(db, 'sites'));
-                snap.forEach((d) => {
-                    const site = d.data();
+                snap.forEach(d => {
+                    const s = d.data();
                     const id = d.id;
                     const div = document.createElement('div');
                     div.className = 'flex items-center justify-between py-2 border-b border-white/10';
                     div.innerHTML = `
-                        <span class="text-lg">${site.name} (${site.category}) – ${site.url}</span>
+                        <span class="text-lg">${s.name} (${s.category}) – ${s.url}</span>
                         <button onclick="deleteSite('${id}')" class="github-style-btn w-auto px-4 py-2 bg-red-600 hover:bg-red-700">Delete</button>
                     `;
-                    container.appendChild(div);
+                    c.appendChild(div);
                 });
-            } catch (err) {
-                console.error("Error loading sites:", err);
-            }
+            } catch (e) { console.error("Load sites error:", e); }
         }
 
-        window.deleteSite = async (id) => {
-            if (!confirm('Delete this site?')) return;
+        window.deleteSite = async id => {
+            if (!confirm('Delete site?')) return;
             try {
                 await deleteDoc(doc(db, 'sites', id));
                 loadSitesAdmin();
-            } catch (err) {
-                alert('Error deleting site: ' + err.message);
-            }
+            } catch (e) { alert('Delete failed: ' + e.message); }
         };
 
         window.addSite = async () => {
-            const category = document.getElementById('add-category')?.value;
+            const cat = document.getElementById('add-category')?.value;
             const name = document.getElementById('add-name')?.value.trim();
             const url = document.getElementById('add-url')?.value.trim();
             const desc = document.getElementById('add-desc')?.value.trim();
             const icon = document.getElementById('add-icon')?.value.trim();
 
-            if (!category || !name || !url || !icon) {
-                alert('Please fill all required fields (category, name, URL, icon)');
+            if (!cat || !name || !url || !icon) {
+                alert('Fill required fields: category, name, URL, icon');
                 return;
             }
 
             try {
-                await addDoc(collection(db, 'sites'), {
-                    category,
-                    name,
-                    url,
-                    desc: desc || '',
-                    icon,
-                    addedAt: new Date()
-                });
-                document.getElementById('add-name').value = '';
-                document.getElementById('add-url').value = '';
-                document.getElementById('add-desc').value = '';
-                document.getElementById('add-icon').value = '';
-                alert('Site added successfully');
+                await addDoc(collection(db, 'sites'), {category:cat, name, url, desc:desc||'', icon, addedAt:new Date()});
+                ['add-name','add-url','add-desc','add-icon'].forEach(id => document.getElementById(id).value = '');
+                alert('Site added');
                 loadSitesAdmin();
-            } catch (err) {
-                alert('Error adding site: ' + err.message);
-            }
+            } catch (e) { alert('Add failed: ' + e.message); }
         };
 
         function initialize() {
             loadTheme();
             loadNewTabPreference();
-            initStars(80);
-            document.getElementById('newtab-toggle').addEventListener('change', (e) => {
-                saveNewTabPreference(e.target.checked);
-            });
+            initStars();
+            document.getElementById('newtab-toggle').addEventListener('change', e => saveNewTabPreference(e.target.checked));
         }
 
         window.onload = initialize;
