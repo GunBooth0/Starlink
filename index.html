@@ -11,40 +11,23 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
 
-  <!-- Tailwind CSS for modern look -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body { font-family: 'Inter', system_ui, sans-serif; }
-    .tab-item {
-      padding: 12px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .tab-item:hover {
-      background-color: #27272a;
-    }
-    .tab-item-active {
-      background-color: #27272a;
-      color: white;
-      font-weight: 600;
-    }
-    .site-card {
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .site-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.3);
-    }
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .tab-item { padding: 12px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+    .tab-item:hover { background-color: #27272a; }
+    .tab-item-active { background-color: #27272a; color: white; font-weight: 600; }
+    .site-card { transition: transform 0.2s, box-shadow 0.2s; }
+    .site-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.3); }
   </style>
 </head>
 <body class="bg-zinc-950 text-zinc-100 flex h-screen overflow-hidden">
 
   <!-- SIDEBAR -->
   <div class="w-72 bg-zinc-900 flex flex-col border-r border-zinc-800">
-    <!-- Logo -->
     <div class="p-6 flex items-center gap-3 border-b border-zinc-800">
       <svg width="48" height="48" viewBox="0 0 24 24" fill="white" class="drop-shadow-lg">
         <path d="M12 2L15 9H22L16 14L18 21L12 17L6 21L8 14L2 9H9L12 2Z"/>
@@ -52,48 +35,31 @@
       <h1 class="text-4xl font-bold tracking-tighter">Starlink</h1>
     </div>
 
-    <!-- Navigation -->
     <div class="flex-1 overflow-auto p-4">
-      <div onclick="switchTab('home')" id="tab-home"
-           class="tab-item flex items-center gap-3 text-lg mb-1">
+      <div onclick="switchTab('home')" id="tab-home" class="tab-item flex items-center gap-3 text-lg mb-1 tab-item-active">
         🏠 Home
       </div>
 
-      <div class="mt-8 px-4 text-xs uppercase tracking-widest text-zinc-500 mb-3">Categories</div>
+      <div class="mt-8 px-4 text-xs uppercase tracking-widest text-zinc-500 mb-3">CATEGORIES</div>
       <div id="sidebar-categories" class="space-y-1"></div>
 
-      <!-- Admin section (hidden until logged in as admin) -->
       <div id="admin-sidebar-section" class="hidden mt-10">
         <div class="px-4 text-xs uppercase tracking-widest text-amber-400 mb-3">ADMIN TOOLS</div>
-        <div onclick="switchTab('manage-categories')" id="tab-manage-categories" class="tab-item flex items-center gap-3">
-          📁 Manage Categories
-        </div>
-        <div onclick="switchTab('manage-sites')" id="tab-manage-sites" class="tab-item flex items-center gap-3">
-          🌐 Manage Sites
-        </div>
-        <div onclick="switchTab('manage-announcements')" id="tab-manage-announcements" class="tab-item flex items-center gap-3">
-          📢 Announcements
-        </div>
-        <div onclick="switchTab('manage-users')" id="tab-manage-users" class="tab-item flex items-center gap-3">
-          👥 Users
-        </div>
+        <div onclick="switchTab('manage-categories')" id="tab-manage-categories" class="tab-item flex items-center gap-3">📁 Manage Categories</div>
+        <div onclick="switchTab('manage-sites')" id="tab-manage-sites" class="tab-item flex items-center gap-3">🌐 Manage Sites</div>
+        <div onclick="switchTab('manage-announcements')" id="tab-manage-announcements" class="tab-item flex items-center gap-3">📢 Announcements</div>
+        <div onclick="switchTab('manage-users')" id="tab-manage-users" class="tab-item flex items-center gap-3">👥 Users</div>
       </div>
     </div>
 
-    <!-- Bottom user info -->
     <div class="p-4 border-t border-zinc-800">
-      <div id="user-info" class="flex items-center gap-3 text-sm">
-        <!-- Filled by JS -->
-      </div>
+      <div id="user-info" class="flex items-center gap-3 text-sm"></div>
     </div>
   </div>
 
-  <!-- MAIN CONTENT AREA -->
+  <!-- MAIN -->
   <div class="flex-1 flex flex-col">
-    
-    <!-- Top Announcement Banner -->
-    <div id="announcement-banner" onclick="dismissBanner()" 
-         class="hidden bg-gradient-to-r from-amber-500 to-orange-600 px-8 py-4 text-white flex items-center justify-between cursor-pointer hover:brightness-110 transition">
+    <div id="announcement-banner" onclick="dismissBanner()" class="hidden bg-gradient-to-r from-amber-500 to-orange-600 px-8 py-4 text-white flex items-center justify-between cursor-pointer hover:brightness-110 transition">
       <div class="flex items-center gap-3">
         <span class="text-xl">📢</span>
         <span id="banner-text" class="font-medium"></span>
@@ -101,31 +67,16 @@
       <span class="text-xs uppercase tracking-widest bg-black/30 px-3 py-1 rounded">click to dismiss</span>
     </div>
 
-    <!-- Main scrollable area -->
-    <div id="main-content" class="flex-1 p-8 overflow-auto bg-zinc-950">
-      <!-- Content injected by JS -->
-    </div>
+    <div id="main-content" class="flex-1 p-8 overflow-auto bg-zinc-950"></div>
 
-    <!-- Footer bar -->
     <div class="h-14 border-t border-zinc-800 bg-zinc-900 flex items-center px-8 text-xs text-zinc-500">
       <div class="flex-1">Hosted on GitHub Pages • Powered by Firebase</div>
-      <button onclick="logout()" 
-              class="px-6 py-2 bg-zinc-800 hover:bg-red-600/80 rounded-lg text-sm transition">
-        Logout
-      </button>
+      <button onclick="logout()" class="px-6 py-2 bg-zinc-800 hover:bg-red-600/80 rounded-lg text-sm transition">Logout</button>
     </div>
   </div>
 
   <script>
-    // ================== TAILWIND INIT ==================
-    function initTailwind() {
-      tailwind.config = {
-        content: [],
-        theme: { extend: {} }
-      }
-    }
-
-    // ================== FIREBASE CONFIG ==================
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyDI979T4jI-ZbGbRDFo-kNZPyG3Pc8gkXw",
       authDomain: "starlink-42031.firebaseapp.com",
@@ -141,30 +92,30 @@
     const db = firebase.firestore();
     const functions = firebase.functions();
 
-    // ================== YOUR ADMIN UID (MUST FILL) ==================
-    // 1. Login once
-    // 2. Open console → type: firebase.auth().currentUser.uid
-    // 3. Paste the result here:
-    const ADMIN_UID = "4zbovMB1iRYLE9n7343GKaEQrWz2";   // ←←← CHANGE THIS
+    // Your UID — hardcoded now
+    const ADMIN_UID = "4zbovMB1iRYLE9n7343GKaEQrWz2";
 
-    // Global state
     let currentTab = 'home';
     let selectedCategoryFilter = null;
     let isAdminUser = false;
-    let latestAnnouncement = null;
 
-    // ================== AUTH LISTENER ==================
+    // Auth listener
     auth.onAuthStateChanged(async (user) => {
       const userInfo = document.getElementById("user-info");
-      
       if (user) {
         isAdminUser = (user.uid === ADMIN_UID);
-        
-        // Auto-create user document (fixes permission errors!)
-        await db.collection("users").doc(user.uid).set({
-          email: user.email,
-          role: isAdminUser ? "admin" : "user"
-        }, { merge: true });
+
+        // Auto-create/update your own user doc (this fixes many permission issues)
+        try {
+          await db.collection("users").doc(user.uid).set({
+            email: user.email,
+            role: isAdminUser ? "admin" : "user",
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        } catch (e) {
+          console.error("Failed to create/update user doc:", e);
+          alert("User doc setup failed: " + e.message + "\nCheck Firestore rules!");
+        }
 
         userInfo.innerHTML = `
           <div class="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center text-xs font-bold">
@@ -172,134 +123,113 @@
           </div>
           <div>
             <div class="font-medium">${user.email}</div>
-            <div class="text-[10px] text-emerald-400">${isAdminUser ? 'ADMIN' : 'User'}</div>
+            <div class="text-[10px] ${isAdminUser ? 'text-emerald-400' : 'text-zinc-400'}">
+              ${isAdminUser ? 'ADMIN' : 'User'}
+            </div>
           </div>
         `;
 
         document.getElementById("admin-sidebar-section").classList.toggle("hidden", !isAdminUser);
-
         loadPublicData();
         if (isAdminUser) loadAdminData();
         renderCurrentTab();
       } else {
-        userInfo.innerHTML = `<button onclick="showLoginModal()" class="text-blue-400">Login as Admin</button>`;
+        userInfo.innerHTML = `<button onclick="showLoginModal()" class="text-blue-400 hover:underline">Login (Admin)</button>`;
+        renderCurrentTab();
       }
     });
 
-    // ================== PUBLIC DATA (real-time) ==================
     function loadPublicData() {
-      // Announcements banner
+      // Announcements (latest only for banner)
       db.collection("announcements")
         .orderBy("timestamp", "desc")
         .limit(1)
         .onSnapshot(snap => {
           if (!snap.empty) {
-            latestAnnouncement = snap.docs[0];
-            const banner = document.getElementById("announcement-banner");
-            document.getElementById("banner-text").textContent = latestAnnouncement.data().text;
-            banner.classList.remove("hidden");
+            const ann = snap.docs[0].data();
+            document.getElementById("banner-text").textContent = ann.text;
+            document.getElementById("announcement-banner").classList.remove("hidden");
           } else {
             document.getElementById("announcement-banner").classList.add("hidden");
           }
-        });
+        }, err => console.error("Announcements listener error:", err));
 
-      // Categories for sidebar
+      // Categories in sidebar
       db.collection("categories").onSnapshot(snap => {
         const container = document.getElementById("sidebar-categories");
         container.innerHTML = "";
-        
         snap.forEach(doc => {
-          const cat = doc.data().name;
+          const name = doc.data().name;
           const div = document.createElement("div");
-          div.className = `tab-item flex items-center gap-3 ${selectedCategoryFilter === cat ? 'tab-item-active' : ''}`;
-          div.innerHTML = `📂 ${cat}`;
-          div.onclick = () => {
-            selectedCategoryFilter = cat;
-            switchTab('home');
-          };
+          div.className = `tab-item flex items-center gap-3 ${selectedCategoryFilter === name ? 'tab-item-active' : ''}`;
+          div.textContent = `📂 ${name}`;
+          div.onclick = () => { selectedCategoryFilter = name; switchTab('home'); };
           container.appendChild(div);
         });
-      });
+      }, err => console.error("Categories listener error:", err));
     }
 
-    // ================== RENDER MAIN CONTENT ==================
     function renderCurrentTab() {
       const main = document.getElementById("main-content");
-      
+      main.innerHTML = '<p class="text-zinc-400">Loading...</p>';
+
       if (currentTab === 'home') {
         main.innerHTML = `
           <div class="max-w-6xl mx-auto">
             <h1 class="text-5xl font-bold mb-2">Welcome to Starlink</h1>
             <p class="text-zinc-400 mb-8">Your personal directory of everything</p>
-            
-            <div id="sites-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <!-- JS injected cards -->
-            </div>
+            <div id="sites-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
           </div>
         `;
-        loadFilteredSites();
-      } 
-      else if (currentTab === 'manage-categories') {
+        loadFilteredSites().catch(e => {
+          console.error("Sites load failed:", e);
+          document.getElementById("sites-container").innerHTML = `<p class="text-red-400">Error loading sites: ${e.message}</p>`;
+        });
+      } else if (currentTab === 'manage-categories' && isAdminUser) {
         main.innerHTML = `
           <div class="max-w-2xl mx-auto">
             <h2 class="text-3xl font-bold mb-8">Manage Categories</h2>
             <div class="flex gap-3 mb-8">
-              <input id="new-cat-input" placeholder="New category name..." 
-                     class="flex-1 bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4 focus:outline-none focus:border-amber-400">
-              <button onclick="addCategory()" 
-                      class="bg-white text-black px-10 rounded-2xl font-semibold hover:bg-amber-400 transition">
-                Add Category
-              </button>
+              <input id="new-cat-input" placeholder="New category name..." class="flex-1 bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4 focus:outline-none focus:border-amber-400">
+              <button onclick="addCategory()" class="bg-white text-black px-10 rounded-2xl font-semibold hover:bg-amber-400 transition">Add</button>
             </div>
             <div id="manage-categories-list" class="space-y-3"></div>
           </div>
         `;
         loadManageCategories();
-      } 
-      else if (currentTab === 'manage-sites') {
+      } else if (currentTab === 'manage-sites' && isAdminUser) {
         main.innerHTML = `
           <div class="max-w-2xl mx-auto">
             <h2 class="text-3xl font-bold mb-8">Manage Sites</h2>
-            <div class="bg-zinc-900 rounded-3xl p-8">
+            <div class="bg-zinc-900 rounded-3xl p-8 mb-8">
               <input id="site-name" placeholder="Site name" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4">
-              <input id="site-url" placeholder="https://..." class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4">
-              <input id="site-category" placeholder="Category" class="w-full mb-8 bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4">
-              <button onclick="addSite()" class="w-full bg-white text-black py-4 rounded-2xl font-semibold">Add Site</button>
+              <input id="site-url" placeholder="https://example.com" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4">
+              <input id="site-category" placeholder="Category name" class="w-full mb-6 bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4">
+              <button onclick="addSite()" class="w-full bg-white text-black py-4 rounded-2xl font-semibold hover:bg-amber-300">Add Site</button>
             </div>
-            <div id="manage-sites-list" class="mt-12"></div>
+            <div id="manage-sites-list" class="space-y-4"></div>
           </div>
         `;
         loadManageSites();
-      } 
-      else if (currentTab === 'manage-announcements') {
+      } else if (currentTab === 'manage-announcements' && isAdminUser) {
         main.innerHTML = `
           <div class="max-w-2xl mx-auto">
-            <h2 class="text-3xl font-bold mb-8">Global Announcements</h2>
-            <div class="flex gap-3 mb-8">
-              <input id="ann-input" placeholder="Announcement text..." 
-                     class="flex-1 bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4">
-              <button onclick="postAnnouncement()" 
-                      class="bg-amber-400 text-black px-10 rounded-2xl font-semibold">Post</button>
+            <h2 class="text-3xl font-bold mb-8">Announcements</h2>
+            <div class="flex gap-3 mb-6">
+              <input id="ann-input" placeholder="Type announcement..." class="flex-1 bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4">
+              <button onclick="postAnnouncement()" class="bg-amber-400 text-black px-10 rounded-2xl font-semibold">Post</button>
             </div>
-            <button onclick="clearAllAnnouncements()" 
-                    class="mb-8 bg-red-600 hover:bg-red-700 px-8 py-3 rounded-2xl text-sm">
-              🗑️ Clear All Announcements
-            </button>
+            <button onclick="clearAllAnnouncements()" class="mb-8 bg-red-700 hover:bg-red-800 px-6 py-3 rounded-xl text-sm">Clear All</button>
             <div id="ann-list" class="space-y-4"></div>
           </div>
         `;
         loadManageAnnouncements();
-      } 
-      else if (currentTab === 'manage-users') {
+      } else if (currentTab === 'manage-users' && isAdminUser) {
         main.innerHTML = `
           <div class="max-w-4xl mx-auto">
-            <h2 class="text-3xl font-bold mb-8">Registered Users</h2>
-            <table class="w-full text-left">
-              <thead><tr class="border-b border-zinc-700">
-                <th class="py-4 px-6">Email</th>
-                <th class="py-4 px-6">Role</th>
-                <th class="py-4 px-6">Actions</th>
-              </tr></thead>
+            <h2 class="text-3xl font-bold mb-8">Users</h2>
+            <table class="w-full text-left border-collapse">
+              <thead><tr class="border-b border-zinc-700"><th class="py-4 px-6">Email</th><th class="py-4 px-6">Role</th><th class="py-4 px-6">Actions</th></tr></thead>
               <tbody id="users-tbody" class="divide-y divide-zinc-800"></tbody>
             </table>
           </div>
@@ -311,212 +241,221 @@
     function switchTab(tab) {
       currentTab = tab;
       document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('tab-item-active'));
-      const activeEl = document.getElementById('tab-' + tab);
-      if (activeEl) activeEl.classList.add('tab-item-active');
-      
+      const el = document.getElementById(`tab-${tab}`);
+      if (el) el.classList.add('tab-item-active');
       renderCurrentTab();
     }
 
-    // ================== FILTERED SITES FOR HOME ==================
     async function loadFilteredSites() {
       const container = document.getElementById("sites-container");
-      container.innerHTML = `<p class="text-zinc-400 col-span-full">Loading sites...</p>`;
+      container.innerHTML = '<p class="text-zinc-400 col-span-full">Loading sites...</p>';
 
       const [catSnap, siteSnap] = await Promise.all([
         db.collection("categories").get(),
         db.collection("sites").get()
       ]);
 
-      let sitesByCat = {};
-      siteSnap.forEach(doc => {
-        const s = doc.data();
+      const sitesByCat = {};
+      siteSnap.forEach(d => {
+        const s = d.data();
         if (!sitesByCat[s.category]) sitesByCat[s.category] = [];
-        sitesByCat[s.category].push({id: doc.id, ...s});
+        sitesByCat[s.category].push(s);
       });
 
       let html = "";
-      const catsToShow = selectedCategoryFilter 
-        ? [selectedCategoryFilter] 
-        : catSnap.docs.map(d => d.data().name);
+      const cats = selectedCategoryFilter ? [selectedCategoryFilter] : catSnap.docs.map(d => d.data().name);
 
-      catsToShow.forEach(catName => {
-        const sites = sitesByCat[catName] || [];
+      cats.forEach(cat => {
+        const sites = sitesByCat[cat] || [];
         if (sites.length === 0) return;
-
-        html += `<div class="col-span-full"><h3 class="text-xl font-semibold mb-4">${catName}</h3></div>`;
-        sites.forEach(site => {
+        html += `<div class="col-span-full mt-6"><h3 class="text-2xl font-semibold mb-4">${cat}</h3></div>`;
+        sites.forEach(s => {
           html += `
-            <a href="${site.url}" target="_blank" 
-               class="site-card bg-zinc-900 border border-zinc-800 rounded-3xl p-6 block">
-              <div class="text-2xl mb-2">🔗</div>
-              <div class="font-semibold text-xl">${site.name}</div>
-              <div class="text-emerald-400 text-sm mt-1 break-all">${site.url}</div>
+            <a href="${s.url}" target="_blank" class="site-card bg-zinc-900 border border-zinc-800 rounded-3xl p-6 block hover:border-amber-500/50">
+              <div class="text-3xl mb-3">🔗</div>
+              <div class="font-semibold text-xl mb-1">${s.name}</div>
+              <div class="text-emerald-400 text-sm break-all">${s.url}</div>
             </a>`;
         });
       });
 
-      container.innerHTML = html || `<p class="text-zinc-400">No sites yet. Add some in Admin → Manage Sites.</p>`;
+      container.innerHTML = html || '<p class="text-zinc-400 col-span-full">No sites yet — add some via Admin → Manage Sites</p>';
     }
 
-    // ================== ADMIN FUNCTIONS ==================
-    async function loadManageCategories() {
-      const list = document.getElementById("manage-categories-list");
+    function loadAdminData() {
+      // Called once after login — starts all admin listeners
+      loadManageCategories();
+      loadManageSites();
+      loadManageAnnouncements();
+      loadUsersTable();
+    }
+
+    function loadManageCategories() {
       db.collection("categories").onSnapshot(snap => {
         let html = "";
         snap.forEach(doc => {
           html += `
             <div class="flex justify-between items-center bg-zinc-900 px-6 py-5 rounded-2xl">
               <span class="text-lg">${doc.data().name}</span>
-              <button onclick="deleteCategory('${doc.id}')" 
-                      class="text-red-400 hover:text-red-500">Delete</button>
+              <button onclick="deleteCategory('${doc.id}')" class="text-red-400 hover:text-red-300">Delete</button>
             </div>`;
         });
-        list.innerHTML = html || `<p class="text-zinc-500">No categories yet.</p>`;
-      });
+        document.getElementById("manage-categories-list").innerHTML = html || '<p class="text-zinc-500">No categories yet.</p>';
+      }, err => alert("Categories load error: " + err.message));
     }
 
     window.addCategory = async () => {
-      const name = document.getElementById("new-cat-input").value.trim();
-      if (!name) return;
-      await db.collection("categories").add({ name });
-      document.getElementById("new-cat-input").value = "";
+      try {
+        const name = document.getElementById("new-cat-input")?.value?.trim();
+        if (!name) return alert("Enter a name");
+        await db.collection("categories").add({ name });
+        document.getElementById("new-cat-input").value = "";
+      } catch (e) {
+        alert("Add category failed: " + e.message);
+      }
     };
 
     window.deleteCategory = async (id) => {
-      if (confirm("Delete category?")) await db.collection("categories").doc(id).delete();
+      if (!confirm("Delete?")) return;
+      try { await db.collection("categories").doc(id).delete(); } catch (e) { alert(e.message); }
     };
 
-    // Sites management
-    async function loadManageSites() {
-      const list = document.getElementById("manage-sites-list");
+    function loadManageSites() {
       db.collection("sites").onSnapshot(snap => {
-        let html = `<div class="grid grid-cols-2 gap-4">`;
+        let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-6">';
         snap.forEach(doc => {
           const s = doc.data();
           html += `
             <div class="bg-zinc-900 p-6 rounded-3xl">
-              <div class="font-medium">${s.name}</div>
-              <a href="${s.url}" target="_blank" class="text-emerald-400 text-sm block mb-4">${s.url}</a>
-              <div class="text-xs text-zinc-500">${s.category}</div>
-              <button onclick="deleteSite('${doc.id}')" 
-                      class="mt-6 text-red-400 text-sm">Delete</button>
+              <div class="font-medium text-lg">${s.name}</div>
+              <a href="${s.url}" target="_blank" class="text-emerald-400 text-sm block mt-1 break-all">${s.url}</a>
+              <div class="text-xs text-zinc-500 mt-2">Category: ${s.category}</div>
+              <button onclick="deleteSite('${doc.id}')" class="mt-4 text-red-400 text-sm hover:text-red-300">Delete</button>
             </div>`;
         });
-        html += `</div>`;
-        list.innerHTML = html || `<p>No sites yet.</p>`;
-      });
+        html += '</div>';
+        document.getElementById("manage-sites-list").innerHTML = html || '<p>No sites yet.</p>';
+      }, err => alert("Sites load error: " + err.message));
     }
 
     window.addSite = async () => {
-      const name = document.getElementById("site-name").value.trim();
-      const url = document.getElementById("site-url").value.trim();
-      const cat = document.getElementById("site-category").value.trim();
-      if (!name || !url || !cat) return alert("All fields required");
-      await db.collection("sites").add({ name, url, category: cat });
-      document.getElementById("site-name").value = "";
-      document.getElementById("site-url").value = "";
-      document.getElementById("site-category").value = "";
+      try {
+        const name = document.getElementById("site-name")?.value?.trim();
+        const url = document.getElementById("site-url")?.value?.trim();
+        const cat = document.getElementById("site-category")?.value?.trim();
+        if (!name || !url || !cat) return alert("Fill all fields");
+        await db.collection("sites").add({ name, url, category: cat });
+        document.getElementById("site-name").value = "";
+        document.getElementById("site-url").value = "";
+        document.getElementById("site-category").value = "";
+      } catch (e) {
+        alert("Add site failed: " + e.message);
+      }
     };
 
     window.deleteSite = async (id) => {
-      if (confirm("Delete site?")) await db.collection("sites").doc(id).delete();
+      if (!confirm("Delete?")) return;
+      try { await db.collection("sites").doc(id).delete(); } catch (e) { alert(e.message); }
     };
 
-    // Announcements
-    async function loadManageAnnouncements() {
+    function loadManageAnnouncements() {
       db.collection("announcements").orderBy("timestamp", "desc").onSnapshot(snap => {
         let html = "";
         snap.forEach(doc => {
           html += `
-            <div class="bg-zinc-900 p-6 rounded-3xl flex justify-between">
-              <div>${doc.data().text}</div>
-              <button onclick="deleteAnnouncement('${doc.id}')" class="text-red-400">×</button>
+            <div class="bg-zinc-900 p-6 rounded-3xl flex justify-between items-start">
+              <div class="flex-1">${doc.data().text}</div>
+              <button onclick="deleteAnnouncement('${doc.id}')" class="text-red-400 ml-4">×</button>
             </div>`;
         });
-        document.getElementById("ann-list").innerHTML = html || "<p>No announcements.</p>";
-      });
+        document.getElementById("ann-list").innerHTML = html || '<p>No announcements.</p>';
+      }, err => alert("Announcements load error: " + err.message));
     }
 
     window.postAnnouncement = async () => {
-      const text = document.getElementById("ann-input").value.trim();
-      if (!text) return;
-      await db.collection("announcements").add({
-        text,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      document.getElementById("ann-input").value = "";
+      try {
+        const text = document.getElementById("ann-input")?.value?.trim();
+        if (!text) return alert("Enter text");
+        await db.collection("announcements").add({
+          text,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById("ann-input").value = "";
+      } catch (e) {
+        alert("Post failed: " + e.message);
+      }
     };
 
     window.clearAllAnnouncements = async () => {
-      if (!confirm("Clear EVERY announcement?")) return;
-      const snap = await db.collection("announcements").get();
-      snap.forEach(doc => doc.ref.delete());
+      if (!confirm("Delete ALL announcements?")) return;
+      try {
+        const snap = await db.collection("announcements").get();
+        const batch = db.batch();
+        snap.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+      } catch (e) { alert(e.message); }
     };
 
     window.deleteAnnouncement = async (id) => {
-      await db.collection("announcements").doc(id).delete();
+      try { await db.collection("announcements").doc(id).delete(); } catch (e) { alert(e.message); }
     };
 
-    // Users
-    async function loadUsersTable() {
+    function loadUsersTable() {
       db.collection("users").onSnapshot(snap => {
         let html = "";
         snap.forEach(doc => {
           const u = doc.data();
           html += `
             <tr class="hover:bg-zinc-900">
-              <td class="px-6 py-5">${u.email}</td>
+              <td class="px-6 py-5">${u.email || '—'}</td>
               <td class="px-6 py-5">
-                <select onchange="updateUserRole('${doc.id}', this.value)" class="bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-1">
-                  <option value="user" ${u.role==='user'?'selected':''}>user</option>
-                  <option value="admin" ${u.role==='admin'?'selected':''}>admin</option>
+                <select onchange="updateUserRole('${doc.id}', this.value)" class="bg-zinc-800 border border-zinc-700 rounded px-3 py-1">
+                  <option value="user" ${u.role === 'user' ? 'selected' : ''}>user</option>
+                  <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>admin</option>
                 </select>
               </td>
               <td class="px-6 py-5">
-                <button onclick="deleteUser('${doc.id}')" 
-                        class="text-red-400 hover:text-red-500">Remove</button>
+                <button onclick="deleteUser('${doc.id}')" class="text-red-400 hover:text-red-300">Remove</button>
               </td>
             </tr>`;
         });
         document.getElementById("users-tbody").innerHTML = html;
-      });
+      }, err => alert("Users load error: " + err.message));
     }
 
     window.updateUserRole = async (uid, role) => {
-      const fn = functions.httpsCallable("updateUserRole");
-      await fn({ uid, role });
+      try {
+        const fn = functions.httpsCallable("updateUserRole");
+        await fn({ uid, role });
+        alert("Role updated");
+      } catch (e) { alert("Role update failed:\n" + e.message); }
     };
 
     window.deleteUser = async (uid) => {
       if (!confirm("Permanently delete user?")) return;
-      const fn = functions.httpsCallable("deleteUser");
-      await fn({ uid });
+      try {
+        const fn = functions.httpsCallable("deleteUser");
+        await fn({ uid });
+        alert("User deleted");
+      } catch (e) { alert("Delete failed:\n" + e.message); }
     };
 
-    // Banner
-    window.dismissBanner = () => {
-      document.getElementById("announcement-banner").classList.add("hidden");
-    };
+    window.dismissBanner = () => document.getElementById("announcement-banner").classList.add("hidden");
 
-    // Login modal (simple)
     window.showLoginModal = () => {
-      const email = prompt("Admin Email", "gunnarbooth@gmail.com");
-      const pass = prompt("Admin Password");
+      const email = prompt("Email", "gunnarbooth@gmail.com");
+      const pass = prompt("Password");
       if (email && pass) {
         auth.signInWithEmailAndPassword(email, pass)
           .catch(e => alert("Login failed: " + e.message));
       }
     };
 
-    window.logout = () => auth.signOut();
+    window.logout = () => auth.signOut().catch(e => console.error(e));
 
-    // ================== START ==================
-    initTailwind();
+    // Start
     loadPublicData();
-    // Auto render home on load
-    setTimeout(() => {
-      renderCurrentTab();
-    }, 800);
+    setTimeout(renderCurrentTab, 600);  // give time for auth state
   </script>
 </body>
 </html>
