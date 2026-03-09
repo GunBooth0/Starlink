@@ -225,7 +225,7 @@
                         <button onclick="changeEmail()" class="github-style-btn"><i class="fa-solid fa-envelope"></i> Change Email</button>
                         <button onclick="changePassword()" class="github-style-btn"><i class="fa-solid fa-key"></i> Change Password</button>
                         <button onclick="deleteAccount()" class="github-style-btn"><i class="fa-solid fa-trash-can"></i> Delete Account</button>
-                        <button onclick="firebaseAuth.signOut(firebaseAuth.auth).then(()=>location.reload())" class="github-style-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                        <button onclick="firebaseAuth.signOut(firebaseAuth.auth)" class="github-style-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
                         <p id="auth-message" class="mt-6"></p>
                     </div>
                 </div>
@@ -398,31 +398,13 @@
         const db = getFirestore(app);
 
         window.db = db;
-        window.firebaseAuth = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, auth, sendEmailVerification };
+        window.firebaseAuth = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, auth };
 
         window.currentUser = null;
-        const ADMIN_EMAIL = "gunnarbooth@gmail.com";
+
+        // CHANGE THIS TO YOUR EMAIL
+        const ADMIN_EMAIL = "gunnarbooth@gmail.com";  // ← YOUR ADMIN EMAIL HERE
         window.ADMIN_EMAIL = ADMIN_EMAIL;
-
-        // ──────────────────────────────────────────────
-        // Tab configuration - fixed indices
-        // ──────────────────────────────────────────────
-        const tabConfig = [
-            { id: 'admin',    icon: 'fa-crown',   title: 'Admin Panel',   content: 'content-admin'   },
-            { id: 'home',     icon: 'fa-house',   title: 'Home',          content: 'content-home'    },
-            { id: 'games',    icon: 'fa-gamepad', title: 'Games',         content: 'content-games'   },
-            { id: 'ai',       icon: 'fa-brain',   title: 'AI Tools',      content: 'content-ai'      },
-            { id: 'tv',       icon: 'fa-tv',      title: 'TV & Streaming',content: 'content-tv'      },
-            { id: 'proxies',  icon: 'fa-shield-halved', title: 'Proxies', title: 'Proxies',     content: 'content-proxies' },
-            { id: 'music',    icon: 'fa-music',   title: 'Music',         content: 'content-music'   },
-            { id: 'settings', icon: 'fa-gear',    title: 'Settings',      content: 'content-settings'},
-            { id: 'account',  icon: 'fa-user',    title: 'Account',       content: 'content-account' },
-            { id: 'credits',  icon: 'fa-heart',   title: 'Credits',       content: 'content-credits' }
-        ];
-
-        function getVisibleTabs(isAdmin) {
-            return isAdmin ? tabConfig : tabConfig.slice(1); // skip admin if not admin
-        }
 
         function updateUIForAuth(user) {
             window.currentUser = user;
@@ -435,33 +417,50 @@
             const currentIconEl = document.getElementById('current-tab-icon');
 
             if (user) {
-                if (!user.emailVerified) {
-                    alert("Email not verified. Check inbox/spam/promotions folder.");
-                    signOut(auth).then(() => updateUIForAuth(null));
-                    return;
-                }
-
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
                 userInfo?.classList.remove('hidden');
                 document.getElementById('user-email').textContent = user.email;
                 authForm?.classList.add('hidden');
                 accountTitle.textContent = 'Account';
 
-                const isAdmin = user.email === ADMIN_EMAIL;
-                const visibleTabs = getVisibleTabs(isAdmin);
-
                 let navHTML = '';
-                visibleTabs.forEach((tab, idx) => {
-                    const active = idx === 0 ? ' active-tab' : '';
+
+                if (user.email === ADMIN_EMAIL) {
                     navHTML += `
-                        <div onclick="switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1${active}" id="tab-${tab.id}">
-                            <i class="fa-solid ${tab.icon} w-5"></i> <span>${tab.title}</span>
+                        <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
+                            <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
                         </div>
                     `;
-                });
+                }
 
-                // Request site always last
                 navHTML += `
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '1' : '0'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${user.email !== ADMIN_EMAIL ? 'active-tab' : ''}" id="tab-home">
+                        <i class="fa-solid fa-house w-5"></i> <span>Home</span>
+                    </div>
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '2' : '1'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-games">
+                        <i class="fa-solid fa-gamepad w-5"></i> <span>Games</span>
+                    </div>
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '3' : '2'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-ai">
+                        <i class="fa-solid fa-brain w-5"></i> <span>AI Tools</span>
+                    </div>
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '4' : '3'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-tv">
+                        <i class="fa-solid fa-tv w-5"></i> <span>TV & Streaming</span>
+                    </div>
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '5' : '4'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-proxies">
+                        <i class="fa-solid fa-shield-halved w-5"></i> <span>Proxies</span>
+                    </div>
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '6' : '5'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-music">
+                        <i class="fa-solid fa-music w-5"></i> <span>Music</span>
+                    </div>
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '7' : '6'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-settings">
+                        <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
+                    </div>
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '8' : '7'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-account">
+                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+                    </div>
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '9' : '8'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-credits">
+                        <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
+                    </div>
                     <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
                         <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
                     </div>
@@ -474,8 +473,12 @@
                     await window.loadAllSites();
                     window.populateAllGrids();
                     await window.showGlobalAnnouncement();
-                    switchTab(0); // always open first visible tab (admin panel for admin, home for others)
-                }, 150);
+                    if (user.email === ADMIN_EMAIL) {
+                        switchTab(0); // open admin first for admin
+                    } else {
+                        switchTab(0); // home for normal users (adjusted index)
+                    }
+                }, 100);
 
             } else {
                 statusEl.textContent = '';
@@ -484,7 +487,6 @@
                 userInfo?.classList.add('hidden');
                 authForm?.classList.remove('hidden');
                 accountTitle.textContent = 'Sign In Required';
-
                 navLinks.innerHTML = `
                     <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-account">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
@@ -496,52 +498,32 @@
 
         firebaseAuth.onAuthStateChanged(auth, updateUIForAuth);
 
+        // Auth button logic
         document.getElementById('auth-btn')?.addEventListener('click', async () => {
-            const email = document.getElementById('email').value.trim();
+            const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const isSignIn = document.getElementById('form-title').textContent === 'Sign In';
-
-            if (!email || !password) return alert("Email and password required");
-
             try {
-                if (isSignIn) {
+                if (document.getElementById('form-title').textContent === 'Sign In') {
                     const cred = await signInWithEmailAndPassword(auth, email, password);
                     if (!cred.user.emailVerified) {
-                        alert("Please verify your email first. Check inbox/spam/promotions.");
+                        alert("Please verify your email first.");
                         await signOut(auth);
                         return;
                     }
                     updateUIForAuth(cred.user);
                 } else {
-                    // SIGN UP
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
-                    
                     await setDoc(doc(db, "users", cred.user.uid), {
                         email,
                         createdAt: serverTimestamp()
                     });
-
-                    console.log("Sending verification to:", email);
                     await sendEmailVerification(cred.user);
-
-                    alert("Verification email sent!\n\nCheck inbox, spam, junk, or promotions folder.\nYou must verify before signing in.");
-
+                    alert("Verification email sent! Check inbox.");
                     await signOut(auth);
-
-                    document.getElementById('form-title').textContent = 'Sign In';
-                    document.getElementById('auth-btn').textContent = 'Sign In';
-                    document.getElementById('toggle-link').textContent = "Don't have an account? Sign Up";
-                    document.getElementById('email').value = '';
-                    document.getElementById('password').value = '';
-
                     updateUIForAuth(null);
                 }
             } catch (e) {
-                let msg = e.message;
-                if (msg.includes('email-already-in-use')) msg = "Email already in use.";
-                if (msg.includes('invalid-email')) msg = "Invalid email format.";
-                if (msg.includes('weak-password')) msg = "Password must be at least 6 characters.";
-                alert("Error: " + msg);
+                alert(e.message);
             }
         });
 
@@ -553,38 +535,11 @@
             document.getElementById('toggle-link').textContent = isSignIn ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
         });
 
-        function switchTab(idx) {
-            const isAdmin = !!window.currentUser && window.currentUser.email === ADMIN_EMAIL;
-            const visibleTabs = getVisibleTabs(isAdmin);
-
-            if (idx < 0 || idx >= visibleTabs.length) idx = 0;
-
-            // Safety: non-admin can't force admin tab
-            if (visibleTabs[idx].id === 'admin' && !isAdmin) {
-                idx = 0; // home
-            }
-
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
-            const link = document.getElementById(`tab-${visibleTabs[idx].id}`);
-            if (link) link.classList.add('active-tab');
-
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(visibleTabs[idx].content)?.classList.remove('hidden');
-
-            document.getElementById('current-tab').textContent = visibleTabs[idx].title;
-            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${visibleTabs[idx].icon}`;
-        }
-
-        // ──────────────────────────────────────────────
-        // Rest of your functions (unchanged)
-        // ──────────────────────────────────────────────
-
         window.deleteAccount = async () => {
             if (!confirm("Delete account permanently?")) return;
             try {
                 await deleteUser(auth.currentUser);
                 alert("Account deleted.");
-                location.reload();
             } catch (e) {
                 alert("Error: " + e.message);
             }
@@ -608,19 +563,20 @@
             if (!user) return alert("Not logged in.");
             const newEmail = prompt("New email:", user.email);
             if (!newEmail || newEmail === user.email) return;
-            const pass = prompt("Current password to re-authenticate:");
+            const pass = prompt("Current password:");
             if (!pass) return;
             try {
                 const cred = EmailAuthProvider.credential(user.email, pass);
                 await reauthenticateWithCredential(user, cred);
                 await updateEmail(user, newEmail);
-                alert("Email updated! Please verify the new email.");
+                alert("Email updated! Verify new email.");
                 document.getElementById('user-email').textContent = newEmail;
             } catch (e) {
                 alert("Error: " + e.message);
             }
         };
 
+        // Admin functions
         window.loadAllSites = async () => {
             const snap = await getDocs(collection(db, "sites"));
             window.allSites = { games: [], ai: [], tv: [], proxies: [], music: [] };
@@ -702,8 +658,8 @@
             if (!name || !url) return alert("Name and URL required");
 
             try {
-                await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc, createdAt: serverTimestamp() });
-                alert("Site added!");
+                await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc });
+                alert("Added!");
                 ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                 await window.loadAllSites();
                 window.populateAllGrids();
@@ -714,7 +670,7 @@
         };
 
         window.deleteSite = async (id) => {
-            if (!confirm("Delete site forever?")) return;
+            if (!confirm("Delete forever?")) return;
             try {
                 await deleteDoc(doc(db, "sites", id));
                 await window.loadAllSites();
@@ -739,7 +695,7 @@
                 const sites = window.allSites[c.key] || [];
                 let html = `<div class="border border-white/10 rounded-3xl p-8"><div class="flex justify-between items-center mb-6"><h4 class="text-2xl font-medium">${c.label}</h4><span class="text-xs bg-white/10 px-4 py-1.5 rounded-2xl">${sites.length} sites</span></div><div class="space-y-4">`;
                 if (!sites.length) {
-                    html += '<p class="text-white/40 pl-2">No sites in this category yet</p>';
+                    html += '<p class="text-white/40 pl-2">No sites yet</p>';
                 } else {
                     sites.forEach(s => {
                         html += `
@@ -748,7 +704,7 @@
                                     <div class="text-5xl">${s.icon}</div>
                                     <div>
                                         <div class="font-semibold text-xl">${s.name}</div>
-                                        <a href="${s.url}" target="_blank" class="text-xs text-[var(--accent)] break-all hover:underline">${s.url}</a>
+                                        <a href="${s.url}" target="_blank" class="text-xs text-[var(--accent)] break-all">${s.url}</a>
                                         ${s.desc ? `<div class="text-xs text-white/60 mt-1">${s.desc}</div>` : ''}
                                     </div>
                                 </div>
@@ -760,6 +716,39 @@
                 container.innerHTML += html;
             });
         };
+
+        // Expose
+        window.loadAllSites = window.loadAllSites;
+        window.populateAllGrids = window.populateAllGrids;
+        window.showGlobalAnnouncement = window.showGlobalAnnouncement;
+        window.saveGlobalAnnouncement = window.saveGlobalAnnouncement;
+        window.clearAnnouncement = window.clearAnnouncement;
+        window.loadAdminUsers = window.loadAdminUsers;
+        window.addNewSiteFromAdmin = window.addNewSiteFromAdmin;
+        window.deleteSite = window.deleteSite;
+        window.reloadAdminSites = window.reloadAdminSites;
+    </script>
+
+    <script>
+        const tabIcons = ['fa-crown','fa-house','fa-gamepad','fa-brain','fa-tv','fa-shield-halved','fa-music','fa-gear','fa-user','fa-heart','fa-paper-plane'];
+        const tabTitles = ["Admin Panel","Home","Games","AI Tools","TV & Streaming","Proxies","Music","Settings","Account","Credits","Request a Site"];
+        const contentIds = ['content-admin','content-home','content-games','content-ai','content-tv','content-proxies','content-music','content-settings','content-account','content-credits'];
+
+        function switchTab(index) {
+            if (!window.currentUser) {
+                switchTab(0); // account when not logged in
+                return;
+            }
+
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
+            document.getElementById(`tab-${index}`)?.classList.add('active-tab');
+
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(contentIds[index])?.classList.remove('hidden');
+
+            document.getElementById('current-tab').textContent = tabTitles[index];
+            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
+        }
 
         const themes = [
             {name:"White",color:"#ffffff"},{name:"Red",color:"#ef4444"},{name:"Blue",color:"#3b82f6"},
@@ -784,16 +773,18 @@
 
         function loadNewTabPreference() {
             const saved = localStorage.getItem('starlinkNewTab');
-            document.getElementById('newtab-toggle').checked = saved !== 'false';
+            const cb = document.getElementById('newtab-toggle');
+            cb.checked = saved === null || saved === 'true';
+            saveNewTabPreference(cb.checked);
         }
 
         function resetEverything() {
-            if (!confirm("Reset theme/preferences and sign out?")) return;
+            if (!confirm("Reset all & sign out?")) return;
             localStorage.clear();
             setTheme('#ffffff');
             document.getElementById('newtab-toggle').checked = true;
             saveNewTabPreference(true);
-            signOut(auth).then(() => location.reload());
+            firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
         }
 
         function createStar(x, y) {
@@ -825,18 +816,17 @@
             const cont = document.getElementById(id);
             if (!cont) return;
             cont.innerHTML = '';
-            (window.allSites?.[cat] || []).sort((a,b) => (b.createdAt||0) - (a.createdAt||0)).forEach(site => {
+            (window.allSites?.[cat] || []).forEach(site => {
                 const card = document.createElement('div');
                 card.className = 'card rounded-3xl p-6 cursor-pointer group';
                 card.innerHTML = `
                     <div class="text-5xl mb-6 transition-transform group-hover:scale-125">${site.icon}</div>
                     <div class="font-semibold text-xl mb-2">${site.name}</div>
-                    <div class="text-white/60 text-sm line-clamp-2">${site.desc || ''}</div>
+                    <div class="text-white/60 text-sm">${site.desc || ''}</div>
                 `;
                 card.onclick = () => {
                     const nt = document.getElementById('newtab-toggle').checked;
-                    if (nt) window.open(site.url, '_blank');
-                    else location.assign(site.url);
+                    (nt ? window.open : location.assign)(site.url, nt ? '_blank' : '_self');
                 };
                 cont.appendChild(card);
             });
@@ -865,22 +855,10 @@
             loadTheme();
             loadNewTabPreference();
             initStars();
-            document.getElementById('newtab-toggle')?.addEventListener('change', e => saveNewTabPreference(e.target.checked));
+            document.getElementById('newtab-toggle').addEventListener('change', e => saveNewTabPreference(e.target.checked));
         }
 
         window.onload = initialize;
-
-        // Expose needed globals
-        window.switchTab = switchTab;
-        window.loadAllSites = window.loadAllSites;
-        window.populateAllGrids = window.populateAllGrids;
-        window.showGlobalAnnouncement = window.showGlobalAnnouncement;
-        window.saveGlobalAnnouncement = window.saveGlobalAnnouncement;
-        window.clearAnnouncement = window.clearAnnouncement;
-        window.loadAdminUsers = window.loadAdminUsers;
-        window.addNewSiteFromAdmin = window.addNewSiteFromAdmin;
-        window.deleteSite = window.deleteSite;
-        window.reloadAdminSites = window.reloadAdminSites;
     </script>
 </body>
 </html>
