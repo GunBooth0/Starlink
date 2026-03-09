@@ -95,7 +95,7 @@
             height: 100vh;
             padding-top: 4rem;
         }
-        input[type="email"], input[type="password"] {
+        input[type="email"], input[type="password"], input[type="text"], textarea, select {
             background: rgba(255,255,255,0.08);
             border: 1px solid rgba(255,255,255,0.25);
             color: white;
@@ -106,13 +106,13 @@
             font-size: 1rem;
             transition: all 0.3s ease;
         }
-        input:focus {
+        input:focus, textarea:focus, select:focus {
             outline: none;
             border-color: var(--accent);
             box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
             background: rgba(255,255,255,0.12);
         }
-        input::placeholder {
+        input::placeholder, textarea::placeholder {
             color: rgba(255,255,255,0.5);
         }
         button {
@@ -160,7 +160,6 @@
         }
         .success { color: #10b981; }
         .error { color: #ef4444; }
-        /* Admin table styling */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -173,6 +172,7 @@
 </head>
 <body>
     <div id="star-bg"></div>
+
     <!-- SIDEBAR -->
     <div class="w-72 bg-black border-r border-white/10 flex flex-col fixed h-screen z-50">
         <div class="p-8 flex items-center gap-x-4 border-b border-white/10">
@@ -186,6 +186,7 @@
         </div>
         <div class="flex-1 px-6 py-8 overflow-y-auto" id="nav-links"></div>
     </div>
+
     <!-- MAIN CONTENT -->
     <div class="flex-1 ml-72 main-content">
         <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50 top-0">
@@ -195,9 +196,10 @@
                 <span id="user-status" class="ml-auto text-sm text-white/70"></span>
             </div>
         </div>
+
         <div class="pt-24 pb-20 px-10 tail-container">
-            
-            <!-- GLOBAL ANNOUNCEMENT BANNER (visible to everyone when logged in) -->
+
+            <!-- GLOBAL ANNOUNCEMENT -->
             <div id="global-announcement" class="hidden max-w-4xl mx-auto mb-8 p-6 glass rounded-3xl border-l-4 border-[var(--accent)]">
                 <div class="flex items-center gap-3">
                     <i class="fa-solid fa-bullhorn text-2xl text-[var(--accent)]"></i>
@@ -209,34 +211,21 @@
             <div id="content-account" class="tab-content">
                 <div class="max-w-md mx-auto py-12">
                     <h2 class="text-3xl font-bold text-center mb-8" id="account-title">Sign In Required</h2>
-                   
                     <div id="auth-form" class="glass p-8 rounded-3xl">
                         <h3 class="text-xl font-semibold mb-6 text-center" id="form-title">Sign In</h3>
-                       
                         <input type="email" id="email" placeholder="Email address" required autocomplete="email">
                         <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
-                       
                         <button id="auth-btn" class="auth-btn mt-6">Sign In</button>
-                       
                         <p class="text-center mt-6 text-white/70 text-sm">
                             <span id="toggle-link" class="text-[var(--accent)] cursor-pointer hover:underline">Don't have an account? Sign Up</span>
                         </p>
                     </div>
-                   
                     <div id="user-info" class="hidden text-center mt-12">
                         <p class="text-2xl mb-8">Logged in as: <span id="user-email" class="font-bold text-[var(--accent)]"></span></p>
-                        <button onclick="changeEmail()" class="github-style-btn">
-                            <i class="fa-solid fa-envelope"></i> Change Email
-                        </button>
-                        <button onclick="changePassword()" class="github-style-btn">
-                            <i class="fa-solid fa-key"></i> Change Password
-                        </button>
-                        <button onclick="deleteAccount()" class="github-style-btn">
-                            <i class="fa-solid fa-trash-can"></i> Delete Account
-                        </button>
-                        <button onclick="firebaseAuth.signOut(firebaseAuth.auth)" class="github-style-btn">
-                            <i class="fa-solid fa-right-from-bracket"></i> Logout
-                        </button>
+                        <button onclick="changeEmail()" class="github-style-btn"><i class="fa-solid fa-envelope"></i> Change Email</button>
+                        <button onclick="changePassword()" class="github-style-btn"><i class="fa-solid fa-key"></i> Change Password</button>
+                        <button onclick="deleteAccount()" class="github-style-btn"><i class="fa-solid fa-trash-can"></i> Delete Account</button>
+                        <button onclick="firebaseAuth.signOut(firebaseAuth.auth)" class="github-style-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
                         <p id="auth-message" class="mt-6"></p>
                     </div>
                 </div>
@@ -257,26 +246,13 @@
                 </div>
             </div>
 
-            <!-- GAMES -->
-            <div id="content-games" class="tab-content hidden">
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="games-grid"></div>
-            </div>
-            <!-- AI TOOLS -->
-            <div id="content-ai" class="tab-content hidden">
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="ai-grid"></div>
-            </div>
-            <!-- TV & STREAMING -->
-            <div id="content-tv" class="tab-content hidden">
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="tv-grid"></div>
-            </div>
-            <!-- PROXIES -->
-            <div id="content-proxies" class="tab-content hidden">
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="proxy-grid"></div>
-            </div>
-            <!-- MUSIC -->
-            <div id="content-music" class="tab-content hidden">
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div>
-            </div>
+            <!-- GAMES / AI / TV / PROXIES / MUSIC -->
+            <div id="content-games" class="tab-content hidden"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="games-grid"></div></div>
+            <div id="content-ai" class="tab-content hidden"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="ai-grid"></div></div>
+            <div id="content-tv" class="tab-content hidden"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="tv-grid"></div></div>
+            <div id="content-proxies" class="tab-content hidden"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="proxy-grid"></div></div>
+            <div id="content-music" class="tab-content hidden"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div></div>
+
             <!-- SETTINGS -->
             <div id="content-settings" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
@@ -305,6 +281,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- CREDITS -->
             <div id="content-credits" class="tab-content hidden">
                 <div class="max-w-3xl mx-auto text-center py-20">
@@ -322,55 +299,43 @@
                 </div>
             </div>
 
-            <!-- ADMIN PANEL (only visible to you) -->
+            <!-- ADMIN PANEL -->
             <div id="content-admin" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-6xl mx-auto">
                     <div class="flex items-center justify-between mb-10">
                         <h2 class="text-4xl font-bold logo-font tracking-tighter">Admin Panel</h2>
-                        <div class="text-xs bg-white/10 px-4 py-2 rounded-2xl font-mono">Only you can see this</div>
+                        <div class="text-xs bg-white/10 px-4 py-2 rounded-2xl font-mono">Admin only</div>
                     </div>
 
-                    <!-- Global Announcements -->
+                    <!-- Announcement -->
                     <div class="mb-16">
                         <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
-                            <i class="fa-solid fa-bullhorn"></i>
-                            Global Announcement
+                            <i class="fa-solid fa-bullhorn"></i> Global Announcement
                         </h3>
-                        <textarea id="announcement-input" rows="3" 
-                            class="w-full p-6 bg-black/60 border border-white/30 rounded-3xl text-white text-lg resize-y focus:border-[var(--accent)]"
-                            placeholder="Type a message that will appear at the top of the site for ALL logged-in users..."></textarea>
+                        <textarea id="announcement-input" rows="3" class="w-full p-6 bg-black/60 border border-white/30 rounded-3xl text-white text-lg resize-y focus:border-[var(--accent)]" placeholder="Message visible to ALL logged-in users..."></textarea>
                         <div class="flex gap-4 mt-4">
-                            <button onclick="saveGlobalAnnouncement()" class="auth-btn flex-1">Publish Announcement</button>
-                            <button onclick="clearAnnouncement()" class="github-style-btn flex-1">Clear Announcement</button>
+                            <button onclick="saveGlobalAnnouncement()" class="auth-btn flex-1">Publish</button>
+                            <button onclick="clearAnnouncement()" class="github-style-btn flex-1">Clear</button>
                         </div>
                     </div>
 
-                    <!-- Users Management -->
+                    <!-- Users -->
                     <div class="mb-16">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-users"></i>
-                                All Registered Users
+                                <i class="fa-solid fa-users"></i> Registered Users
                             </h3>
-                            <button onclick="loadAdminUsers()" 
-                                    class="github-style-btn text-sm px-8 py-3">Refresh List</button>
+                            <button onclick="loadAdminUsers()" class="github-style-btn text-sm px-8 py-3">Refresh List</button>
                         </div>
-                        <div id="users-table" class="bg-black/30 rounded-3xl p-2 max-h-[420px] overflow-auto">
-                            <!-- Populated by JS -->
-                        </div>
-                        <p class="text-xs text-white/50 mt-4 text-center">
-                            To fully edit or delete users, go to the Firebase Console → Authentication
-                        </p>
+                        <div id="users-table" class="bg-black/30 rounded-3xl p-2 max-h-[420px] overflow-auto"></div>
+                        <p class="text-xs text-white/50 mt-4 text-center">Full edit/delete → Firebase Console → Authentication</p>
                     </div>
 
                     <!-- Sites Management -->
                     <div>
                         <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
-                            <i class="fa-solid fa-globe"></i>
-                            Manage Sites &amp; Categories
+                            <i class="fa-solid fa-globe"></i> Manage Sites
                         </h3>
-                        
-                        <!-- Add new site form -->
                         <div class="bg-black/40 p-8 rounded-3xl mb-10">
                             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                                 <div>
@@ -378,45 +343,34 @@
                                     <select id="admin-cat-select" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
                                         <option value="games">Games</option>
                                         <option value="ai">AI Tools</option>
-                                        <option value="tv">TV &amp; Streaming</option>
+                                        <option value="tv">TV & Streaming</option>
                                         <option value="proxies">Proxies</option>
                                         <option value="music">Music</option>
                                     </select>
                                 </div>
                                 <div class="md:col-span-2">
                                     <label class="text-xs text-white/50 block mb-2">Site Name</label>
-                                    <input id="new-site-name" type="text" placeholder="Site Name" 
-                                           class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                    <input id="new-site-name" type="text" placeholder="Site Name" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
                                 </div>
                                 <div class="md:col-span-2">
                                     <label class="text-xs text-white/50 block mb-2">URL</label>
-                                    <input id="new-site-url" type="text" placeholder="https://example.com" 
-                                           class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                    <input id="new-site-url" type="text" placeholder="https://example.com" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                 <div>
                                     <label class="text-xs text-white/50 block mb-2">Icon (emoji)</label>
-                                    <input id="new-site-icon" type="text" placeholder="🎮" maxlength="2"
-                                           class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                    <input id="new-site-icon" type="text" placeholder="🎮" maxlength="2" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
                                 </div>
                                 <div>
                                     <label class="text-xs text-white/50 block mb-2">Description (optional)</label>
-                                    <input id="new-site-desc" type="text" placeholder="Short description"
-                                           class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                    <input id="new-site-desc" type="text" placeholder="Short description" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
                                 </div>
                             </div>
-                            <div class="flex gap-4 mt-8">
-                                <button onclick="addNewSiteFromAdmin()" class="auth-btn flex-1 py-6 text-lg">Add New Site</button>
-                                <button onclick="seedDefaultSites()" 
-                                        class="github-style-btn flex-1 py-6 text-lg">Seed Original Sites (one-time)</button>
-                            </div>
+                            <button onclick="addNewSiteFromAdmin()" class="auth-btn mt-8 py-6 text-lg w-full">Add New Site</button>
                         </div>
 
-                        <!-- Existing sites grouped by category -->
-                        <div id="admin-sites-list" class="space-y-10">
-                            <!-- Populated by JS -->
-                        </div>
+                        <div id="admin-sites-list" class="space-y-10"></div>
                     </div>
                 </div>
             </div>
@@ -427,19 +381,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-        import { 
-            getFirestore, 
-            collection, 
-            doc, 
-            setDoc, 
-            getDocs, 
-            addDoc, 
-            deleteDoc, 
-            getDoc,
-            query, 
-            orderBy, 
-            serverTimestamp 
-        } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDI979T4jI-ZbGbRDFo-kNZPyG3Pc8gkXw",
@@ -456,25 +398,13 @@
         const db = getFirestore(app);
 
         window.db = db;
-        window.firebaseAuth = {
-            createUserWithEmailAndPassword,
-            signInWithEmailAndPassword,
-            signOut,
-            onAuthStateChanged,
-            deleteUser,
-            sendPasswordResetEmail,
-            updateEmail,
-            reauthenticateWithCredential,
-            EmailAuthProvider,
-            auth
-        };
+        window.firebaseAuth = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, auth };
 
         window.currentUser = null;
 
-        // ==================== ADMIN EMAIL (CHANGE THIS!) ====================
-        const ADMIN_EMAIL = "gunnarbooth@gmail.com"; // <<< CHANGE TO YOUR EMAIL
+        // CHANGE THIS TO YOUR EMAIL
+        const ADMIN_EMAIL = "gunnarbooth@gmail.com";  // ← YOUR ADMIN EMAIL HERE
         window.ADMIN_EMAIL = ADMIN_EMAIL;
-        // ===================================================================
 
         function updateUIForAuth(user) {
             window.currentUser = user;
@@ -482,62 +412,56 @@
             const navLinks = document.getElementById('nav-links');
             const userInfo = document.getElementById('user-info');
             const authForm = document.getElementById('auth-form');
-            const messageEl = document.getElementById('auth-message');
             const accountTitle = document.getElementById('account-title');
             const currentTabEl = document.getElementById('current-tab');
             const currentIconEl = document.getElementById('current-tab-icon');
 
             if (user) {
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
-                if (userInfo) {
-                    userInfo.classList.remove('hidden');
-                    document.getElementById('user-email').textContent = user.email;
-                }
-                if (authForm) authForm.classList.add('hidden');
-                if (messageEl) messageEl.textContent = '';
-                if (accountTitle) accountTitle.textContent = 'Account';
+                userInfo?.classList.remove('hidden');
+                document.getElementById('user-email').textContent = user.email;
+                authForm?.classList.add('hidden');
+                accountTitle.textContent = 'Account';
 
-                // Build nav with Admin tab only for you
-                let navHTML = `
-                    <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-0">
-                        <i class="fa-solid fa-house w-5"></i> <span>Home</span>
-                    </div>
-                    <div onclick="switchTab(1)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-1">
-                        <i class="fa-solid fa-gamepad w-5"></i> <span>Games</span>
-                    </div>
-                    <div onclick="switchTab(2)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-2">
-                        <i class="fa-solid fa-brain w-5"></i> <span>AI Tools</span>
-                    </div>
-                    <div onclick="switchTab(3)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-3">
-                        <i class="fa-solid fa-tv w-5"></i> <span>TV &amp; Streaming</span>
-                    </div>
-                    <div onclick="switchTab(4)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-4">
-                        <i class="fa-solid fa-shield-halved w-5"></i> <span>Proxies</span>
-                    </div>
-                    <div onclick="switchTab(5)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-5">
-                        <i class="fa-solid fa-music w-5"></i> <span>Music</span>
-                    </div>
-                    <div onclick="switchTab(6)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-6">
-                        <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
-                    </div>
-                    <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-7">
-                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-                    </div>
-                    <div onclick="switchTab(8)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-8">
-                        <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
-                    </div>
-                `;
+                let navHTML = '';
 
                 if (user.email === ADMIN_EMAIL) {
                     navHTML += `
-                        <div onclick="switchTab(9)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2 active-tab" id="tab-9">
+                        <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
                             <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
                         </div>
                     `;
                 }
 
                 navHTML += `
-                    <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-10">
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '1' : '0'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${user.email !== ADMIN_EMAIL ? 'active-tab' : ''}" id="tab-home">
+                        <i class="fa-solid fa-house w-5"></i> <span>Home</span>
+                    </div>
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '2' : '1'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-games">
+                        <i class="fa-solid fa-gamepad w-5"></i> <span>Games</span>
+                    </div>
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '3' : '2'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-ai">
+                        <i class="fa-solid fa-brain w-5"></i> <span>AI Tools</span>
+                    </div>
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '4' : '3'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-tv">
+                        <i class="fa-solid fa-tv w-5"></i> <span>TV & Streaming</span>
+                    </div>
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '5' : '4'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-proxies">
+                        <i class="fa-solid fa-shield-halved w-5"></i> <span>Proxies</span>
+                    </div>
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '6' : '5'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-music">
+                        <i class="fa-solid fa-music w-5"></i> <span>Music</span>
+                    </div>
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '7' : '6'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-settings">
+                        <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
+                    </div>
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '8' : '7'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-account">
+                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+                    </div>
+                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '9' : '8'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-credits">
+                        <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
+                    </div>
+                    <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
                         <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
                     </div>
                 `;
@@ -549,230 +473,182 @@
                     await window.loadAllSites();
                     window.populateAllGrids();
                     await window.showGlobalAnnouncement();
-                    switchTab(0);
+                    if (user.email === ADMIN_EMAIL) {
+                        switchTab(0); // open admin first for admin
+                    } else {
+                        switchTab(0); // home for normal users (adjusted index)
+                    }
                 }, 100);
 
             } else {
                 statusEl.textContent = '';
                 currentTabEl.textContent = 'Sign In Required';
                 currentIconEl.className = 'text-3xl fa-solid fa-lock';
-                if (userInfo) userInfo.classList.add('hidden');
-                if (authForm) authForm.classList.remove('hidden');
-                if (accountTitle) accountTitle.textContent = 'Sign In Required';
+                userInfo?.classList.add('hidden');
+                authForm?.classList.remove('hidden');
+                accountTitle.textContent = 'Sign In Required';
                 navLinks.innerHTML = `
-                    <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-7">
+                    <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-account">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
                     </div>
                 `;
-                switchTab(7);
+                switchTab(0);
             }
         }
 
-        firebaseAuth.onAuthStateChanged(firebaseAuth.auth, updateUIForAuth);
+        firebaseAuth.onAuthStateChanged(auth, updateUIForAuth);
 
-        // Create user doc in Firestore on sign-up
-        const authBtn = document.getElementById('auth-btn');
-        const toggleLink = document.getElementById('toggle-link');
-        const formTitle = document.getElementById('form-title');
-        let isSignIn = true;
-
-        if (authBtn) {
-            authBtn.addEventListener('click', async () => {
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                try {
-                    if (isSignIn) {
-                        const userCredential = await firebaseAuth.signInWithEmailAndPassword(firebaseAuth.auth, email, password);
-                        if (!userCredential.user.emailVerified) {
-                            alert("Please verify your email before logging in.");
-                            await firebaseAuth.signOut(firebaseAuth.auth);
-                            return;
-                        }
-                        updateUIForAuth(userCredential.user);
-                    } else {
-                        const userCredential = await firebaseAuth.createUserWithEmailAndPassword(firebaseAuth.auth, email, password);
-                        
-                        // Create Firestore user record
-                        await setDoc(doc(window.db, "users", userCredential.user.uid), {
-                            email: email,
-                            createdAt: serverTimestamp()
-                        });
-
-                        await sendEmailVerification(userCredential.user);
-                        alert("Verification email sent! Please check your inbox before logging in.");
-                        await signOut(firebaseAuth.auth);
-                        updateUIForAuth(null);
+        // Auth button logic
+        document.getElementById('auth-btn')?.addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                if (document.getElementById('form-title').textContent === 'Sign In') {
+                    const cred = await signInWithEmailAndPassword(auth, email, password);
+                    if (!cred.user.emailVerified) {
+                        alert("Please verify your email first.");
+                        await signOut(auth);
+                        return;
                     }
-                } catch (error) {
-                    alert(error.message);
+                    updateUIForAuth(cred.user);
+                } else {
+                    const cred = await createUserWithEmailAndPassword(auth, email, password);
+                    await setDoc(doc(db, "users", cred.user.uid), {
+                        email,
+                        createdAt: serverTimestamp()
+                    });
+                    await sendEmailVerification(cred.user);
+                    alert("Verification email sent! Check inbox.");
+                    await signOut(auth);
+                    updateUIForAuth(null);
                 }
-            });
-        }
+            } catch (e) {
+                alert(e.message);
+            }
+        });
 
-        if (toggleLink) {
-            toggleLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                isSignIn = !isSignIn;
-                formTitle.textContent = isSignIn ? 'Sign In' : 'Sign Up';
-                authBtn.textContent = isSignIn ? 'Sign In' : 'Sign Up';
-                toggleLink.textContent = isSignIn ? "Don't have an account? Sign Up" : 'Already have an account? Sign In';
-            });
-        }
+        document.getElementById('toggle-link')?.addEventListener('click', e => {
+            e.preventDefault();
+            const isSignIn = document.getElementById('form-title').textContent === 'Sign In';
+            document.getElementById('form-title').textContent = isSignIn ? 'Sign Up' : 'Sign In';
+            document.getElementById('auth-btn').textContent = isSignIn ? 'Sign Up' : 'Sign In';
+            document.getElementById('toggle-link').textContent = isSignIn ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
+        });
 
         window.deleteAccount = async () => {
-            if (!confirm("Are you sure you want to permanently delete your account? This cannot be undone.")) return;
+            if (!confirm("Delete account permanently?")) return;
             try {
-                const user = firebaseAuth.auth.currentUser;
-                if (user) {
-                    await firebaseAuth.deleteUser(user);
-                    alert("Account deleted.");
-                }
-            } catch (error) {
-                alert("Error: " + error.message);
+                await deleteUser(auth.currentUser);
+                alert("Account deleted.");
+            } catch (e) {
+                alert("Error: " + e.message);
             }
         };
 
         window.changePassword = async () => {
-            const user = firebaseAuth.auth.currentUser;
-            if (!user || !user.email) return alert("You must be logged in.");
-            const messageEl = document.getElementById('auth-message');
+            const user = auth.currentUser;
+            if (!user?.email) return alert("Not logged in.");
             try {
-                await firebaseAuth.sendPasswordResetEmail(firebaseAuth.auth, user.email);
-                messageEl.textContent = "Password reset email sent! Check your inbox (including spam).";
-                messageEl.className = "success";
-            } catch (error) {
-                messageEl.textContent = "Error: " + error.message;
-                messageEl.className = "error";
+                await sendPasswordResetEmail(auth, user.email);
+                document.getElementById('auth-message').textContent = "Password reset email sent!";
+                document.getElementById('auth-message').className = "success";
+            } catch (e) {
+                document.getElementById('auth-message').textContent = "Error: " + e.message;
+                document.getElementById('auth-message').className = "error";
             }
         };
 
         window.changeEmail = async () => {
-            const user = firebaseAuth.auth.currentUser;
-            if (!user) return alert("You must be logged in.");
-
-            const newEmail = prompt("Enter your new email address:", user.email);
-            if (!newEmail || newEmail === user.email) return alert("No change made.");
-
-            const password = prompt("Enter your current password to confirm:");
-            if (!password) return;
-
-            const messageEl = document.getElementById('auth-message');
+            const user = auth.currentUser;
+            if (!user) return alert("Not logged in.");
+            const newEmail = prompt("New email:", user.email);
+            if (!newEmail || newEmail === user.email) return;
+            const pass = prompt("Current password:");
+            if (!pass) return;
             try {
-                const credential = firebaseAuth.EmailAuthProvider.credential(user.email, password);
-                await firebaseAuth.reauthenticateWithCredential(user, credential);
-                await firebaseAuth.updateEmail(user, newEmail);
-                messageEl.textContent = "Email updated successfully! Please verify the new email.";
-                messageEl.className = "success";
+                const cred = EmailAuthProvider.credential(user.email, pass);
+                await reauthenticateWithCredential(user, cred);
+                await updateEmail(user, newEmail);
+                alert("Email updated! Verify new email.");
                 document.getElementById('user-email').textContent = newEmail;
-            } catch (error) {
-                messageEl.textContent = "Error: " + error.message;
-                messageEl.className = "error";
+            } catch (e) {
+                alert("Error: " + e.message);
             }
         };
 
-        // ==================== ADMIN FIRESTORE FUNCTIONS ====================
-
-        window.loadAllSites = async function() {
-            const snapshot = await getDocs(collection(window.db, "sites"));
-            window.allSites = {
-                games: [], ai: [], tv: [], proxies: [], music: []
-            };
-            snapshot.forEach((document) => {
-                const data = document.data();
-                data.id = document.id;
-                const cat = data.category;
-                if (window.allSites[cat]) window.allSites[cat].push(data);
+        // Admin functions
+        window.loadAllSites = async () => {
+            const snap = await getDocs(collection(db, "sites"));
+            window.allSites = { games: [], ai: [], tv: [], proxies: [], music: [] };
+            snap.forEach(d => {
+                const data = d.data();
+                data.id = d.id;
+                if (window.allSites[data.category]) window.allSites[data.category].push(data);
             });
         };
 
-        window.populateAllGrids = function() {
-            populateGrid('games', 'games-grid');
-            populateGrid('ai', 'ai-grid');
-            populateGrid('tv', 'tv-grid');
-            populateGrid('proxies', 'proxy-grid');
-            populateGrid('music', 'music-grid');
+        window.populateAllGrids = () => {
+            ['games','ai','tv','proxies','music'].forEach(cat => populateGrid(cat, `${cat}-grid`));
         };
 
-        window.showGlobalAnnouncement = async function() {
+        window.showGlobalAnnouncement = async () => {
             const banner = document.getElementById('global-announcement');
-            if (!banner) return;
             try {
-                const annSnap = await getDoc(doc(window.db, "config", "announcement"));
-                if (annSnap.exists() && annSnap.data().message.trim()) {
-                    document.getElementById('announcement-text-display').textContent = annSnap.data().message;
+                const docSnap = await getDoc(doc(db, "config", "announcement"));
+                if (docSnap.exists() && docSnap.data().message?.trim()) {
+                    document.getElementById('announcement-text-display').textContent = docSnap.data().message;
                     banner.classList.remove('hidden');
                 } else {
                     banner.classList.add('hidden');
                 }
-            } catch(e) {
+            } catch {
                 banner.classList.add('hidden');
             }
         };
 
-        window.saveGlobalAnnouncement = async function() {
-            const input = document.getElementById('announcement-input');
-            const msg = input.value.trim();
-            if (!msg) return alert("Announcement cannot be empty.");
+        window.saveGlobalAnnouncement = async () => {
+            const msg = document.getElementById('announcement-input').value.trim();
+            if (!msg) return alert("Cannot be empty");
             try {
-                await setDoc(doc(window.db, "config", "announcement"), {
-                    message: msg,
-                    updatedAt: serverTimestamp()
-                });
-                alert("✅ Global announcement published!");
-                input.value = '';
+                await setDoc(doc(db, "config", "announcement"), { message: msg, updatedAt: serverTimestamp() });
+                alert("Published!");
+                document.getElementById('announcement-input').value = '';
                 await window.showGlobalAnnouncement();
-            } catch(e) {
+            } catch (e) {
                 alert("Error: " + e.message);
             }
         };
 
-        window.clearAnnouncement = async function() {
-            if (!confirm("Clear the global announcement for everyone?")) return;
+        window.clearAnnouncement = async () => {
+            if (!confirm("Clear announcement?")) return;
             try {
-                await deleteDoc(doc(window.db, "config", "announcement"));
-                alert("Announcement cleared.");
+                await deleteDoc(doc(db, "config", "announcement"));
                 await window.showGlobalAnnouncement();
-            } catch(e) {
+            } catch (e) {
                 alert("Error: " + e.message);
             }
         };
 
-        window.loadAdminUsers = async function() {
+        window.loadAdminUsers = async () => {
             const container = document.getElementById('users-table');
-            container.innerHTML = '<p class="p-8 text-center text-white/50">Loading users...</p>';
+            container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
             try {
-                const q = query(collection(window.db, "users"), orderBy("createdAt", "desc"));
-                const snapshot = await getDocs(q);
-                let html = `
-                    <table class="w-full text-sm">
-                        <thead class="bg-black/60 sticky top-0">
-                            <tr class="border-b border-white/10">
-                                <th class="px-6 py-4 text-left">Email</th>
-                                <th class="px-6 py-4 text-left">Signed Up</th>
-                                <th class="px-6 py-4 text-left">UID</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-white/10">
-                `;
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
+                const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
+                const snap = await getDocs(q);
+                let html = '<table class="w-full text-sm"><thead class="bg-black/60 sticky top-0"><tr class="border-b border-white/10"><th class="px-6 py-4 text-left">Email</th><th class="px-6 py-4 text-left">Joined</th><th class="px-6 py-4 text-left">UID</th></tr></thead><tbody class="divide-y divide-white/10">';
+                snap.forEach(d => {
+                    const data = d.data();
                     const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '—';
-                    html += `
-                        <tr>
-                            <td class="px-6 py-4 font-medium">${data.email}</td>
-                            <td class="px-6 py-4 text-white/70">${date}</td>
-                            <td class="px-6 py-4 font-mono text-xs text-white/50">${docSnap.id}</td>
-                        </tr>
-                    `;
+                    html += `<tr><td class="px-6 py-4 font-medium">${data.email}</td><td class="px-6 py-4 text-white/70">${date}</td><td class="px-6 py-4 font-mono text-xs text-white/50">${d.id}</td></tr>`;
                 });
-                html += `</tbody></table>`;
-                container.innerHTML = snapshot.empty ? '<p class="p-8 text-center text-white/50">No users yet.</p>' : html;
-            } catch(e) {
+                html += '</tbody></table>';
+                container.innerHTML = snap.empty ? '<p class="p-8 text-center text-white/50">No users yet</p>' : html;
+            } catch (e) {
                 container.innerHTML = `<p class="p-8 text-red-400">Error loading users.<br>Check Firestore rules.</p>`;
             }
         };
 
-        window.addNewSiteFromAdmin = async function() {
+        window.addNewSiteFromAdmin = async () => {
             const cat = document.getElementById('admin-cat-select').value;
             const name = document.getElementById('new-site-name').value.trim();
             const url = document.getElementById('new-site-url').value.trim();
@@ -782,125 +658,66 @@
             if (!name || !url) return alert("Name and URL required");
 
             try {
-                await addDoc(collection(window.db, "sites"), { category: cat, name, url, desc, icon });
-                alert("Site added!");
-                // clear form
-                document.getElementById('new-site-name').value = '';
-                document.getElementById('new-site-url').value = '';
-                document.getElementById('new-site-desc').value = '';
-                document.getElementById('new-site-icon').value = '';
+                await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc });
+                alert("Added!");
+                ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                 await window.loadAllSites();
                 window.populateAllGrids();
                 window.reloadAdminSites();
-            } catch(e) {
+            } catch (e) {
                 alert("Error: " + e.message);
             }
         };
 
-        window.deleteSite = async function(siteId) {
-            if (!confirm("Delete this site forever?")) return;
+        window.deleteSite = async (id) => {
+            if (!confirm("Delete forever?")) return;
             try {
-                await deleteDoc(doc(window.db, "sites", siteId));
+                await deleteDoc(doc(db, "sites", id));
                 await window.loadAllSites();
                 window.populateAllGrids();
                 window.reloadAdminSites();
-            } catch(e) {
+            } catch (e) {
                 alert("Error: " + e.message);
             }
         };
 
-        window.reloadAdminSites = function() {
+        window.reloadAdminSites = () => {
             const container = document.getElementById('admin-sites-list');
             container.innerHTML = '';
             const cats = [
                 {key:'games', label:'Games'},
                 {key:'ai', label:'AI Tools'},
-                {key:'tv', label:'TV &amp; Streaming'},
+                {key:'tv', label:'TV & Streaming'},
                 {key:'proxies', label:'Proxies'},
                 {key:'music', label:'Music'}
             ];
-            cats.forEach(cat => {
-                const sitesInCat = window.allSites[cat.key] || [];
-                let html = `
-                    <div class="border border-white/10 rounded-3xl p-8">
-                        <div class="flex items-center justify-between mb-6">
-                            <h4 class="text-2xl font-medium">${cat.label}</h4>
-                            <span class="text-xs bg-white/10 px-4 py-1.5 rounded-2xl">${sitesInCat.length} sites</span>
-                        </div>
-                        <div class="space-y-4">
-                `;
-                if (sitesInCat.length === 0) {
-                    html += `<p class="text-white/40 pl-2">No sites yet — add some above!</p>`;
+            cats.forEach(c => {
+                const sites = window.allSites[c.key] || [];
+                let html = `<div class="border border-white/10 rounded-3xl p-8"><div class="flex justify-between items-center mb-6"><h4 class="text-2xl font-medium">${c.label}</h4><span class="text-xs bg-white/10 px-4 py-1.5 rounded-2xl">${sites.length} sites</span></div><div class="space-y-4">`;
+                if (!sites.length) {
+                    html += '<p class="text-white/40 pl-2">No sites yet</p>';
                 } else {
-                    sitesInCat.forEach(site => {
+                    sites.forEach(s => {
                         html += `
                             <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group transition-all">
                                 <div class="flex items-center gap-6">
-                                    <div class="text-5xl">${site.icon}</div>
+                                    <div class="text-5xl">${s.icon}</div>
                                     <div>
-                                        <div class="font-semibold text-xl">${site.name}</div>
-                                        <a href="${site.url}" target="_blank" class="text-xs text-[var(--accent)] break-all">${site.url}</a>
-                                        ${site.desc ? `<div class="text-xs text-white/60 mt-1">${site.desc}</div>` : ''}
+                                        <div class="font-semibold text-xl">${s.name}</div>
+                                        <a href="${s.url}" target="_blank" class="text-xs text-[var(--accent)] break-all">${s.url}</a>
+                                        ${s.desc ? `<div class="text-xs text-white/60 mt-1">${s.desc}</div>` : ''}
                                     </div>
                                 </div>
-                                <button onclick="deleteSite('${site.id}'); event.stopImmediatePropagation();" 
-                                        class="px-6 py-3 text-red-400 hover:bg-red-900/30 rounded-2xl text-sm transition-colors">Delete</button>
-                            </div>
-                        `;
+                                <button onclick="deleteSite('${s.id}'); event.stopPropagation();" class="px-6 py-3 text-red-400 hover:bg-red-900/30 rounded-2xl text-sm transition-colors">Delete</button>
+                            </div>`;
                     });
                 }
-                html += `</div></div>`;
+                html += '</div></div>';
                 container.innerHTML += html;
             });
         };
 
-        window.seedDefaultSites = async function() {
-            if (!confirm("Seed the original default sites? (safe to run once)")) return;
-            const defaults = {
-                games: [
-                    { name: "Shell Shockers", url: "https://egghead.institute/", desc: "", icon: "🎮" },
-                    { name: "Kart Bros", url: "https://kart.basketball.services/", desc: "", icon: "🎮" },
-                    { name: "The Marz Library", url: "https://theorytest.help/", desc: "", icon: "🎮" },
-                ],
-                ai: [
-                    { name: "Grok", url: "https://grok.com/", desc: "", icon: "🤖" },
-                    { name: "Perplexity", url: "https://perplexity.ai", desc: "", icon: "🤖" },
-                    { name: "Blackbox", url: "https://app.blackbox.ai/", desc: "", icon: "🤖" }
-                ],
-                tv: [
-                    { name: "Donkey", url: "https://donkey.to/", desc: "", icon: "📺" }
-                ],
-                proxies: [
-                    { name: "Space", url: "https://classroom.hkieca.com/", desc: "", icon: "🌐" },
-                    { name: "Lunar", url: "https://uoasman.lol/", desc: "", icon: "🌐" },
-                    { name: "Truffled", url: "https://bog.n8-math.dev/", desc: "", icon: "🌐" },
-                    { name: "Galaxy", url: "https://cc.curlycraftworks.com/onboarding/", desc: "", icon: "🌐" },
-                    { name: "Fern", url: "https://geography.nseuropa.com/", desc: "", icon: "🌐" }
-                ],
-                music: [
-                    { name: "Amazon Music", url: "https://music.amazon.com/", desc: "", icon: "🎵" },
-                ]
-            };
-            let count = 0;
-            for (let cat in defaults) {
-                for (let site of defaults[cat]) {
-                    await addDoc(collection(window.db, "sites"), {
-                        category: cat,
-                        name: site.name,
-                        url: site.url,
-                        desc: site.desc,
-                        icon: site.icon
-                    });
-                    count++;
-                }
-            }
-            alert(`✅ Seeded ${count} default sites!`);
-            await window.loadAllSites();
-            window.populateAllGrids();
-            window.reloadAdminSites();
-        };
-
-        // Expose for non-module script
+        // Expose
         window.loadAllSites = window.loadAllSites;
         window.populateAllGrids = window.populateAllGrids;
         window.showGlobalAnnouncement = window.showGlobalAnnouncement;
@@ -910,179 +727,137 @@
         window.addNewSiteFromAdmin = window.addNewSiteFromAdmin;
         window.deleteSite = window.deleteSite;
         window.reloadAdminSites = window.reloadAdminSites;
-        window.seedDefaultSites = window.seedDefaultSites;
     </script>
 
     <script>
-        const tabIcons = [
-            'fa-house', 'fa-gamepad', 'fa-brain', 'fa-tv', 'fa-shield-halved',
-            'fa-music', 'fa-gear', 'fa-user', 'fa-heart', 'fa-crown'
-        ];
-        const tabTitles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings", "Account", "Credits", "Admin Panel"];
-        const contentIds = [
-            'content-home', 'content-games', 'content-ai', 'content-tv', 'content-proxies',
-            'content-music', 'content-settings', 'content-account', 'content-credits', 'content-admin'
-        ];
+        const tabIcons = ['fa-crown','fa-house','fa-gamepad','fa-brain','fa-tv','fa-shield-halved','fa-music','fa-gear','fa-user','fa-heart','fa-paper-plane'];
+        const tabTitles = ["Admin Panel","Home","Games","AI Tools","TV & Streaming","Proxies","Music","Settings","Account","Credits","Request a Site"];
+        const contentIds = ['content-admin','content-home','content-games','content-ai','content-tv','content-proxies','content-music','content-settings','content-account','content-credits'];
 
         function switchTab(index) {
-            if (!window.currentUser && index !== 7) {
-                switchTab(7);
-                return;
-            }
-            if (index === 9 && (!window.currentUser || window.currentUser.email !== window.ADMIN_EMAIL)) {
-                alert("Admin access only!");
-                switchTab(0);
+            if (!window.currentUser) {
+                switchTab(0); // account when not logged in
                 return;
             }
 
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
-            const activeTab = document.getElementById(`tab-${index}`);
-            if (activeTab) activeTab.classList.add('active-tab');
+            document.getElementById(`tab-${index}`)?.classList.add('active-tab');
 
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            const content = document.getElementById(contentIds[index]);
-            if (content) content.classList.remove('hidden');
+            document.getElementById(contentIds[index])?.classList.remove('hidden');
 
             document.getElementById('current-tab').textContent = tabTitles[index];
             document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
         }
 
         const themes = [
-            { name: "White", color: "#ffffff" },
-            { name: "Red", color: "#ef4444" },
-            { name: "Blue", color: "#3b82f6" },
-            { name: "Green", color: "#10b981" },
-            { name: "Purple", color: "#8b5cf6" },
-            { name: "Pink", color: "#ec4899" },
-            { name: "Cyan", color: "#22d3ee" },
-            { name: "Yellow", color: "#f59e0b" },
-            { name: "Lime", color: "#84cc16" },
-            { name: "Teal", color: "#14b8a6" },
-            { name: "Rose", color: "#f43f5e" },
-            { name: "Indigo", color: "#6366f1" },
-            { name: "Orange", color: "#f97316" },
-            { name: "Magenta", color: "#d946ef" },
-            { name: "Sky Blue", color: "#0ea5e9" },
-            { name: "Lime Green", color: "#65a30d" },
-            { name: "Deep Purple", color: "#7c3aed" },
-            { name: "Neon Green", color: "#39ff14" },
-            { name: "Coral", color: "#f87171" },
-            { name: "Electric Violet", color: "#a855f7" }
+            {name:"White",color:"#ffffff"},{name:"Red",color:"#ef4444"},{name:"Blue",color:"#3b82f6"},
+            {name:"Green",color:"#10b981"},{name:"Purple",color:"#8b5cf6"},{name:"Pink",color:"#ec4899"},
+            {name:"Cyan",color:"#22d3ee"},{name:"Yellow",color:"#f59e0b"},{name:"Lime",color:"#84cc16"},
+            {name:"Teal",color:"#14b8a6"},{name:"Rose",color:"#f43f5e"},{name:"Indigo",color:"#6366f1"},
+            {name:"Orange",color:"#f97316"},{name:"Magenta",color:"#d946ef"},{name:"Sky Blue",color:"#0ea5e9"}
         ];
+
         function setTheme(color) {
             document.documentElement.style.setProperty('--accent', color);
             localStorage.setItem('starlinkAccent', color);
         }
+
         function loadTheme() {
-            const saved = localStorage.getItem('starlinkAccent');
-            setTheme(saved || '#ffffff');
+            setTheme(localStorage.getItem('starlinkAccent') || '#ffffff');
         }
-        function saveNewTabPreference(value) {
-            localStorage.setItem('starlinkNewTab', value ? 'true' : 'false');
+
+        function saveNewTabPreference(val) {
+            localStorage.setItem('starlinkNewTab', val ? 'true' : 'false');
         }
+
         function loadNewTabPreference() {
             const saved = localStorage.getItem('starlinkNewTab');
-            const checkbox = document.getElementById('newtab-toggle');
-            if (saved === null) {
-                checkbox.checked = true;
-                saveNewTabPreference(true);
-            } else {
-                checkbox.checked = saved === 'true';
-            }
+            const cb = document.getElementById('newtab-toggle');
+            cb.checked = saved === null || saved === 'true';
+            saveNewTabPreference(cb.checked);
         }
+
         function resetEverything() {
-            if (!confirm("Reset all settings to default? This will also sign you out.")) return;
-            localStorage.removeItem('starlinkAccent');
-            localStorage.removeItem('starlinkNewTab');
+            if (!confirm("Reset all & sign out?")) return;
+            localStorage.clear();
             setTheme('#ffffff');
             document.getElementById('newtab-toggle').checked = true;
             saveNewTabPreference(true);
-            firebaseAuth.signOut(firebaseAuth.auth).then(() => {
-                const msg = document.getElementById('reset-message');
-                msg.textContent = "Reset complete! Signing out and refreshing...";
-                msg.classList.remove('hidden');
-                setTimeout(() => {
-                    msg.classList.add('hidden');
-                    location.reload();
-                }, 2000);
-            }).catch(() => location.reload());
+            firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
         }
+
         function createStar(x, y) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.left = `${x}px`;
-            star.style.top = `${y}px`;
+            const s = document.createElement('div');
+            s.className = 'star';
+            s.style.left = x + 'px';
+            s.style.top = y + 'px';
             const size = Math.random() * 3 + 1;
-            star.style.width = star.style.height = `${size}px`;
-            const duration = Math.random() * 40 + 25;
-            star.style.animationDuration = `${duration}s`;
-            const drift = (Math.random() - 0.5) * 120;
-            star.style.transform = `translateX(${drift}px)`;
-            document.getElementById('star-bg').appendChild(star);
-            setTimeout(() => star.remove(), duration * 1000 + 2000);
+            s.style.width = s.style.height = size + 'px';
+            const dur = Math.random() * 40 + 25;
+            s.style.animationDuration = dur + 's';
+            s.style.transform = `translateX(${(Math.random()-0.5)*120}px)`;
+            document.getElementById('star-bg').appendChild(s);
+            setTimeout(() => s.remove(), dur*1000 + 2000);
         }
-        function initStars(count = 100) {
-            for (let i = 0; i < count; i++) {
-                const x = Math.random() * window.innerWidth;
-                const y = Math.random() * window.innerHeight * 1.5;
-                createStar(x, y);
+
+        function initStars() {
+            for (let i = 0; i < 100; i++) {
+                createStar(Math.random()*window.innerWidth, Math.random()*window.innerHeight*1.5);
             }
         }
-        document.addEventListener('click', (e) => {
+
+        document.addEventListener('click', e => {
             if (e.target.closest('button, a, .nav-link, input, label, svg, .card')) return;
             createStar(e.clientX, e.clientY);
         });
 
-        function populateGrid(category, containerId) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            container.innerHTML = '';
-            const sitesList = (window.allSites && window.allSites[category]) || [];
-            sitesList.forEach(site => {
+        function populateGrid(cat, id) {
+            const cont = document.getElementById(id);
+            if (!cont) return;
+            cont.innerHTML = '';
+            (window.allSites?.[cat] || []).forEach(site => {
                 const card = document.createElement('div');
-                card.className = `card rounded-3xl p-6 cursor-pointer group`;
+                card.className = 'card rounded-3xl p-6 cursor-pointer group';
                 card.innerHTML = `
                     <div class="text-5xl mb-6 transition-transform group-hover:scale-125">${site.icon}</div>
                     <div class="font-semibold text-xl mb-2">${site.name}</div>
                     <div class="text-white/60 text-sm">${site.desc || ''}</div>
                 `;
                 card.onclick = () => {
-                    const newTab = document.getElementById('newtab-toggle').checked;
-                    if (newTab) window.open(site.url, '_blank');
-                    else window.location.href = site.url;
+                    const nt = document.getElementById('newtab-toggle').checked;
+                    (nt ? window.open : location.assign)(site.url, nt ? '_blank' : '_self');
                 };
-                container.appendChild(card);
+                cont.appendChild(card);
             });
         }
 
         function populateThemeGrid() {
-            const container = document.getElementById('theme-grid');
-            if (!container) return;
-            container.innerHTML = '';
+            const cont = document.getElementById('theme-grid');
+            cont.innerHTML = '';
             themes.forEach(t => {
                 const el = document.createElement('div');
                 el.className = 'cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-white/50 transition-all shadow-md';
                 el.innerHTML = `
-                    <div class="h-24 flex items-center justify-center" style="background:${t.color};">
-                        <span class="text-5xl drop-shadow-xl">★</span>
-                    </div>
+                    <div class="h-24 flex items-center justify-center" style="background:${t.color}"><span class="text-5xl drop-shadow-xl">★</span></div>
                     <div class="text-center py-3 text-xs font-medium bg-black/70">${t.name}</div>
                 `;
                 el.onclick = () => setTheme(t.color);
-                container.appendChild(el);
+                cont.appendChild(el);
             });
         }
+
         function requestSite() {
             window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
         }
+
         function initialize() {
             loadTheme();
             loadNewTabPreference();
             initStars();
-            document.getElementById('newtab-toggle').addEventListener('change', (e) => {
-                saveNewTabPreference(e.target.checked);
-            });
+            document.getElementById('newtab-toggle').addEventListener('change', e => saveNewTabPreference(e.target.checked));
         }
+
         window.onload = initialize;
     </script>
 </body>
