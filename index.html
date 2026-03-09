@@ -364,7 +364,7 @@
                         <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
                             <i class="fa-solid fa-globe"></i> Manage Sites
                         </h3>
-                        <div class="bg-black/40 p-8 rounded-3xl mb-10">
+                        <div class="bg-black/40 p-8 rounded-3xl mb-10" id="admin-sites-management">
                             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                                 <div>
                                     <label class="text-xs text-white/50 block mb-2">Category</label>
@@ -395,7 +395,7 @@
                                     <input id="new-site-desc" type="text" placeholder="Short description" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
                                 </div>
                             </div>
-                            <button onclick="addNewSiteFromAdmin()" class="auth-btn mt-8 py-6 text-lg w-full">Add New Site</button>
+                            <button id="add-update-site-btn" onclick="addNewSiteFromAdmin()" class="auth-btn mt-8 py-6 text-lg w-full">Add New Site</button>
                         </div>
 
                         <div id="admin-sites-list" class="space-y-10"></div>
@@ -793,6 +793,50 @@
             }
         };
 
+        // NEW: Edit Site Functionality
+        window.editSite = (id, category, name, url, icon, desc) => {
+            // Pre-fill the form
+            document.getElementById('admin-cat-select').value = category;
+            document.getElementById('new-site-name').value = name;
+            document.getElementById('new-site-url').value = url;
+            document.getElementById('new-site-icon').value = icon;
+            document.getElementById('new-site-desc').value = desc || '';
+
+            // Change button to Update
+            const btn = document.getElementById('add-update-site-btn');
+            btn.textContent = 'Update Site';
+            btn.onclick = async () => {
+                const newCat = document.getElementById('admin-cat-select').value;
+                const newName = document.getElementById('new-site-name').value.trim();
+                const newUrl = document.getElementById('new-site-url').value.trim();
+                const newIcon = document.getElementById('new-site-icon').value.trim() || '🌐';
+                const newDesc = document.getElementById('new-site-desc').value.trim();
+
+                if (!newName || !newUrl) return alert("Name and URL required");
+
+                try {
+                    await setDoc(doc(db, "sites", id), {
+                        category: newCat,
+                        name: newName,
+                        url: newUrl,
+                        icon: newIcon,
+                        desc: newDesc,
+                        updatedAt: serverTimestamp()
+                    }, { merge: true });
+                    alert("Site updated successfully!");
+                    // Reset form and button
+                    ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
+                    btn.textContent = 'Add New Site';
+                    btn.onclick = window.addNewSiteFromAdmin;
+                    await window.loadAllSites();
+                    window.populateAllGrids();
+                    window.reloadAdminSites();
+                } catch (e) {
+                    alert("Error updating site: " + e.message);
+                }
+            };
+        };
+
         window.reloadAdminSites = () => {
             const container = document.getElementById('admin-sites-list');
             container.innerHTML = '';
@@ -820,7 +864,15 @@
                                         ${s.desc ? `<div class="text-xs text-white/60 mt-1">${s.desc}</div>` : ''}
                                     </div>
                                 </div>
-                                <button onclick="deleteSite('${s.id}'); event.stopPropagation();" class="px-6 py-3 text-red-400 hover:bg-red-900/30 rounded-2xl text-sm transition-colors">Delete</button>
+                                <div class="flex gap-3">
+                                    <button onclick="editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation();" 
+                                            class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">
+                                        Edit
+                                    </button>
+                                    <button onclick="deleteSite('${s.id}'); event.stopPropagation();" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">
+                                        Delete
+                                    </button>
+                                </div>
                             </div>`;
                     });
                 }
