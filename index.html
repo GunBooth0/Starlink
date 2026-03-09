@@ -403,7 +403,7 @@
         window.currentUser = null;
 
         // CHANGE THIS TO YOUR EMAIL
-        const ADMIN_EMAIL = "gunnarbooth@gmail.com";  // ← YOUR ADMIN EMAIL HERE
+        const ADMIN_EMAIL = "gunnarbooth@gmail.com";
         window.ADMIN_EMAIL = ADMIN_EMAIL;
 
         function updateUIForAuth(user) {
@@ -424,43 +424,92 @@
                 accountTitle.textContent = 'Account';
 
                 let navHTML = '';
+                let tabIdx = 0;
+                const isAdminUser = user.email === ADMIN_EMAIL;
 
-                if (user.email === ADMIN_EMAIL) {
+                if (isAdminUser) {
                     navHTML += `
-                        <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
+                        <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                             <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
                         </div>
                     `;
+                    tabIdx++;
                 }
 
+                // Home
                 navHTML += `
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '1' : '0'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${user.email !== ADMIN_EMAIL ? 'active-tab' : ''}" id="tab-home">
+                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                         <i class="fa-solid fa-house w-5"></i> <span>Home</span>
                     </div>
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '2' : '1'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-games">
+                `;
+                tabIdx++;
+
+                // Games
+                navHTML += `
+                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                         <i class="fa-solid fa-gamepad w-5"></i> <span>Games</span>
                     </div>
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '3' : '2'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-ai">
+                `;
+                tabIdx++;
+
+                // AI
+                navHTML += `
+                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                         <i class="fa-solid fa-brain w-5"></i> <span>AI Tools</span>
                     </div>
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '4' : '3'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-tv">
+                `;
+                tabIdx++;
+
+                // TV
+                navHTML += `
+                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                         <i class="fa-solid fa-tv w-5"></i> <span>TV & Streaming</span>
                     </div>
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '5' : '4'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-proxies">
+                `;
+                tabIdx++;
+
+                // Proxies
+                navHTML += `
+                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                         <i class="fa-solid fa-shield-halved w-5"></i> <span>Proxies</span>
                     </div>
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '6' : '5'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-music">
+                `;
+                tabIdx++;
+
+                // Music
+                navHTML += `
+                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                         <i class="fa-solid fa-music w-5"></i> <span>Music</span>
                     </div>
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '7' : '6'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-settings">
+                `;
+                tabIdx++;
+
+                // Settings
+                navHTML += `
+                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                         <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
                     </div>
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '8' : '7'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-account">
+                `;
+                tabIdx++;
+
+                // Account
+                navHTML += `
+                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
                     </div>
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '9' : '8'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-credits">
+                `;
+                tabIdx++;
+
+                // Credits
+                navHTML += `
+                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-${tabIdx}">
                         <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
                     </div>
+                `;
+                tabIdx++;
+
+                // Request a Site
+                navHTML += `
                     <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
                         <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
                     </div>
@@ -473,11 +522,7 @@
                     await window.loadAllSites();
                     window.populateAllGrids();
                     await window.showGlobalAnnouncement();
-                    if (user.email === ADMIN_EMAIL) {
-                        switchTab(0); // open admin first for admin
-                    } else {
-                        switchTab(0); // home for normal users (adjusted index)
-                    }
+                    switchTab(0); // always 0 = Admin for admin, Home for everyone else
                 }, 100);
 
             } else {
@@ -488,7 +533,7 @@
                 authForm?.classList.remove('hidden');
                 accountTitle.textContent = 'Sign In Required';
                 navLinks.innerHTML = `
-                    <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-account">
+                    <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
                     </div>
                 `;
@@ -735,19 +780,34 @@
         const contentIds = ['content-admin','content-home','content-games','content-ai','content-tv','content-proxies','content-music','content-settings','content-account','content-credits'];
 
         function switchTab(index) {
-            if (!window.currentUser) {
-                switchTab(0); // account when not logged in
-                return;
-            }
-
+            // Set active nav link (now using consistent tab-N IDs for both admin and non-admin)
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
             document.getElementById(`tab-${index}`)?.classList.add('active-tab');
 
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(contentIds[index])?.classList.remove('hidden');
+            let contentIndex;
 
-            document.getElementById('current-tab').textContent = tabTitles[index];
-            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
+            if (!window.currentUser) {
+                // Not logged in → always show account screen
+                contentIndex = 8;
+                document.getElementById('current-tab').textContent = 'Sign In Required';
+                document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-lock';
+            } else {
+                const isAdmin = window.currentUser.email === window.ADMIN_EMAIL;
+                if (isAdmin) {
+                    contentIndex = index;
+                    document.getElementById('current-tab').textContent = tabTitles[index];
+                    document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
+                } else {
+                    contentIndex = index + 1; // non-admins skip the admin slot
+                    document.getElementById('current-tab').textContent = tabTitles[index + 1];
+                    document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index + 1]}`;
+                }
+            }
+
+            // Switch content
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(contentIds[contentIndex]);
+            if (target) target.classList.remove('hidden');
         }
 
         const themes = [
