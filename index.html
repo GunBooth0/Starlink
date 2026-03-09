@@ -443,6 +443,7 @@
 
         let sitesListener = null;
         let announcementListener = null;
+        window.initialLoadComplete = false;
 
         function updateUIForAuth(user) {
             window.currentUser = user;
@@ -454,8 +455,8 @@
             const currentTabEl = document.getElementById('current-tab');
             const currentIconEl = document.getElementById('current-tab-icon');
 
-            if (sitesListener) sitesListener();
-            if (announcementListener) announcementListener();
+            if (sitesListener) { sitesListener(); sitesListener = null; }
+            if (announcementListener) { announcementListener(); announcementListener = null; }
 
             if (user) {
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
@@ -539,15 +540,7 @@
 
                 navLinks.innerHTML = navHTML;
 
-                setTimeout(async () => {
-                    populateThemeGrid();
-                    await window.loadAllSites();
-                    window.populateAllGrids();
-                    await window.showGlobalAnnouncement();
-                    switchTab(0);
-                }, 100);
-
-                // Real-time listeners with modal trigger for non-admins
+                // Real-time listeners
                 sitesListener = onSnapshot(collection(db, "sites"), async () => {
                     await window.loadAllSites();
                     window.populateAllGrids();
@@ -555,18 +548,27 @@
                         if (!document.getElementById('content-admin').classList.contains('hidden')) {
                             window.reloadAdminSites();
                         }
-                    } else {
+                    } else if (window.initialLoadComplete) {
                         document.getElementById('refresh-modal').classList.add('show');
                     }
                 });
 
                 announcementListener = onSnapshot(doc(db, "config", "announcement"), () => {
-                    if (user.email !== ADMIN_EMAIL) {
+                    if (user.email !== ADMIN_EMAIL && window.initialLoadComplete) {
                         document.getElementById('refresh-modal').classList.add('show');
                     } else {
                         window.showGlobalAnnouncement();
                     }
                 });
+
+                setTimeout(async () => {
+                    populateThemeGrid();
+                    await window.loadAllSites();
+                    window.populateAllGrids();
+                    await window.showGlobalAnnouncement();
+                    switchTab(0);
+                    window.initialLoadComplete = true;
+                }, 100);
 
             } else {
                 statusEl.textContent = '';
