@@ -168,6 +168,29 @@
             padding: 1rem;
             text-align: left;
         }
+        /* Blocking refresh modal */
+        #refresh-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        #refresh-modal.show {
+            display: flex;
+        }
+        #refresh-content {
+            background: rgba(30,30,40,0.9);
+            border: 2px solid var(--accent);
+            border-radius: 1.5rem;
+            padding: 3rem 2.5rem;
+            max-width: 480px;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(255,255,255,0.2);
+        }
     </style>
 </head>
 <body>
@@ -377,6 +400,20 @@
         </div>
     </div>
 
+    <!-- BLOCKING REFRESH MODAL -->
+    <div id="refresh-modal">
+        <div id="refresh-content">
+            <h2 class="text-3xl font-bold logo-font mb-6 text-[var(--accent)]">Update Available</h2>
+            <p class="text-lg mb-8 text-white/80 leading-relaxed">
+                The admin just made a change (new site or announcement).<br>
+                Refresh the page to see the latest version.
+            </p>
+            <button onclick="location.reload(true)" class="auth-btn text-xl py-5 px-12 w-auto mx-auto block">
+                Refresh Now
+            </button>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
@@ -404,7 +441,6 @@
         const ADMIN_EMAIL = "gunnarbooth@gmail.com";
         window.ADMIN_EMAIL = ADMIN_EMAIL;
 
-        // Real-time listeners
         let sitesListener = null;
         let announcementListener = null;
 
@@ -418,9 +454,8 @@
             const currentTabEl = document.getElementById('current-tab');
             const currentIconEl = document.getElementById('current-tab-icon');
 
-            // Cleanup old listeners
-            if (sitesListener) { sitesListener(); sitesListener = null; }
-            if (announcementListener) { announcementListener(); announcementListener = null; }
+            if (sitesListener) sitesListener();
+            if (announcementListener) announcementListener();
 
             if (user) {
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
@@ -443,7 +478,7 @@
                 }
 
                 navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
+                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${!isAdminUser ? 'active-tab' : ''}" id="tab-${tabIdx}">
                         <i class="fa-solid fa-house w-5"></i> <span>Home</span>
                     </div>
                 `;
@@ -504,29 +539,6 @@
 
                 navLinks.innerHTML = navHTML;
 
-                // Setup real-time listeners (forces refresh for non-admins)
-                sitesListener = onSnapshot(collection(db, "sites"), async () => {
-                    await window.loadAllSites();
-                    window.populateAllGrids();
-                    if (window.currentUser && window.currentUser.email === ADMIN_EMAIL) {
-                        if (!document.getElementById('content-admin').classList.contains('hidden')) {
-                            window.reloadAdminSites();
-                        }
-                    } else {
-                        // Non-admin → force refresh so they see new sites instantly
-                        location.reload();
-                    }
-                });
-
-                announcementListener = onSnapshot(doc(db, "config", "announcement"), () => {
-                    if (window.currentUser && window.currentUser.email !== ADMIN_EMAIL) {
-                        // Non-admin → force refresh so they see announcement instantly
-                        location.reload();
-                    } else {
-                        window.showGlobalAnnouncement();
-                    }
-                });
-
                 setTimeout(async () => {
                     populateThemeGrid();
                     await window.loadAllSites();
@@ -534,6 +546,27 @@
                     await window.showGlobalAnnouncement();
                     switchTab(0);
                 }, 100);
+
+                // Real-time listeners with modal trigger for non-admins
+                sitesListener = onSnapshot(collection(db, "sites"), async () => {
+                    await window.loadAllSites();
+                    window.populateAllGrids();
+                    if (user.email === ADMIN_EMAIL) {
+                        if (!document.getElementById('content-admin').classList.contains('hidden')) {
+                            window.reloadAdminSites();
+                        }
+                    } else {
+                        document.getElementById('refresh-modal').classList.add('show');
+                    }
+                });
+
+                announcementListener = onSnapshot(doc(db, "config", "announcement"), () => {
+                    if (user.email !== ADMIN_EMAIL) {
+                        document.getElementById('refresh-modal').classList.add('show');
+                    } else {
+                        window.showGlobalAnnouncement();
+                    }
+                });
 
             } else {
                 statusEl.textContent = '';
@@ -553,7 +586,6 @@
 
         firebaseAuth.onAuthStateChanged(auth, updateUIForAuth);
 
-        // Auth button logic
         document.getElementById('auth-btn')?.addEventListener('click', async () => {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -590,15 +622,12 @@
             document.getElementById('toggle-link').textContent = isSignIn ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
         });
 
-        // ==================== UPDATED DELETE ACCOUNT (now also deletes Firestore record) ====================
         window.deleteAccount = async () => {
             if (!confirm("Delete account permanently? This cannot be undone.")) return;
             const user = auth.currentUser;
             if (!user) return alert("Not logged in.");
             try {
-                // Delete Firestore record first
                 await deleteDoc(doc(db, "users", user.uid));
-                // Then delete auth account
                 await deleteUser(user);
                 alert("Account fully deleted.");
             } catch (e) {
@@ -637,7 +666,6 @@
             }
         };
 
-        // Admin functions
         window.loadAllSites = async () => {
             const snap = await getDocs(collection(db, "sites"));
             window.allSites = { games: [], ai: [], tv: [], proxies: [], music: [] };
@@ -672,7 +700,7 @@
             if (!msg) return alert("Cannot be empty");
             try {
                 await setDoc(doc(db, "config", "announcement"), { message: msg, updatedAt: serverTimestamp() });
-                alert("Published! All users will be forced to refresh.");
+                alert("Published! Non-admin users will see a refresh prompt.");
                 document.getElementById('announcement-input').value = '';
             } catch (e) {
                 alert("Error: " + e.message);
@@ -683,13 +711,12 @@
             if (!confirm("Clear announcement?")) return;
             try {
                 await deleteDoc(doc(db, "config", "announcement"));
-                alert("Announcement cleared! All users will be forced to refresh.");
+                alert("Announcement cleared! Non-admin users will see a refresh prompt.");
             } catch (e) {
                 alert("Error: " + e.message);
             }
         };
 
-        // ==================== NEW: Delete user from admin list (Firestore only) ====================
         window.deleteUserFromAdmin = async (uid) => {
             if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
             try {
@@ -738,7 +765,7 @@
 
             try {
                 await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc });
-                alert("Site added! All users will be forced to refresh.");
+                alert("Site added! Non-admin users will see a refresh prompt.");
                 ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                 await window.loadAllSites();
                 window.populateAllGrids();
@@ -796,7 +823,6 @@
             });
         };
 
-        // Expose
         window.loadAllSites = window.loadAllSites;
         window.populateAllGrids = window.populateAllGrids;
         window.showGlobalAnnouncement = window.showGlobalAnnouncement;
