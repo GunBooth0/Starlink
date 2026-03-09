@@ -328,7 +328,7 @@
                             <button onclick="loadAdminUsers()" class="github-style-btn text-sm px-8 py-3">Refresh List</button>
                         </div>
                         <div id="users-table" class="bg-black/30 rounded-3xl p-2 max-h-[420px] overflow-auto"></div>
-                        <p class="text-xs text-white/50 mt-4 text-center">Full edit/delete → Firebase Console → Authentication</p>
+                        <p class="text-xs text-white/50 mt-4 text-center">Delete removes the user from this list.<br>Full auth deletion still required in Firebase Console → Authentication</p>
                     </div>
 
                     <!-- Sites Management -->
@@ -381,7 +381,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDI979T4jI-ZbGbRDFo-kNZPyG3Pc8gkXw",
@@ -401,10 +401,12 @@
         window.firebaseAuth = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, auth };
 
         window.currentUser = null;
-
-        // CHANGE THIS TO YOUR EMAIL
         const ADMIN_EMAIL = "gunnarbooth@gmail.com";
         window.ADMIN_EMAIL = ADMIN_EMAIL;
+
+        // Real-time listeners
+        let sitesListener = null;
+        let announcementListener = null;
 
         function updateUIForAuth(user) {
             window.currentUser = user;
@@ -415,6 +417,10 @@
             const accountTitle = document.getElementById('account-title');
             const currentTabEl = document.getElementById('current-tab');
             const currentIconEl = document.getElementById('current-tab-icon');
+
+            // Cleanup old listeners
+            if (sitesListener) { sitesListener(); sitesListener = null; }
+            if (announcementListener) { announcementListener(); announcementListener = null; }
 
             if (user) {
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
@@ -436,79 +442,60 @@
                     tabIdx++;
                 }
 
-                // Home
                 navHTML += `
                     <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                         <i class="fa-solid fa-house w-5"></i> <span>Home</span>
                     </div>
                 `;
                 tabIdx++;
-
-                // Games
                 navHTML += `
                     <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                         <i class="fa-solid fa-gamepad w-5"></i> <span>Games</span>
                     </div>
                 `;
                 tabIdx++;
-
-                // AI
                 navHTML += `
                     <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                         <i class="fa-solid fa-brain w-5"></i> <span>AI Tools</span>
                     </div>
                 `;
                 tabIdx++;
-
-                // TV
                 navHTML += `
                     <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                         <i class="fa-solid fa-tv w-5"></i> <span>TV & Streaming</span>
                     </div>
                 `;
                 tabIdx++;
-
-                // Proxies
                 navHTML += `
                     <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                         <i class="fa-solid fa-shield-halved w-5"></i> <span>Proxies</span>
                     </div>
                 `;
                 tabIdx++;
-
-                // Music
                 navHTML += `
                     <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                         <i class="fa-solid fa-music w-5"></i> <span>Music</span>
                     </div>
                 `;
                 tabIdx++;
-
-                // Settings
                 navHTML += `
                     <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                         <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
                     </div>
                 `;
                 tabIdx++;
-
-                // Account
                 navHTML += `
                     <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
                     </div>
                 `;
                 tabIdx++;
-
-                // Credits
                 navHTML += `
                     <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-${tabIdx}">
                         <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
                     </div>
                 `;
                 tabIdx++;
-
-                // Request a Site
                 navHTML += `
                     <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
                         <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
@@ -517,12 +504,35 @@
 
                 navLinks.innerHTML = navHTML;
 
+                // Setup real-time listeners (forces refresh for non-admins)
+                sitesListener = onSnapshot(collection(db, "sites"), async () => {
+                    await window.loadAllSites();
+                    window.populateAllGrids();
+                    if (window.currentUser && window.currentUser.email === ADMIN_EMAIL) {
+                        if (!document.getElementById('content-admin').classList.contains('hidden')) {
+                            window.reloadAdminSites();
+                        }
+                    } else {
+                        // Non-admin → force refresh so they see new sites instantly
+                        location.reload();
+                    }
+                });
+
+                announcementListener = onSnapshot(doc(db, "config", "announcement"), () => {
+                    if (window.currentUser && window.currentUser.email !== ADMIN_EMAIL) {
+                        // Non-admin → force refresh so they see announcement instantly
+                        location.reload();
+                    } else {
+                        window.showGlobalAnnouncement();
+                    }
+                });
+
                 setTimeout(async () => {
                     populateThemeGrid();
                     await window.loadAllSites();
                     window.populateAllGrids();
                     await window.showGlobalAnnouncement();
-                    switchTab(0); // always 0 = Admin for admin, Home for everyone else
+                    switchTab(0);
                 }, 100);
 
             } else {
@@ -580,11 +590,17 @@
             document.getElementById('toggle-link').textContent = isSignIn ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
         });
 
+        // ==================== UPDATED DELETE ACCOUNT (now also deletes Firestore record) ====================
         window.deleteAccount = async () => {
-            if (!confirm("Delete account permanently?")) return;
+            if (!confirm("Delete account permanently? This cannot be undone.")) return;
+            const user = auth.currentUser;
+            if (!user) return alert("Not logged in.");
             try {
-                await deleteUser(auth.currentUser);
-                alert("Account deleted.");
+                // Delete Firestore record first
+                await deleteDoc(doc(db, "users", user.uid));
+                // Then delete auth account
+                await deleteUser(user);
+                alert("Account fully deleted.");
             } catch (e) {
                 alert("Error: " + e.message);
             }
@@ -656,9 +672,8 @@
             if (!msg) return alert("Cannot be empty");
             try {
                 await setDoc(doc(db, "config", "announcement"), { message: msg, updatedAt: serverTimestamp() });
-                alert("Published!");
+                alert("Published! All users will be forced to refresh.");
                 document.getElementById('announcement-input').value = '';
-                await window.showGlobalAnnouncement();
             } catch (e) {
                 alert("Error: " + e.message);
             }
@@ -668,7 +683,19 @@
             if (!confirm("Clear announcement?")) return;
             try {
                 await deleteDoc(doc(db, "config", "announcement"));
-                await window.showGlobalAnnouncement();
+                alert("Announcement cleared! All users will be forced to refresh.");
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        // ==================== NEW: Delete user from admin list (Firestore only) ====================
+        window.deleteUserFromAdmin = async (uid) => {
+            if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
+            try {
+                await deleteDoc(doc(db, "users", uid));
+                alert("User removed from list.");
+                window.loadAdminUsers();
             } catch (e) {
                 alert("Error: " + e.message);
             }
@@ -680,11 +707,18 @@
             try {
                 const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
                 const snap = await getDocs(q);
-                let html = '<table class="w-full text-sm"><thead class="bg-black/60 sticky top-0"><tr class="border-b border-white/10"><th class="px-6 py-4 text-left">Email</th><th class="px-6 py-4 text-left">Joined</th><th class="px-6 py-4 text-left">UID</th></tr></thead><tbody class="divide-y divide-white/10">';
+                let html = `<table class="w-full text-sm"><thead class="bg-black/60 sticky top-0"><tr class="border-b border-white/10"><th class="px-6 py-4 text-left">Email</th><th class="px-6 py-4 text-left">Joined</th><th class="px-6 py-4 text-left">UID</th><th class="px-6 py-4 text-left">Actions</th></tr></thead><tbody class="divide-y divide-white/10">`;
                 snap.forEach(d => {
                     const data = d.data();
                     const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '—';
-                    html += `<tr><td class="px-6 py-4 font-medium">${data.email}</td><td class="px-6 py-4 text-white/70">${date}</td><td class="px-6 py-4 font-mono text-xs text-white/50">${d.id}</td></tr>`;
+                    html += `<tr>
+                        <td class="px-6 py-4 font-medium">${data.email}</td>
+                        <td class="px-6 py-4 text-white/70">${date}</td>
+                        <td class="px-6 py-4 font-mono text-xs text-white/50">${d.id}</td>
+                        <td class="px-6 py-4">
+                            <button onclick="deleteUserFromAdmin('${d.id}'); event.stopPropagation();" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Delete</button>
+                        </td>
+                    </tr>`;
                 });
                 html += '</tbody></table>';
                 container.innerHTML = snap.empty ? '<p class="p-8 text-center text-white/50">No users yet</p>' : html;
@@ -704,7 +738,7 @@
 
             try {
                 await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc });
-                alert("Added!");
+                alert("Site added! All users will be forced to refresh.");
                 ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                 await window.loadAllSites();
                 window.populateAllGrids();
@@ -769,6 +803,7 @@
         window.saveGlobalAnnouncement = window.saveGlobalAnnouncement;
         window.clearAnnouncement = window.clearAnnouncement;
         window.loadAdminUsers = window.loadAdminUsers;
+        window.deleteUserFromAdmin = window.deleteUserFromAdmin;
         window.addNewSiteFromAdmin = window.addNewSiteFromAdmin;
         window.deleteSite = window.deleteSite;
         window.reloadAdminSites = window.reloadAdminSites;
@@ -780,14 +815,12 @@
         const contentIds = ['content-admin','content-home','content-games','content-ai','content-tv','content-proxies','content-music','content-settings','content-account','content-credits'];
 
         function switchTab(index) {
-            // Set active nav link (now using consistent tab-N IDs for both admin and non-admin)
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
             document.getElementById(`tab-${index}`)?.classList.add('active-tab');
 
             let contentIndex;
 
             if (!window.currentUser) {
-                // Not logged in → always show account screen
                 contentIndex = 8;
                 document.getElementById('current-tab').textContent = 'Sign In Required';
                 document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-lock';
@@ -798,13 +831,12 @@
                     document.getElementById('current-tab').textContent = tabTitles[index];
                     document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
                 } else {
-                    contentIndex = index + 1; // non-admins skip the admin slot
+                    contentIndex = index + 1;
                     document.getElementById('current-tab').textContent = tabTitles[index + 1];
                     document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index + 1]}`;
                 }
             }
 
-            // Switch content
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             const target = document.getElementById(contentIds[contentIndex]);
             if (target) target.classList.remove('hidden');
