@@ -1,563 +1,353 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Starlink</title>
+
+  <!-- Firebase Compat SDKs (works directly in browser / GitHub Pages) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+
   <style>
-    :root {
-      --bg: #0a0a0f;
-      --glass-bg: rgba(20, 20, 35, 0.45);
-      --text: #e0e0ff;
-      --accent: #a5b4fc;
-      --border: rgba(100, 100, 255, 0.18);
-      --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-      --blur: blur(12px);
-      --error: #ff6b6b;
-    }
-    * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: linear-gradient(135deg, #0a0a0f, #111122);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
     }
     header {
-      padding: 1.2rem 2rem;
-      background: var(--glass-bg);
-      backdrop-filter: var(--blur);
-      -webkit-backdrop-filter: var(--blur);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: var(--shadow);
-    }
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    .logo {
-      width: 36px;
-      height: 36px;
-      filter: drop-shadow(0 2px 6px rgba(165,180,252,0.4));
-    }
-    h1 {
-      font-size: 1.6rem;
-      font-weight: 500;
-      letter-spacing: 0.5px;
-    }
-    #user-info {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      font-size: 0.95rem;
-    }
-    #auth-section {
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-    }
-    #auth-section input {
-      width: 180px;
-      background: rgba(30,30,50,0.6);
-      border: 1px solid var(--border);
-      backdrop-filter: var(--blur);
-      padding: 0.6rem;
-      border-radius: 8px;
-      color: var(--text);
-    }
-    #auth-error {
-      color: var(--error);
-      font-size: 0.85rem;
-      max-width: 300px;
-    }
-    #announcement {
-      background: rgba(30, 30, 60, 0.6);
-      backdrop-filter: var(--blur);
-      -webkit-backdrop-filter: var(--blur);
-      color: #ffffff;
       text-align: center;
-      padding: 0.9rem;
-      font-weight: 500;
-      border-bottom: 1px solid var(--border);
-      display: none;
+      margin-bottom: 30px;
     }
-    .container {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
+    svg.star {
+      width: 80px;
+      height: 80px;
     }
-    aside {
-      width: 260px;
-      background: var(--glass-bg);
-      backdrop-filter: var(--blur);
-      -webkit-backdrop-filter: var(--blur);
-      border-right: 1px solid var(--border);
-      padding: 1.5rem;
-      overflow-y: auto;
-      box-shadow: var(--shadow);
-    }
-    #categories-list .category {
-      padding: 0.9rem 1.2rem;
-      margin: 0.5rem 0;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      background: rgba(40, 40, 70, 0.3);
-      border: 1px solid var(--border);
-    }
-    #categories-list .category:hover,
-    #categories-list .category.active {
-      background: rgba(80, 80, 140, 0.4);
-      transform: translateX(4px);
-      box-shadow: 0 4px 16px rgba(100,100,255,0.15);
-    }
-    .add-form {
-      margin-top: 1.8rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid var(--border);
-    }
-    .add-form input {
-      width: 100%;
-      margin-bottom: 0.8rem;
-      background: rgba(30,30,50,0.6);
-      border: 1px solid var(--border);
-      backdrop-filter: var(--blur);
-    }
-    main {
-      flex: 1;
-      padding: 2.5rem;
-      overflow-y: auto;
-    }
-    .sites-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1.5rem;
-    }
-    .site-card {
-      background: var(--glass-bg);
-      backdrop-filter: var(--blur);
-      -webkit-backdrop-filter: var(--blur);
-      padding: 1.5rem;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      transition: all 0.3s ease;
-    }
-    .site-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 16px 40px rgba(0,0,0,0.6);
-      border-color: rgba(165,180,252,0.3);
-    }
-    .site-card h3 {
-      margin-bottom: 0.6rem;
-      font-size: 1.15rem;
-      color: var(--accent);
-    }
-    .site-card a {
-      color: #c7d2fe;
-      text-decoration: none;
-      font-size: 0.95rem;
-      word-break: break-all;
-    }
-    .site-card a:hover { text-decoration: underline; }
-    #admin-section {
-      display: none;
-      background: var(--glass-bg);
-      backdrop-filter: var(--blur);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 2rem;
-      box-shadow: var(--shadow);
-    }
-    button, input, textarea, select {
-      background: rgba(30,30,60,0.7);
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 0.8rem 1.2rem;
-      border-radius: 10px;
-      margin: 0.4rem 0.4rem 0.4rem 0;
-      backdrop-filter: var(--blur);
-    }
+    h1, h2, h3 { color: #ddd; }
+    .section { margin: 30px 0; padding: 20px; background: #111; border-radius: 8px; }
     button {
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      background: #0066cc;
+      color: white;
       border: none;
+      padding: 8px 16px;
+      margin: 4px;
+      border-radius: 4px;
       cursor: pointer;
-      font-weight: 500;
     }
-    button:hover { opacity: 0.9; transform: scale(1.02); }
-    button#signout-btn {
-      background: #dc2626;
+    button:hover { background: #0080ff; }
+    input, select {
+      padding: 8px;
+      margin: 6px;
+      background: #222;
+      color: white;
+      border: 1px solid #444;
+      border-radius: 4px;
     }
-    .hidden { display: none !important; }
-    .user-list .user-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
-      background: rgba(40,40,70,0.4);
-      margin-bottom: 0.8rem;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-    }
-    @media (max-width: 768px) {
-      .container { flex-direction: column; }
-      aside { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
-      main { padding: 1.5rem; }
-      #auth-section { flex-direction: column; align-items: flex-end; }
-      #auth-section input { width: 100%; }
-    }
+    a { color: #4da6ff; }
+    #admin-area { display: none; }
+    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+    th, td { border: 1px solid #444; padding: 8px; text-align: left; }
+    th { background: #222; }
+    .hidden { display: none; }
+    hr { border-color: #333; }
   </style>
 </head>
 <body>
 
-  <div id="announcement"></div>
-
   <header>
-    <div class="header-left">
-      <svg class="logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#a5b4fc"/>
-      </svg>
-      <h1>Starlink</h1>
-    </div>
-    <div id="user-info">
-      <span id="user-name">Not signed in</span>
-      <div id="auth-section">
-        <input type="email" id="email-input" placeholder="Email" autocomplete="email"/>
-        <input type="password" id="password-input" placeholder="Password" autocomplete="current-password"/>
-        <button id="signin-btn">Sign In</button>
-        <button id="signup-btn">Sign Up</button>
-        <button id="signout-btn" class="hidden">Sign Out</button>
-      </div>
-      <div id="auth-error"></div>
-    </div>
+    <svg class="star" viewBox="0 0 24 24" fill="white">
+      <path d="M12 2L15 9H22L16 14L18 21L12 17L6 21L8 14L2 9H9L12 2Z"/>
+    </svg>
+    <h1>Starlink</h1>
   </header>
 
-  <div class="container">
-    <aside>
-      <div id="categories-list"></div>
+  <!-- Public content -->
+  <div class="section" id="public-area">
+    <div id="announcements">
+      <p>Loading announcements...</p>
+    </div>
 
-      <div id="add-category-form" class="add-form hidden">
-        <input type="text" id="new-category-name" placeholder="New category name" />
-        <button onclick="addNewCategory()">+ Add Category</button>
-      </div>
+    <h2>Categories & Sites</h2>
+    <div id="categories-container">
+      <p>Loading categories...</p>
+    </div>
 
-      <hr style="border-color:var(--border); margin:1.8rem 0;">
-      <button onclick="showAdminPanel()" id="admin-menu-btn" class="hidden" style="width:100%; padding:1rem; font-size:1rem; background:linear-gradient(135deg, #4338ca, #6d28d9);">
-        Admin Panel
-      </button>
-    </aside>
-
-    <main>
-      <div id="browse-main">
-        <h2 id="current-category" style="margin-bottom:1.5rem; color:#c7d2fe;">Select a category</h2>
-        
-        <div id="add-site-form" class="hidden" style="margin-bottom:2rem; padding:1.5rem; background:var(--glass-bg); backdrop-filter:var(--blur); border-radius:16px; border:1px solid var(--border);">
-          <h3 style="margin-bottom:1rem; color:var(--accent);">Add site to this category</h3>
-          <input type="text" id="new-site-name" placeholder="Site name" style="width:48%; margin-right:2%;">
-          <input type="text" id="new-site-url" placeholder="https://example.com" style="width:48%;">
-          <button onclick="addNewSite()">+ Add Site</button>
-        </div>
-
-        <div class="sites-grid" id="sites-grid"></div>
-      </div>
-
-      <div id="admin-section">
-        <h2 style="color:var(--accent);">Admin Panel</h2>
-        
-        <h3 style="margin:1.5rem 0 0.8rem;">Global Announcement</h3>
-        <textarea id="announce-text" rows="3" placeholder="Type announcement here..."></textarea>
-        <button onclick="saveAnnouncement()">Save Announcement</button>
-        <button onclick="clearAnnouncement()" style="background:#dc2626;">Clear Announcement</button>
-
-        <div class="user-list" id="users-list-container" style="margin-top:2.5rem;">
-          <h3 style="margin-bottom:1rem; color:var(--accent);">All Signed-in Users</h3>
-          <div id="users-list"></div>
-        </div>
-      </div>
-    </main>
+    <div style="margin-top: 30px;">
+      <h3>Admin Login</h3>
+      <input id="email" type="email" placeholder="Email" value="gunnarbooth@gmail.com" />
+      <input id="password" type="password" placeholder="Password" />
+      <button onclick="login()">Login</button>
+      <button onclick="logout()" id="logout-btn" class="hidden">Logout</button>
+      <p id="auth-status" style="color:#ffcc00;"></p>
+    </div>
   </div>
 
-  <!-- Firebase SDK Compat (v12.x) -->
-  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore-compat.js"></script>
+  <!-- Admin panel -->
+  <div class="section" id="admin-area">
+    <h2>Admin Panel</h2>
+    <p id="admin-welcome"></p>
+
+    <!-- Categories -->
+    <h3>Categories</h3>
+    <input id="new-cat-name" placeholder="New category name (e.g. Games)" />
+    <button onclick="addCategory()">Add Category</button>
+    <div id="categories-list"></div>
+
+    <!-- Sites -->
+    <h3>Add Site</h3>
+    <input id="site-name" placeholder="Site name" />
+    <input id="site-url" placeholder="https://example.com" />
+    <input id="site-category" placeholder="Category name (must exist)" />
+    <button onclick="addSite()">Add Site</button>
+
+    <!-- Announcements -->
+    <h3>Post Announcement</h3>
+    <input id="announcement-text" placeholder="Announcement text..." style="width:80%;" />
+    <button onclick="postAnnouncement()">Post</button>
+
+    <!-- Users -->
+    <h3>Registered Users</h3>
+    <table id="users-table">
+      <thead><tr><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <button onclick="logout()">Logout</button>
+  </div>
 
   <script>
-    // ====================== YOUR CONFIG GOES HERE ======================
+    // ────────────────────────────────────────────────
+    // Firebase Config (yours)
+    // ────────────────────────────────────────────────
     const firebaseConfig = {
-      // PASTE YOUR FIREBASE CONFIG HERE (apiKey, authDomain, projectId, etc.)
-      apiKey: "",
-      authDomain: "",
-      projectId: "",
-      storageBucket: "",
-      messagingSenderId: "",
-      appId: ""
+      apiKey: "AIzaSyDI979T4jI-ZbGbRDFo-kNZPyG3Pc8gkXw",
+      authDomain: "starlink-42031.firebaseapp.com",
+      projectId: "starlink-42031",
+      storageBucket: "starlink-42031.firebasestorage.app",
+      messagingSenderId: "264424976547",
+      appId: "1:264424976547:web:6725648e3ae60397870f16",
+      measurementId: "G-Z2B3TBENYK"
     };
-    // ==================================================================
 
-    const ADMIN_EMAIL = "YOUR_ADMIN_EMAIL@example.com";  // ← CHANGE TO YOUR EMAIL
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const functions = firebase.functions();
 
-    let app, auth, db;
-    let currentUser = null;
-    let currentCategoryId = null;
-    let categories = [];
-    let sites = [];
-    let announcementText = "";
-    let usersData = [];
+    // ────────────────────────────────────────────────
+    // VERY IMPORTANT: Replace this with your real UID
+    // Steps:
+    // 1. Log in once with your email
+    // 2. Open browser console (F12)
+    // 3. Type: firebase.auth().currentUser.uid
+    // 4. Copy the long string and paste it here
+    // ────────────────────────────────────────────────
+    const ADMIN_UID = "PASTE_YOUR_UID_HERE";   // ←←← CHANGE THIS
 
-    function initFirebase() {
-      if (!firebaseConfig.apiKey) {
-        alert("Please paste your Firebase config in the code!");
-        return;
-      }
-      app = firebase.initializeApp(firebaseConfig);
-      auth = firebase.auth();
-      db = firebase.firestore();
+    // ────────────────────────────────────────────────
+    // Auth state change listener
+    // ────────────────────────────────────────────────
+    auth.onAuthStateChanged(async (user) => {
+      const publicArea  = document.getElementById("public-area");
+      const adminArea   = document.getElementById("admin-area");
+      const authStatus  = document.getElementById("auth-status");
+      const logoutBtn   = document.getElementById("logout-btn");
 
-      auth.onAuthStateChanged(async (user) => {
-        currentUser = user;
-        const userNameEl = document.getElementById("user-name");
-        const signoutBtn = document.getElementById("signout-btn");
-        const addCatForm = document.getElementById("add-category-form");
-        const adminBtn = document.getElementById("admin-menu-btn");
-        const authError = document.getElementById("auth-error");
+      if (user) {
+        authStatus.textContent = `Logged in as: ${user.email}`;
+        logoutBtn.classList.remove("hidden");
 
-        if (user) {
-          userNameEl.textContent = user.email;
-          signoutBtn.classList.remove("hidden");
-          addCatForm.classList.remove("hidden");
-          if (user.email === ADMIN_EMAIL) adminBtn.classList.remove("hidden");
-          await db.collection("users").doc(user.uid).set({
-            email: user.email,
-            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-          }, { merge: true });
+        if (user.uid === ADMIN_UID) {
+          document.getElementById("admin-welcome").textContent = `Welcome, ${user.email}`;
+          adminArea.style.display = "block";
+          publicArea.style.display = "none";
+          loadAdminData();
         } else {
-          userNameEl.textContent = "Not signed in";
-          signoutBtn.classList.add("hidden");
-          addCatForm.classList.add("hidden");
-          adminBtn.classList.add("hidden");
-          hideAdminPanel();
+          authStatus.textContent += " (not admin)";
+          adminArea.style.display = "none";
+          publicArea.style.display = "block";
         }
-        authError.textContent = "";
-        renderCategories();
-      });
-
-      loadRealtimeData();
-
-      // Button listeners
-      document.getElementById("signin-btn").onclick = signIn;
-      document.getElementById("signup-btn").onclick = signUp;
-      document.getElementById("signout-btn").onclick = () => auth.signOut();
-    }
-
-    function loadRealtimeData() {
-      db.collection("categories").orderBy("name").onSnapshot(snap => {
-        categories = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderCategories();
-      });
-
-      db.collection("sites").onSnapshot(snap => {
-        sites = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (currentCategoryId) renderSites();
-      });
-
-      db.collection("settings").doc("announcement").onSnapshot(doc => {
-        announcementText = doc.exists ? (doc.data().text || "") : "";
-        showAnnouncement();
-      });
-
-      db.collection("users").orderBy("email").onSnapshot(snap => {
-        usersData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (document.getElementById("admin-section").style.display === "block") {
-          renderUsersList();
-        }
-      });
-    }
-
-    async function signIn() {
-      const email = document.getElementById("email-input").value.trim();
-      const password = document.getElementById("password-input").value;
-      const errorEl = document.getElementById("auth-error");
-      errorEl.textContent = "";
-
-      if (!email || !password) {
-        errorEl.textContent = "Enter email and password";
-        return;
-      }
-
-      try {
-        await auth.signInWithEmailAndPassword(email, password);
-      } catch (err) {
-        errorEl.textContent = err.message.includes("wrong-password") ? "Incorrect password" :
-                              err.message.includes("user-not-found") ? "No account with this email" :
-                              err.message;
-      }
-    }
-
-    async function signUp() {
-      const email = document.getElementById("email-input").value.trim();
-      const password = document.getElementById("password-input").value;
-      const errorEl = document.getElementById("auth-error");
-      errorEl.textContent = "";
-
-      if (!email || !password) {
-        errorEl.textContent = "Enter email and password";
-        return;
-      }
-      if (password.length < 6) {
-        errorEl.textContent = "Password must be at least 6 characters";
-        return;
-      }
-
-      try {
-        await auth.createUserWithEmailAndPassword(email, password);
-      } catch (err) {
-        errorEl.textContent = err.message.includes("email-already-in-use") ? "Email already in use" :
-                              err.message.includes("invalid-email") ? "Invalid email format" :
-                              err.message;
-      }
-    }
-
-    function renderCategories() {
-      const list = document.getElementById("categories-list");
-      list.innerHTML = "";
-      if (categories.length === 0) {
-        list.innerHTML = `<div style="padding:1.2rem; opacity:0.7; text-align:center;">No categories yet.<br>Sign in and add some!</div>`;
-        return;
-      }
-      categories.forEach(cat => {
-        const div = document.createElement("div");
-        div.className = `category ${cat.id === currentCategoryId ? 'active' : ''}`;
-        div.textContent = cat.name;
-        div.onclick = () => {
-          currentCategoryId = cat.id;
-          renderCategories();
-          renderSites();
-          document.getElementById("add-site-form").classList.toggle("hidden", !currentUser);
-        };
-        list.appendChild(div);
-      });
-    }
-
-    function renderSites() {
-      const grid = document.getElementById("sites-grid");
-      const title = document.getElementById("current-category");
-      grid.innerHTML = "";
-
-      const cat = categories.find(c => c.id === currentCategoryId);
-      title.textContent = cat ? cat.name : "Select a category";
-
-      const filtered = sites.filter(s => s.categoryId === currentCategoryId);
-      if (filtered.length === 0) {
-        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; opacity:0.7; padding:3rem;">No sites in this category yet.</div>`;
-        return;
-      }
-      filtered.forEach(site => {
-        const card = document.createElement("div");
-        card.className = "site-card";
-        card.innerHTML = `
-          <h3>${site.name}</h3>
-          <a href="${site.url}" target="_blank">${site.url}</a>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    function showAnnouncement() {
-      const el = document.getElementById("announcement");
-      if (announcementText.trim()) {
-        el.textContent = announcementText;
-        el.style.display = "block";
       } else {
-        el.style.display = "none";
-      }
-    }
-
-    async function addNewCategory() {
-      if (!currentUser) return alert("Sign in first");
-      const name = document.getElementById("new-category-name").value.trim();
-      if (!name) return alert("Enter a name");
-      await db.collection("categories").add({ name, createdBy: currentUser.uid });
-      document.getElementById("new-category-name").value = "";
-    }
-
-    async function addNewSite() {
-      if (!currentUser || !currentCategoryId) return;
-      const name = document.getElementById("new-site-name").value.trim();
-      const urlRaw = document.getElementById("new-site-url").value.trim();
-      if (!name || !urlRaw) return alert("Fill both fields");
-      const url = urlRaw.startsWith("http") ? urlRaw : "https://" + urlRaw;
-      await db.collection("sites").add({
-        name, url, categoryId: currentCategoryId, createdBy: currentUser.uid
-      });
-      document.getElementById("new-site-name").value = "";
-      document.getElementById("new-site-url").value = "";
-    }
-
-    function showAdminPanel() {
-      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return alert("Admin access restricted");
-      document.getElementById("browse-main").style.display = "none";
-      document.getElementById("admin-section").style.display = "block";
-      renderUsersList();
-    }
-
-    function hideAdminPanel() {
-      document.getElementById("browse-main").style.display = "block";
-      document.getElementById("admin-section").style.display = "none";
-    }
-
-    function saveAnnouncement() {
-      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
-      const text = document.getElementById("announce-text").value.trim();
-      db.collection("settings").doc("announcement").set({ text }, { merge: true });
-    }
-
-    function clearAnnouncement() {
-      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
-      db.collection("settings").doc("announcement").set({ text: "" });
-      document.getElementById("announce-text").value = "";
-    }
-
-    function renderUsersList() {
-      const container = document.getElementById("users-list");
-      container.innerHTML = "";
-      if (usersData.length === 0) {
-        container.innerHTML = "<p style='opacity:0.7;'>No users yet.</p>";
-        return;
-      }
-      usersData.forEach(user => {
-        const div = document.createElement("div");
-        div.className = "user-item";
-        div.innerHTML = `
-          <div>
-            <strong>${user.email}</strong>
-          </div>
-          <button onclick="deleteUser('${user.id}')" style="background:#dc2626;">Delete</button>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    async function deleteUser(uid) {
-      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
-      if (confirm("Delete this user record?")) {
-        await db.collection("users").doc(uid).delete();
-      }
-    }
-
-    document.addEventListener("click", (e) => {
-      const admin = document.getElementById("admin-section");
-      if (admin.style.display === "block" && !admin.contains(e.target) && e.target.id !== "admin-menu-btn") {
-        hideAdminPanel();
+        authStatus.textContent = "";
+        logoutBtn.classList.add("hidden");
+        adminArea.style.display = "none";
+        publicArea.style.display = "block";
       }
     });
 
-    window.onload = initFirebase;
+    // ────────────────────────────────────────────────
+    // Load public data (announcements + categories + sites)
+    // ────────────────────────────────────────────────
+    function loadPublicData() {
+      // Announcements
+      db.collection("announcements")
+        .orderBy("timestamp", "desc")
+        .onSnapshot(snap => {
+          let html = "";
+          snap.forEach(doc => {
+            html += `<p style="background:#222; padding:12px; border-radius:6px;">${doc.data().text}</p>`;
+          });
+          document.getElementById("announcements").innerHTML = 
+            html || "<p>No announcements yet.</p>";
+        });
+
+      // Categories + grouped sites
+      Promise.all([
+        db.collection("categories").get(),
+        db.collection("sites").get()
+      ]).then(([catSnap, siteSnap]) => {
+        const sitesByCat = {};
+        siteSnap.forEach(doc => {
+          const s = doc.data();
+          if (!sitesByCat[s.category]) sitesByCat[s.category] = [];
+          sitesByCat[s.category].push(
+            `<a href="${s.url}" target="_blank" rel="noopener">${s.name}</a>`
+          );
+        });
+
+        let html = "";
+        catSnap.forEach(doc => {
+          const cat = doc.data().name;
+          const sites = sitesByCat[cat] || [];
+          html += `<h3>${cat}</h3><div>${sites.join(" • ") || "No sites yet"}</div><hr>`;
+        });
+        document.getElementById("categories-container").innerHTML = 
+          html || "<p>No categories yet.</p>";
+      }).catch(err => {
+        console.error("Public load error:", err);
+      });
+    }
+
+    // ────────────────────────────────────────────────
+    // Load admin-only data
+    // ────────────────────────────────────────────────
+    function loadAdminData() {
+      // Categories list
+      db.collection("categories").onSnapshot(snap => {
+        let html = "";
+        snap.forEach(doc => {
+          html += `<div>${doc.data().name} <button onclick="deleteCategory('${doc.id}')">×</button></div>`;
+        });
+        document.getElementById("categories-list").innerHTML = html || "<p>No categories</p>";
+      });
+
+      // Users list
+      db.collection("users").onSnapshot(snap => {
+        let html = "";
+        snap.forEach(doc => {
+          const data = doc.data();
+          html += `<tr>
+            <td>${data.email || "—"}</td>
+            <td>
+              <select onchange="changeRole('${doc.id}', this.value)">
+                <option ${data.role === 'admin' ? 'selected' : ''}>admin</option>
+                <option ${data.role === 'user'  ? 'selected' : ''}>user</option>
+              </select>
+            </td>
+            <td><button onclick="deleteUser('${doc.id}')">Remove</button></td>
+          </tr>`;
+        });
+        document.querySelector("#users-table tbody").innerHTML = html;
+      });
+    }
+
+    // ────────────────────────────────────────────────
+    // Auth actions
+    // ────────────────────────────────────────────────
+    window.login = () => {
+      const email = document.getElementById("email").value.trim();
+      const pass  = document.getElementById("password").value;
+      if (!email || !pass) return alert("Enter email and password");
+
+      auth.signInWithEmailAndPassword(email, pass)
+        .catch(err => alert("Login failed:\n" + err.message));
+    };
+
+    window.logout = () => {
+      auth.signOut().catch(err => console.error("Logout error:", err));
+    };
+
+    // ────────────────────────────────────────────────
+    // Admin CRUD actions
+    // ────────────────────────────────────────────────
+    window.addCategory = async () => {
+      const name = document.getElementById("new-cat-name").value.trim();
+      if (!name) return;
+      try {
+        await db.collection("categories").add({ name });
+        document.getElementById("new-cat-name").value = "";
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    };
+
+    window.deleteCategory = async (id) => {
+      if (!confirm("Delete this category?")) return;
+      try {
+        await db.collection("categories").doc(id).delete();
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    };
+
+    window.addSite = async () => {
+      const name = document.getElementById("site-name").value.trim();
+      const url  = document.getElementById("site-url").value.trim();
+      const cat  = document.getElementById("site-category").value.trim();
+
+      if (!name || !url || !cat) return alert("Fill all fields");
+
+      try {
+        await db.collection("sites").add({ name, url, category: cat });
+        document.getElementById("site-name").value = "";
+        document.getElementById("site-url").value = "";
+        document.getElementById("site-category").value = "";
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    };
+
+    window.postAnnouncement = async () => {
+      const text = document.getElementById("announcement-text").value.trim();
+      if (!text) return;
+      try {
+        await db.collection("announcements").add({
+          text,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById("announcement-text").value = "";
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    };
+
+    window.deleteUser = async (uid) => {
+      if (!confirm("Permanently delete this user?")) return;
+      try {
+        const deleteFn = functions.httpsCallable("deleteUser");
+        await deleteFn({ uid });
+        alert("User deleted");
+      } catch (err) {
+        alert("Delete failed:\n" + err.message);
+      }
+    };
+
+    window.changeRole = async (uid, newRole) => {
+      try {
+        const updateFn = functions.httpsCallable("updateUserRole");
+        await updateFn({ uid, role: newRole });
+      } catch (err) {
+        alert("Role update failed:\n" + err.message);
+      }
+    };
+
+    // Start loading public content right away
+    loadPublicData();
   </script>
 </body>
 </html>
