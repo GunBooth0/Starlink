@@ -398,13 +398,17 @@
         const db = getFirestore(app);
 
         window.db = db;
-        window.firebaseAuth = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, auth };
+        window.firebaseAuth = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, auth, sendEmailVerification };
 
         window.currentUser = null;
 
-        // CHANGE THIS TO YOUR EMAIL
-        const ADMIN_EMAIL = "gunnarbooth@gmail.com";  // ← YOUR ADMIN EMAIL HERE
+        const ADMIN_EMAIL = "gunnarbooth@gmail.com";
         window.ADMIN_EMAIL = ADMIN_EMAIL;
+
+        // Dynamic tab indices depending on whether user is admin
+        function getTabOffset() {
+            return window.currentUser?.email === ADMIN_EMAIL ? 1 : 0;
+        }
 
         function updateUIForAuth(user) {
             window.currentUser = user;
@@ -417,48 +421,55 @@
             const currentIconEl = document.getElementById('current-tab-icon');
 
             if (user) {
+                if (!user.emailVerified) {
+                    alert("Please verify your email first. Check inbox/spam.");
+                    signOut(auth);
+                    return;
+                }
+
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
                 userInfo?.classList.remove('hidden');
                 document.getElementById('user-email').textContent = user.email;
                 authForm?.classList.add('hidden');
                 accountTitle.textContent = 'Account';
 
+                const isAdmin = user.email === ADMIN_EMAIL;
                 let navHTML = '';
 
-                if (user.email === ADMIN_EMAIL) {
+                if (isAdmin) {
                     navHTML += `
-                        <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
+                        <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-0">
                             <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
                         </div>
                     `;
                 }
 
                 navHTML += `
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '1' : '0'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${user.email !== ADMIN_EMAIL ? 'active-tab' : ''}" id="tab-home">
+                    <div onclick="switchTab(${isAdmin ? 1 : 0})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-home">
                         <i class="fa-solid fa-house w-5"></i> <span>Home</span>
                     </div>
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '2' : '1'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-games">
+                    <div onclick="switchTab(${isAdmin ? 2 : 1})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-games">
                         <i class="fa-solid fa-gamepad w-5"></i> <span>Games</span>
                     </div>
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '3' : '2'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-ai">
+                    <div onclick="switchTab(${isAdmin ? 3 : 2})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-ai">
                         <i class="fa-solid fa-brain w-5"></i> <span>AI Tools</span>
                     </div>
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '4' : '3'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-tv">
+                    <div onclick="switchTab(${isAdmin ? 4 : 3})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-tv">
                         <i class="fa-solid fa-tv w-5"></i> <span>TV & Streaming</span>
                     </div>
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '5' : '4'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-proxies">
+                    <div onclick="switchTab(${isAdmin ? 5 : 4})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-proxies">
                         <i class="fa-solid fa-shield-halved w-5"></i> <span>Proxies</span>
                     </div>
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '6' : '5'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-music">
+                    <div onclick="switchTab(${isAdmin ? 6 : 5})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-music">
                         <i class="fa-solid fa-music w-5"></i> <span>Music</span>
                     </div>
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '7' : '6'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-settings">
+                    <div onclick="switchTab(${isAdmin ? 7 : 6})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-settings">
                         <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
                     </div>
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '8' : '7'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-account">
+                    <div onclick="switchTab(${isAdmin ? 8 : 7})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-account">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
                     </div>
-                    <div onclick="switchTab(${user.email === ADMIN_EMAIL ? '9' : '8'})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-credits">
+                    <div onclick="switchTab(${isAdmin ? 9 : 8})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-credits">
                         <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
                     </div>
                     <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
@@ -473,11 +484,7 @@
                     await window.loadAllSites();
                     window.populateAllGrids();
                     await window.showGlobalAnnouncement();
-                    if (user.email === ADMIN_EMAIL) {
-                        switchTab(0); // open admin first for admin
-                    } else {
-                        switchTab(0); // home for normal users (adjusted index)
-                    }
+                    switchTab(isAdmin ? 0 : 0); // admin → admin panel, normal → home
                 }, 100);
 
             } else {
@@ -487,6 +494,7 @@
                 userInfo?.classList.add('hidden');
                 authForm?.classList.remove('hidden');
                 accountTitle.textContent = 'Sign In Required';
+
                 navLinks.innerHTML = `
                     <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-account">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
@@ -498,32 +506,53 @@
 
         firebaseAuth.onAuthStateChanged(auth, updateUIForAuth);
 
-        // Auth button logic
         document.getElementById('auth-btn')?.addEventListener('click', async () => {
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
+            const isSignIn = document.getElementById('form-title').textContent === 'Sign In';
+
+            if (!email || !password) return alert("Email and password required");
+
             try {
-                if (document.getElementById('form-title').textContent === 'Sign In') {
+                if (isSignIn) {
                     const cred = await signInWithEmailAndPassword(auth, email, password);
                     if (!cred.user.emailVerified) {
-                        alert("Please verify your email first.");
+                        alert("Please verify your email first. Check inbox/spam/promotions.");
                         await signOut(auth);
                         return;
                     }
                     updateUIForAuth(cred.user);
                 } else {
+                    // SIGN UP
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
+                    
                     await setDoc(doc(db, "users", cred.user.uid), {
                         email,
                         createdAt: serverTimestamp()
                     });
+
+                    console.log("Attempting verification email to:", email);
                     await sendEmailVerification(cred.user);
-                    alert("Verification email sent! Check inbox.");
+
+                    alert("Verification email sent! Please check your inbox, spam, or promotions folder.\n\nYou must verify before you can log in.");
+
                     await signOut(auth);
+
+                    // Reset form to Sign In mode
+                    document.getElementById('form-title').textContent = 'Sign In';
+                    document.getElementById('auth-btn').textContent = 'Sign In';
+                    document.getElementById('toggle-link').textContent = "Don't have an account? Sign Up";
+                    document.getElementById('email').value = '';
+                    document.getElementById('password').value = '';
+
                     updateUIForAuth(null);
                 }
             } catch (e) {
-                alert(e.message);
+                let msg = e.message;
+                if (msg.includes("auth/email-already-in-use")) msg = "Email already in use.";
+                if (msg.includes("auth/invalid-email")) msg = "Invalid email format.";
+                if (msg.includes("auth/weak-password")) msg = "Password should be at least 6 characters.";
+                alert(msg);
             }
         });
 
@@ -576,7 +605,10 @@
             }
         };
 
-        // Admin functions
+        // ──────────────────────────────────────────────
+        // Admin & site functions (unchanged except reload calls)
+        // ──────────────────────────────────────────────
+
         window.loadAllSites = async () => {
             const snap = await getDocs(collection(db, "sites"));
             window.allSites = { games: [], ai: [], tv: [], proxies: [], music: [] };
@@ -717,38 +749,47 @@
             });
         };
 
-        // Expose
-        window.loadAllSites = window.loadAllSites;
-        window.populateAllGrids = window.populateAllGrids;
-        window.showGlobalAnnouncement = window.showGlobalAnnouncement;
-        window.saveGlobalAnnouncement = window.saveGlobalAnnouncement;
-        window.clearAnnouncement = window.clearAnnouncement;
-        window.loadAdminUsers = window.loadAdminUsers;
-        window.addNewSiteFromAdmin = window.addNewSiteFromAdmin;
-        window.deleteSite = window.deleteSite;
-        window.reloadAdminSites = window.reloadAdminSites;
-    </script>
+        // ──────────────────────────────────────────────
+        // Tab switching (now safe + dynamic)
+        // ──────────────────────────────────────────────
 
-    <script>
         const tabIcons = ['fa-crown','fa-house','fa-gamepad','fa-brain','fa-tv','fa-shield-halved','fa-music','fa-gear','fa-user','fa-heart','fa-paper-plane'];
         const tabTitles = ["Admin Panel","Home","Games","AI Tools","TV & Streaming","Proxies","Music","Settings","Account","Credits","Request a Site"];
         const contentIds = ['content-admin','content-home','content-games','content-ai','content-tv','content-proxies','content-music','content-settings','content-account','content-credits'];
 
-        function switchTab(index) {
+        function switchTab(desiredIndex) {
             if (!window.currentUser) {
-                switchTab(0); // account when not logged in
-                return;
+                // Logged out → force account tab
+                desiredIndex = 0;
+            } else {
+                const isAdmin = window.currentUser.email === ADMIN_EMAIL;
+                const adminOffset = isAdmin ? 1 : 0;
+
+                // Prevent non-admin from accessing admin panel (index 0)
+                if (desiredIndex === 0 && !isAdmin) {
+                    desiredIndex = 0 + adminOffset; // home
+                    console.warn("Blocked non-admin from admin panel");
+                }
+
+                // Adjust index if admin has extra tab
+                if (isAdmin && desiredIndex > 0) {
+                    desiredIndex += 1; // shift everything right by 1
+                }
             }
 
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
-            document.getElementById(`tab-${index}`)?.classList.add('active-tab');
+            document.getElementById(`tab-${desiredIndex}`)?.classList.add('active-tab') || document.getElementById('tab-home')?.classList.add('active-tab');
 
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(contentIds[index])?.classList.remove('hidden');
+            document.getElementById(contentIds[desiredIndex])?.classList.remove('hidden');
 
-            document.getElementById('current-tab').textContent = tabTitles[index];
-            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
+            document.getElementById('current-tab').textContent = tabTitles[desiredIndex] || "Home";
+            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[desiredIndex] || 'fa-house'}`;
         }
+
+        // ──────────────────────────────────────────────
+        // Other helpers (unchanged)
+        // ──────────────────────────────────────────────
 
         const themes = [
             {name:"White",color:"#ffffff"},{name:"Red",color:"#ef4444"},{name:"Blue",color:"#3b82f6"},
@@ -859,6 +900,18 @@
         }
 
         window.onload = initialize;
+
+        // Expose admin functions
+        window.switchTab = switchTab;
+        window.loadAllSites = window.loadAllSites;
+        window.populateAllGrids = window.populateAllGrids;
+        window.showGlobalAnnouncement = window.showGlobalAnnouncement;
+        window.saveGlobalAnnouncement = window.saveGlobalAnnouncement;
+        window.clearAnnouncement = window.clearAnnouncement;
+        window.loadAdminUsers = window.loadAdminUsers;
+        window.addNewSiteFromAdmin = window.addNewSiteFromAdmin;
+        window.deleteSite = window.deleteSite;
+        window.reloadAdminSites = window.reloadAdminSites;
     </script>
 </body>
 </html>
