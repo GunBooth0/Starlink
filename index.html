@@ -348,7 +348,12 @@
                             <h3 class="text-2xl font-semibold flex items-center gap-3">
                                 <i class="fa-solid fa-users"></i> Registered Users
                             </h3>
-                            <button onclick="loadAdminUsers()" class="github-style-btn text-sm px-8 py-3">Refresh List</button>
+                            <div class="flex gap-4">
+                                <button onclick="loadAdminUsers()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
+                                <a href="https://console.firebase.google.com/project/starlink-42031/authentication/users" target="_blank" rel="noopener noreferrer" class="github-style-btn text-sm px-4 py-3">
+                                    <i class="fa-solid fa-external-link-alt"></i> Firebase Authentication
+                                </a>
+                            </div>
                         </div>
                         <div id="users-table" class="bg-black/30 rounded-3xl p-2 max-h-[420px] overflow-auto"></div>
                         <p class="text-xs text-white/50 mt-4 text-center">Delete removes the user from this list.<br>Full auth deletion still required in Firebase Console → Authentication</p>
@@ -540,7 +545,15 @@
 
                 navLinks.innerHTML = navHTML;
 
-                // Real-time listeners
+                setTimeout(async () => {
+                    populateThemeGrid();
+                    await window.loadAllSites();
+                    window.populateAllGrids();
+                    await window.showGlobalAnnouncement();
+                    switchTab(0);
+                    window.initialLoadComplete = true;
+                }, 100);
+
                 sitesListener = onSnapshot(collection(db, "sites"), async () => {
                     await window.loadAllSites();
                     window.populateAllGrids();
@@ -560,15 +573,6 @@
                         window.showGlobalAnnouncement();
                     }
                 });
-
-                setTimeout(async () => {
-                    populateThemeGrid();
-                    await window.loadAllSites();
-                    window.populateAllGrids();
-                    await window.showGlobalAnnouncement();
-                    switchTab(0);
-                    window.initialLoadComplete = true;
-                }, 100);
 
             } else {
                 statusEl.textContent = '';
