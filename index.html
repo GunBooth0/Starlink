@@ -5,124 +5,127 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Starlink</title>
 
-  <!-- Firebase Compat SDKs (works directly in browser / GitHub Pages) -->
+  <!-- Firebase Compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
 
+  <!-- Tailwind CSS for modern look -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
   <style>
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: #000;
-      color: #fff;
-      margin: 0;
-      padding: 20px;
-    }
-    header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    svg.star {
-      width: 80px;
-      height: 80px;
-    }
-    h1, h2, h3 { color: #ddd; }
-    .section { margin: 30px 0; padding: 20px; background: #111; border-radius: 8px; }
-    button {
-      background: #0066cc;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      margin: 4px;
-      border-radius: 4px;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', system_ui, sans-serif; }
+    .tab-item {
+      padding: 12px 16px;
+      border-radius: 8px;
       cursor: pointer;
+      transition: all 0.2s;
     }
-    button:hover { background: #0080ff; }
-    input, select {
-      padding: 8px;
-      margin: 6px;
-      background: #222;
+    .tab-item:hover {
+      background-color: #27272a;
+    }
+    .tab-item-active {
+      background-color: #27272a;
       color: white;
-      border: 1px solid #444;
-      border-radius: 4px;
+      font-weight: 600;
     }
-    a { color: #4da6ff; }
-    #admin-area { display: none; }
-    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-    th, td { border: 1px solid #444; padding: 8px; text-align: left; }
-    th { background: #222; }
-    .hidden { display: none; }
-    hr { border-color: #333; }
+    .site-card {
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .site-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.3);
+    }
   </style>
 </head>
-<body>
+<body class="bg-zinc-950 text-zinc-100 flex h-screen overflow-hidden">
 
-  <header>
-    <svg class="star" viewBox="0 0 24 24" fill="white">
-      <path d="M12 2L15 9H22L16 14L18 21L12 17L6 21L8 14L2 9H9L12 2Z"/>
-    </svg>
-    <h1>Starlink</h1>
-  </header>
-
-  <!-- Public content -->
-  <div class="section" id="public-area">
-    <div id="announcements">
-      <p>Loading announcements...</p>
+  <!-- SIDEBAR -->
+  <div class="w-72 bg-zinc-900 flex flex-col border-r border-zinc-800">
+    <!-- Logo -->
+    <div class="p-6 flex items-center gap-3 border-b border-zinc-800">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="white" class="drop-shadow-lg">
+        <path d="M12 2L15 9H22L16 14L18 21L12 17L6 21L8 14L2 9H9L12 2Z"/>
+      </svg>
+      <h1 class="text-4xl font-bold tracking-tighter">Starlink</h1>
     </div>
 
-    <h2>Categories & Sites</h2>
-    <div id="categories-container">
-      <p>Loading categories...</p>
+    <!-- Navigation -->
+    <div class="flex-1 overflow-auto p-4">
+      <div onclick="switchTab('home')" id="tab-home"
+           class="tab-item flex items-center gap-3 text-lg mb-1">
+        🏠 Home
+      </div>
+
+      <div class="mt-8 px-4 text-xs uppercase tracking-widest text-zinc-500 mb-3">Categories</div>
+      <div id="sidebar-categories" class="space-y-1"></div>
+
+      <!-- Admin section (hidden until logged in as admin) -->
+      <div id="admin-sidebar-section" class="hidden mt-10">
+        <div class="px-4 text-xs uppercase tracking-widest text-amber-400 mb-3">ADMIN TOOLS</div>
+        <div onclick="switchTab('manage-categories')" id="tab-manage-categories" class="tab-item flex items-center gap-3">
+          📁 Manage Categories
+        </div>
+        <div onclick="switchTab('manage-sites')" id="tab-manage-sites" class="tab-item flex items-center gap-3">
+          🌐 Manage Sites
+        </div>
+        <div onclick="switchTab('manage-announcements')" id="tab-manage-announcements" class="tab-item flex items-center gap-3">
+          📢 Announcements
+        </div>
+        <div onclick="switchTab('manage-users')" id="tab-manage-users" class="tab-item flex items-center gap-3">
+          👥 Users
+        </div>
+      </div>
     </div>
 
-    <div style="margin-top: 30px;">
-      <h3>Admin Login</h3>
-      <input id="email" type="email" placeholder="Email" value="gunnarbooth@gmail.com" />
-      <input id="password" type="password" placeholder="Password" />
-      <button onclick="login()">Login</button>
-      <button onclick="logout()" id="logout-btn" class="hidden">Logout</button>
-      <p id="auth-status" style="color:#ffcc00;"></p>
+    <!-- Bottom user info -->
+    <div class="p-4 border-t border-zinc-800">
+      <div id="user-info" class="flex items-center gap-3 text-sm">
+        <!-- Filled by JS -->
+      </div>
     </div>
   </div>
 
-  <!-- Admin panel -->
-  <div class="section" id="admin-area">
-    <h2>Admin Panel</h2>
-    <p id="admin-welcome"></p>
+  <!-- MAIN CONTENT AREA -->
+  <div class="flex-1 flex flex-col">
+    
+    <!-- Top Announcement Banner -->
+    <div id="announcement-banner" onclick="dismissBanner()" 
+         class="hidden bg-gradient-to-r from-amber-500 to-orange-600 px-8 py-4 text-white flex items-center justify-between cursor-pointer hover:brightness-110 transition">
+      <div class="flex items-center gap-3">
+        <span class="text-xl">📢</span>
+        <span id="banner-text" class="font-medium"></span>
+      </div>
+      <span class="text-xs uppercase tracking-widest bg-black/30 px-3 py-1 rounded">click to dismiss</span>
+    </div>
 
-    <!-- Categories -->
-    <h3>Categories</h3>
-    <input id="new-cat-name" placeholder="New category name (e.g. Games)" />
-    <button onclick="addCategory()">Add Category</button>
-    <div id="categories-list"></div>
+    <!-- Main scrollable area -->
+    <div id="main-content" class="flex-1 p-8 overflow-auto bg-zinc-950">
+      <!-- Content injected by JS -->
+    </div>
 
-    <!-- Sites -->
-    <h3>Add Site</h3>
-    <input id="site-name" placeholder="Site name" />
-    <input id="site-url" placeholder="https://example.com" />
-    <input id="site-category" placeholder="Category name (must exist)" />
-    <button onclick="addSite()">Add Site</button>
-
-    <!-- Announcements -->
-    <h3>Post Announcement</h3>
-    <input id="announcement-text" placeholder="Announcement text..." style="width:80%;" />
-    <button onclick="postAnnouncement()">Post</button>
-
-    <!-- Users -->
-    <h3>Registered Users</h3>
-    <table id="users-table">
-      <thead><tr><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
-      <tbody></tbody>
-    </table>
-
-    <button onclick="logout()">Logout</button>
+    <!-- Footer bar -->
+    <div class="h-14 border-t border-zinc-800 bg-zinc-900 flex items-center px-8 text-xs text-zinc-500">
+      <div class="flex-1">Hosted on GitHub Pages • Powered by Firebase</div>
+      <button onclick="logout()" 
+              class="px-6 py-2 bg-zinc-800 hover:bg-red-600/80 rounded-lg text-sm transition">
+        Logout
+      </button>
+    </div>
   </div>
 
   <script>
-    // ────────────────────────────────────────────────
-    // Firebase Config (yours)
-    // ────────────────────────────────────────────────
+    // ================== TAILWIND INIT ==================
+    function initTailwind() {
+      tailwind.config = {
+        content: [],
+        theme: { extend: {} }
+      }
+    }
+
+    // ================== FIREBASE CONFIG ==================
     const firebaseConfig = {
       apiKey: "AIzaSyDI979T4jI-ZbGbRDFo-kNZPyG3Pc8gkXw",
       authDomain: "starlink-42031.firebaseapp.com",
@@ -133,221 +136,387 @@
       measurementId: "G-Z2B3TBENYK"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
     const functions = firebase.functions();
 
-    // ────────────────────────────────────────────────
-    // VERY IMPORTANT: Replace this with your real UID
-    // Steps:
-    // 1. Log in once with your email
-    // 2. Open browser console (F12)
-    // 3. Type: firebase.auth().currentUser.uid
-    // 4. Copy the long string and paste it here
-    // ────────────────────────────────────────────────
-    const ADMIN_UID = "4zbovMB1iRYLE9n7343GKaEQrWz2";   // ←←← CHANGE THIS
+    // ================== YOUR ADMIN UID (MUST FILL) ==================
+    // 1. Login once
+    // 2. Open console → type: firebase.auth().currentUser.uid
+    // 3. Paste the result here:
+    const ADMIN_UID = "PASTE_YOUR_UID_HERE";   // ←←← CHANGE THIS
 
-    // ────────────────────────────────────────────────
-    // Auth state change listener
-    // ────────────────────────────────────────────────
+    // Global state
+    let currentTab = 'home';
+    let selectedCategoryFilter = null;
+    let isAdminUser = false;
+    let latestAnnouncement = null;
+
+    // ================== AUTH LISTENER ==================
     auth.onAuthStateChanged(async (user) => {
-      const publicArea  = document.getElementById("public-area");
-      const adminArea   = document.getElementById("admin-area");
-      const authStatus  = document.getElementById("auth-status");
-      const logoutBtn   = document.getElementById("logout-btn");
-
+      const userInfo = document.getElementById("user-info");
+      
       if (user) {
-        authStatus.textContent = `Logged in as: ${user.email}`;
-        logoutBtn.classList.remove("hidden");
+        isAdminUser = (user.uid === ADMIN_UID);
+        
+        // Auto-create user document (fixes permission errors!)
+        await db.collection("users").doc(user.uid).set({
+          email: user.email,
+          role: isAdminUser ? "admin" : "user"
+        }, { merge: true });
 
-        if (user.uid === ADMIN_UID) {
-          document.getElementById("admin-welcome").textContent = `Welcome, ${user.email}`;
-          adminArea.style.display = "block";
-          publicArea.style.display = "none";
-          loadAdminData();
-        } else {
-          authStatus.textContent += " (not admin)";
-          adminArea.style.display = "none";
-          publicArea.style.display = "block";
-        }
+        userInfo.innerHTML = `
+          <div class="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center text-xs font-bold">
+            ${user.email[0].toUpperCase()}
+          </div>
+          <div>
+            <div class="font-medium">${user.email}</div>
+            <div class="text-[10px] text-emerald-400">${isAdminUser ? 'ADMIN' : 'User'}</div>
+          </div>
+        `;
+
+        document.getElementById("admin-sidebar-section").classList.toggle("hidden", !isAdminUser);
+
+        loadPublicData();
+        if (isAdminUser) loadAdminData();
+        renderCurrentTab();
       } else {
-        authStatus.textContent = "";
-        logoutBtn.classList.add("hidden");
-        adminArea.style.display = "none";
-        publicArea.style.display = "block";
+        userInfo.innerHTML = `<button onclick="showLoginModal()" class="text-blue-400">Login as Admin</button>`;
       }
     });
 
-    // ────────────────────────────────────────────────
-    // Load public data (announcements + categories + sites)
-    // ────────────────────────────────────────────────
+    // ================== PUBLIC DATA (real-time) ==================
     function loadPublicData() {
-      // Announcements
+      // Announcements banner
       db.collection("announcements")
         .orderBy("timestamp", "desc")
+        .limit(1)
         .onSnapshot(snap => {
-          let html = "";
-          snap.forEach(doc => {
-            html += `<p style="background:#222; padding:12px; border-radius:6px;">${doc.data().text}</p>`;
-          });
-          document.getElementById("announcements").innerHTML = 
-            html || "<p>No announcements yet.</p>";
+          if (!snap.empty) {
+            latestAnnouncement = snap.docs[0];
+            const banner = document.getElementById("announcement-banner");
+            document.getElementById("banner-text").textContent = latestAnnouncement.data().text;
+            banner.classList.remove("hidden");
+          } else {
+            document.getElementById("announcement-banner").classList.add("hidden");
+          }
         });
 
-      // Categories + grouped sites
-      Promise.all([
-        db.collection("categories").get(),
-        db.collection("sites").get()
-      ]).then(([catSnap, siteSnap]) => {
-        const sitesByCat = {};
-        siteSnap.forEach(doc => {
-          const s = doc.data();
-          if (!sitesByCat[s.category]) sitesByCat[s.category] = [];
-          sitesByCat[s.category].push(
-            `<a href="${s.url}" target="_blank" rel="noopener">${s.name}</a>`
-          );
-        });
-
-        let html = "";
-        catSnap.forEach(doc => {
+      // Categories for sidebar
+      db.collection("categories").onSnapshot(snap => {
+        const container = document.getElementById("sidebar-categories");
+        container.innerHTML = "";
+        
+        snap.forEach(doc => {
           const cat = doc.data().name;
-          const sites = sitesByCat[cat] || [];
-          html += `<h3>${cat}</h3><div>${sites.join(" • ") || "No sites yet"}</div><hr>`;
+          const div = document.createElement("div");
+          div.className = `tab-item flex items-center gap-3 ${selectedCategoryFilter === cat ? 'tab-item-active' : ''}`;
+          div.innerHTML = `📂 ${cat}`;
+          div.onclick = () => {
+            selectedCategoryFilter = cat;
+            switchTab('home');
+          };
+          container.appendChild(div);
         });
-        document.getElementById("categories-container").innerHTML = 
-          html || "<p>No categories yet.</p>";
-      }).catch(err => {
-        console.error("Public load error:", err);
       });
     }
 
-    // ────────────────────────────────────────────────
-    // Load admin-only data
-    // ────────────────────────────────────────────────
-    function loadAdminData() {
-      // Categories list
+    // ================== RENDER MAIN CONTENT ==================
+    function renderCurrentTab() {
+      const main = document.getElementById("main-content");
+      
+      if (currentTab === 'home') {
+        main.innerHTML = `
+          <div class="max-w-6xl mx-auto">
+            <h1 class="text-5xl font-bold mb-2">Welcome to Starlink</h1>
+            <p class="text-zinc-400 mb-8">Your personal directory of everything</p>
+            
+            <div id="sites-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <!-- JS injected cards -->
+            </div>
+          </div>
+        `;
+        loadFilteredSites();
+      } 
+      else if (currentTab === 'manage-categories') {
+        main.innerHTML = `
+          <div class="max-w-2xl mx-auto">
+            <h2 class="text-3xl font-bold mb-8">Manage Categories</h2>
+            <div class="flex gap-3 mb-8">
+              <input id="new-cat-input" placeholder="New category name..." 
+                     class="flex-1 bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4 focus:outline-none focus:border-amber-400">
+              <button onclick="addCategory()" 
+                      class="bg-white text-black px-10 rounded-2xl font-semibold hover:bg-amber-400 transition">
+                Add Category
+              </button>
+            </div>
+            <div id="manage-categories-list" class="space-y-3"></div>
+          </div>
+        `;
+        loadManageCategories();
+      } 
+      else if (currentTab === 'manage-sites') {
+        main.innerHTML = `
+          <div class="max-w-2xl mx-auto">
+            <h2 class="text-3xl font-bold mb-8">Manage Sites</h2>
+            <div class="bg-zinc-900 rounded-3xl p-8">
+              <input id="site-name" placeholder="Site name" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4">
+              <input id="site-url" placeholder="https://..." class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4">
+              <input id="site-category" placeholder="Category" class="w-full mb-8 bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4">
+              <button onclick="addSite()" class="w-full bg-white text-black py-4 rounded-2xl font-semibold">Add Site</button>
+            </div>
+            <div id="manage-sites-list" class="mt-12"></div>
+          </div>
+        `;
+        loadManageSites();
+      } 
+      else if (currentTab === 'manage-announcements') {
+        main.innerHTML = `
+          <div class="max-w-2xl mx-auto">
+            <h2 class="text-3xl font-bold mb-8">Global Announcements</h2>
+            <div class="flex gap-3 mb-8">
+              <input id="ann-input" placeholder="Announcement text..." 
+                     class="flex-1 bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4">
+              <button onclick="postAnnouncement()" 
+                      class="bg-amber-400 text-black px-10 rounded-2xl font-semibold">Post</button>
+            </div>
+            <button onclick="clearAllAnnouncements()" 
+                    class="mb-8 bg-red-600 hover:bg-red-700 px-8 py-3 rounded-2xl text-sm">
+              🗑️ Clear All Announcements
+            </button>
+            <div id="ann-list" class="space-y-4"></div>
+          </div>
+        `;
+        loadManageAnnouncements();
+      } 
+      else if (currentTab === 'manage-users') {
+        main.innerHTML = `
+          <div class="max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold mb-8">Registered Users</h2>
+            <table class="w-full text-left">
+              <thead><tr class="border-b border-zinc-700">
+                <th class="py-4 px-6">Email</th>
+                <th class="py-4 px-6">Role</th>
+                <th class="py-4 px-6">Actions</th>
+              </tr></thead>
+              <tbody id="users-tbody" class="divide-y divide-zinc-800"></tbody>
+            </table>
+          </div>
+        `;
+        loadUsersTable();
+      }
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('tab-item-active'));
+      const activeEl = document.getElementById('tab-' + tab);
+      if (activeEl) activeEl.classList.add('tab-item-active');
+      
+      renderCurrentTab();
+    }
+
+    // ================== FILTERED SITES FOR HOME ==================
+    async function loadFilteredSites() {
+      const container = document.getElementById("sites-container");
+      container.innerHTML = `<p class="text-zinc-400 col-span-full">Loading sites...</p>`;
+
+      const [catSnap, siteSnap] = await Promise.all([
+        db.collection("categories").get(),
+        db.collection("sites").get()
+      ]);
+
+      let sitesByCat = {};
+      siteSnap.forEach(doc => {
+        const s = doc.data();
+        if (!sitesByCat[s.category]) sitesByCat[s.category] = [];
+        sitesByCat[s.category].push({id: doc.id, ...s});
+      });
+
+      let html = "";
+      const catsToShow = selectedCategoryFilter 
+        ? [selectedCategoryFilter] 
+        : catSnap.docs.map(d => d.data().name);
+
+      catsToShow.forEach(catName => {
+        const sites = sitesByCat[catName] || [];
+        if (sites.length === 0) return;
+
+        html += `<div class="col-span-full"><h3 class="text-xl font-semibold mb-4">${catName}</h3></div>`;
+        sites.forEach(site => {
+          html += `
+            <a href="${site.url}" target="_blank" 
+               class="site-card bg-zinc-900 border border-zinc-800 rounded-3xl p-6 block">
+              <div class="text-2xl mb-2">🔗</div>
+              <div class="font-semibold text-xl">${site.name}</div>
+              <div class="text-emerald-400 text-sm mt-1 break-all">${site.url}</div>
+            </a>`;
+        });
+      });
+
+      container.innerHTML = html || `<p class="text-zinc-400">No sites yet. Add some in Admin → Manage Sites.</p>`;
+    }
+
+    // ================== ADMIN FUNCTIONS ==================
+    async function loadManageCategories() {
+      const list = document.getElementById("manage-categories-list");
       db.collection("categories").onSnapshot(snap => {
         let html = "";
         snap.forEach(doc => {
-          html += `<div>${doc.data().name} <button onclick="deleteCategory('${doc.id}')">×</button></div>`;
+          html += `
+            <div class="flex justify-between items-center bg-zinc-900 px-6 py-5 rounded-2xl">
+              <span class="text-lg">${doc.data().name}</span>
+              <button onclick="deleteCategory('${doc.id}')" 
+                      class="text-red-400 hover:text-red-500">Delete</button>
+            </div>`;
         });
-        document.getElementById("categories-list").innerHTML = html || "<p>No categories</p>";
-      });
-
-      // Users list
-      db.collection("users").onSnapshot(snap => {
-        let html = "";
-        snap.forEach(doc => {
-          const data = doc.data();
-          html += `<tr>
-            <td>${data.email || "—"}</td>
-            <td>
-              <select onchange="changeRole('${doc.id}', this.value)">
-                <option ${data.role === 'admin' ? 'selected' : ''}>admin</option>
-                <option ${data.role === 'user'  ? 'selected' : ''}>user</option>
-              </select>
-            </td>
-            <td><button onclick="deleteUser('${doc.id}')">Remove</button></td>
-          </tr>`;
-        });
-        document.querySelector("#users-table tbody").innerHTML = html;
+        list.innerHTML = html || `<p class="text-zinc-500">No categories yet.</p>`;
       });
     }
 
-    // ────────────────────────────────────────────────
-    // Auth actions
-    // ────────────────────────────────────────────────
-    window.login = () => {
-      const email = document.getElementById("email").value.trim();
-      const pass  = document.getElementById("password").value;
-      if (!email || !pass) return alert("Enter email and password");
-
-      auth.signInWithEmailAndPassword(email, pass)
-        .catch(err => alert("Login failed:\n" + err.message));
-    };
-
-    window.logout = () => {
-      auth.signOut().catch(err => console.error("Logout error:", err));
-    };
-
-    // ────────────────────────────────────────────────
-    // Admin CRUD actions
-    // ────────────────────────────────────────────────
     window.addCategory = async () => {
-      const name = document.getElementById("new-cat-name").value.trim();
+      const name = document.getElementById("new-cat-input").value.trim();
       if (!name) return;
-      try {
-        await db.collection("categories").add({ name });
-        document.getElementById("new-cat-name").value = "";
-      } catch (err) {
-        alert("Error: " + err.message);
-      }
+      await db.collection("categories").add({ name });
+      document.getElementById("new-cat-input").value = "";
     };
 
     window.deleteCategory = async (id) => {
-      if (!confirm("Delete this category?")) return;
-      try {
-        await db.collection("categories").doc(id).delete();
-      } catch (err) {
-        alert("Error: " + err.message);
-      }
+      if (confirm("Delete category?")) await db.collection("categories").doc(id).delete();
     };
+
+    // Sites management
+    async function loadManageSites() {
+      const list = document.getElementById("manage-sites-list");
+      db.collection("sites").onSnapshot(snap => {
+        let html = `<div class="grid grid-cols-2 gap-4">`;
+        snap.forEach(doc => {
+          const s = doc.data();
+          html += `
+            <div class="bg-zinc-900 p-6 rounded-3xl">
+              <div class="font-medium">${s.name}</div>
+              <a href="${s.url}" target="_blank" class="text-emerald-400 text-sm block mb-4">${s.url}</a>
+              <div class="text-xs text-zinc-500">${s.category}</div>
+              <button onclick="deleteSite('${doc.id}')" 
+                      class="mt-6 text-red-400 text-sm">Delete</button>
+            </div>`;
+        });
+        html += `</div>`;
+        list.innerHTML = html || `<p>No sites yet.</p>`;
+      });
+    }
 
     window.addSite = async () => {
       const name = document.getElementById("site-name").value.trim();
-      const url  = document.getElementById("site-url").value.trim();
-      const cat  = document.getElementById("site-category").value.trim();
-
-      if (!name || !url || !cat) return alert("Fill all fields");
-
-      try {
-        await db.collection("sites").add({ name, url, category: cat });
-        document.getElementById("site-name").value = "";
-        document.getElementById("site-url").value = "";
-        document.getElementById("site-category").value = "";
-      } catch (err) {
-        alert("Error: " + err.message);
-      }
+      const url = document.getElementById("site-url").value.trim();
+      const cat = document.getElementById("site-category").value.trim();
+      if (!name || !url || !cat) return alert("All fields required");
+      await db.collection("sites").add({ name, url, category: cat });
+      document.getElementById("site-name").value = "";
+      document.getElementById("site-url").value = "";
+      document.getElementById("site-category").value = "";
     };
 
-    window.postAnnouncement = async () => {
-      const text = document.getElementById("announcement-text").value.trim();
-      if (!text) return;
-      try {
-        await db.collection("announcements").add({
-          text,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    window.deleteSite = async (id) => {
+      if (confirm("Delete site?")) await db.collection("sites").doc(id).delete();
+    };
+
+    // Announcements
+    async function loadManageAnnouncements() {
+      db.collection("announcements").orderBy("timestamp", "desc").onSnapshot(snap => {
+        let html = "";
+        snap.forEach(doc => {
+          html += `
+            <div class="bg-zinc-900 p-6 rounded-3xl flex justify-between">
+              <div>${doc.data().text}</div>
+              <button onclick="deleteAnnouncement('${doc.id}')" class="text-red-400">×</button>
+            </div>`;
         });
-        document.getElementById("announcement-text").value = "";
-      } catch (err) {
-        alert("Error: " + err.message);
-      }
+        document.getElementById("ann-list").innerHTML = html || "<p>No announcements.</p>";
+      });
+    }
+
+    window.postAnnouncement = async () => {
+      const text = document.getElementById("ann-input").value.trim();
+      if (!text) return;
+      await db.collection("announcements").add({
+        text,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      document.getElementById("ann-input").value = "";
+    };
+
+    window.clearAllAnnouncements = async () => {
+      if (!confirm("Clear EVERY announcement?")) return;
+      const snap = await db.collection("announcements").get();
+      snap.forEach(doc => doc.ref.delete());
+    };
+
+    window.deleteAnnouncement = async (id) => {
+      await db.collection("announcements").doc(id).delete();
+    };
+
+    // Users
+    async function loadUsersTable() {
+      db.collection("users").onSnapshot(snap => {
+        let html = "";
+        snap.forEach(doc => {
+          const u = doc.data();
+          html += `
+            <tr class="hover:bg-zinc-900">
+              <td class="px-6 py-5">${u.email}</td>
+              <td class="px-6 py-5">
+                <select onchange="updateUserRole('${doc.id}', this.value)" class="bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-1">
+                  <option value="user" ${u.role==='user'?'selected':''}>user</option>
+                  <option value="admin" ${u.role==='admin'?'selected':''}>admin</option>
+                </select>
+              </td>
+              <td class="px-6 py-5">
+                <button onclick="deleteUser('${doc.id}')" 
+                        class="text-red-400 hover:text-red-500">Remove</button>
+              </td>
+            </tr>`;
+        });
+        document.getElementById("users-tbody").innerHTML = html;
+      });
+    }
+
+    window.updateUserRole = async (uid, role) => {
+      const fn = functions.httpsCallable("updateUserRole");
+      await fn({ uid, role });
     };
 
     window.deleteUser = async (uid) => {
-      if (!confirm("Permanently delete this user?")) return;
-      try {
-        const deleteFn = functions.httpsCallable("deleteUser");
-        await deleteFn({ uid });
-        alert("User deleted");
-      } catch (err) {
-        alert("Delete failed:\n" + err.message);
+      if (!confirm("Permanently delete user?")) return;
+      const fn = functions.httpsCallable("deleteUser");
+      await fn({ uid });
+    };
+
+    // Banner
+    window.dismissBanner = () => {
+      document.getElementById("announcement-banner").classList.add("hidden");
+    };
+
+    // Login modal (simple)
+    window.showLoginModal = () => {
+      const email = prompt("Admin Email", "gunnarbooth@gmail.com");
+      const pass = prompt("Admin Password");
+      if (email && pass) {
+        auth.signInWithEmailAndPassword(email, pass)
+          .catch(e => alert("Login failed: " + e.message));
       }
     };
 
-    window.changeRole = async (uid, newRole) => {
-      try {
-        const updateFn = functions.httpsCallable("updateUserRole");
-        await updateFn({ uid, role: newRole });
-      } catch (err) {
-        alert("Role update failed:\n" + err.message);
-      }
-    };
+    window.logout = () => auth.signOut();
 
-    // Start loading public content right away
+    // ================== START ==================
+    initTailwind();
     loadPublicData();
+    // Auto render home on load
+    setTimeout(() => {
+      renderCurrentTab();
+    }, 800);
   </script>
 </body>
 </html>
