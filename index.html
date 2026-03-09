@@ -1,461 +1,720 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Starlink</title>
-
-  <!-- Firebase Compat SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body { font-family: 'Inter', system-ui, sans-serif; }
-    .tab-item { padding: 12px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-    .tab-item:hover { background-color: #27272a; }
-    .tab-item-active { background-color: #27272a; color: white; font-weight: 600; }
-    .site-card { transition: transform 0.2s, box-shadow 0.2s; }
-    .site-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.3); }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starlink</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><path d=%22M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z%22 fill=%22%23ffffff%22/></svg>" type="image/svg+xml">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
+     
+        :root {
+            --accent: #ffffff;
+        }
+        body {
+            background: #000000;
+            color: #ffffff;
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+     
+        .logo-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .star-svg {
+            animation: pulse 4s infinite ease-in-out;
+            filter: drop-shadow(0 0 20px var(--accent));
+        }
+        @keyframes pulse {
+            0%, 100% { filter: drop-shadow(0 0 20px var(--accent)); }
+            50% { filter: drop-shadow(0 0 45px var(--accent)); }
+        }
+        .nav-link {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #ffffff;
+        }
+     
+        .nav-link:hover,
+        .nav-link.active-tab {
+            color: var(--accent) !important;
+            background: rgba(255,255,255,0.08);
+        }
+        .nav-link i {
+            color: inherit;
+        }
+        #current-tab-icon,
+        #current-tab {
+            color: var(--accent);
+            transition: color 0.4s ease;
+        }
+        .card {
+            transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+     
+        .card:hover {
+            transform: translateY(-8px) scale(1.03);
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.06);
+        }
+        .glass {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .tail-container {
+            max-width: 1280px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #star-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: auto;
+        }
+        .star {
+            position: absolute;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent);
+            pointer-events: none;
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(110vh); }
+            100% { transform: translateY(-30vh); }
+        }
+        .main-content {
+            overflow-y: auto;
+            height: 100vh;
+            padding-top: 4rem;
+        }
+        input[type="email"], input[type="password"] {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: white;
+            padding: 1rem 1.25rem;
+            border-radius: 1rem;
+            width: 100%;
+            margin-bottom: 1.25rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.12);
+        }
+        input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        button {
+            padding: 1.25rem 2rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 1rem 0;
+            width: 100%;
+            font-size: 1.2rem;
+        }
+        .auth-btn {
+            background: var(--accent);
+            color: #000;
+        }
+        .auth-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+        .github-style-btn {
+            background: black;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+        .github-style-btn:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        #auth-message {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+    </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100 flex h-screen overflow-hidden">
-
-  <!-- SIDEBAR -->
-  <div class="w-72 bg-zinc-900 flex flex-col border-r border-zinc-800">
-    <div class="p-6 flex items-center gap-3 border-b border-zinc-800">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="white" class="drop-shadow-lg">
-        <path d="M12 2L15 9H22L16 14L18 21L12 17L6 21L8 14L2 9H9L12 2Z"/>
-      </svg>
-      <h1 class="text-4xl font-bold tracking-tighter">Starlink</h1>
+<body>
+    <div id="star-bg"></div>
+    <!-- SIDEBAR -->
+    <div class="w-72 bg-black border-r border-white/10 flex flex-col fixed h-screen z-50">
+        <div class="p-8 flex items-center gap-x-4 border-b border-white/10">
+            <svg width="48" height="48" viewBox="0 0 200 200" class="star-svg" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
+                <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+            </svg>
+            <div>
+                <h1 class="logo-font text-4xl font-semibold tracking-tighter text-white">Starlink</h1>
+                <p class="text-xs text-white/70 tracking-wide -mt-1">By: Gunnar Booth</p>
+            </div>
+        </div>
+        <div class="flex-1 px-6 py-8 overflow-y-auto" id="nav-links"></div>
+    </div>
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 ml-72 main-content">
+        <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50 top-0">
+            <div class="h-full px-10 flex items-center gap-4">
+                <i id="current-tab-icon" class="text-3xl fa-solid fa-lock"></i>
+                <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Sign In Required</div>
+                <span id="user-status" class="ml-auto text-sm text-white/70"></span>
+            </div>
+        </div>
+        <div class="pt-24 pb-20 px-10 tail-container">
+            <!-- ACCOUNT TAB -->
+            <div id="content-account" class="tab-content">
+                <div class="max-w-md mx-auto py-12">
+                    <h2 class="text-3xl font-bold text-center mb-8" id="account-title">Sign In Required</h2>
+                   
+                    <div id="auth-form" class="glass p-8 rounded-3xl">
+                        <h3 class="text-xl font-semibold mb-6 text-center" id="form-title">Sign In</h3>
+                       
+                        <input type="email" id="email" placeholder="Email address" required autocomplete="email">
+                        <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+                       
+                        <button id="auth-btn" class="auth-btn mt-6">Sign In</button>
+                       
+                        <p class="text-center mt-6 text-white/70 text-sm">
+                            <span id="toggle-link" class="text-[var(--accent)] cursor-pointer hover:underline">Don't have an account? Sign Up</span>
+                        </p>
+                    </div>
+                   
+                    <div id="user-info" class="hidden text-center mt-12">
+                        <p class="text-2xl mb-8">Logged in as: <span id="user-email" class="font-bold text-[var(--accent)]"></span></p>
+                        <button onclick="changeEmail()" class="github-style-btn">
+                            <i class="fa-solid fa-envelope"></i> Change Email
+                        </button>
+                        <button onclick="changePassword()" class="github-style-btn">
+                            <i class="fa-solid fa-key"></i> Change Password
+                        </button>
+                        <button onclick="deleteAccount()" class="github-style-btn">
+                            <i class="fa-solid fa-trash-can"></i> Delete Account
+                        </button>
+                        <button onclick="firebaseAuth.signOut(firebaseAuth.auth)" class="github-style-btn">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        </button>
+                        <p id="auth-message" class="mt-6"></p>
+                    </div>
+                </div>
+            </div>
+            <!-- HOME -->
+            <div id="content-home" class="tab-content hidden">
+                <div class="max-w-4xl mx-auto text-center pt-12">
+                    <svg width="180" height="180" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+                    </svg>
+                    <h1 class="logo-font text-7xl md:text-8xl font-bold tracking-tight mb-6">Starlink</h1>
+                    <p class="text-2xl text-white/70 max-w-3xl mx-auto leading-relaxed">
+                        Welcome to Starlink — your personal gateway to unblocked games, AI tools, streaming, music, proxies, and more.
+                        Fast, clean, and always available.
+                    </p>
+                    <div class="mt-8 text-white/50 text-lg">By: Gunnar Booth</div>
+                </div>
+            </div>
+            <!-- GAMES -->
+            <div id="content-games" class="tab-content hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="games-grid"></div>
+            </div>
+            <!-- AI TOOLS -->
+            <div id="content-ai" class="tab-content hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="ai-grid"></div>
+            </div>
+            <!-- TV & STREAMING -->
+            <div id="content-tv" class="tab-content hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="tv-grid"></div>
+            </div>
+            <!-- PROXIES -->
+            <div id="content-proxies" class="tab-content hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="proxy-grid"></div>
+            </div>
+            <!-- MUSIC -->
+            <div id="content-music" class="tab-content hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div>
+            </div>
+            <!-- SETTINGS -->
+            <div id="content-settings" class="tab-content hidden">
+                <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
+                    <h3 class="text-2xl font-semibold mb-6">Appearance • Choose Theme</h3>
+                    <p class="text-white/70 mb-8">Click a color to instantly change the accent, stars, glow, and sidebar highlights</p>
+                    <div id="theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div>
+                    <div class="mt-12 pt-8 border-t border-white/10">
+                        <h3 class="text-2xl font-semibold mb-6">Link Behavior</h3>
+                        <div class="flex justify-between items-center py-4">
+                            <div class="flex items-center gap-x-3 text-lg">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                <span>Open links in new tab</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer" id="newtab-toggle">
+                                <div class="w-14 h-7 bg-white/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]"></div>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mt-12 pt-8 border-t border-white/10">
+                        <h3 class="text-2xl font-semibold mb-6 text-red-400">Danger Zone</h3>
+                        <button onclick="resetEverything()" class="bg-red-600 hover:bg-red-700 text-white font-medium py-4 px-8 rounded-xl transition-colors text-lg">
+                            Reset Everything (theme, preferences & sign out)
+                        </button>
+                        <p id="reset-message" class="text-sm text-white/60 mt-3 hidden">Reset complete! Signing out and refreshing...</p>
+                    </div>
+                </div>
+            </div>
+            <!-- CREDITS -->
+            <div id="content-credits" class="tab-content hidden">
+                <div class="max-w-3xl mx-auto text-center py-20">
+                    <svg width="120" height="120" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+                    </svg>
+                    <h1 class="logo-font text-6xl font-bold tracking-tight mb-8">Credits</h1>
+                    <p class="text-2xl text-white/80 mb-6">
+                        Created, designed, and built entirely by <span class="font-semibold text-[var(--accent)]">Gunnar Booth</span>
+                    </p>
+                    <a href="https://github.com/GunBooth0/Starlink" target="_blank" rel="noopener noreferrer" class="github-style-btn inline-flex">
+                        <i class="fa-brands fa-github text-3xl"></i>
+                        View Source on GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="flex-1 overflow-auto p-4">
-      <div onclick="switchTab('home')" id="tab-home" class="tab-item flex items-center gap-3 text-lg mb-1 tab-item-active">
-        🏠 Home
-      </div>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 
-      <div class="mt-8 px-4 text-xs uppercase tracking-widest text-zinc-500 mb-3">CATEGORIES</div>
-      <div id="sidebar-categories" class="space-y-1"></div>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpn6rgntLkwxE6xRu9xG81mhlyFcTDMGg",
+            authDomain: "starlink-auth-14477.firebaseapp.com",
+            projectId: "starlink-auth-14477",
+            storageBucket: "starlink-auth-14477.firebasestorage.app",
+            messagingSenderId: "91401410744",
+            appId: "1:91401410744:web:f2a44d3d1a721317403c4d",
+            measurementId: "G-9E2B15TVT6"
+        };
 
-      <div id="admin-sidebar-section" class="hidden mt-10">
-        <div class="px-4 text-xs uppercase tracking-widest text-amber-400 mb-3">ADMIN TOOLS</div>
-        <div onclick="switchTab('manage-categories')" id="tab-manage-categories" class="tab-item flex items-center gap-3">📁 Manage Categories</div>
-        <div onclick="switchTab('manage-sites')" id="tab-manage-sites" class="tab-item flex items-center gap-3">🌐 Manage Sites</div>
-        <div onclick="switchTab('manage-announcements')" id="tab-manage-announcements" class="tab-item flex items-center gap-3">📢 Announcements</div>
-        <div onclick="switchTab('manage-users')" id="tab-manage-users" class="tab-item flex items-center gap-3">👥 Users</div>
-      </div>
-    </div>
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
-    <div class="p-4 border-t border-zinc-800">
-      <div id="user-info" class="flex items-center gap-3 text-sm"></div>
-    </div>
-  </div>
+        window.firebaseAuth = {
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged,
+            deleteUser,
+            sendPasswordResetEmail,
+            updateEmail,
+            reauthenticateWithCredential,
+            EmailAuthProvider,
+            auth
+        };
 
-  <!-- MAIN -->
-  <div class="flex-1 flex flex-col">
-    <div id="announcement-banner" onclick="dismissBanner()" class="hidden bg-gradient-to-r from-amber-500 to-orange-600 px-8 py-4 text-white flex items-center justify-between cursor-pointer hover:brightness-110 transition">
-      <div class="flex items-center gap-3">
-        <span class="text-xl">📢</span>
-        <span id="banner-text" class="font-medium"></span>
-      </div>
-      <span class="text-xs uppercase tracking-widest bg-black/30 px-3 py-1 rounded">click to dismiss</span>
-    </div>
+        window.currentUser = null;
 
-    <div id="main-content" class="flex-1 p-8 overflow-auto bg-zinc-950"></div>
+        function updateUIForAuth(user) {
+            window.currentUser = user;
+            const statusEl = document.getElementById('user-status');
+            const navLinks = document.getElementById('nav-links');
+            const userInfo = document.getElementById('user-info');
+            const authForm = document.getElementById('auth-form');
+            const messageEl = document.getElementById('auth-message');
+            const accountTitle = document.getElementById('account-title');
+            const currentTabEl = document.getElementById('current-tab');
+            const currentIconEl = document.getElementById('current-tab-icon');
 
-    <div class="h-14 border-t border-zinc-800 bg-zinc-900 flex items-center px-8 text-xs text-zinc-500">
-      <div class="flex-1">Hosted on GitHub Pages • Powered by Firebase</div>
-      <button onclick="logout()" class="px-6 py-2 bg-zinc-800 hover:bg-red-600/80 rounded-lg text-sm transition">Logout</button>
-    </div>
-  </div>
-
-  <script>
-    // Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyDI979T4jI-ZbGbRDFo-kNZPyG3Pc8gkXw",
-      authDomain: "starlink-42031.firebaseapp.com",
-      projectId: "starlink-42031",
-      storageBucket: "starlink-42031.firebasestorage.app",
-      messagingSenderId: "264424976547",
-      appId: "1:264424976547:web:6725648e3ae60397870f16",
-      measurementId: "G-Z2B3TBENYK"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    const functions = firebase.functions();
-
-    // Your UID — hardcoded now
-    const ADMIN_UID = "4zbovMB1iRYLE9n7343GKaEQrWz2";
-
-    let currentTab = 'home';
-    let selectedCategoryFilter = null;
-    let isAdminUser = false;
-
-    // Auth listener
-    auth.onAuthStateChanged(async (user) => {
-      const userInfo = document.getElementById("user-info");
-      if (user) {
-        isAdminUser = (user.uid === ADMIN_UID);
-
-        // Auto-create/update your own user doc (this fixes many permission issues)
-        try {
-          await db.collection("users").doc(user.uid).set({
-            email: user.email,
-            role: isAdminUser ? "admin" : "user",
-            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-          }, { merge: true });
-        } catch (e) {
-          console.error("Failed to create/update user doc:", e);
-          alert("User doc setup failed: " + e.message + "\nCheck Firestore rules!");
+            if (user) {
+                statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
+                if (userInfo) {
+                    userInfo.classList.remove('hidden');
+                    document.getElementById('user-email').textContent = user.email;
+                }
+                if (authForm) authForm.classList.add('hidden');
+                if (messageEl) messageEl.textContent = '';
+                if (accountTitle) accountTitle.textContent = 'Account';
+                navLinks.innerHTML = `
+                    <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-0">
+                        <i class="fa-solid fa-house w-5"></i> <span>Home</span>
+                    </div>
+                    <div onclick="switchTab(1)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-1">
+                        <i class="fa-solid fa-gamepad w-5"></i> <span>Games</span>
+                    </div>
+                    <div onclick="switchTab(2)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-2">
+                        <i class="fa-solid fa-brain w-5"></i> <span>AI Tools</span>
+                    </div>
+                    <div onclick="switchTab(3)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-3">
+                        <i class="fa-solid fa-tv w-5"></i> <span>TV & Streaming</span>
+                    </div>
+                    <div onclick="switchTab(4)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-4">
+                        <i class="fa-solid fa-shield-halved w-5"></i> <span>Proxies</span>
+                    </div>
+                    <div onclick="switchTab(5)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-5">
+                        <i class="fa-solid fa-music w-5"></i> <span>Music</span>
+                    </div>
+                    <div onclick="switchTab(6)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-6">
+                        <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
+                    </div>
+                    <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2 active-tab" id="tab-7">
+                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+                    </div>
+                    <div onclick="switchTab(8)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-8">
+                        <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
+                    </div>
+                    <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-9">
+                        <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
+                    </div>
+                `;
+                setTimeout(() => {
+                    populateThemeGrid();
+                    populateGrid('games', 'games-grid');
+                    populateGrid('ai', 'ai-grid');
+                    populateGrid('tv', 'tv-grid');
+                    populateGrid('proxies', 'proxy-grid');
+                    populateGrid('music', 'music-grid');
+                    switchTab(0);
+                }, 50);
+            } else {
+                statusEl.textContent = '';
+                currentTabEl.textContent = 'Sign In Required';
+                currentIconEl.className = 'text-3xl fa-solid fa-lock';
+                if (userInfo) userInfo.classList.add('hidden');
+                if (authForm) authForm.classList.remove('hidden');
+                if (accountTitle) accountTitle.textContent = 'Sign In Required';
+                navLinks.innerHTML = `
+                    <div onclick="switchTab(7)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-7">
+                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+                    </div>
+                `;
+                switchTab(7);
+            }
         }
 
-        userInfo.innerHTML = `
-          <div class="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center text-xs font-bold">
-            ${user.email[0].toUpperCase()}
-          </div>
-          <div>
-            <div class="font-medium">${user.email}</div>
-            <div class="text-[10px] ${isAdminUser ? 'text-emerald-400' : 'text-zinc-400'}">
-              ${isAdminUser ? 'ADMIN' : 'User'}
-            </div>
-          </div>
-        `;
+        firebaseAuth.onAuthStateChanged(firebaseAuth.auth, updateUIForAuth);
 
-        document.getElementById("admin-sidebar-section").classList.toggle("hidden", !isAdminUser);
-        loadPublicData();
-        if (isAdminUser) loadAdminData();
-        renderCurrentTab();
-      } else {
-        userInfo.innerHTML = `<button onclick="showLoginModal()" class="text-blue-400 hover:underline">Login (Admin)</button>`;
-        renderCurrentTab();
-      }
-    });
+        const authBtn = document.getElementById('auth-btn');
+        const toggleLink = document.getElementById('toggle-link');
+        const formTitle = document.getElementById('form-title');
+        let isSignIn = true;
 
-    function loadPublicData() {
-      // Announcements (latest only for banner)
-      db.collection("announcements")
-        .orderBy("timestamp", "desc")
-        .limit(1)
-        .onSnapshot(snap => {
-          if (!snap.empty) {
-            const ann = snap.docs[0].data();
-            document.getElementById("banner-text").textContent = ann.text;
-            document.getElementById("announcement-banner").classList.remove("hidden");
-          } else {
-            document.getElementById("announcement-banner").classList.add("hidden");
-          }
-        }, err => console.error("Announcements listener error:", err));
+        if (authBtn) {
+            authBtn.addEventListener('click', async () => {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                try {
+                    if (isSignIn) {
+                        const userCredential = await firebaseAuth.signInWithEmailAndPassword(firebaseAuth.auth, email, password);
 
-      // Categories in sidebar
-      db.collection("categories").onSnapshot(snap => {
-        const container = document.getElementById("sidebar-categories");
-        container.innerHTML = "";
-        snap.forEach(doc => {
-          const name = doc.data().name;
-          const div = document.createElement("div");
-          div.className = `tab-item flex items-center gap-3 ${selectedCategoryFilter === name ? 'tab-item-active' : ''}`;
-          div.textContent = `📂 ${name}`;
-          div.onclick = () => { selectedCategoryFilter = name; switchTab('home'); };
-          container.appendChild(div);
+                        if (!userCredential.user.emailVerified) {
+                            alert("Please verify your email before logging in.");
+                            await firebaseAuth.signOut(firebaseAuth.auth);
+                            return;
+                    
+                        }
+                        
+                        updateUIForAuth(userCredential.user);
+                        
+                    } else {
+                        const userCredential = await firebaseAuth.createUserWithEmailAndPassword(auth, email, password);
+
+                        await sendEmailVerification(userCredential.user);
+
+                        alert("Verification email sent! Please check your inbox before logging in.");
+
+                        await signOut(auth);
+
+                        updateUIForAuth(auth.currentUser);
+                        
+                 }
+                    
+            } catch (error) {
+                alert(error.message);
+                }
+            });
+        }
+
+        if (toggleLink) {
+            toggleLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                isSignIn = !isSignIn;
+                formTitle.textContent = isSignIn ? 'Sign In' : 'Sign Up';
+                authBtn.textContent = isSignIn ? 'Sign In' : 'Sign Up';
+                toggleLink.textContent = isSignIn ? "Don't have an account? Sign Up" : 'Already have an account? Sign In';
+            });
+        }
+
+        window.deleteAccount = async () => {
+            if (!confirm("Are you sure you want to permanently delete your account? This cannot be undone.")) return;
+            try {
+                const user = firebaseAuth.auth.currentUser;
+                if (user) {
+                    await firebaseAuth.deleteUser(user);
+                    alert("Account deleted.");
+                }
+            } catch (error) {
+                alert("Error: " + error.message);
+            }
+        };
+
+        window.changePassword = async () => {
+            const user = firebaseAuth.auth.currentUser;
+            if (!user || !user.email) return alert("You must be logged in.");
+            const messageEl = document.getElementById('auth-message');
+            try {
+                await firebaseAuth.sendPasswordResetEmail(firebaseAuth.auth, user.email);
+                messageEl.textContent = "Password reset email sent! Check your inbox (including spam).";
+                messageEl.className = "success";
+            } catch (error) {
+                messageEl.textContent = "Error: " + error.message;
+                messageEl.className = "error";
+            }
+        };
+
+        window.changeEmail = async () => {
+            const user = firebaseAuth.auth.currentUser;
+            if (!user) return alert("You must be logged in.");
+
+            const newEmail = prompt("Enter your new email address:", user.email);
+            if (!newEmail || newEmail === user.email) return alert("No change made.");
+
+            const password = prompt("Enter your current password to confirm:");
+            if (!password) return;
+
+            const messageEl = document.getElementById('auth-message');
+            try {
+                // Re-authenticate
+                const credential = firebaseAuth.EmailAuthProvider.credential(user.email, password);
+                await firebaseAuth.reauthenticateWithCredential(user, credential);
+
+                // Update email
+                await firebaseAuth.updateEmail(user, newEmail);
+
+                messageEl.textContent = "Email updated successfully! Please verify the new email (check inbox/spam).";
+                messageEl.className = "success";
+                document.getElementById('user-email').textContent = newEmail;
+            } catch (error) {
+                messageEl.textContent = "Error: " + error.message;
+                messageEl.className = "error";
+            }
+        };
+    </script>
+
+    <script>
+        const tabIcons = [
+            'fa-house', 'fa-gamepad', 'fa-brain', 'fa-tv', 'fa-shield-halved',
+            'fa-music', 'fa-gear', 'fa-user', 'fa-heart', 'fa-paper-plane'
+        ];
+        const tabTitles = ["Home", "Games", "AI Tools", "TV & Streaming", "Proxies", "Music", "Settings", "Account", "Credits", "Request a Site"];
+        const contentIds = [
+            'content-home', 'content-games', 'content-ai', 'content-tv', 'content-proxies',
+            'content-music', 'content-settings', 'content-account', 'content-credits'
+        ];
+
+        function switchTab(index) {
+            if (!window.currentUser && index !== 7) {
+                switchTab(7);
+                return;
+            }
+
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
+            const activeTab = document.getElementById(`tab-${index}`);
+            if (activeTab) activeTab.classList.add('active-tab');
+
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const content = document.getElementById(contentIds[index]);
+            if (content) content.classList.remove('hidden');
+
+            document.getElementById('current-tab').textContent = tabTitles[index];
+            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
+        }
+
+        const themes = [
+            { name: "White", color: "#ffffff" },
+            { name: "Red", color: "#ef4444" },
+            { name: "Blue", color: "#3b82f6" },
+            { name: "Green", color: "#10b981" },
+            { name: "Purple", color: "#8b5cf6" },
+            { name: "Pink", color: "#ec4899" },
+            { name: "Cyan", color: "#22d3ee" },
+            { name: "Yellow", color: "#f59e0b" },
+            { name: "Lime", color: "#84cc16" },
+            { name: "Teal", color: "#14b8a6" },
+            { name: "Rose", color: "#f43f5e" },
+            { name: "Indigo", color: "#6366f1" },
+            { name: "Orange", color: "#f97316" },
+            { name: "Magenta", color: "#d946ef" },
+            { name: "Sky Blue", color: "#0ea5e9" },
+            { name: "Lime Green", color: "#65a30d" },
+            { name: "Deep Purple", color: "#7c3aed" },
+            { name: "Neon Green", color: "#39ff14" },
+            { name: "Coral", color: "#f87171" },
+            { name: "Electric Violet", color: "#a855f7" }
+        ];
+        function setTheme(color) {
+            document.documentElement.style.setProperty('--accent', color);
+            localStorage.setItem('starlinkAccent', color);
+        }
+        function loadTheme() {
+            const saved = localStorage.getItem('starlinkAccent');
+            setTheme(saved || '#ffffff');
+        }
+        function saveNewTabPreference(value) {
+            localStorage.setItem('starlinkNewTab', value ? 'true' : 'false');
+        }
+        function loadNewTabPreference() {
+            const saved = localStorage.getItem('starlinkNewTab');
+            const checkbox = document.getElementById('newtab-toggle');
+            if (saved === null) {
+                checkbox.checked = true;
+                saveNewTabPreference(true);
+            } else {
+                checkbox.checked = saved === 'true';
+            }
+        }
+        function resetEverything() {
+            if (!confirm("Reset all settings to default? This will also sign you out.")) return;
+            localStorage.removeItem('starlinkAccent');
+            localStorage.removeItem('starlinkNewTab');
+            setTheme('#ffffff');
+            document.getElementById('newtab-toggle').checked = true;
+            saveNewTabPreference(true);
+            firebaseAuth.signOut(firebaseAuth.auth).then(() => {
+                const msg = document.getElementById('reset-message');
+                msg.textContent = "Reset complete! Signing out and refreshing...";
+                msg.classList.remove('hidden');
+                setTimeout(() => {
+                    msg.classList.add('hidden');
+                    location.reload();
+                }, 2000);
+            }).catch((error) => {
+                console.error("Sign out error:", error);
+                location.reload();
+            });
+        }
+        function createStar(x, y) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = `${x}px`;
+            star.style.top = `${y}px`;
+            const size = Math.random() * 3 + 1;
+            star.style.width = star.style.height = `${size}px`;
+            const duration = Math.random() * 40 + 25;
+            star.style.animationDuration = `${duration}s`;
+            const drift = (Math.random() - 0.5) * 120;
+            star.style.transform = `translateX(${drift}px)`;
+            document.getElementById('star-bg').appendChild(star);
+            setTimeout(() => star.remove(), duration * 1000 + 2000);
+        }
+        function initStars(count = 100) {
+            for (let i = 0; i < count; i++) {
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight * 1.5;
+                createStar(x, y);
+            }
+        }
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('button, a, .nav-link, input, label, svg, .card')) return;
+            createStar(e.clientX, e.clientY);
         });
-      }, err => console.error("Categories listener error:", err));
-    }
-
-    function renderCurrentTab() {
-      const main = document.getElementById("main-content");
-      main.innerHTML = '<p class="text-zinc-400">Loading...</p>';
-
-      if (currentTab === 'home') {
-        main.innerHTML = `
-          <div class="max-w-6xl mx-auto">
-            <h1 class="text-5xl font-bold mb-2">Welcome to Starlink</h1>
-            <p class="text-zinc-400 mb-8">Your personal directory of everything</p>
-            <div id="sites-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-          </div>
-        `;
-        loadFilteredSites().catch(e => {
-          console.error("Sites load failed:", e);
-          document.getElementById("sites-container").innerHTML = `<p class="text-red-400">Error loading sites: ${e.message}</p>`;
-        });
-      } else if (currentTab === 'manage-categories' && isAdminUser) {
-        main.innerHTML = `
-          <div class="max-w-2xl mx-auto">
-            <h2 class="text-3xl font-bold mb-8">Manage Categories</h2>
-            <div class="flex gap-3 mb-8">
-              <input id="new-cat-input" placeholder="New category name..." class="flex-1 bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4 focus:outline-none focus:border-amber-400">
-              <button onclick="addCategory()" class="bg-white text-black px-10 rounded-2xl font-semibold hover:bg-amber-400 transition">Add</button>
-            </div>
-            <div id="manage-categories-list" class="space-y-3"></div>
-          </div>
-        `;
-        loadManageCategories();
-      } else if (currentTab === 'manage-sites' && isAdminUser) {
-        main.innerHTML = `
-          <div class="max-w-2xl mx-auto">
-            <h2 class="text-3xl font-bold mb-8">Manage Sites</h2>
-            <div class="bg-zinc-900 rounded-3xl p-8 mb-8">
-              <input id="site-name" placeholder="Site name" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4">
-              <input id="site-url" placeholder="https://example.com" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4">
-              <input id="site-category" placeholder="Category name" class="w-full mb-6 bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4">
-              <button onclick="addSite()" class="w-full bg-white text-black py-4 rounded-2xl font-semibold hover:bg-amber-300">Add Site</button>
-            </div>
-            <div id="manage-sites-list" class="space-y-4"></div>
-          </div>
-        `;
-        loadManageSites();
-      } else if (currentTab === 'manage-announcements' && isAdminUser) {
-        main.innerHTML = `
-          <div class="max-w-2xl mx-auto">
-            <h2 class="text-3xl font-bold mb-8">Announcements</h2>
-            <div class="flex gap-3 mb-6">
-              <input id="ann-input" placeholder="Type announcement..." class="flex-1 bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4">
-              <button onclick="postAnnouncement()" class="bg-amber-400 text-black px-10 rounded-2xl font-semibold">Post</button>
-            </div>
-            <button onclick="clearAllAnnouncements()" class="mb-8 bg-red-700 hover:bg-red-800 px-6 py-3 rounded-xl text-sm">Clear All</button>
-            <div id="ann-list" class="space-y-4"></div>
-          </div>
-        `;
-        loadManageAnnouncements();
-      } else if (currentTab === 'manage-users' && isAdminUser) {
-        main.innerHTML = `
-          <div class="max-w-4xl mx-auto">
-            <h2 class="text-3xl font-bold mb-8">Users</h2>
-            <table class="w-full text-left border-collapse">
-              <thead><tr class="border-b border-zinc-700"><th class="py-4 px-6">Email</th><th class="py-4 px-6">Role</th><th class="py-4 px-6">Actions</th></tr></thead>
-              <tbody id="users-tbody" class="divide-y divide-zinc-800"></tbody>
-            </table>
-          </div>
-        `;
-        loadUsersTable();
-      }
-    }
-
-    function switchTab(tab) {
-      currentTab = tab;
-      document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('tab-item-active'));
-      const el = document.getElementById(`tab-${tab}`);
-      if (el) el.classList.add('tab-item-active');
-      renderCurrentTab();
-    }
-
-    async function loadFilteredSites() {
-      const container = document.getElementById("sites-container");
-      container.innerHTML = '<p class="text-zinc-400 col-span-full">Loading sites...</p>';
-
-      const [catSnap, siteSnap] = await Promise.all([
-        db.collection("categories").get(),
-        db.collection("sites").get()
-      ]);
-
-      const sitesByCat = {};
-      siteSnap.forEach(d => {
-        const s = d.data();
-        if (!sitesByCat[s.category]) sitesByCat[s.category] = [];
-        sitesByCat[s.category].push(s);
-      });
-
-      let html = "";
-      const cats = selectedCategoryFilter ? [selectedCategoryFilter] : catSnap.docs.map(d => d.data().name);
-
-      cats.forEach(cat => {
-        const sites = sitesByCat[cat] || [];
-        if (sites.length === 0) return;
-        html += `<div class="col-span-full mt-6"><h3 class="text-2xl font-semibold mb-4">${cat}</h3></div>`;
-        sites.forEach(s => {
-          html += `
-            <a href="${s.url}" target="_blank" class="site-card bg-zinc-900 border border-zinc-800 rounded-3xl p-6 block hover:border-amber-500/50">
-              <div class="text-3xl mb-3">🔗</div>
-              <div class="font-semibold text-xl mb-1">${s.name}</div>
-              <div class="text-emerald-400 text-sm break-all">${s.url}</div>
-            </a>`;
-        });
-      });
-
-      container.innerHTML = html || '<p class="text-zinc-400 col-span-full">No sites yet — add some via Admin → Manage Sites</p>';
-    }
-
-    function loadAdminData() {
-      // Called once after login — starts all admin listeners
-      loadManageCategories();
-      loadManageSites();
-      loadManageAnnouncements();
-      loadUsersTable();
-    }
-
-    function loadManageCategories() {
-      db.collection("categories").onSnapshot(snap => {
-        let html = "";
-        snap.forEach(doc => {
-          html += `
-            <div class="flex justify-between items-center bg-zinc-900 px-6 py-5 rounded-2xl">
-              <span class="text-lg">${doc.data().name}</span>
-              <button onclick="deleteCategory('${doc.id}')" class="text-red-400 hover:text-red-300">Delete</button>
-            </div>`;
-        });
-        document.getElementById("manage-categories-list").innerHTML = html || '<p class="text-zinc-500">No categories yet.</p>';
-      }, err => alert("Categories load error: " + err.message));
-    }
-
-    window.addCategory = async () => {
-      try {
-        const name = document.getElementById("new-cat-input")?.value?.trim();
-        if (!name) return alert("Enter a name");
-        await db.collection("categories").add({ name });
-        document.getElementById("new-cat-input").value = "";
-      } catch (e) {
-        alert("Add category failed: " + e.message);
-      }
-    };
-
-    window.deleteCategory = async (id) => {
-      if (!confirm("Delete?")) return;
-      try { await db.collection("categories").doc(id).delete(); } catch (e) { alert(e.message); }
-    };
-
-    function loadManageSites() {
-      db.collection("sites").onSnapshot(snap => {
-        let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-6">';
-        snap.forEach(doc => {
-          const s = doc.data();
-          html += `
-            <div class="bg-zinc-900 p-6 rounded-3xl">
-              <div class="font-medium text-lg">${s.name}</div>
-              <a href="${s.url}" target="_blank" class="text-emerald-400 text-sm block mt-1 break-all">${s.url}</a>
-              <div class="text-xs text-zinc-500 mt-2">Category: ${s.category}</div>
-              <button onclick="deleteSite('${doc.id}')" class="mt-4 text-red-400 text-sm hover:text-red-300">Delete</button>
-            </div>`;
-        });
-        html += '</div>';
-        document.getElementById("manage-sites-list").innerHTML = html || '<p>No sites yet.</p>';
-      }, err => alert("Sites load error: " + err.message));
-    }
-
-    window.addSite = async () => {
-      try {
-        const name = document.getElementById("site-name")?.value?.trim();
-        const url = document.getElementById("site-url")?.value?.trim();
-        const cat = document.getElementById("site-category")?.value?.trim();
-        if (!name || !url || !cat) return alert("Fill all fields");
-        await db.collection("sites").add({ name, url, category: cat });
-        document.getElementById("site-name").value = "";
-        document.getElementById("site-url").value = "";
-        document.getElementById("site-category").value = "";
-      } catch (e) {
-        alert("Add site failed: " + e.message);
-      }
-    };
-
-    window.deleteSite = async (id) => {
-      if (!confirm("Delete?")) return;
-      try { await db.collection("sites").doc(id).delete(); } catch (e) { alert(e.message); }
-    };
-
-    function loadManageAnnouncements() {
-      db.collection("announcements").orderBy("timestamp", "desc").onSnapshot(snap => {
-        let html = "";
-        snap.forEach(doc => {
-          html += `
-            <div class="bg-zinc-900 p-6 rounded-3xl flex justify-between items-start">
-              <div class="flex-1">${doc.data().text}</div>
-              <button onclick="deleteAnnouncement('${doc.id}')" class="text-red-400 ml-4">×</button>
-            </div>`;
-        });
-        document.getElementById("ann-list").innerHTML = html || '<p>No announcements.</p>';
-      }, err => alert("Announcements load error: " + err.message));
-    }
-
-    window.postAnnouncement = async () => {
-      try {
-        const text = document.getElementById("ann-input")?.value?.trim();
-        if (!text) return alert("Enter text");
-        await db.collection("announcements").add({
-          text,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        document.getElementById("ann-input").value = "";
-      } catch (e) {
-        alert("Post failed: " + e.message);
-      }
-    };
-
-    window.clearAllAnnouncements = async () => {
-      if (!confirm("Delete ALL announcements?")) return;
-      try {
-        const snap = await db.collection("announcements").get();
-        const batch = db.batch();
-        snap.forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
-      } catch (e) { alert(e.message); }
-    };
-
-    window.deleteAnnouncement = async (id) => {
-      try { await db.collection("announcements").doc(id).delete(); } catch (e) { alert(e.message); }
-    };
-
-    function loadUsersTable() {
-      db.collection("users").onSnapshot(snap => {
-        let html = "";
-        snap.forEach(doc => {
-          const u = doc.data();
-          html += `
-            <tr class="hover:bg-zinc-900">
-              <td class="px-6 py-5">${u.email || '—'}</td>
-              <td class="px-6 py-5">
-                <select onchange="updateUserRole('${doc.id}', this.value)" class="bg-zinc-800 border border-zinc-700 rounded px-3 py-1">
-                  <option value="user" ${u.role === 'user' ? 'selected' : ''}>user</option>
-                  <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>admin</option>
-                </select>
-              </td>
-              <td class="px-6 py-5">
-                <button onclick="deleteUser('${doc.id}')" class="text-red-400 hover:text-red-300">Remove</button>
-              </td>
-            </tr>`;
-        });
-        document.getElementById("users-tbody").innerHTML = html;
-      }, err => alert("Users load error: " + err.message));
-    }
-
-    window.updateUserRole = async (uid, role) => {
-      try {
-        const fn = functions.httpsCallable("updateUserRole");
-        await fn({ uid, role });
-        alert("Role updated");
-      } catch (e) { alert("Role update failed:\n" + e.message); }
-    };
-
-    window.deleteUser = async (uid) => {
-      if (!confirm("Permanently delete user?")) return;
-      try {
-        const fn = functions.httpsCallable("deleteUser");
-        await fn({ uid });
-        alert("User deleted");
-      } catch (e) { alert("Delete failed:\n" + e.message); }
-    };
-
-    window.dismissBanner = () => document.getElementById("announcement-banner").classList.add("hidden");
-
-    window.showLoginModal = () => {
-      const email = prompt("Email", "gunnarbooth@gmail.com");
-      const pass = prompt("Password");
-      if (email && pass) {
-        auth.signInWithEmailAndPassword(email, pass)
-          .catch(e => alert("Login failed: " + e.message));
-      }
-    };
-
-    window.logout = () => auth.signOut().catch(e => console.error(e));
-
-    // Start
-    loadPublicData();
-    setTimeout(renderCurrentTab, 600);  // give time for auth state
-  </script>
+        const sites = {
+            games: [
+                { name: "Shell Shockers", url: "https://egghead.institute/", desc: "", icon: "🎮" },
+                { name: "Kart Bros", url: "https://kart.basketball.services/", desc: "", icon: "🎮" },
+                { name: "The Marz Library", url: "https://theorytest.help/", desc: "", icon: "🎮" },
+            ],
+            ai: [
+                { name: "Grok", url: "https://grok.com/", desc: "", icon: "AI" },
+                { name: "Perplexity", url: "https://perplexity.ai", desc: "", icon: "AI" },
+                { name: "Blackbox", url: "https://app.blackbox.ai/", desc: "", icon: "AI" }
+            ],
+            tv: [
+                { name: "Donkey", url: "https://donkey.to/", desc: "", icon: "📺" }
+            ],
+            proxies: [
+                { name: "Space", url: "https://classroom.hkieca.com/", desc: "", icon: "🌐" },
+                { name: "Lunar", url: "https://uoasman.lol/", desc: "", icon: "🌐" },
+                { name: "Truffled", url: "https://bog.n8-math.dev/", desc: "", icon: "🌐" },
+                { name: "Galaxy", url: "https://cc.curlycraftworks.com/onboarding/", desc: "", icon: "🌐" },
+                { name: "Fern", url: "https://geography.nseuropa.com/", desc: "", icon: "🌐" }
+            ],
+            music: [
+                { name: "Amazon Music", url: "https://music.amazon.com/", desc: "", icon: "🎵" },
+            ]
+        };
+        function populateGrid(category, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            (sites[category] || []).forEach(site => {
+                const card = document.createElement('div');
+                card.className = `card rounded-3xl p-6 cursor-pointer group`;
+                card.innerHTML = `
+                    <div class="text-5xl mb-6 transition-transform group-hover:scale-125">${site.icon}</div>
+                    <div class="font-semibold text-xl mb-2">${site.name}</div>
+                    <div class="text-white/60 text-sm">${site.desc}</div>
+                `;
+                card.onclick = () => {
+                    const newTab = document.getElementById('newtab-toggle').checked;
+                    if (newTab) window.open(site.url, '_blank');
+                    else window.location.href = site.url;
+                };
+                container.appendChild(card);
+            });
+        }
+        function populateThemeGrid() {
+            const container = document.getElementById('theme-grid');
+            if (!container) return;
+            container.innerHTML = '';
+            themes.forEach(t => {
+                const el = document.createElement('div');
+                el.className = 'cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-white/50 transition-all shadow-md';
+                el.innerHTML = `
+                    <div class="h-24 flex items-center justify-center" style="background:${t.color};">
+                        <span class="text-5xl drop-shadow-xl">★</span>
+                    </div>
+                    <div class="text-center py-3 text-xs font-medium bg-black/70">${t.name}</div>
+                `;
+                el.onclick = () => setTheme(t.color);
+                container.appendChild(el);
+            });
+        }
+        function requestSite() {
+            window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
+        }
+        function initialize() {
+            loadTheme();
+            loadNewTabPreference();
+            initStars();
+            document.getElementById('newtab-toggle').addEventListener('change', (e) => {
+                saveNewTabPreference(e.target.checked);
+            });
+        }
+        window.onload = initialize;
+    </script>
 </body>
 </html>
