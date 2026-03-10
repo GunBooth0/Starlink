@@ -275,12 +275,8 @@
                 </div>
             </div>
 
-            <!-- GAMES / AI / TV / PROXIES / MUSIC -->
-            <div id="content-games" class="tab-content hidden"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="games-grid"></div></div>
-            <div id="content-ai" class="tab-content hidden"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="ai-grid"></div></div>
-            <div id="content-tv" class="tab-content hidden"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="tv-grid"></div></div>
-            <div id="content-proxies" class="tab-content hidden"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="proxies-grid"></div></div>
-            <div id="content-music" class="tab-content hidden"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div></div>
+            <!-- DYNAMIC CATEGORIES (auto-created) -->
+            <div id="dynamic-categories"></div>
 
             <!-- SETTINGS -->
             <div id="content-settings" class="tab-content hidden">
@@ -375,11 +371,7 @@
                                 <div>
                                     <label class="text-xs text-white/50 block mb-2">Category</label>
                                     <select id="admin-cat-select" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
-                                        <option value="games">Games</option>
-                                        <option value="ai">AI Tools</option>
-                                        <option value="tv">TV & Streaming</option>
-                                        <option value="proxies">Proxies</option>
-                                        <option value="music">Music</option>
+                                        <!-- Populated dynamically -->
                                     </select>
                                 </div>
                                 <div class="md:col-span-2">
@@ -406,6 +398,32 @@
 
                         <div id="admin-sites-list" class="space-y-10"></div>
                     </div>
+
+                    <!-- MANAGE CATEGORIES -->
+                    <div class="mt-16">
+                        <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
+                            <i class="fa-solid fa-layer-group"></i> Manage Categories
+                        </h3>
+                        <div class="bg-black/40 p-8 rounded-3xl mb-10" id="admin-categories-form">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="text-xs text-white/50 block mb-2">Slug (lowercase, no spaces)</label>
+                                    <input id="new-cat-slug" type="text" placeholder="cheats" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-white/50 block mb-2">Display Name</label>
+                                    <input id="new-cat-label" type="text" placeholder="Cheats & Mods" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-white/50 block mb-2">Font Awesome Icon</label>
+                                    <input id="new-cat-icon" type="text" placeholder="fa-bomb" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                    <p class="text-xs text-white/50 mt-1">e.g. fa-bomb, fa-tools</p>
+                                </div>
+                            </div>
+                            <button onclick="addNewCategory()" class="auth-btn mt-8 py-6 text-lg w-full">Add New Category</button>
+                        </div>
+                        <div id="admin-categories-list" class="space-y-6"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -416,7 +434,7 @@
         <div id="refresh-content">
             <h2 class="text-3xl font-bold logo-font mb-6 text-[var(--accent)]">Update Available</h2>
             <p class="text-lg mb-8 text-white/80 leading-relaxed">
-                The admin just made a change (new site or announcement).<br>
+                The admin just made a change (new site, category or announcement).<br>
                 Refresh the page to see the latest version.
             </p>
             <button onclick="location.reload(true)" class="auth-btn text-xl py-5 px-12 w-auto mx-auto block">
@@ -452,9 +470,187 @@
         const ADMIN_EMAIL = "gunnarbooth@gmail.com";
         window.ADMIN_EMAIL = ADMIN_EMAIL;
 
+        const DEFAULT_CATEGORIES = [
+            { slug: "games", label: "Games", icon: "fa-gamepad" },
+            { slug: "ai", label: "AI Tools", icon: "fa-brain" },
+            { slug: "tv", label: "TV & Streaming", icon: "fa-tv" },
+            { slug: "proxies", label: "Proxies", icon: "fa-shield-halved" },
+            { slug: "music", label: "Music", icon: "fa-music" }
+        ];
+
+        window.categories = [];
+        let categoriesListener = null;
         let sitesListener = null;
         let announcementListener = null;
         window.initialLoadComplete = false;
+
+        function rebuildCategoryContents() {
+            const container = document.getElementById('dynamic-categories');
+            container.innerHTML = '';
+            window.categories.forEach(cat => {
+                const div = document.createElement('div');
+                div.id = `content-${cat.slug}`;
+                div.className = 'tab-content hidden';
+                div.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="${cat.slug}-grid"></div>`;
+                container.appendChild(div);
+            });
+        }
+
+        function rebuildNav() {
+            const navLinks = document.getElementById('nav-links');
+            let navHTML = '';
+            const isAdminUser = window.currentUser && window.currentUser.email === window.ADMIN_EMAIL;
+
+            if (!window.currentUser) {
+                navHTML = `<div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0"><i class="fa-solid fa-user w-5"></i> <span>Account</span></div>`;
+                navLinks.innerHTML = navHTML;
+                return;
+            }
+
+            let tabIdx = 0;
+            if (isAdminUser) {
+                navHTML += `<div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}"><i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span></div>`;
+                tabIdx++;
+                navHTML += '<div class="sidebar-separator mx-6"></div>';
+            }
+
+            navHTML += `<div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}"><i class="fa-solid fa-house w-5"></i> <span>Home</span></div>`;
+            tabIdx++;
+
+            window.categories.forEach(cat => {
+                navHTML += `<div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}"><i class="fa-solid ${cat.icon} w-5"></i> <span>${cat.label}</span></div>`;
+                tabIdx++;
+            });
+
+            navHTML += `<div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}"><i class="fa-solid fa-gear w-5"></i> <span>Settings</span></div>`;
+            tabIdx++;
+            navHTML += `<div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}"><i class="fa-solid fa-user w-5"></i> <span>Account</span></div>`;
+            tabIdx++;
+            navHTML += `<div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}"><i class="fa-solid fa-heart w-5"></i> <span>Credits</span></div>`;
+            tabIdx++;
+            navHTML += `<div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request"><i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span></div>`;
+
+            navLinks.innerHTML = navHTML;
+        }
+
+        function rebuildAdminCategoryPicker() {
+            const select = document.getElementById('admin-cat-select');
+            if (!select) return;
+            select.innerHTML = '';
+            window.categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.slug;
+                opt.textContent = cat.label;
+                select.appendChild(opt);
+            });
+        }
+
+        function rebuildAdminCategoriesList() {
+            const container = document.getElementById('admin-categories-list');
+            if (!container) return;
+            container.innerHTML = '';
+            if (!window.categories.length) {
+                container.innerHTML = '<p class="text-white/40 p-8 text-center">No categories yet</p>';
+                return;
+            }
+            window.categories.forEach((cat, i) => {
+                const count = (window.allSites[cat.slug] || []).length;
+                container.innerHTML += `
+                    <div class="bg-black/50 p-6 rounded-3xl flex justify-between items-center">
+                        <div class="flex items-center gap-6">
+                            <i class="fa-solid ${cat.icon} text-4xl text-[var(--accent)]"></i>
+                            <div>
+                                <div class="font-semibold text-2xl">${cat.label}</div>
+                                <div class="text-xs text-white/50">slug: ${cat.slug} • ${count} sites</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            ${i > 0 ? `<button onclick="moveCategoryUp('${cat.slug}');event.stopPropagation()" class="px-4 py-1.5 bg-white/10 hover:bg-white/30 rounded-2xl">↑</button>` : ''}
+                            ${i < window.categories.length-1 ? `<button onclick="moveCategoryDown('${cat.slug}');event.stopPropagation()" class="px-4 py-1.5 bg-white/10 hover:bg-white/30 rounded-2xl">↓</button>` : ''}
+                            <button onclick="deleteCategory('${cat.slug}');event.stopPropagation()" class="px-6 py-2 text-xs bg-red-900/70 hover:bg-red-800 text-red-300 rounded-2xl">Delete</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        window.addNewCategory = async () => {
+            const slug = document.getElementById('new-cat-slug').value.trim().toLowerCase().replace(/\s+/g, '-');
+            const label = document.getElementById('new-cat-label').value.trim();
+            const icon = document.getElementById('new-cat-icon').value.trim() || 'fa-globe';
+
+            if (!slug || !label) return alert("Slug and Display Name are required");
+
+            if (window.categories.some(c => c.slug === slug)) return alert("That slug already exists");
+
+            try {
+                const newCat = { slug, label, icon };
+                const updatedCats = [...window.categories, newCat];
+                await setDoc(doc(db, "config", "categories"), { categories: updatedCats });
+                alert("Category added!");
+                ['new-cat-slug','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        window.deleteCategory = async (slug) => {
+            if (!confirm(`Delete category "${slug}"?\nSites in this category will become hidden until reassigned.`)) return;
+            try {
+                const updatedCats = window.categories.filter(c => c.slug !== slug);
+                await setDoc(doc(db, "config", "categories"), { categories: updatedCats });
+                alert("Category deleted.");
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        window.moveCategoryUp = async (slug) => {
+            const idx = window.categories.findIndex(c => c.slug === slug);
+            if (idx <= 0) return;
+            const updated = [...window.categories];
+            [updated[idx-1], updated[idx]] = [updated[idx], updated[idx-1]];
+            try {
+                await setDoc(doc(db, "config", "categories"), { categories: updated });
+            } catch (e) {
+                alert("Error moving category: " + e.message);
+            }
+        };
+
+        window.moveCategoryDown = async (slug) => {
+            const idx = window.categories.findIndex(c => c.slug === slug);
+            if (idx < 0 || idx >= window.categories.length - 1) return;
+            const updated = [...window.categories];
+            [updated[idx], updated[idx+1]] = [updated[idx+1], updated[idx]];
+            try {
+                await setDoc(doc(db, "config", "categories"), { categories: updated });
+            } catch (e) {
+                alert("Error moving category: " + e.message);
+            }
+        };
+
+        function setupCategoriesListener() {
+            if (categoriesListener) return;
+            categoriesListener = onSnapshot(doc(db, "config", "categories"), (snap) => {
+                let cats = DEFAULT_CATEGORIES;
+                if (snap.exists() && snap.data().categories?.length) {
+                    cats = snap.data().categories;
+                } else {
+                    setDoc(doc(db, "config", "categories"), { categories: DEFAULT_CATEGORIES }).catch(()=>{});
+                }
+                window.categories = cats;
+
+                if (window.currentUser) {
+                    rebuildCategoryContents();
+                    window.populateAllGrids();
+                    rebuildNav();
+                    rebuildAdminCategoryPicker();
+                    rebuildAdminCategoriesList();
+                    if (window.currentUser.email !== ADMIN_EMAIL && window.initialLoadComplete) {
+                        document.getElementById('refresh-modal').classList.add('show');
+                    }
+                }
+            });
+        }
 
         function updateUIForAuth(user) {
             window.currentUser = user;
@@ -476,89 +672,17 @@
                 authForm?.classList.add('hidden');
                 accountTitle.textContent = 'Account';
 
-                let navHTML = '';
-                let tabIdx = 0;
-                const isAdminUser = user.email === ADMIN_EMAIL;
-
-                if (isAdminUser) {
-                    navHTML += `
-                        <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                            <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
-                        </div>
-                    `;
-                    tabIdx++;
-                    navHTML += '<div class="sidebar-separator mx-6"></div>';
-                }
-
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${!isAdminUser ? 'active-tab' : ''}" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-house w-5"></i> <span>Home</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-gamepad w-5"></i> <span>Games</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-brain w-5"></i> <span>AI Tools</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-tv w-5"></i> <span>TV & Streaming</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-shield-halved w-5"></i> <span>Proxies</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-music w-5"></i> <span>Music</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
-                        <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
-                    </div>
-                `;
-
-                navLinks.innerHTML = navHTML;
-
                 setTimeout(async () => {
                     populateThemeGrid();
                     await window.loadAllSites();
                     window.populateAllGrids();
                     await window.showGlobalAnnouncement();
-                    // Start on Home for everyone (admin's Home is tabIdx 1 in their nav list)
-                    switchTab(isAdminUser ? 1 : 0);
+                    setupCategoriesListener();
+                    rebuildNav();
+                    rebuildCategoryContents();
+                    rebuildAdminCategoryPicker();
+                    rebuildAdminCategoriesList();
+                    switchTab(user.email === ADMIN_EMAIL ? 1 : 0);
                     window.initialLoadComplete = true;
                 }, 100);
 
@@ -589,11 +713,7 @@
                 userInfo?.classList.add('hidden');
                 authForm?.classList.remove('hidden');
                 accountTitle.textContent = 'Sign In Required';
-                navLinks.innerHTML = `
-                    <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
-                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-                    </div>
-                `;
+                rebuildNav();
                 switchTab(0);
             }
         }
@@ -682,16 +802,18 @@
 
         window.loadAllSites = async () => {
             const snap = await getDocs(collection(db, "sites"));
-            window.allSites = { games: [], ai: [], tv: [], proxies: [], music: [] };
+            window.allSites = {};
             snap.forEach(d => {
                 const data = d.data();
                 data.id = d.id;
-                if (window.allSites[data.category]) window.allSites[data.category].push(data);
+                const cat = data.category;
+                if (!window.allSites[cat]) window.allSites[cat] = [];
+                window.allSites[cat].push(data);
             });
         };
 
         window.populateAllGrids = () => {
-            ['games','ai','tv','proxies','music'].forEach(cat => populateGrid(cat, `${cat}-grid`));
+            window.categories.forEach(cat => populateGrid(cat.slug, `${cat.slug}-grid`));
         };
 
         window.showGlobalAnnouncement = async () => {
@@ -775,7 +897,7 @@
             const icon = document.getElementById('new-site-icon').value.trim() || '🌐';
             const desc = document.getElementById('new-site-desc').value.trim();
 
-            if (!name || !url) return alert("Name and URL required");
+            if (!cat || !name || !url) return alert("Category, Name and URL required");
 
             try {
                 await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc });
@@ -817,7 +939,7 @@
                 const newIcon = document.getElementById('new-site-icon').value.trim() || '🌐';
                 const newDesc = document.getElementById('new-site-desc').value.trim();
 
-                if (!newName || !newUrl) return alert("Name and URL required");
+                if (!newCat || !newName || !newUrl) return alert("Category, Name and URL required");
 
                 try {
                     await setDoc(doc(db, "sites", id), {
@@ -844,16 +966,9 @@
         window.reloadAdminSites = () => {
             const container = document.getElementById('admin-sites-list');
             container.innerHTML = '';
-            const cats = [
-                {key:'games', label:'Games'},
-                {key:'ai', label:'AI Tools'},
-                {key:'tv', label:'TV & Streaming'},
-                {key:'proxies', label:'Proxies'},
-                {key:'music', label:'Music'}
-            ];
-            cats.forEach(c => {
-                const sites = window.allSites[c.key] || [];
-                let html = `<div class="border border-white/10 rounded-3xl p-8"><div class="flex justify-between items-center mb-6"><h4 class="text-2xl font-medium">${c.label}</h4><span class="text-xs bg-white/10 px-4 py-1.5 rounded-2xl">${sites.length} sites</span></div><div class="space-y-4">`;
+            window.categories.forEach(cat => {
+                const sites = window.allSites[cat.slug] || [];
+                let html = `<div class="border border-white/10 rounded-3xl p-8"><div class="flex justify-between items-center mb-6"><h4 class="text-2xl font-medium">${cat.label}</h4><span class="text-xs bg-white/10 px-4 py-1.5 rounded-2xl">${sites.length} sites</span></div><div class="space-y-4">`;
                 if (!sites.length) {
                     html += '<p class="text-white/40 pl-2">No sites yet</p>';
                 } else {
@@ -898,41 +1013,72 @@
     </script>
 
     <script>
-        const tabIcons = ['fa-crown','fa-house','fa-gamepad','fa-brain','fa-tv','fa-shield-halved','fa-music','fa-gear','fa-user','fa-heart','fa-paper-plane'];
-        const tabTitles = ["Admin Panel","Home","Games","AI Tools","TV & Streaming","Proxies","Music","Settings","Account","Credits","Request a Site"];
-        const contentIds = ['content-admin','content-home','content-games','content-ai','content-tv','content-proxies','content-music','content-settings','content-account','content-credits'];
-
         function switchTab(index) {
-            // Clear active state from all sidebar items
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
             document.getElementById(`tab-${index}`)?.classList.add('active-tab');
 
-            let contentIndex;
+            let contentIndex = index;
+            let tabTitle = "Home";
+            let tabIcon = "fa-house";
 
             if (!window.currentUser) {
-                contentIndex = 8; // Account
-                document.getElementById('current-tab').textContent = 'Sign In Required';
-                document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-lock';
+                contentIndex = 0; // Account only
+                tabTitle = "Sign In Required";
+                tabIcon = "fa-lock";
             } else {
                 const isAdmin = window.currentUser.email === window.ADMIN_EMAIL;
+                let offset = isAdmin ? 1 : 0; // skip Admin Panel if present
 
-                if (isAdmin) {
-                    // Admin nav order: 0=Admin Panel, 1=Home, 2=Games, etc.
-                    contentIndex = index; // Use the clicked index directly
-                    document.getElementById('current-tab').textContent = tabTitles[index];
-                    document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
+                if (isAdmin && index === 0) {
+                    // Admin Panel
+                    tabTitle = "Admin Panel";
+                    tabIcon = "fa-crown";
                 } else {
-                    // Non-admin nav starts with Home as index 0
-                    contentIndex = index + 1; // Skip Admin Panel content
-                    document.getElementById('current-tab').textContent = tabTitles[index + 1];
-                    document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index + 1]}`;
+                    const catIndex = index - offset;
+                    if (catIndex >= 0 && catIndex < window.categories.length) {
+                        const cat = window.categories[catIndex];
+                        tabTitle = cat.label;
+                        tabIcon = cat.icon;
+                    } else {
+                        // Settings, Account, Credits...
+                        const remaining = index - offset - window.categories.length;
+                        const extras = ["Settings", "Account", "Credits"];
+                        const extraIcons = ["fa-gear", "fa-user", "fa-heart"];
+                        if (remaining >= 0 && remaining < extras.length) {
+                            tabTitle = extras[remaining];
+                            tabIcon = extraIcons[remaining];
+                        } else {
+                            tabTitle = "Home";
+                            tabIcon = "fa-house";
+                        }
+                    }
                 }
             }
 
-            // Hide all tab contents, show the selected one
+            document.getElementById('current-tab').textContent = tabTitle;
+            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcon}`;
+
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            const target = document.getElementById(contentIds[contentIndex]);
-            if (target) target.classList.remove('hidden');
+            if (contentIndex === 0 && !window.currentUser) {
+                document.getElementById('content-account').classList.remove('hidden');
+            } else if (window.currentUser) {
+                const isAdmin = window.currentUser.email === window.ADMIN_EMAIL;
+                let catOffset = isAdmin ? 1 : 0;
+                if (index === 0 && isAdmin) {
+                    document.getElementById('content-admin').classList.remove('hidden');
+                } else if (index - catOffset < window.categories.length && index >= catOffset) {
+                    const cat = window.categories[index - catOffset];
+                    document.getElementById(`content-${cat.slug}`).classList.remove('hidden');
+                } else {
+                    const extraIndex = index - catOffset - window.categories.length;
+                    const extraIds = ['content-settings', 'content-account', 'content-credits'];
+                    if (extraIndex >= 0 && extraIndex < extraIds.length) {
+                        document.getElementById(extraIds[extraIndex]).classList.remove('hidden');
+                    } else {
+                        document.getElementById('content-home').classList.remove('hidden');
+                    }
+                }
+            }
         }
 
         const themes = [
@@ -1009,17 +1155,17 @@
         }
 
         document.addEventListener('click', e => {
-            if (e.target.closest('button, a, input, select, textarea, label, svg, .card, .nav-link, #refresh-modal, #add-update-site-btn, .github-style-btn, .auth-btn, .users-table, .admin-sites-list')) {
+            if (e.target.closest('button, a, input, select, textarea, label, svg, .card, .nav-link, #refresh-modal, #add-update-site-btn, .github-style-btn, .auth-btn')) {
                 return;
             }
             createStar(e.clientX, e.clientY);
         });
 
-        function populateGrid(cat, id) {
-            const cont = document.getElementById(id);
+        function populateGrid(catSlug, gridId) {
+            const cont = document.getElementById(gridId);
             if (!cont) return;
             cont.innerHTML = '';
-            (window.allSites?.[cat] || []).forEach(site => {
+            (window.allSites?.[catSlug] || []).forEach(site => {
                 const card = document.createElement('div');
                 card.className = 'card rounded-3xl p-6 cursor-pointer group';
                 card.innerHTML = `
