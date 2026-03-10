@@ -487,7 +487,6 @@
                         </div>
                     `;
                     tabIdx++;
-                    // Separator line between Admin Panel and regular menu
                     navHTML += '<div class="sidebar-separator mx-6"></div>';
                 }
 
@@ -558,7 +557,7 @@
                     await window.loadAllSites();
                     window.populateAllGrids();
                     await window.showGlobalAnnouncement();
-                    // Always start on Home for everyone (admin gets tabIdx 1 which is Home)
+                    // Start on Home for everyone (admin's Home is tabIdx 1 in their nav list)
                     switchTab(isAdminUser ? 1 : 0);
                     window.initialLoadComplete = true;
                 }, 100);
@@ -904,29 +903,33 @@
         const contentIds = ['content-admin','content-home','content-games','content-ai','content-tv','content-proxies','content-music','content-settings','content-account','content-credits'];
 
         function switchTab(index) {
+            // Clear active state from all sidebar items
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
             document.getElementById(`tab-${index}`)?.classList.add('active-tab');
 
             let contentIndex;
 
             if (!window.currentUser) {
-                contentIndex = 8;
+                contentIndex = 8; // Account
                 document.getElementById('current-tab').textContent = 'Sign In Required';
                 document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-lock';
             } else {
                 const isAdmin = window.currentUser.email === window.ADMIN_EMAIL;
+
                 if (isAdmin) {
-                    // Admin always starts on Home (tab index 1 in their nav list)
-                    contentIndex = 1;
-                    document.getElementById('current-tab').textContent = 'Home';
-                    document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-house';
+                    // Admin nav order: 0=Admin Panel, 1=Home, 2=Games, etc.
+                    contentIndex = index; // Use the clicked index directly
+                    document.getElementById('current-tab').textContent = tabTitles[index];
+                    document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
                 } else {
-                    contentIndex = index + 1;
+                    // Non-admin nav starts with Home as index 0
+                    contentIndex = index + 1; // Skip Admin Panel content
                     document.getElementById('current-tab').textContent = tabTitles[index + 1];
                     document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index + 1]}`;
                 }
             }
 
+            // Hide all tab contents, show the selected one
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             const target = document.getElementById(contentIds[contentIndex]);
             if (target) target.classList.remove('hidden');
