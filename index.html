@@ -10,229 +10,45 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
-     
-        :root {
-            --accent: #ffffff;
-        }
-        body {
-            background: #000000;
-            color: #ffffff;
-            font-family: 'Inter', system-ui, sans-serif;
-            margin: 0;
-            height: 100vh;
-            overflow: hidden;
-        }
-     
-        .logo-font {
-            font-family: 'Space Grotesk', sans-serif;
-        }
-        .star-svg {
-            animation: pulse 4s infinite ease-in-out;
-            filter: drop-shadow(0 0 20px var(--accent));
-        }
-        @keyframes pulse {
-            0%, 100% { filter: drop-shadow(0 0 20px var(--accent)); }
-            50% { filter: drop-shadow(0 0 45px var(--accent)); }
-        }
-        .nav-link {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            color: #ffffff;
-        }
-     
-        .nav-link:hover,
-        .nav-link.active-tab {
-            color: var(--accent) !important;
-            background: rgba(255,255,255,0.08);
-        }
-        .nav-link i {
-            color: inherit;
-        }
-        #current-tab-icon,
-        #current-tab {
-            color: var(--accent);
-            transition: color 0.4s ease;
-        }
-        .card {
-            transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.12);
-        }
-     
-        .card:hover {
-            transform: translateY(-8px) scale(1.03);
-            border-color: var(--accent);
-            background: rgba(255,255,255,0.06);
-        }
-        .glass {
-            background: rgba(255,255,255,0.04);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.15);
-        }
-        .tail-container {
-            max-width: 1280px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        #star-bg {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            pointer-events: auto;
-        }
-        .star {
-            position: absolute;
-            background: var(--accent);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent);
-            pointer-events: none;
-            animation: floatUp linear infinite;
-        }
-        @keyframes floatUp {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-300vh); opacity: 0.3; }
-        }
-        .main-content {
-            overflow-y: auto;
-            height: 100vh;
-            padding-top: 4rem;
-        }
-        input[type="email"], input[type="password"], input[type="text"], textarea, select {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.25);
-            color: white;
-            padding: 1rem 1.25rem;
-            border-radius: 1rem;
-            width: 100%;
-            margin-bottom: 1.25rem;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
-            background: rgba(255,255,255,0.12);
-        }
-        input::placeholder, textarea::placeholder {
-            color: rgba(255,255,255,0.5);
-        }
-        button {
-            padding: 1.25rem 2rem;
-            border-radius: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 1rem 0;
-            width: 100%;
-            font-size: 1.2rem;
-        }
-        .auth-btn {
-            background: var(--accent);
-            color: #000;
-        }
-        .auth-btn:hover {
-            background: white;
-            transform: translateY(-2px);
-        }
-        .github-style-btn {
-            background: black;
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.75rem;
-            width: 100%;
-            justify-content: center;
-            font-size: 1.1rem;
-        }
-        .github-style-btn:hover {
-            border-color: var(--accent);
-            transform: translateY(-2px);
-        }
-        #auth-message {
-            margin-top: 1.5rem;
-            text-align: center;
-            font-size: 1.1rem;
-        }
+        :root { --accent: #ffffff; }
+        body { background: #000000; color: #ffffff; font-family: 'Inter', system-ui, sans-serif; margin: 0; height: 100vh; overflow: hidden; }
+        .logo-font { font-family: 'Space Grotesk', sans-serif; }
+        .star-svg { animation: pulse 4s infinite ease-in-out; filter: drop-shadow(0 0 20px var(--accent)); }
+        @keyframes pulse { 0%, 100% { filter: drop-shadow(0 0 20px var(--accent)); } 50% { filter: drop-shadow(0 0 45px var(--accent)); } }
+        .nav-link { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); color: #ffffff; }
+        .nav-link:hover, .nav-link.active-tab { color: var(--accent) !important; background: rgba(255,255,255,0.08); }
+        .nav-link i { color: inherit; }
+        #current-tab-icon, #current-tab { color: var(--accent); transition: color 0.4s ease; }
+        .card { transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); }
+        .card:hover { transform: translateY(-8px) scale(1.03); border-color: var(--accent); background: rgba(255,255,255,0.06); }
+        .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); }
+        .tail-container { max-width: 1280px; margin-left: auto; margin-right: auto; }
+        #star-bg { position: fixed; inset: 0; z-index: -1; pointer-events: auto; }
+        .star { position: absolute; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent); pointer-events: none; animation: floatUp linear infinite; }
+        @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-300vh); opacity: 0.3; } }
+        .main-content { overflow-y: auto; height: 100vh; padding-top: 4rem; }
+        input, textarea, select { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); color: white; padding: 1rem 1.25rem; border-radius: 1rem; width: 100%; margin-bottom: 1.25rem; font-size: 1rem; transition: all 0.3s ease; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(255,255,255,0.15); background: rgba(255,255,255,0.12); }
+        input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.5); }
+        button { padding: 1.25rem 2rem; border-radius: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin: 1rem 0; width: 100%; font-size: 1.2rem; }
+        .auth-btn { background: var(--accent); color: #000; }
+        .auth-btn:hover { background: white; transform: translateY(-2px); }
+        .github-style-btn { background: black; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 1rem 1.5rem; border-radius: 1rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.75rem; width: 100%; justify-content: center; font-size: 1.1rem; }
+        .github-style-btn:hover { border-color: var(--accent); transform: translateY(-2px); }
+        #auth-message { margin-top: 1.5rem; text-align: center; font-size: 1.1rem; }
         .success { color: #10b981; }
         .error { color: #ef4444; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 1rem;
-            text-align: left;
-        }
-        #refresh-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.92);
-            backdrop-filter: blur(8px);
-            z-index: 9999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-        #refresh-modal.show {
-            display: flex;
-        }
-        #refresh-content {
-            background: rgba(30,30,40,0.9);
-            border: 2px solid var(--accent);
-            border-radius: 1.5rem;
-            padding: 3rem 2.5rem;
-            max-width: 480px;
-            text-align: center;
-            box-shadow: 0 0 60px rgba(255,255,255,0.2);
-        }
-        .sortable-ghost {
-            opacity: 0.4;
-            background: rgba(255,255,255,0.08);
-        }
-        .sortable-drag {
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-            transform: scale(1.03);
-        }
-        .category-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1.25rem 1.5rem;
-            background: rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 1rem;
-            margin-bottom: 0.75rem;
-            cursor: move;
-            transition: all 0.2s ease;
-        }
-        .category-row:hover {
-            background: rgba(255,255,255,0.05);
-            border-color: rgba(255,255,255,0.3);
-        }
-        .category-row .handle {
-            color: rgba(255,255,255,0.5);
-            font-size: 1.5rem;
-            margin-right: 1rem;
-        }
-        .category-row .title {
-            flex: 1;
-            font-weight: 500;
-        }
-        .category-row .trash {
-            color: #ef4444;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-            font-size: 1.25rem;
-        }
-        .category-row:hover .trash {
-            opacity: 1;
-        }
+        #refresh-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(8px); z-index: 9999; display: none; align-items: center; justify-content: center; }
+        #refresh-modal.show { display: flex; }
+        #refresh-content { background: rgba(30,30,40,0.9); border: 2px solid var(--accent); border-radius: 1.5rem; padding: 3rem 2.5rem; max-width: 480px; text-align: center; box-shadow: 0 0 60px rgba(255,255,255,0.2); }
+        .sortable-ghost { opacity: 0.4; background: rgba(255,255,255,0.08); }
+        .sortable-drag { box-shadow: 0 10px 25px rgba(0,0,0,0.6); transform: scale(1.03); }
+        .category-row { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 1rem; margin-bottom: 0.75rem; cursor: move; transition: all 0.2s ease; }
+        .category-row:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.3); }
+        .category-row .handle { color: rgba(255,255,255,0.5); font-size: 1.5rem; margin-right: 1rem; }
+        .category-row .title { flex: 1; font-weight: 500; }
+        .category-row .trash { color: #ef4444; opacity: 0.7; transition: opacity 0.2s; font-size: 1.25rem; cursor: pointer; }
+        .category-row:hover .trash { opacity: 1; }
     </style>
 </head>
 <body>
@@ -272,7 +88,7 @@
                 </div>
             </div>
 
-            <!-- ACCOUNT TAB -->
+            <!-- ACCOUNT -->
             <div id="content-account" class="tab-content">
                 <div class="max-w-md mx-auto py-12">
                     <h2 class="text-3xl font-bold text-center mb-8" id="account-title">Sign In Required</h2>
@@ -311,7 +127,7 @@
                 </div>
             </div>
 
-            <!-- DYNAMIC CATEGORY TABS -->
+            <!-- DYNAMIC CATEGORY CONTENT -->
             <div id="dynamic-category-tabs"></div>
 
             <!-- SETTINGS -->
@@ -407,7 +223,7 @@
                                 <div>
                                     <label class="text-xs text-white/50 block mb-2">Category</label>
                                     <select id="admin-cat-select" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
-                                        <!-- Dynamically populated -->
+                                        <!-- Populated dynamically -->
                                     </select>
                                 </div>
                                 <div class="md:col-span-2">
@@ -445,7 +261,7 @@
                                 <i class="fa-solid fa-plus"></i> Create New Category
                             </button>
                         </div>
-                        <p class="text-white/70 mb-6">Drag rows to reorder. Click trash icon to delete (sites in deleted categories will be hidden until reassigned).</p>
+                        <p class="text-white/70 mb-6">Drag to reorder. Click trash to delete (sites will be hidden until reassigned).</p>
                         <div id="admin-categories-list" class="bg-black/40 rounded-3xl p-6">
                             <div id="categories-sortable" class="space-y-3"></div>
                         </div>
@@ -460,8 +276,8 @@
         <div id="refresh-content">
             <h2 class="text-3xl font-bold logo-font mb-6 text-[var(--accent)]">Update Available</h2>
             <p class="text-lg mb-8 text-white/80 leading-relaxed">
-                The admin made a change (new site, announcement, category, or order).<br>
-                Refresh to see the latest.
+                The admin made a change (new site, announcement, or category order).<br>
+                Refresh to see the latest version.
             </p>
             <button onclick="location.reload(true)" class="auth-btn text-xl py-5 px-12 w-auto mx-auto block">
                 Refresh Now
@@ -469,11 +285,11 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
+    <!-- JavaScript (all logic in one place, functions defined in order) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDI979T4jI-ZbGbRDFo-kNZPyG3Pc8gkXw",
@@ -504,8 +320,176 @@
         window.categories = [];
         window.categoryOrder = [];
 
+        // -----------------------
+        // UTILITY FUNCTIONS
+        // -----------------------
+
+        function setTheme(color) {
+            document.documentElement.style.setProperty('--accent', color);
+            localStorage.setItem('starlinkAccent', color);
+        }
+
+        function loadTheme() {
+            setTheme(localStorage.getItem('starlinkAccent') || '#ffffff');
+        }
+
+        function saveNewTabPreference(val) {
+            localStorage.setItem('starlinkNewTab', val ? 'true' : 'false');
+        }
+
+        function loadNewTabPreference() {
+            const saved = localStorage.getItem('starlinkNewTab');
+            const cb = document.getElementById('newtab-toggle');
+            if (cb) {
+                cb.checked = saved === null || saved === 'true';
+                saveNewTabPreference(cb.checked);
+            }
+        }
+
+        function resetEverything() {
+            if (!confirm("Reset all preferences and sign out?")) return;
+            localStorage.clear();
+            setTheme('#ffffff');
+            const cb = document.getElementById('newtab-toggle');
+            if (cb) cb.checked = true;
+            saveNewTabPreference(true);
+            firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
+        }
+
+        function createStar(x, y) {
+            const s = document.createElement('div');
+            s.className = 'star';
+            s.style.left = `${x}px`;
+            s.style.top = `${y}px`;
+            const size = Math.random() * 4 + 2;
+            s.style.width = s.style.height = `${size}px`;
+            const dur = Math.random() * 25 + 15;
+            s.style.animationDuration = `${dur}s`;
+            const drift = (Math.random() - 0.5) * 100;
+            s.style.transform = `translateX(${drift}px)`;
+            document.getElementById('star-bg').appendChild(s);
+
+            const check = setInterval(() => {
+                const rect = s.getBoundingClientRect();
+                if (rect.top < -window.innerHeight * 4) {
+                    s.remove();
+                    clearInterval(check);
+                }
+            }, 8000);
+        }
+
+        function initStars() {
+            for (let i = 0; i < 100; i++) {
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight * 1.5;
+                createStar(x, y);
+            }
+
+            setInterval(() => {
+                const x = Math.random() * window.innerWidth;
+                const y = window.innerHeight + 80;
+                createStar(x, y);
+            }, 5000 + Math.random() * 5000);
+        }
+
+        document.addEventListener('click', e => {
+            if (e.target.closest('button, a, input, select, textarea, label, svg, .card, .nav-link, #refresh-modal, #add-update-site-btn, .github-style-btn, .auth-btn')) return;
+            createStar(e.clientX, e.clientY);
+        });
+
+        // -----------------------
+        // THEME & GRID FUNCTIONS
+        // -----------------------
+
+        const themes = [
+            {name:"White",color:"#ffffff"},{name:"Red",color:"#ef4444"},{name:"Blue",color:"#3b82f6"},
+            {name:"Green",color:"#10b981"},{name:"Purple",color:"#8b5cf6"},{name:"Pink",color:"#ec4899"},
+            {name:"Cyan",color:"#22d3ee"},{name:"Yellow",color:"#f59e0b"},{name:"Lime",color:"#84cc16"},
+            {name:"Teal",color:"#14b8a6"},{name:"Rose",color:"#f43f5e"},{name:"Indigo",color:"#6366f1"},
+            {name:"Orange",color:"#f97316"},{name:"Magenta",color:"#d946ef"},{name:"Sky Blue",color:"#0ea5e9"}
+        ];
+
+        function populateThemeGrid() {
+            const cont = document.getElementById('theme-grid');
+            if (!cont) return;
+            cont.innerHTML = '';
+            themes.forEach(t => {
+                const el = document.createElement('div');
+                el.className = 'cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-white/50 transition-all shadow-md';
+                el.innerHTML = `
+                    <div class="h-24 flex items-center justify-center" style="background:${t.color}"><span class="text-5xl drop-shadow-xl">★</span></div>
+                    <div class="text-center py-3 text-xs font-medium bg-black/70">${t.name}</div>
+                `;
+                el.onclick = () => setTheme(t.color);
+                cont.appendChild(el);
+            });
+        }
+
+        // -----------------------
+        // TAB SWITCHING (FIXED)
+        // -----------------------
+
+        function switchTab(index) {
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
+            const clickedTab = document.getElementById(`tab-${index}`);
+            if (clickedTab) clickedTab.classList.add('active-tab');
+
+            let contentId = 'content-home';
+
+            if (!window.currentUser) {
+                contentId = 'content-account';
+                document.getElementById('current-tab').textContent = 'Sign In Required';
+                document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-lock';
+            } else {
+                const isAdmin = window.currentUser.email === ADMIN_EMAIL;
+
+                if (isAdmin) {
+                    if (index === 0) {
+                        contentId = 'content-admin';
+                        document.getElementById('current-tab').textContent = 'Admin Panel';
+                        document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-crown';
+                    } else if (index === 1) {
+                        contentId = 'content-home';
+                        document.getElementById('current-tab').textContent = 'Home';
+                        document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-house';
+                    } else {
+                        const catIndex = index - 2;
+                        const cat = window.categories[catIndex];
+                        if (cat) {
+                            contentId = `content-${cat.key}`;
+                            document.getElementById('current-tab').textContent = cat.title;
+                            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${cat.icon || 'fa-folder'}`;
+                        }
+                    }
+                } else {
+                    if (index === 0) {
+                        contentId = 'content-home';
+                        document.getElementById('current-tab').textContent = 'Home';
+                        document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-house';
+                    } else {
+                        const catIndex = index - 1;
+                        const cat = window.categories[catIndex];
+                        if (cat) {
+                            contentId = `content-${cat.key}`;
+                            document.getElementById('current-tab').textContent = cat.title;
+                            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${cat.icon || 'fa-folder'}`;
+                        }
+                    }
+                }
+            }
+
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(contentId);
+            if (target) target.classList.remove('hidden');
+        }
+
+        // -----------------------
+        // CATEGORY MANAGEMENT
+        // -----------------------
+
         function generateDynamicCategoryContent() {
             const container = document.getElementById('dynamic-category-tabs');
+            if (!container) return;
             container.innerHTML = '';
             window.categories.forEach(cat => {
                 const div = document.createElement('div');
@@ -516,164 +500,97 @@
             });
         }
 
-        function updateUIForAuth(user) {
-            window.currentUser = user;
-            const statusEl = document.getElementById('user-status');
-            const navLinks = document.getElementById('nav-links');
-            const userInfo = document.getElementById('user-info');
-            const authForm = document.getElementById('auth-form');
-            const accountTitle = document.getElementById('account-title');
-            const currentTabEl = document.getElementById('current-tab');
-            const currentIconEl = document.getElementById('current-tab-icon');
-
-            if (sitesListener) sitesListener();
-            if (announcementListener) announcementListener();
-            if (categoryListener) categoryListener();
-
-            if (user) {
-                statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
-                userInfo?.classList.remove('hidden');
-                document.getElementById('user-email').textContent = user.email;
-                authForm?.classList.add('hidden');
-                accountTitle.textContent = 'Account';
-
-                let navHTML = '';
-                let tabIdx = 0;
-                const isAdminUser = user.email === ADMIN_EMAIL;
-
-                if (isAdminUser) {
-                    navHTML += `
-                        <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                            <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
-                        </div>
-                    `;
-                    tabIdx++;
-                }
-
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${!isAdminUser ? 'active-tab' : ''}" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-house w-5"></i> <span>Home</span>
-                    </div>
-                `;
-                tabIdx++;
-
-                window.categories.forEach(cat => {
-                    navHTML += `
-                        <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                            <i class="fa-solid ${cat.icon} w-5"></i> <span>${cat.title}</span>
-                        </div>
-                    `;
-                    tabIdx++;
-                });
-
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
-                        <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
-                    </div>
-                `;
-
-                navLinks.innerHTML = navHTML;
-
-                setTimeout(async () => {
-                    populateThemeGrid();
-                    await window.loadAllSites();
-                    window.populateAllGrids();
-                    await window.showGlobalAnnouncement();
-                    generateDynamicCategoryContent();
-                    updateCategorySelect();
-                    switchTab(isAdminUser ? 1 : 0); // Home
-                    window.initialLoadComplete = true;
-                    if (isAdminUser) {
-                        window.reloadAdminCategoryList();
-                    }
-                }, 100);
-
-                sitesListener = onSnapshot(collection(db, "sites"), async () => {
-                    await window.loadAllSites();
-                    window.populateAllGrids();
-                    if (user.email === ADMIN_EMAIL) {
-                        if (!document.getElementById('content-admin').classList.contains('hidden')) {
-                            window.reloadAdminSites();
-                        }
-                    } else if (window.initialLoadComplete) {
-                        document.getElementById('refresh-modal').classList.add('show');
-                    }
-                });
-
-                announcementListener = onSnapshot(doc(db, "config", "announcement"), () => {
-                    if (user.email !== ADMIN_EMAIL && window.initialLoadComplete) {
-                        document.getElementById('refresh-modal').classList.add('show');
-                    } else {
-                        window.showGlobalAnnouncement();
-                    }
-                });
-
-                categoryListener = onSnapshot(query(collection(db, "categories")), (snap) => {
-                    window.categories = [];
-                    snap.forEach(d => {
-                        window.categories.push(d.data());
-                    });
-                    window.categories.sort((a, b) => (a.order || 999) - (b.order || 999));
-                    generateDynamicCategoryContent();
-                    window.populateAllGrids();
-                    updateCategorySelect();
-                    if (user.email === ADMIN_EMAIL) {
-                        window.reloadAdminCategoryList();
-                    } else if (window.initialLoadComplete) {
-                        document.getElementById('refresh-modal').classList.add('show');
-                    }
-                });
-
-                // Category order listener
-                onSnapshot(doc(db, "config", "categoryOrder"), (snap) => {
-                    if (snap.exists()) {
-                        window.categoryOrder = snap.data().order || window.categories.map(c => c.key);
-                        window.categories.sort((a, b) => window.categoryOrder.indexOf(a.key) - window.categoryOrder.indexOf(b.key));
-                        generateDynamicCategoryContent();
-                        window.populateAllGrids();
-                        if (user.email === ADMIN_EMAIL) {
-                            window.reloadAdminCategoryList();
-                        } else if (window.initialLoadComplete) {
-                            document.getElementById('refresh-modal').classList.add('show');
-                        }
-                    }
-                });
-
-            } else {
-                statusEl.textContent = '';
-                currentTabEl.textContent = 'Sign In Required';
-                currentIconEl.className = 'text-3xl fa-solid fa-lock';
-                userInfo?.classList.add('hidden');
-                authForm?.classList.remove('hidden');
-                accountTitle.textContent = 'Sign In Required';
-                navLinks.innerHTML = `
-                    <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
-                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-                    </div>
-                `;
-                switchTab(0);
-            }
+        function updateCategorySelect() {
+            const select = document.getElementById('admin-cat-select');
+            if (!select) return;
+            select.innerHTML = '';
+            window.categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.key;
+                opt.textContent = cat.title;
+                select.appendChild(opt);
+            });
         }
 
-        firebaseAuth.onAuthStateChanged(auth, updateUIForAuth);
+        window.createNewCategory = async () => {
+            const name = prompt("New category name (e.g. Social Media):");
+            if (!name) return;
+
+            const key = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            if (key.length < 3) return alert("Name must be at least 3 characters and contain letters/numbers");
+
+            const icon = prompt("Font Awesome icon class (e.g. fa-users) or leave blank for default:", "fa-folder");
+
+            const order = window.categories.length;
+
+            try {
+                await setDoc(doc(db, "categories", key), {
+                    key,
+                    title: name,
+                    icon: icon || "fa-folder",
+                    order,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                });
+                alert(`Category "${name}" created!`);
+            } catch (e) {
+                alert("Error creating category: " + e.message);
+            }
+        };
+
+        window.deleteCategory = async (key, title) => {
+            if (!confirm(`Delete category "${title}" forever? Sites in this category will no longer appear until reassigned.`)) return;
+            try {
+                await deleteDoc(doc(db, "categories", key));
+                alert(`Category "${title}" deleted.`);
+            } catch (e) {
+                alert("Error deleting category: " + e.message);
+            }
+        };
+
+        window.reloadAdminCategoryList = () => {
+            const container = document.getElementById('categories-sortable');
+            if (!container) return;
+            container.innerHTML = '';
+
+            window.categories.forEach(cat => {
+                const row = document.createElement('div');
+                row.className = 'category-row';
+                row.dataset.key = cat.key;
+                row.innerHTML = `
+                    <div class="flex items-center flex-1">
+                        <i class="fa-solid fa-grip-lines handle"></i>
+                        <span class="title">${cat.title}</span>
+                    </div>
+                    <button onclick="deleteCategory('${cat.key}', '${cat.title.replace(/'/g, "\\'")}'); event.stopPropagation();" class="trash">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                container.appendChild(row);
+            });
+
+            new Sortable(container, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-drag',
+                handle: '.handle',
+                onEnd: async () => {
+                    const newOrder = Array.from(container.children).map(el => el.dataset.key);
+                    const batch = writeBatch(db);
+                    window.categories.forEach(cat => {
+                        const newOrderIndex = newOrder.indexOf(cat.key);
+                        if (newOrderIndex !== -1) {
+                            batch.update(doc(db, "categories", cat.key), { order: newOrderIndex });
+                        }
+                    });
+                    await batch.commit();
+                }
+            });
+        };
+
+        // -----------------------
+        // AUTH & USER FUNCTIONS
+        // -----------------------
 
         document.getElementById('auth-btn')?.addEventListener('click', async () => {
             const email = document.getElementById('email').value;
@@ -755,6 +672,10 @@
             }
         };
 
+        // -----------------------
+        // SITES & GRIDS
+        // -----------------------
+
         window.loadAllSites = async () => {
             const snap = await getDocs(collection(db, "sites"));
             window.allSites = {};
@@ -787,6 +708,10 @@
                 });
             });
         };
+
+        // -----------------------
+        // ANNOUNCEMENT
+        // -----------------------
 
         window.showGlobalAnnouncement = async () => {
             const banner = document.getElementById('global-announcement');
@@ -825,16 +750,9 @@
             }
         };
 
-        window.deleteUserFromAdmin = async (uid) => {
-            if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
-            try {
-                await deleteDoc(doc(db, "users", uid));
-                alert("User removed from list.");
-                window.loadAdminUsers();
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
+        // -----------------------
+        // ADMIN USERS & SITES
+        // -----------------------
 
         window.loadAdminUsers = async () => {
             const container = document.getElementById('users-table');
@@ -862,6 +780,17 @@
             }
         };
 
+        window.deleteUserFromAdmin = async (uid) => {
+            if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
+            try {
+                await deleteDoc(doc(db, "users", uid));
+                alert("User removed from list.");
+                loadAdminUsers();
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
         window.addNewSiteFromAdmin = async () => {
             const cat = document.getElementById('admin-cat-select').value;
             const name = document.getElementById('new-site-name').value.trim();
@@ -875,9 +804,9 @@
                 await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc, createdAt: serverTimestamp() });
                 alert("Site added! Non-admin users will see a refresh prompt.");
                 ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
-                await window.loadAllSites();
-                window.populateAllGrids();
-                window.reloadAdminSites();
+                await loadAllSites();
+                populateAllGrids();
+                reloadAdminSites();
             } catch (e) {
                 alert("Error: " + e.message);
             }
@@ -887,9 +816,9 @@
             if (!confirm("Delete site forever?")) return;
             try {
                 await deleteDoc(doc(db, "sites", id));
-                await window.loadAllSites();
-                window.populateAllGrids();
-                window.reloadAdminSites();
+                await loadAllSites();
+                populateAllGrids();
+                reloadAdminSites();
             } catch (e) {
                 alert("Error: " + e.message);
             }
@@ -925,10 +854,10 @@
                     alert("Site updated successfully!");
                     ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                     btn.textContent = 'Add New Site';
-                    btn.onclick = window.addNewSiteFromAdmin;
-                    await window.loadAllSites();
-                    window.populateAllGrids();
-                    window.reloadAdminSites();
+                    btn.onclick = addNewSiteFromAdmin;
+                    await loadAllSites();
+                    populateAllGrids();
+                    reloadAdminSites();
                 } catch (e) {
                     alert("Error updating site: " + e.message);
                 }
@@ -937,6 +866,7 @@
 
         window.reloadAdminSites = () => {
             const container = document.getElementById('admin-sites-list');
+            if (!container) return;
             container.innerHTML = '';
             window.categories.forEach(cat => {
                 const sites = window.allSites[cat.key] || [];
@@ -972,100 +902,151 @@
             });
         };
 
-        // Category Management
-        window.createNewCategory = async () => {
-            const name = prompt("New category name (e.g. Social Media):");
-            if (!name) return;
+        // -----------------------
+        // MAIN UI UPDATE LOGIC
+        // -----------------------
 
-            const key = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-            if (key.length < 3) return alert("Name must be at least 3 characters and contain letters/numbers");
+        function updateUIForAuth(user) {
+            window.currentUser = user;
+            const statusEl = document.getElementById('user-status');
+            const navLinks = document.getElementById('nav-links');
+            const userInfo = document.getElementById('user-info');
+            const authForm = document.getElementById('auth-form');
+            const accountTitle = document.getElementById('account-title');
+            const currentTabEl = document.getElementById('current-tab');
+            const currentIconEl = document.getElementById('current-tab-icon');
 
-            const icon = prompt("Font Awesome icon class (e.g. fa-users) or leave blank for default:", "fa-folder");
+            if (sitesListener) sitesListener();
+            if (announcementListener) announcementListener();
+            if (categoryListener) categoryListener();
 
-            const order = window.categories.length;
+            if (user) {
+                statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
+                userInfo?.classList.remove('hidden');
+                document.getElementById('user-email').textContent = user.email;
+                authForm?.classList.add('hidden');
+                accountTitle.textContent = 'Account';
 
-            try {
-                await setDoc(doc(db, "categories", key), {
-                    key,
-                    title: name,
-                    icon: icon || "fa-folder",
-                    order,
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp()
-                });
-                alert(`Category "${name}" created!`);
-            } catch (e) {
-                alert("Error creating category: " + e.message);
-            }
-        };
+                let navHTML = '';
+                let tabIdx = 0;
+                const isAdminUser = user.email === ADMIN_EMAIL;
 
-        window.deleteCategory = async (key, title) => {
-            if (!confirm(`Delete category "${title}" forever? Sites in this category will no longer appear until reassigned.`)) return;
-            try {
-                await deleteDoc(doc(db, "categories", key));
-                alert(`Category "${title}" deleted.`);
-            } catch (e) {
-                alert("Error deleting category: " + e.message);
-            }
-        };
-
-        window.reloadAdminCategoryList = () => {
-            const container = document.getElementById('categories-sortable');
-            container.innerHTML = '';
-
-            window.categories.forEach(cat => {
-                const row = document.createElement('div');
-                row.className = 'category-row';
-                row.dataset.key = cat.key;
-                row.innerHTML = `
-                    <div class="flex items-center flex-1">
-                        <i class="fa-solid fa-grip-lines handle"></i>
-                        <span class="title">${cat.title}</span>
-                    </div>
-                    <button onclick="deleteCategory('${cat.key}', '${cat.title.replace(/'/g, "\\'")}'); event.stopPropagation();" class="trash">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                `;
-                container.appendChild(row);
-            });
-
-            new Sortable(container, {
-                animation: 150,
-                ghostClass: 'sortable-ghost',
-                chosenClass: 'sortable-drag',
-                handle: '.handle',
-                onEnd: async () => {
-                    const newOrder = Array.from(container.children).map(el => el.dataset.key);
-                    // Update order field in each category doc
-                    const batch = writeBatch(db);
-                    window.categories.forEach(cat => {
-                        const newOrderIndex = newOrder.indexOf(cat.key);
-                        if (newOrderIndex !== -1) {
-                            batch.update(doc(db, "categories", cat.key), { order: newOrderIndex });
-                        }
-                    });
-                    await batch.commit();
+                if (isAdminUser) {
+                    navHTML += `
+                        <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
+                            <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
+                        </div>
+                    `;
+                    tabIdx++;
                 }
-            });
-        };
 
-        function updateCategorySelect() {
-            const select = document.getElementById('admin-cat-select');
-            if (!select) return;
-            select.innerHTML = '';
-            window.categories.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat.key;
-                opt.textContent = cat.title;
-                select.appendChild(opt);
-            });
+                navHTML += `
+                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${!isAdminUser ? 'active-tab' : ''}" id="tab-${tabIdx}">
+                        <i class="fa-solid fa-house w-5"></i> <span>Home</span>
+                    </div>
+                `;
+                tabIdx++;
+
+                window.categories.forEach(cat => {
+                    navHTML += `
+                        <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
+                            <i class="fa-solid ${cat.icon || 'fa-folder'} w-5"></i> <span>${cat.title}</span>
+                        </div>
+                    `;
+                    tabIdx++;
+                });
+
+                navHTML += `
+                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
+                        <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
+                    </div>
+                `;
+                tabIdx++;
+                navHTML += `
+                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
+                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+                    </div>
+                `;
+                tabIdx++;
+                navHTML += `
+                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-${tabIdx}">
+                        <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
+                    </div>
+                `;
+                tabIdx++;
+                navHTML += `
+                    <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
+                        <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
+                    </div>
+                `;
+
+                navLinks.innerHTML = navHTML;
+
+                setTimeout(async () => {
+                    loadTheme();
+                    populateThemeGrid();
+                    await loadAllSites();
+                    populateAllGrids();
+                    await showGlobalAnnouncement();
+                    generateDynamicCategoryContent();
+                    updateCategorySelect();
+                    switchTab(isAdminUser ? 1 : 0); // Home
+                    window.initialLoadComplete = true;
+                    if (isAdminUser) reloadAdminCategoryList();
+                }, 100);
+
+                sitesListener = onSnapshot(collection(db, "sites"), async () => {
+                    await loadAllSites();
+                    populateAllGrids();
+                    if (user.email === ADMIN_EMAIL) {
+                        if (!document.getElementById('content-admin').classList.contains('hidden')) reloadAdminSites();
+                    } else if (window.initialLoadComplete) {
+                        document.getElementById('refresh-modal').classList.add('show');
+                    }
+                });
+
+                announcementListener = onSnapshot(doc(db, "config", "announcement"), () => {
+                    if (user.email !== ADMIN_EMAIL && window.initialLoadComplete) {
+                        document.getElementById('refresh-modal').classList.add('show');
+                    } else {
+                        showGlobalAnnouncement();
+                    }
+                });
+
+                categoryListener = onSnapshot(query(collection(db, "categories")), (snap) => {
+                    window.categories = [];
+                    snap.forEach(d => window.categories.push(d.data()));
+                    window.categories.sort((a, b) => (a.order || 999) - (b.order || 999));
+                    generateDynamicCategoryContent();
+                    populateAllGrids();
+                    updateCategorySelect();
+                    if (user.email === ADMIN_EMAIL) reloadAdminCategoryList();
+                    else if (window.initialLoadComplete) document.getElementById('refresh-modal').classList.add('show');
+                });
+
+            } else {
+                statusEl.textContent = '';
+                currentTabEl.textContent = 'Sign In Required';
+                currentIconEl.className = 'text-3xl fa-solid fa-lock';
+                userInfo?.classList.add('hidden');
+                authForm?.classList.remove('hidden');
+                accountTitle.textContent = 'Sign In Required';
+                navLinks.innerHTML = `
+                    <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
+                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+                    </div>
+                `;
+                switchTab(0);
+            }
         }
+
+        firebaseAuth.onAuthStateChanged(auth, updateUIForAuth);
 
         function initialize() {
             loadTheme();
             loadNewTabPreference();
             initStars();
-            document.getElementById('newtab-toggle').addEventListener('change', e => saveNewTabPreference(e.target.checked));
+            document.getElementById('newtab-toggle')?.addEventListener('change', e => saveNewTabPreference(e.target.checked));
         }
 
         window.onload = initialize;
