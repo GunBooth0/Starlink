@@ -87,8 +87,8 @@
             animation: floatUp linear infinite;
         }
         @keyframes floatUp {
-            0% { transform: translateY(110vh); }
-            100% { transform: translateY(-300vh); } /* goes far off-screen */
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-300vh); opacity: 0.3; }
         }
         .main-content {
             overflow-y: auto;
@@ -964,45 +964,47 @@
             s.className = 'star';
             s.style.left = `${x}px`;
             s.style.top = `${y}px`;
-            const size = Math.random() * 3 + 1;
+            const size = Math.random() * 4 + 2; // 2–6px, visible on click
             s.style.width = s.style.height = `${size}px`;
-            const dur = Math.random() * 40 + 25;
+            const dur = Math.random() * 25 + 15; // 15–40s float time
             s.style.animationDuration = `${dur}s`;
-            s.style.transform = `translateX(${(Math.random()-0.5)*120}px)`;
+            const drift = (Math.random() - 0.5) * 100;
+            s.style.transform = `translateX(${drift}px)`;
             document.getElementById('star-bg').appendChild(s);
 
-            // Optional gentle cleanup only for extremely old stars (prevents rare long-session memory buildup)
-            const checkCleanup = setInterval(() => {
+            // Cleanup only when far off top (invisible to user)
+            const check = setInterval(() => {
                 const rect = s.getBoundingClientRect();
-                if (rect.top < -window.innerHeight * 3) {
+                if (rect.top < -window.innerHeight * 4) {
                     s.remove();
-                    clearInterval(checkCleanup);
+                    clearInterval(check);
                 }
-            }, 5000);
+            }, 8000);
         }
 
         function initStars() {
-            // Initial burst of stars
+            // Initial burst
             for (let i = 0; i < 100; i++) {
                 const x = Math.random() * window.innerWidth;
                 const y = Math.random() * window.innerHeight * 1.5;
                 createStar(x, y);
             }
 
-            // Infinite gentle spawning from bottom (keeps background alive forever)
+            // Continuous spawn from bottom forever
             setInterval(() => {
                 const x = Math.random() * window.innerWidth;
-                const y = window.innerHeight + 100; // start just below screen
+                const y = window.innerHeight + 80; // start just below
                 createStar(x, y);
-            }, Math.random() * 4000 + 4000); // every 4–8 seconds
+            }, 5000 + Math.random() * 5000); // 5–10s interval
         }
 
+        // Click anywhere on background → instant star at cursor
         document.addEventListener('click', e => {
-            // Skip spawning if clicking on interactive elements
-            if (e.target.closest('button, a, .nav-link, input, label, svg, .card, #refresh-modal, #add-update-site-btn, .github-style-btn, .auth-btn')) {
+            // Skip if clicking interactive elements
+            if (e.target.closest('button, a, input, select, textarea, label, svg, .card, .nav-link, #refresh-modal, #add-update-site-btn, .github-style-btn, .auth-btn, .users-table, .admin-sites-list')) {
                 return;
             }
-            // Spawn one star exactly where clicked
+            // Spawn one star right where clicked
             createStar(e.clientX, e.clientY);
         });
 
