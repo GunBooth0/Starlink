@@ -88,7 +88,7 @@
         }
         @keyframes floatUp {
             0% { transform: translateY(110vh); }
-            100% { transform: translateY(-30vh); }
+            100% { transform: translateY(-300vh); } /* goes far off-screen */
         }
         .main-content {
             overflow-y: auto;
@@ -793,16 +793,13 @@
             }
         };
 
-        // NEW: Edit Site Functionality
         window.editSite = (id, category, name, url, icon, desc) => {
-            // Pre-fill the form
             document.getElementById('admin-cat-select').value = category;
             document.getElementById('new-site-name').value = name;
             document.getElementById('new-site-url').value = url;
             document.getElementById('new-site-icon').value = icon;
             document.getElementById('new-site-desc').value = desc || '';
 
-            // Change button to Update
             const btn = document.getElementById('add-update-site-btn');
             btn.textContent = 'Update Site';
             btn.onclick = async () => {
@@ -824,7 +821,6 @@
                         updatedAt: serverTimestamp()
                     }, { merge: true });
                     alert("Site updated successfully!");
-                    // Reset form and button
                     ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                     btn.textContent = 'Add New Site';
                     btn.onclick = window.addNewSiteFromAdmin;
@@ -966,25 +962,47 @@
         function createStar(x, y) {
             const s = document.createElement('div');
             s.className = 'star';
-            s.style.left = x + 'px';
-            s.style.top = y + 'px';
+            s.style.left = `${x}px`;
+            s.style.top = `${y}px`;
             const size = Math.random() * 3 + 1;
-            s.style.width = s.style.height = size + 'px';
+            s.style.width = s.style.height = `${size}px`;
             const dur = Math.random() * 40 + 25;
-            s.style.animationDuration = dur + 's';
+            s.style.animationDuration = `${dur}s`;
             s.style.transform = `translateX(${(Math.random()-0.5)*120}px)`;
             document.getElementById('star-bg').appendChild(s);
-            setTimeout(() => s.remove(), dur*1000 + 2000);
+
+            // Optional gentle cleanup only for extremely old stars (prevents rare long-session memory buildup)
+            const checkCleanup = setInterval(() => {
+                const rect = s.getBoundingClientRect();
+                if (rect.top < -window.innerHeight * 3) {
+                    s.remove();
+                    clearInterval(checkCleanup);
+                }
+            }, 5000);
         }
 
         function initStars() {
+            // Initial burst of stars
             for (let i = 0; i < 100; i++) {
-                createStar(Math.random()*window.innerWidth, Math.random()*window.innerHeight*1.5);
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight * 1.5;
+                createStar(x, y);
             }
+
+            // Infinite gentle spawning from bottom (keeps background alive forever)
+            setInterval(() => {
+                const x = Math.random() * window.innerWidth;
+                const y = window.innerHeight + 100; // start just below screen
+                createStar(x, y);
+            }, Math.random() * 4000 + 4000); // every 4–8 seconds
         }
 
         document.addEventListener('click', e => {
-            if (e.target.closest('button, a, .nav-link, input, label, svg, .card')) return;
+            // Skip spawning if clicking on interactive elements
+            if (e.target.closest('button, a, .nav-link, input, label, svg, .card, #refresh-modal, #add-update-site-btn, .github-style-btn, .auth-btn')) {
+                return;
+            }
+            // Spawn one star exactly where clicked
             createStar(e.clientX, e.clientY);
         });
 
