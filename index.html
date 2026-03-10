@@ -191,6 +191,12 @@
             text-align: center;
             box-shadow: 0 0 60px rgba(255,255,255,0.2);
         }
+        /* Sidebar separator line */
+        .sidebar-separator {
+            height: 1px;
+            background: rgba(255,255,255,0.15);
+            margin: 1.25rem 0;
+        }
     </style>
 </head>
 <body>
@@ -481,6 +487,8 @@
                         </div>
                     `;
                     tabIdx++;
+                    // Separator line between Admin Panel and regular menu
+                    navHTML += '<div class="sidebar-separator mx-6"></div>';
                 }
 
                 navHTML += `
@@ -550,7 +558,8 @@
                     await window.loadAllSites();
                     window.populateAllGrids();
                     await window.showGlobalAnnouncement();
-                    switchTab(0);
+                    // Always start on Home for everyone (admin gets tabIdx 1 which is Home)
+                    switchTab(isAdminUser ? 1 : 0);
                     window.initialLoadComplete = true;
                 }, 100);
 
@@ -907,9 +916,10 @@
             } else {
                 const isAdmin = window.currentUser.email === window.ADMIN_EMAIL;
                 if (isAdmin) {
-                    contentIndex = index;
-                    document.getElementById('current-tab').textContent = tabTitles[index];
-                    document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
+                    // Admin always starts on Home (tab index 1 in their nav list)
+                    contentIndex = 1;
+                    document.getElementById('current-tab').textContent = 'Home';
+                    document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-house';
                 } else {
                     contentIndex = index + 1;
                     document.getElementById('current-tab').textContent = tabTitles[index + 1];
@@ -964,15 +974,14 @@
             s.className = 'star';
             s.style.left = `${x}px`;
             s.style.top = `${y}px`;
-            const size = Math.random() * 4 + 2; // 2–6px, visible on click
+            const size = Math.random() * 4 + 2;
             s.style.width = s.style.height = `${size}px`;
-            const dur = Math.random() * 25 + 15; // 15–40s float time
+            const dur = Math.random() * 25 + 15;
             s.style.animationDuration = `${dur}s`;
             const drift = (Math.random() - 0.5) * 100;
             s.style.transform = `translateX(${drift}px)`;
             document.getElementById('star-bg').appendChild(s);
 
-            // Cleanup only when far off top (invisible to user)
             const check = setInterval(() => {
                 const rect = s.getBoundingClientRect();
                 if (rect.top < -window.innerHeight * 4) {
@@ -983,28 +992,23 @@
         }
 
         function initStars() {
-            // Initial burst
             for (let i = 0; i < 100; i++) {
                 const x = Math.random() * window.innerWidth;
                 const y = Math.random() * window.innerHeight * 1.5;
                 createStar(x, y);
             }
 
-            // Continuous spawn from bottom forever
             setInterval(() => {
                 const x = Math.random() * window.innerWidth;
-                const y = window.innerHeight + 80; // start just below
+                const y = window.innerHeight + 80;
                 createStar(x, y);
-            }, 5000 + Math.random() * 5000); // 5–10s interval
+            }, 5000 + Math.random() * 5000);
         }
 
-        // Click anywhere on background → instant star at cursor
         document.addEventListener('click', e => {
-            // Skip if clicking interactive elements
             if (e.target.closest('button, a, input, select, textarea, label, svg, .card, .nav-link, #refresh-modal, #add-update-site-btn, .github-style-btn, .auth-btn, .users-table, .admin-sites-list')) {
                 return;
             }
-            // Spawn one star right where clicked
             createStar(e.clientX, e.clientY);
         });
 
