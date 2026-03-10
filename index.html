@@ -88,7 +88,7 @@
                 </div>
             </div>
 
-            <!-- ACCOUNT -->
+            <!-- ACCOUNT TAB -->
             <div id="content-account" class="tab-content">
                 <div class="max-w-md mx-auto py-12">
                     <h2 class="text-3xl font-bold text-center mb-8" id="account-title">Sign In Required</h2>
@@ -127,7 +127,7 @@
                 </div>
             </div>
 
-            <!-- DYNAMIC CATEGORY CONTENT -->
+            <!-- DYNAMIC CATEGORY TABS -->
             <div id="dynamic-category-tabs"></div>
 
             <!-- SETTINGS -->
@@ -285,7 +285,7 @@
         </div>
     </div>
 
-    <!-- JavaScript (all logic in one place, functions defined in order) -->
+    <!-- FULL JAVASCRIPT (with all functions in correct order) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
@@ -318,6 +318,7 @@
         window.initialLoadComplete = false;
 
         window.categories = [];
+        window.allSites = {};
         window.categoryOrder = [];
 
         // -----------------------
@@ -398,7 +399,7 @@
         });
 
         // -----------------------
-        // THEME & GRID FUNCTIONS
+        // THEME GRID
         // -----------------------
 
         const themes = [
@@ -426,7 +427,7 @@
         }
 
         // -----------------------
-        // TAB SWITCHING (FIXED)
+        // TAB SWITCHING (FIXED VERSION)
         // -----------------------
 
         function switchTab(index) {
@@ -586,90 +587,6 @@
                     await batch.commit();
                 }
             });
-        };
-
-        // -----------------------
-        // AUTH & USER FUNCTIONS
-        // -----------------------
-
-        document.getElementById('auth-btn')?.addEventListener('click', async () => {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            try {
-                if (document.getElementById('form-title').textContent === 'Sign In') {
-                    const cred = await signInWithEmailAndPassword(auth, email, password);
-                    if (!cred.user.emailVerified) {
-                        alert("Please verify your email first.");
-                        await signOut(auth);
-                        return;
-                    }
-                    updateUIForAuth(cred.user);
-                } else {
-                    const cred = await createUserWithEmailAndPassword(auth, email, password);
-                    await setDoc(doc(db, "users", cred.user.uid), {
-                        email,
-                        createdAt: serverTimestamp()
-                    });
-                    await sendEmailVerification(cred.user);
-                    alert("Verification email sent! Check inbox.");
-                    await signOut(auth);
-                    updateUIForAuth(null);
-                }
-            } catch (e) {
-                alert(e.message);
-            }
-        });
-
-        document.getElementById('toggle-link')?.addEventListener('click', e => {
-            e.preventDefault();
-            const isSignIn = document.getElementById('form-title').textContent === 'Sign In';
-            document.getElementById('form-title').textContent = isSignIn ? 'Sign Up' : 'Sign In';
-            document.getElementById('auth-btn').textContent = isSignIn ? 'Sign Up' : 'Sign In';
-            document.getElementById('toggle-link').textContent = isSignIn ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
-        });
-
-        window.deleteAccount = async () => {
-            if (!confirm("Delete account permanently? This cannot be undone.")) return;
-            const user = auth.currentUser;
-            if (!user) return alert("Not logged in.");
-            try {
-                await deleteDoc(doc(db, "users", user.uid));
-                await deleteUser(user);
-                alert("Account fully deleted.");
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.changePassword = async () => {
-            const user = auth.currentUser;
-            if (!user?.email) return alert("Not logged in.");
-            try {
-                await sendPasswordResetEmail(auth, user.email);
-                document.getElementById('auth-message').textContent = "Password reset email sent!";
-                document.getElementById('auth-message').className = "success";
-            } catch (e) {
-                document.getElementById('auth-message').textContent = "Error: " + e.message;
-                document.getElementById('auth-message').className = "error";
-            }
-        };
-
-        window.changeEmail = async () => {
-            const user = auth.currentUser;
-            if (!user) return alert("Not logged in.");
-            const newEmail = prompt("New email:", user.email);
-            if (!newEmail || newEmail === user.email) return;
-            const pass = prompt("Current password:");
-            if (!pass) return;
-            try {
-                const cred = EmailAuthProvider.credential(user.email, pass);
-                await reauthenticateWithCredential(user, cred);
-                await updateEmail(user, newEmail);
-                alert("Email updated! Verify new email.");
-                document.getElementById('user-email').textContent = newEmail;
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
         };
 
         // -----------------------
