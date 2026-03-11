@@ -275,7 +275,7 @@
                 </div>
             </div>
 
-            <!-- DYNAMIC CATEGORY CONTENTS -->
+            <!-- DYNAMIC CATEGORY CONTENTS (replaces hardcoded games/ai/tv/proxies/music) -->
             <div id="dynamic-category-contents"></div>
 
             <!-- SETTINGS -->
@@ -361,7 +361,7 @@
                         <p class="text-xs text-white/50 mt-4 text-center">Delete removes the user from this list.<br>Full auth deletion still required in Firebase Console → Authentication</p>
                     </div>
 
-                    <!-- Categories Management -->
+                    <!-- Categories Management (NEW - dynamic add/delete/reorder) -->
                     <div class="mb-16">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="text-2xl font-semibold flex items-center gap-3">
@@ -658,40 +658,24 @@
             }
         };
 
-        // ────────────────────────────────────────────────
-        // FIXED: Categories no longer auto-reseed when empty
-        // ────────────────────────────────────────────────
+        // === DYNAMIC CATEGORIES ===
         window.loadCategories = async () => {
             const catRef = collection(db, "categories");
             let snap = await getDocs(catRef);
-
             if (snap.empty) {
-                // Only seed defaults the VERY FIRST time ever (using a flag doc)
-                const seededRef = doc(db, "config", "defaultsSeeded");
-                const seededSnap = await getDoc(seededRef);
-
-                if (!seededSnap.exists()) {
-                    const defaults = [
-                        { key: "games", label: "Games", icon: "fa-gamepad", order: 0 },
-                        { key: "ai", label: "AI Tools", icon: "fa-brain", order: 1 },
-                        { key: "tv", label: "TV & Streaming", icon: "fa-tv", order: 2 },
-                        { key: "proxies", label: "Proxies", icon: "fa-shield-halved", order: 3 },
-                        { key: "music", label: "Music", icon: "fa-music", order: 4 }
-                    ];
-                    for (const def of defaults) {
-                        await addDoc(catRef, def);
-                    }
-                    await setDoc(seededRef, { 
-                        seeded: true, 
-                        timestamp: serverTimestamp() 
-                    });
-                    snap = await getDocs(catRef); // refresh snap after seeding
+                const defaults = [
+                    { key: "games", label: "Games", icon: "fa-gamepad", order: 0 },
+                    { key: "ai", label: "AI Tools", icon: "fa-brain", order: 1 },
+                    { key: "tv", label: "TV & Streaming", icon: "fa-tv", order: 2 },
+                    { key: "proxies", label: "Proxies", icon: "fa-shield-halved", order: 3 },
+                    { key: "music", label: "Music", icon: "fa-music", order: 4 }
+                ];
+                for (const def of defaults) {
+                    await addDoc(catRef, def);
                 }
-                // If seeded flag exists → allow empty collection
+                snap = await getDocs(catRef);
             }
-
-            window.allCategories = snap.docs.map(d => ({ ...d.data(), id: d.id }))
-                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+            window.allCategories = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         };
 
         window.loadAllSites = async () => {
@@ -900,7 +884,7 @@
             });
         };
 
-        // CATEGORY MANAGEMENT FUNCTIONS
+        // === CATEGORY MANAGEMENT FUNCTIONS (add/delete/reorder) ===
         window.addOrUpdateCategory = async () => {
             const key = document.getElementById('new-cat-key').value.trim().toLowerCase().replace(/\s+/g, '');
             const label = document.getElementById('new-cat-label').value.trim();
