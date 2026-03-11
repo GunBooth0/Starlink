@@ -261,7 +261,7 @@
             </div>
 
             <!-- HOME -->
-            <div id="content-home" class="tab-content hidden">
+            <div id="content-home" class="tab-content">
                 <div class="max-w-4xl mx-auto text-center pt-12">
                     <svg width="180" height="180" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
                         <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
@@ -275,12 +275,8 @@
                 </div>
             </div>
 
-            <!-- GAMES / AI / TV / PROXIES / MUSIC -->
-            <div id="content-games" class="tab-content hidden"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="games-grid"></div></div>
-            <div id="content-ai" class="tab-content hidden"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="ai-grid"></div></div>
-            <div id="content-tv" class="tab-content hidden"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="tv-grid"></div></div>
-            <div id="content-proxies" class="tab-content hidden"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="proxies-grid"></div></div>
-            <div id="content-music" class="tab-content hidden"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="music-grid"></div></div>
+            <!-- DYNAMIC CATEGORY CONTENTS (replaces hardcoded games/ai/tv/proxies/music) -->
+            <div id="dynamic-category-contents"></div>
 
             <!-- SETTINGS -->
             <div id="content-settings" class="tab-content hidden">
@@ -365,6 +361,34 @@
                         <p class="text-xs text-white/50 mt-4 text-center">Delete removes the user from this list.<br>Full auth deletion still required in Firebase Console → Authentication</p>
                     </div>
 
+                    <!-- Categories Management (NEW - dynamic add/delete/reorder) -->
+                    <div class="mb-16">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-semibold flex items-center gap-3">
+                                <i class="fa-solid fa-list"></i> Manage Categories
+                            </h3>
+                            <button onclick="reloadAdminCategories()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
+                        </div>
+                        <div class="bg-black/40 p-8 rounded-3xl mb-10">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="text-xs text-white/50 block mb-2">Key (unique lowercase, no spaces)</label>
+                                    <input id="new-cat-key" type="text" placeholder="newcat" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-white/50 block mb-2">Display Label</label>
+                                    <input id="new-cat-label" type="text" placeholder="New Category" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-white/50 block mb-2">Font Awesome Icon (e.g. fa-gamepad)</label>
+                                    <input id="new-cat-icon" type="text" placeholder="fa-gamepad" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                </div>
+                            </div>
+                            <button id="cat-action-btn" onclick="addOrUpdateCategory()" class="auth-btn mt-8 py-6 text-lg w-full">Add Category</button>
+                        </div>
+                        <div id="admin-categories-list" class="space-y-4"></div>
+                    </div>
+
                     <!-- Sites Management -->
                     <div>
                         <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
@@ -375,11 +399,7 @@
                                 <div>
                                     <label class="text-xs text-white/50 block mb-2">Category</label>
                                     <select id="admin-cat-select" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
-                                        <option value="games">Games</option>
-                                        <option value="ai">AI Tools</option>
-                                        <option value="tv">TV & Streaming</option>
-                                        <option value="proxies">Proxies</option>
-                                        <option value="music">Music</option>
+                                        <!-- Populated dynamically by JS -->
                                     </select>
                                 </div>
                                 <div class="md:col-span-2">
@@ -451,9 +471,11 @@
         window.currentUser = null;
         const ADMIN_EMAIL = "gunnarbooth@gmail.com";
         window.ADMIN_EMAIL = ADMIN_EMAIL;
+        window.editingCategoryId = null;
 
         let sitesListener = null;
         let announcementListener = null;
+        let categoriesListener = null;
         window.initialLoadComplete = false;
 
         function updateUIForAuth(user) {
@@ -468,6 +490,7 @@
 
             if (sitesListener) { sitesListener(); sitesListener = null; }
             if (announcementListener) { announcementListener(); announcementListener = null; }
+            if (categoriesListener) { categoriesListener(); categoriesListener = null; }
 
             if (user) {
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
@@ -476,88 +499,16 @@
                 authForm?.classList.add('hidden');
                 accountTitle.textContent = 'Account';
 
-                let navHTML = '';
-                let tabIdx = 0;
-                const isAdminUser = user.email === ADMIN_EMAIL;
-
-                if (isAdminUser) {
-                    navHTML += `
-                        <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                            <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
-                        </div>
-                    `;
-                    tabIdx++;
-                    navHTML += '<div class="sidebar-separator mx-6"></div>';
-                }
-
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${!isAdminUser ? 'active-tab' : ''}" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-house w-5"></i> <span>Home</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-gamepad w-5"></i> <span>Games</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-brain w-5"></i> <span>AI Tools</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-tv w-5"></i> <span>TV & Streaming</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-shield-halved w-5"></i> <span>Proxies</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-music w-5"></i> <span>Music</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="switchTab(${tabIdx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-${tabIdx}">
-                        <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
-                    </div>
-                `;
-                tabIdx++;
-                navHTML += `
-                    <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
-                        <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
-                    </div>
-                `;
-
-                navLinks.innerHTML = navHTML;
-
                 setTimeout(async () => {
                     populateThemeGrid();
+                    await window.loadCategories();
+                    window.createCategoryContents();
                     await window.loadAllSites();
                     window.populateAllGrids();
+                    window.populateCategorySelect();
                     await window.showGlobalAnnouncement();
-                    // Start on Home for everyone (admin's Home is tabIdx 1 in their nav list)
+                    window.buildNav();
+                    const isAdminUser = user.email === ADMIN_EMAIL;
                     switchTab(isAdminUser ? 1 : 0);
                     window.initialLoadComplete = true;
                 }, 100);
@@ -579,6 +530,33 @@
                         document.getElementById('refresh-modal').classList.add('show');
                     } else {
                         window.showGlobalAnnouncement();
+                    }
+                });
+
+                categoriesListener = onSnapshot(collection(db, "categories"), async () => {
+                    if (!window.initialLoadComplete) return;
+                    await window.loadCategories();
+                    window.createCategoryContents();
+                    window.populateAllGrids();
+                    window.buildNav();
+                    window.populateCategorySelect();
+                    if (user.email === ADMIN_EMAIL) {
+                        if (!document.getElementById('content-admin').classList.contains('hidden')) {
+                            window.reloadAdminCategories();
+                        }
+                    } else {
+                        document.getElementById('refresh-modal').classList.add('show');
+                    }
+                    // Preserve active tab for admin (live update)
+                    let currentId = null;
+                    document.querySelectorAll('.tab-content').forEach(el => {
+                        if (!el.classList.contains('hidden')) currentId = el.id;
+                    });
+                    const newIndex = window.tabMapping ? window.tabMapping.findIndex(m => m.contentId === currentId) : -1;
+                    if (newIndex !== -1) {
+                        switchTab(newIndex);
+                    } else if (user) {
+                        switchTab(user.email === ADMIN_EMAIL ? 1 : 0);
                     }
                 });
 
@@ -680,18 +658,46 @@
             }
         };
 
+        // === DYNAMIC CATEGORIES ===
+        window.loadCategories = async () => {
+            const catRef = collection(db, "categories");
+            let snap = await getDocs(catRef);
+            if (snap.empty) {
+                const defaults = [
+                    { key: "games", label: "Games", icon: "fa-gamepad", order: 0 },
+                    { key: "ai", label: "AI Tools", icon: "fa-brain", order: 1 },
+                    { key: "tv", label: "TV & Streaming", icon: "fa-tv", order: 2 },
+                    { key: "proxies", label: "Proxies", icon: "fa-shield-halved", order: 3 },
+                    { key: "music", label: "Music", icon: "fa-music", order: 4 }
+                ];
+                for (const def of defaults) {
+                    await addDoc(catRef, def);
+                }
+                snap = await getDocs(catRef);
+            }
+            window.allCategories = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        };
+
         window.loadAllSites = async () => {
             const snap = await getDocs(collection(db, "sites"));
-            window.allSites = { games: [], ai: [], tv: [], proxies: [], music: [] };
+            window.allSites = {};
+            (window.allCategories || []).forEach(cat => {
+                window.allSites[cat.key] = [];
+            });
             snap.forEach(d => {
                 const data = d.data();
                 data.id = d.id;
-                if (window.allSites[data.category]) window.allSites[data.category].push(data);
+                const catKey = data.category;
+                if (window.allSites[catKey] !== undefined) {
+                    window.allSites[catKey].push(data);
+                }
             });
         };
 
         window.populateAllGrids = () => {
-            ['games','ai','tv','proxies','music'].forEach(cat => populateGrid(cat, `${cat}-grid`));
+            (window.allCategories || []).forEach(cat => {
+                populateGrid(cat.key, `${cat.key}-grid`);
+            });
         };
 
         window.showGlobalAnnouncement = async () => {
@@ -844,16 +850,9 @@
         window.reloadAdminSites = () => {
             const container = document.getElementById('admin-sites-list');
             container.innerHTML = '';
-            const cats = [
-                {key:'games', label:'Games'},
-                {key:'ai', label:'AI Tools'},
-                {key:'tv', label:'TV & Streaming'},
-                {key:'proxies', label:'Proxies'},
-                {key:'music', label:'Music'}
-            ];
-            cats.forEach(c => {
-                const sites = window.allSites[c.key] || [];
-                let html = `<div class="border border-white/10 rounded-3xl p-8"><div class="flex justify-between items-center mb-6"><h4 class="text-2xl font-medium">${c.label}</h4><span class="text-xs bg-white/10 px-4 py-1.5 rounded-2xl">${sites.length} sites</span></div><div class="space-y-4">`;
+            (window.allCategories || []).forEach(cat => {
+                const sites = window.allSites[cat.key] || [];
+                let html = `<div class="border border-white/10 rounded-3xl p-8"><div class="flex justify-between items-center mb-6"><h4 class="text-2xl font-medium">${cat.label}</h4><span class="text-xs bg-white/10 px-4 py-1.5 rounded-2xl">${sites.length} sites</span></div><div class="space-y-4">`;
                 if (!sites.length) {
                     html += '<p class="text-white/40 pl-2">No sites yet</p>';
                 } else {
@@ -885,6 +884,123 @@
             });
         };
 
+        // === CATEGORY MANAGEMENT FUNCTIONS (add/delete/reorder) ===
+        window.addOrUpdateCategory = async () => {
+            const key = document.getElementById('new-cat-key').value.trim().toLowerCase().replace(/\s+/g, '');
+            const label = document.getElementById('new-cat-label').value.trim();
+            let icon = document.getElementById('new-cat-icon').value.trim();
+            if (!icon.startsWith('fa-')) icon = 'fa-' + icon;
+            if (!key || !label) return alert("Key and Label required (key must be lowercase, no spaces)");
+
+            if (window.editingCategoryId) {
+                try {
+                    await setDoc(doc(db, "categories", window.editingCategoryId), { key, label, icon }, { merge: true });
+                    alert("Category updated!");
+                    window.editingCategoryId = null;
+                    const btn = document.getElementById('cat-action-btn');
+                    btn.textContent = "Add Category";
+                    document.getElementById('new-cat-key').value = '';
+                    document.getElementById('new-cat-label').value = '';
+                    document.getElementById('new-cat-icon').value = '';
+                } catch (e) {
+                    alert("Error: " + e.message);
+                }
+            } else {
+                if ((window.allCategories || []).some(c => c.key === key)) return alert("Key already exists!");
+                const maxOrder = (window.allCategories || []).length ? Math.max(...(window.allCategories || []).map(c => c.order ?? 0)) + 1 : 0;
+                try {
+                    await addDoc(collection(db, "categories"), { key, label, icon, order: maxOrder });
+                    alert("Category added!");
+                    document.getElementById('new-cat-key').value = '';
+                    document.getElementById('new-cat-label').value = '';
+                    document.getElementById('new-cat-icon').value = '';
+                } catch (e) {
+                    alert("Error: " + e.message);
+                }
+            }
+        };
+
+        window.deleteCategory = async (docId, key) => {
+            if (!confirm(`Delete category "${key}" forever? Sites in this category will no longer appear until moved.`)) return;
+            try {
+                await deleteDoc(doc(db, "categories", docId));
+                alert("Category deleted!");
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        window.moveCategoryUp = async (docId) => {
+            const idx = (window.allCategories || []).findIndex(c => c.id === docId);
+            if (idx <= 0) return;
+            const thisCat = window.allCategories[idx];
+            const prevCat = window.allCategories[idx - 1];
+            const temp = thisCat.order;
+            thisCat.order = prevCat.order;
+            prevCat.order = temp;
+            try {
+                await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
+                await setDoc(doc(db, "categories", prevCat.id), { order: prevCat.order }, { merge: true });
+            } catch (e) {
+                alert("Reorder error: " + e.message);
+            }
+        };
+
+        window.moveCategoryDown = async (docId) => {
+            const idx = (window.allCategories || []).findIndex(c => c.id === docId);
+            if (idx >= (window.allCategories || []).length - 1) return;
+            const thisCat = window.allCategories[idx];
+            const nextCat = window.allCategories[idx + 1];
+            const temp = thisCat.order;
+            thisCat.order = nextCat.order;
+            nextCat.order = temp;
+            try {
+                await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
+                await setDoc(doc(db, "categories", nextCat.id), { order: nextCat.order }, { merge: true });
+            } catch (e) {
+                alert("Reorder error: " + e.message);
+            }
+        };
+
+        window.editCategory = (docId, key, label, icon) => {
+            window.editingCategoryId = docId;
+            document.getElementById('new-cat-key').value = key;
+            document.getElementById('new-cat-label').value = label;
+            document.getElementById('new-cat-icon').value = icon;
+            const btn = document.getElementById('cat-action-btn');
+            btn.textContent = "Update Category";
+        };
+
+        window.reloadAdminCategories = () => {
+            const container = document.getElementById('admin-categories-list');
+            if (!container) return;
+            container.innerHTML = '';
+            if (!(window.allCategories || []).length) {
+                container.innerHTML = '<p class="p-8 text-center text-white/50">No categories yet. Add one above!</p>';
+                return;
+            }
+            let html = '';
+            (window.allCategories || []).forEach(cat => {
+                html += `
+                    <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group">
+                        <div class="flex items-center gap-6">
+                            <i class="fa-solid ${cat.icon} text-4xl"></i>
+                            <div>
+                                <div class="font-semibold text-xl">${cat.label}</div>
+                                <div class="text-xs text-white/50 font-mono">key: ${cat.key}</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="moveCategoryUp('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
+                            <button onclick="moveCategoryDown('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
+                            <button onclick="editCategory('${cat.id}', '${cat.key}', '${cat.label.replace(/'/g, "\\'")}', '${cat.icon}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl">Edit</button>
+                            <button onclick="deleteCategory('${cat.id}', '${cat.key}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl">Delete</button>
+                        </div>
+                    </div>`;
+            });
+            container.innerHTML = html;
+        };
+
         window.loadAllSites = window.loadAllSites;
         window.populateAllGrids = window.populateAllGrids;
         window.showGlobalAnnouncement = window.showGlobalAnnouncement;
@@ -895,43 +1011,32 @@
         window.addNewSiteFromAdmin = window.addNewSiteFromAdmin;
         window.deleteSite = window.deleteSite;
         window.reloadAdminSites = window.reloadAdminSites;
+        window.loadCategories = window.loadCategories;
     </script>
 
     <script>
-        const tabIcons = ['fa-crown','fa-house','fa-gamepad','fa-brain','fa-tv','fa-shield-halved','fa-music','fa-gear','fa-user','fa-heart','fa-paper-plane'];
-        const tabTitles = ["Admin Panel","Home","Games","AI Tools","TV & Streaming","Proxies","Music","Settings","Account","Credits","Request a Site"];
-        const contentIds = ['content-admin','content-home','content-games','content-ai','content-tv','content-proxies','content-music','content-settings','content-account','content-credits'];
-
         function switchTab(index) {
-            // Clear active state from all sidebar items
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
-            document.getElementById(`tab-${index}`)?.classList.add('active-tab');
-
-            let contentIndex;
+            const activeEl = document.getElementById(`tab-${index}`);
+            if (activeEl) activeEl.classList.add('active-tab');
 
             if (!window.currentUser) {
-                contentIndex = 8; // Account
                 document.getElementById('current-tab').textContent = 'Sign In Required';
                 document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-lock';
-            } else {
-                const isAdmin = window.currentUser.email === window.ADMIN_EMAIL;
-
-                if (isAdmin) {
-                    // Admin nav order: 0=Admin Panel, 1=Home, 2=Games, etc.
-                    contentIndex = index; // Use the clicked index directly
-                    document.getElementById('current-tab').textContent = tabTitles[index];
-                    document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index]}`;
-                } else {
-                    // Non-admin nav starts with Home as index 0
-                    contentIndex = index + 1; // Skip Admin Panel content
-                    document.getElementById('current-tab').textContent = tabTitles[index + 1];
-                    document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${tabIcons[index + 1]}`;
-                }
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+                const acc = document.getElementById('content-account');
+                if (acc) acc.classList.remove('hidden');
+                return;
             }
 
-            // Hide all tab contents, show the selected one
+            const mapping = (window.tabMapping || [])[index];
+            if (!mapping) return;
+
+            document.getElementById('current-tab').textContent = mapping.title;
+            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${mapping.icon}`;
+
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            const target = document.getElementById(contentIds[contentIndex]);
+            const target = document.getElementById(mapping.contentId);
             if (target) target.classList.remove('hidden');
         }
 
@@ -1049,6 +1154,105 @@
                 cont.appendChild(el);
             });
         }
+
+        // DYNAMIC UI HELPERS
+        window.createCategoryContents = () => {
+            const container = document.getElementById('dynamic-category-contents');
+            if (!container) return;
+            container.innerHTML = '';
+            (window.allCategories || []).forEach(cat => {
+                const div = document.createElement('div');
+                div.id = `content-${cat.key}`;
+                div.className = 'tab-content hidden';
+                div.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="${cat.key}-grid"></div>`;
+                container.appendChild(div);
+            });
+        };
+
+        window.buildNav = () => {
+            const navLinks = document.getElementById('nav-links');
+            if (!navLinks) return;
+            if (!window.currentUser) {
+                navLinks.innerHTML = `
+                    <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
+                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+                    </div>
+                `;
+                return;
+            }
+            const isAdminUser = window.currentUser.email === window.ADMIN_EMAIL;
+            let navHTML = '';
+            window.tabMapping = [];
+            let idx = 0;
+            if (isAdminUser) {
+                navHTML += `
+                    <div onclick="switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                        <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
+                    </div>
+                `;
+                window.tabMapping.push({contentId: 'content-admin', title: 'Admin Panel', icon: 'fa-crown'});
+                idx++;
+                navHTML += '<div class="sidebar-separator mx-6"></div>';
+            }
+            // Home
+            const homeActive = !isAdminUser ? 'active-tab' : '';
+            navHTML += `
+                <div onclick="switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${homeActive}" id="tab-${idx}">
+                    <i class="fa-solid fa-house w-5"></i> <span>Home</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-home', title: 'Home', icon: 'fa-house'});
+            idx++;
+            // Categories
+            (window.allCategories || []).forEach(cat => {
+                navHTML += `
+                    <div onclick="switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                        <i class="fa-solid ${cat.icon} w-5"></i> <span>${cat.label}</span>
+                    </div>
+                `;
+                window.tabMapping.push({contentId: `content-${cat.key}`, title: cat.label, icon: cat.icon});
+                idx++;
+            });
+            // Settings
+            navHTML += `
+                <div onclick="switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                    <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-settings', title: 'Settings', icon: 'fa-gear'});
+            idx++;
+            // Account
+            navHTML += `
+                <div onclick="switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                    <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-account', title: 'Account', icon: 'fa-user'});
+            idx++;
+            // Credits
+            navHTML += `
+                <div onclick="switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                    <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-credits', title: 'Credits', icon: 'fa-heart'});
+            idx++;
+            // Request a Site
+            navHTML += `
+                <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
+                    <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
+                </div>
+            `;
+            navLinks.innerHTML = navHTML;
+        };
+
+        window.populateCategorySelect = () => {
+            const select = document.getElementById('admin-cat-select');
+            if (!select) return;
+            select.innerHTML = (window.allCategories || []).map(cat => 
+                `<option value="${cat.key}">${cat.label}</option>`
+            ).join('');
+        };
 
         function requestSite() {
             window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
