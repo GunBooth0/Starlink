@@ -651,6 +651,22 @@
                 snap = await getDocs(catRef);
             }
             window.allCategories = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+            // CRITICAL FIX FOR PROXIES (and any category): force sequential orders 0,1,2,... 
+            // This guarantees the arrow swap logic always works even if legacy data is broken
+            let needsUpdate = false;
+            window.allCategories.forEach((cat, idx) => {
+                if (cat.order !== idx) {
+                    cat.order = idx;
+                    needsUpdate = true;
+                }
+            });
+            if (needsUpdate) {
+                const promises = window.allCategories.map(cat => 
+                    setDoc(doc(db, "categories", cat.id), { order: cat.order }, { merge: true })
+                );
+                Promise.all(promises).catch(() => {});
+            }
         };
 
         window.loadAllSites = async () => {
@@ -665,25 +681,15 @@
                 }
             });
 
-            // CRITICAL FIX: Normalize orders for EVERY category (including proxies) so arrows always work
             Object.keys(window.allSites).forEach(catKey => {
                 let sites = window.allSites[catKey];
                 if (sites.length === 0) return;
-
                 const missingOrder = sites.some(s => typeof s.order !== 'number');
                 if (missingOrder) {
-                    // Sort legacy sites by name and assign clean sequential orders
                     sites.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-                    sites.forEach((s, idx) => {
-                        s.order = idx;
-                    });
-                    // Background write so DB stays in sync
-                    sites.forEach(s => {
-                        setDoc(doc(db, "sites", s.id), { order: s.order }, { merge: true }).catch(() => {});
-                    });
+                    sites.forEach((s, idx) => s.order = idx);
+                    sites.forEach(s => setDoc(doc(db, "sites", s.id), { order: s.order }, { merge: true }).catch(() => {}));
                 }
-
-                // Final sort by order (now guaranteed to have numbers)
                 sites.sort((a, b) => (a.order ?? 999999) - (b.order ?? 999999));
             });
         };
@@ -817,6 +823,7 @@
             try {
                 await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
                 await setDoc(doc(db, "categories", prevCat.id), { order: prevCat.order }, { merge: true });
+                window.reloadAdminCategories(); // instant UI update
             } catch (e) {
                 alert("Reorder error: " + e.message);
             }
@@ -833,6 +840,7 @@
             try {
                 await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
                 await setDoc(doc(db, "categories", nextCat.id), { order: nextCat.order }, { merge: true });
+                window.reloadAdminCategories(); // instant UI update
             } catch (e) {
                 alert("Reorder error: " + e.message);
             }
@@ -858,7 +866,7 @@
             try {
                 await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
                 await setDoc(doc(db, "sites", prevSite.id), { order: prevSite.order }, { merge: true });
-                window.reloadAdminSites(); // instant UI update (exactly like categories)
+                window.reloadAdminSites();
             } catch (e) {
                 alert("Reorder error: " + e.message);
             }
@@ -876,7 +884,7 @@
             try {
                 await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
                 await setDoc(doc(db, "sites", nextSite.id), { order: nextSite.order }, { merge: true });
-                window.reloadAdminSites(); // instant UI update
+                window.reloadAdminSites();
             } catch (e) {
                 alert("Reorder error: " + e.message);
             }
