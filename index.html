@@ -284,19 +284,7 @@
                     <h3 class="text-2xl font-semibold mb-6">Appearance • Choose Theme</h3>
                     <p class="text-white/70 mb-8">Click a color to instantly change the accent, stars, glow, and sidebar highlights</p>
                     <div id="theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div>
-                    <div class="mt-12 pt-8 border-t border-white/10">
-                        <h3 class="text-2xl font-semibold mb-6">Link Behavior</h3>
-                        <div class="flex justify-between items-center py-4">
-                            <div class="flex items-center gap-x-3 text-lg">
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                <span>Open links in new tab</span>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" class="sr-only peer" id="newtab-toggle">
-                                <div class="w-14 h-7 bg-white/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]"></div>
-                            </label>
-                        </div>
-                    </div>
+                    
                     <div class="mt-12 pt-8 border-t border-white/10">
                         <h3 class="text-2xl font-semibold mb-6 text-red-400">Danger Zone</h3>
                         <button onclick="resetEverything()" class="bg-red-600 hover:bg-red-700 text-white font-medium py-4 px-8 rounded-xl transition-colors text-lg">
@@ -849,7 +837,7 @@
             document.getElementById('cat-action-btn').textContent = "Update Category";
         };
 
-        // EXACT SAME ARROW SYSTEM AS CATEGORIES (just per-category)
+        // EXACT SAME ARROW SYSTEM AS CATEGORIES (now fully consistent – no manual reload)
         window.moveSiteUp = async (siteId, categoryKey) => {
             const sites = (window.allSites || {})[categoryKey] || [];
             const idx = sites.findIndex(s => s.id === siteId);
@@ -862,7 +850,7 @@
             try {
                 await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
                 await setDoc(doc(db, "sites", prevSite.id), { order: prevSite.order }, { merge: true });
-                window.reloadAdminSites();   // instant UI update (same as categories listener)
+                // NO manual reload here – the sitesListener will fire and reload everything (same as categories)
             } catch (e) {
                 alert("Reorder error: " + e.message);
             }
@@ -880,7 +868,7 @@
             try {
                 await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
                 await setDoc(doc(db, "sites", nextSite.id), { order: nextSite.order }, { merge: true });
-                window.reloadAdminSites();   // instant UI update
+                // NO manual reload here – the sitesListener will fire and reload everything
             } catch (e) {
                 alert("Reorder error: " + e.message);
             }
@@ -1077,9 +1065,6 @@
             if (!confirm("Reset all & sign out?")) return;
             localStorage.clear();
             document.documentElement.style.setProperty('--accent', '#ffffff');
-            const cb = document.getElementById('newtab-toggle');
-            if (cb) cb.checked = true;
-            localStorage.setItem('starlinkNewTab', 'true');
             firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
         };
 
@@ -1090,17 +1075,6 @@
 
         function loadTheme() {
             setTheme(localStorage.getItem('starlinkAccent') || '#ffffff');
-        }
-
-        function saveNewTabPreference(val) {
-            localStorage.setItem('starlinkNewTab', val ? 'true' : 'false');
-        }
-
-        function loadNewTabPreference() {
-            const saved = localStorage.getItem('starlinkNewTab');
-            const cb = document.getElementById('newtab-toggle');
-            cb.checked = saved === null || saved === 'true';
-            saveNewTabPreference(cb.checked);
         }
 
         function createStar(x, y) {
@@ -1182,8 +1156,8 @@
                     <div class="text-white/60 text-sm">${site.desc || ''}</div>
                 `;
                 card.onclick = () => {
-                    const nt = document.getElementById('newtab-toggle').checked;
-                    (nt ? window.open : location.assign)(site.url, nt ? '_blank' : '_self');
+                    // Always open in new tab (Link Behavior setting removed)
+                    window.open(site.url, '_blank');
                 };
                 cont.appendChild(card);
             });
@@ -1291,9 +1265,7 @@
 
         function initialize() {
             loadTheme();
-            loadNewTabPreference();
             initStars();
-            document.getElementById('newtab-toggle')?.addEventListener('change', e => saveNewTabPreference(e.target.checked));
         }
 
         window.onload = initialize;
