@@ -390,7 +390,7 @@
                     </div>
 
                     <!-- Sites Management -->
-                    <div>
+                    <div class="mb-16">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="text-2xl font-semibold flex items-center gap-3">
                                 <i class="fa-solid fa-globe"></i> Manage Sites
@@ -673,17 +673,34 @@
             const snap = await getDocs(collection(db, "sites"));
             window.allSites = {};
             (window.allCategories || []).forEach(cat => window.allSites[cat.key] = []);
+            let updatePromises = [];
             snap.forEach(d => {
-                const data = d.data();
+                let data = d.data();
                 data.id = d.id;
                 if (window.allSites[data.category] !== undefined) {
                     window.allSites[data.category].push(data);
                 }
             });
-            // Sort sites by order field (if exists), fallback to document order
-            Object.keys(window.allSites).forEach(catKey => {
-                window.allSites[catKey].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-            });
+            // Normalize orders per category (existing ordered sites keep relative order, new ones appended by name)
+            for (const catKey of Object.keys(window.allSites)) {
+                let sites = window.allSites[catKey];
+                if (sites.length === 0) continue;
+                const orderedSites = sites.filter(s => typeof s.order === 'number').sort((a, b) => a.order - b.order);
+                const unorderedSites = sites.filter(s => typeof s.order !== 'number').sort((a, b) => a.name.localeCompare(b.name));
+                const sortedSites = [...orderedSites, ...unorderedSites];
+                sortedSites.forEach((site, idx) => {
+                    if (site.order !== idx) {
+                        site.order = idx;
+                        updatePromises.push(
+                            setDoc(doc(db, "sites", site.id), { order: idx }, { merge: true })
+                        );
+                    }
+                });
+                window.allSites[catKey] = sortedSites;
+            }
+            if (updatePromises.length > 0) {
+                Promise.all(updatePromises).catch(e => console.error("Order assignment error:", e));
+            }
         };
 
         window.populateAllGrids = () => {
@@ -844,6 +861,41 @@
             document.getElementById('cat-action-btn').textContent = "Update Category";
         };
 
+        // NEW: Site reordering (exactly like categories)
+        window.moveSiteUp = async (siteId, categoryKey) => {
+            const sites = (window.allSites || {})[categoryKey] || [];
+            const idx = sites.findIndex(s => s.id === siteId);
+            if (idx <= 0) return;
+            const thisSite = sites[idx];
+            const prevSite = sites[idx - 1];
+            const tempOrder = thisSite.order;
+            thisSite.order = prevSite.order;
+            prevSite.order = tempOrder;
+            try {
+                await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
+                await setDoc(doc(db, "sites", prevSite.id), { order: prevSite.order }, { merge: true });
+            } catch (e) {
+                alert("Reorder error: " + e.message);
+            }
+        };
+
+        window.moveSiteDown = async (siteId, categoryKey) => {
+            const sites = (window.allSites || {})[categoryKey] || [];
+            const idx = sites.findIndex(s => s.id === siteId);
+            if (idx >= sites.length - 1 || idx < 0) return;
+            const thisSite = sites[idx];
+            const nextSite = sites[idx + 1];
+            const tempOrder = thisSite.order;
+            thisSite.order = nextSite.order;
+            nextSite.order = tempOrder;
+            try {
+                await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
+                await setDoc(doc(db, "sites", nextSite.id), { order: nextSite.order }, { merge: true });
+            } catch (e) {
+                alert("Reorder error: " + e.message);
+            }
+        };
+
         window.reloadAdminCategories = () => {
             const container = document.getElementById('admin-categories-list');
             container.innerHTML = '';
@@ -882,8 +934,11 @@
 
             if (!name || !url) return alert("Name and URL required");
 
+            // Calculate next order in this category
+            const currentSites = window.allSites[cat] || [];
+            const maxOrder = currentSites.length > 0 ? Math.max(...currentSites.map(s => s.order ?? 0)) + 1 : 0;
+
             try {
-                const maxOrder = window.allSites[cat]?.length || 0;
                 await addDoc(collection(db, "sites"), { 
                     category: cat, 
                     name, 
@@ -894,9 +949,7 @@
                 });
                 alert("Site added! Non-admin users will see a refresh prompt.");
                 ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
-                await window.loadAllSites();
-                window.populateAllGrids();
-                window.reloadAdminSites();
+                // listener will handle refresh
             } catch (e) {
                 alert("Error: " + e.message);
             }
@@ -906,55 +959,9 @@
             if (!confirm("Delete forever?")) return;
             try {
                 await deleteDoc(doc(db, "sites", id));
-                await window.loadAllSites();
-                window.populateAllGrids();
-                window.reloadAdminSites();
+                // listener will handle refresh + reordering of remaining sites
             } catch (e) {
                 alert("Error: " + e.message);
-            }
-        };
-
-        window.moveSiteUp = async (siteId, category) => {
-            const sites = window.allSites[category] || [];
-            const idx = sites.findIndex(s => s.id === siteId);
-            if (idx <= 0) return;
-
-            const thisSite = sites[idx];
-            const prevSite = sites[idx - 1];
-
-            const temp = thisSite.order ?? idx;
-            thisSite.order = prevSite.order ?? (idx - 1);
-            prevSite.order = temp;
-
-            try {
-                await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
-                await setDoc(doc(db, "sites", prevSite.id), { order: prevSite.order }, { merge: true });
-                await window.loadAllSites();
-                window.reloadAdminSites();
-            } catch (e) {
-                alert("Reorder error: " + e.message);
-            }
-        };
-
-        window.moveSiteDown = async (siteId, category) => {
-            const sites = window.allSites[category] || [];
-            const idx = sites.findIndex(s => s.id === siteId);
-            if (idx >= sites.length - 1 || idx < 0) return;
-
-            const thisSite = sites[idx];
-            const nextSite = sites[idx + 1];
-
-            const temp = thisSite.order ?? idx;
-            thisSite.order = nextSite.order ?? (idx + 1);
-            nextSite.order = temp;
-
-            try {
-                await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
-                await setDoc(doc(db, "sites", nextSite.id), { order: nextSite.order }, { merge: true });
-                await window.loadAllSites();
-                window.reloadAdminSites();
-            } catch (e) {
-                alert("Reorder error: " + e.message);
             }
         };
 
@@ -989,9 +996,7 @@
                     ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                     btn.textContent = 'Add New Site';
                     btn.onclick = window.addNewSiteFromAdmin;
-                    await window.loadAllSites();
-                    window.populateAllGrids();
-                    window.reloadAdminSites();
+                    // listener will handle refresh
                 } catch (e) {
                     alert("Error updating site: " + e.message);
                 }
@@ -1019,16 +1024,14 @@
                                         ${s.desc ? `<div class="text-xs text-white/60 mt-1">${s.desc}</div>` : ''}
                                     </div>
                                 </div>
-                                <div class="flex gap-3">
-                                    <button onclick="window.moveSiteUp('${s.id}', '${s.category}'); event.stopPropagation()" 
-                                            class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
-                                    <button onclick="window.moveSiteDown('${s.id}', '${s.category}'); event.stopPropagation()" 
-                                            class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
+                                <div class="flex gap-2">
+                                    <button onclick="window.moveSiteUp('${s.id}', '${s.category}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
+                                    <button onclick="window.moveSiteDown('${s.id}', '${s.category}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
                                     <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation()" 
                                             class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">
                                         Edit
                                     </button>
-                                    <button onclick="window.deleteSite('${s.id}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">
+                                    <button onclick="window.deleteSite('${s.id}'); event.stopPropagation();" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">
                                         Delete
                                     </button>
                                 </div>
@@ -1051,6 +1054,8 @@
         window.deleteSite = window.deleteSite;
         window.reloadAdminSites = window.reloadAdminSites;
         window.loadCategories = window.loadCategories;
+        window.moveSiteUp = window.moveSiteUp;
+        window.moveSiteDown = window.moveSiteDown;
     </script>
 
     <!-- Global scope functions (needed for onclick) -->
