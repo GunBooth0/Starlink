@@ -673,34 +673,22 @@
             const snap = await getDocs(collection(db, "sites"));
             window.allSites = {};
             (window.allCategories || []).forEach(cat => window.allSites[cat.key] = []);
-            let updatePromises = [];
             snap.forEach(d => {
-                let data = d.data();
+                const data = d.data();
                 data.id = d.id;
                 if (window.allSites[data.category] !== undefined) {
                     window.allSites[data.category].push(data);
                 }
             });
-            // Normalize orders per category (existing ordered sites keep relative order, new ones appended by name)
-            for (const catKey of Object.keys(window.allSites)) {
-                let sites = window.allSites[catKey];
-                if (sites.length === 0) continue;
-                const orderedSites = sites.filter(s => typeof s.order === 'number').sort((a, b) => a.order - b.order);
-                const unorderedSites = sites.filter(s => typeof s.order !== 'number').sort((a, b) => a.name.localeCompare(b.name));
-                const sortedSites = [...orderedSites, ...unorderedSites];
-                sortedSites.forEach((site, idx) => {
-                    if (site.order !== idx) {
-                        site.order = idx;
-                        updatePromises.push(
-                            setDoc(doc(db, "sites", site.id), { order: idx }, { merge: true })
-                        );
-                    }
+            // Sort exactly like categories (order number first, legacy sites at end by name)
+            Object.keys(window.allSites).forEach(catKey => {
+                window.allSites[catKey].sort((a, b) => {
+                    const oa = typeof a.order === 'number' ? a.order : 999999;
+                    const ob = typeof b.order === 'number' ? b.order : 999999;
+                    if (oa !== ob) return oa - ob;
+                    return (a.name || '').localeCompare(b.name || '');
                 });
-                window.allSites[catKey] = sortedSites;
-            }
-            if (updatePromises.length > 0) {
-                Promise.all(updatePromises).catch(e => console.error("Order assignment error:", e));
-            }
+            });
         };
 
         window.populateAllGrids = () => {
@@ -861,19 +849,20 @@
             document.getElementById('cat-action-btn').textContent = "Update Category";
         };
 
-        // NEW: Site reordering (exactly like categories)
+        // EXACT SAME ARROW SYSTEM AS CATEGORIES (just per-category)
         window.moveSiteUp = async (siteId, categoryKey) => {
             const sites = (window.allSites || {})[categoryKey] || [];
             const idx = sites.findIndex(s => s.id === siteId);
             if (idx <= 0) return;
             const thisSite = sites[idx];
             const prevSite = sites[idx - 1];
-            const tempOrder = thisSite.order;
-            thisSite.order = prevSite.order;
-            prevSite.order = tempOrder;
+            const temp = thisSite.order ?? 999999;
+            thisSite.order = prevSite.order ?? 999999;
+            prevSite.order = temp;
             try {
                 await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
                 await setDoc(doc(db, "sites", prevSite.id), { order: prevSite.order }, { merge: true });
+                window.reloadAdminSites();   // instant UI update (same as categories listener)
             } catch (e) {
                 alert("Reorder error: " + e.message);
             }
@@ -885,12 +874,13 @@
             if (idx >= sites.length - 1 || idx < 0) return;
             const thisSite = sites[idx];
             const nextSite = sites[idx + 1];
-            const tempOrder = thisSite.order;
-            thisSite.order = nextSite.order;
-            nextSite.order = tempOrder;
+            const temp = thisSite.order ?? 999999;
+            thisSite.order = nextSite.order ?? 999999;
+            nextSite.order = temp;
             try {
                 await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
                 await setDoc(doc(db, "sites", nextSite.id), { order: nextSite.order }, { merge: true });
+                window.reloadAdminSites();   // instant UI update
             } catch (e) {
                 alert("Reorder error: " + e.message);
             }
@@ -934,9 +924,8 @@
 
             if (!name || !url) return alert("Name and URL required");
 
-            // Calculate next order in this category
             const currentSites = window.allSites[cat] || [];
-            const maxOrder = currentSites.length > 0 ? Math.max(...currentSites.map(s => s.order ?? 0)) + 1 : 0;
+            const maxOrder = currentSites.reduce((max, s) => Math.max(max, typeof s.order === 'number' ? s.order : -1), -1) + 1;
 
             try {
                 await addDoc(collection(db, "sites"), { 
@@ -949,7 +938,6 @@
                 });
                 alert("Site added! Non-admin users will see a refresh prompt.");
                 ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
-                // listener will handle refresh
             } catch (e) {
                 alert("Error: " + e.message);
             }
@@ -959,7 +947,6 @@
             if (!confirm("Delete forever?")) return;
             try {
                 await deleteDoc(doc(db, "sites", id));
-                // listener will handle refresh + reordering of remaining sites
             } catch (e) {
                 alert("Error: " + e.message);
             }
@@ -996,7 +983,6 @@
                     ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                     btn.textContent = 'Add New Site';
                     btn.onclick = window.addNewSiteFromAdmin;
-                    // listener will handle refresh
                 } catch (e) {
                     alert("Error updating site: " + e.message);
                 }
