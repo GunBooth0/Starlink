@@ -652,8 +652,6 @@
             }
             window.allCategories = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-            // CRITICAL FIX FOR PROXIES (and any category): force sequential orders 0,1,2,... 
-            // This guarantees the arrow swap logic always works even if legacy data is broken
             let needsUpdate = false;
             window.allCategories.forEach((cat, idx) => {
                 if (cat.order !== idx) {
@@ -823,7 +821,9 @@
             try {
                 await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
                 await setDoc(doc(db, "categories", prevCat.id), { order: prevCat.order }, { merge: true });
-                window.reloadAdminCategories(); // instant UI update
+                // RE-FETCH + REBUILD (this fixes the arrows completely)
+                await window.loadCategories();
+                window.reloadAdminCategories();
             } catch (e) {
                 alert("Reorder error: " + e.message);
             }
@@ -840,7 +840,9 @@
             try {
                 await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
                 await setDoc(doc(db, "categories", nextCat.id), { order: nextCat.order }, { merge: true });
-                window.reloadAdminCategories(); // instant UI update
+                // RE-FETCH + REBUILD (this fixes the arrows completely)
+                await window.loadCategories();
+                window.reloadAdminCategories();
             } catch (e) {
                 alert("Reorder error: " + e.message);
             }
@@ -866,6 +868,8 @@
             try {
                 await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
                 await setDoc(doc(db, "sites", prevSite.id), { order: prevSite.order }, { merge: true });
+                // RE-FETCH + REBUILD
+                await window.loadAllSites();
                 window.reloadAdminSites();
             } catch (e) {
                 alert("Reorder error: " + e.message);
@@ -884,10 +888,49 @@
             try {
                 await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
                 await setDoc(doc(db, "sites", nextSite.id), { order: nextSite.order }, { merge: true });
+                // RE-FETCH + REBUILD
+                await window.loadAllSites();
                 window.reloadAdminSites();
             } catch (e) {
                 alert("Reorder error: " + e.message);
             }
+        };
+
+        window.editSite = (id, category, name, url, icon, desc) => {
+            document.getElementById('admin-cat-select').value = category;
+            document.getElementById('new-site-name').value = name;
+            document.getElementById('new-site-url').value = url;
+            document.getElementById('new-site-icon').value = icon || '';
+            document.getElementById('new-site-desc').value = desc || '';
+
+            const btn = document.getElementById('add-update-site-btn');
+            btn.textContent = 'Update Site';
+            btn.onclick = async () => {
+                const newCat = document.getElementById('admin-cat-select').value;
+                const newName = document.getElementById('new-site-name').value.trim();
+                const newUrl = document.getElementById('new-site-url').value.trim();
+                const newIcon = document.getElementById('new-site-icon').value.trim();
+                const newDesc = document.getElementById('new-site-desc').value.trim();
+
+                if (!newName || !newUrl) return alert("Name and URL required");
+
+                try {
+                    await setDoc(doc(db, "sites", id), {
+                        category: newCat,
+                        name: newName,
+                        url: newUrl,
+                        icon: newIcon,
+                        desc: newDesc,
+                        updatedAt: serverTimestamp()
+                    }, { merge: true });
+                    alert("Site updated successfully!");
+                    ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
+                    btn.textContent = 'Add New Site';
+                    btn.onclick = window.addNewSiteFromAdmin;
+                } catch (e) {
+                    alert("Error updating site: " + e.message);
+                }
+            };
         };
 
         window.reloadAdminCategories = () => {
@@ -900,7 +943,7 @@
             let html = '';
             window.allCategories.forEach(cat => {
                 html += `
-                    <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group">
+                    <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-3xl group">
                         <div class="flex items-center gap-6">
                             <i class="fa-solid ${cat.icon} text-4xl"></i>
                             <div>
@@ -908,11 +951,15 @@
                                 <div class="text-xs text-white/50 font-mono">key: ${cat.key}</div>
                             </div>
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="window.moveCategoryUp('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
-                            <button onclick="window.moveCategoryDown('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
-                            <button onclick="window.editCategory('${cat.id}', '${cat.key}', '${cat.label.replace(/'/g, "\\'")}', '${cat.icon}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl">Edit</button>
-                            <button onclick="window.deleteCategory('${cat.id}', '${cat.key}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl">Delete</button>
+                        <div class="flex gap-3">
+                            <button onclick="window.moveCategoryUp('${cat.id}'); event.stopPropagation()" 
+                                    class="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-2xl text-xl">↑</button>
+                            <button onclick="window.moveCategoryDown('${cat.id}'); event.stopPropagation()" 
+                                    class="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-2xl text-xl">↓</button>
+                            <button onclick="window.editCategory('${cat.id}', '${cat.key}', '${cat.label.replace(/'/g, "\\'")}', '${cat.icon}'); event.stopPropagation()" 
+                                    class="px-6 py-2 text-sm bg-blue-900/70 hover:bg-blue-900 text-blue-300 rounded-2xl">Edit</button>
+                            <button onclick="window.deleteCategory('${cat.id}', '${cat.key}'); event.stopPropagation()" 
+                                    class="px-6 py-2 text-sm bg-red-900/70 hover:bg-red-900 text-red-300 rounded-2xl">Delete</button>
                         </div>
                     </div>`;
             });
@@ -956,43 +1003,6 @@
             }
         };
 
-        window.editSite = (id, category, name, url, icon, desc) => {
-            document.getElementById('admin-cat-select').value = category;
-            document.getElementById('new-site-name').value = name;
-            document.getElementById('new-site-url').value = url;
-            document.getElementById('new-site-icon').value = icon || '';
-            document.getElementById('new-site-desc').value = desc || '';
-
-            const btn = document.getElementById('add-update-site-btn');
-            btn.textContent = 'Update Site';
-            btn.onclick = async () => {
-                const newCat = document.getElementById('admin-cat-select').value;
-                const newName = document.getElementById('new-site-name').value.trim();
-                const newUrl = document.getElementById('new-site-url').value.trim();
-                const newIcon = document.getElementById('new-site-icon').value.trim();
-                const newDesc = document.getElementById('new-site-desc').value.trim();
-
-                if (!newName || !newUrl) return alert("Name and URL required");
-
-                try {
-                    await setDoc(doc(db, "sites", id), {
-                        category: newCat,
-                        name: newName,
-                        url: newUrl,
-                        icon: newIcon,
-                        desc: newDesc,
-                        updatedAt: serverTimestamp()
-                    }, { merge: true });
-                    alert("Site updated successfully!");
-                    ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
-                    btn.textContent = 'Add New Site';
-                    btn.onclick = window.addNewSiteFromAdmin;
-                } catch (e) {
-                    alert("Error updating site: " + e.message);
-                }
-            };
-        };
-
         window.reloadAdminSites = () => {
             const container = document.getElementById('admin-sites-list');
             container.innerHTML = '';
@@ -1005,7 +1015,7 @@
                     sites.forEach(s => {
                         const iconDisplay = s.icon ? `<div class="text-5xl">${s.icon}</div>` : '<div class="text-5xl opacity-30">–</div>';
                         html += `
-                            <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group transition-all">
+                            <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-3xl group transition-all">
                                 <div class="flex items-center gap-6">
                                     ${iconDisplay}
                                     <div>
@@ -1014,14 +1024,17 @@
                                         ${s.desc ? `<div class="text-xs text-white/60 mt-1">${s.desc}</div>` : ''}
                                     </div>
                                 </div>
-                                <div class="flex gap-2">
-                                    <button onclick="window.moveSiteUp('${s.id}', '${s.category}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
-                                    <button onclick="window.moveSiteDown('${s.id}', '${s.category}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
+                                <div class="flex gap-3">
+                                    <button onclick="window.moveSiteUp('${s.id}', '${s.category}'); event.stopPropagation()" 
+                                            class="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-2xl text-xl">↑</button>
+                                    <button onclick="window.moveSiteDown('${s.id}', '${s.category}'); event.stopPropagation()" 
+                                            class="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-2xl text-xl">↓</button>
                                     <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation()" 
-                                            class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">
+                                            class="px-6 py-2 text-sm bg-blue-900/70 hover:bg-blue-900 text-blue-300 rounded-2xl">
                                         Edit
                                     </button>
-                                    <button onclick="window.deleteSite('${s.id}'); event.stopPropagation();" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">
+                                    <button onclick="window.deleteSite('${s.id}'); event.stopPropagation();" 
+                                            class="px-6 py-2 text-sm bg-red-900/70 hover:bg-red-900 text-red-300 rounded-2xl">
                                         Delete
                                     </button>
                                 </div>
