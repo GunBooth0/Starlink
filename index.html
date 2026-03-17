@@ -284,7 +284,19 @@
                     <h3 class="text-2xl font-semibold mb-6">Appearance • Choose Theme</h3>
                     <p class="text-white/70 mb-8">Click a color to instantly change the accent, stars, glow, and sidebar highlights</p>
                     <div id="theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div>
-                    
+                    <div class="mt-12 pt-8 border-t border-white/10">
+                        <h3 class="text-2xl font-semibold mb-6">Link Behavior</h3>
+                        <div class="flex justify-between items-center py-4">
+                            <div class="flex items-center gap-x-3 text-lg">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                <span>Open links in new tab</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer" id="newtab-toggle">
+                                <div class="w-14 h-7 bg-white/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]"></div>
+                            </label>
+                        </div>
+                    </div>
                     <div class="mt-12 pt-8 border-t border-white/10">
                         <h3 class="text-2xl font-semibold mb-6 text-red-400">Danger Zone</h3>
                         <button onclick="resetEverything()" class="bg-red-600 hover:bg-red-700 text-white font-medium py-4 px-8 rounded-xl transition-colors text-lg">
@@ -378,13 +390,10 @@
                     </div>
 
                     <!-- Sites Management -->
-                    <div class="mb-16">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-globe"></i> Manage Sites
-                            </h3>
-                            <button onclick="reloadAdminSites()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
-                        </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
+                            <i class="fa-solid fa-globe"></i> Manage Sites
+                        </h3>
                         <div class="bg-black/40 p-8 rounded-3xl mb-10" id="admin-sites-management">
                             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                                 <div>
@@ -438,6 +447,10 @@
 
     <!-- Firebase SDK -->
     <script type="module">
+        // ────────────────────────────────────────────────
+        //   All Firebase / auth / data logic stays here
+        // ────────────────────────────────────────────────
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
@@ -651,20 +664,6 @@
                 snap = await getDocs(catRef);
             }
             window.allCategories = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-
-            let needsUpdate = false;
-            window.allCategories.forEach((cat, idx) => {
-                if (cat.order !== idx) {
-                    cat.order = idx;
-                    needsUpdate = true;
-                }
-            });
-            if (needsUpdate) {
-                const promises = window.allCategories.map(cat => 
-                    setDoc(doc(db, "categories", cat.id), { order: cat.order }, { merge: true })
-                );
-                Promise.all(promises).catch(() => {});
-            }
         };
 
         window.loadAllSites = async () => {
@@ -677,18 +676,6 @@
                 if (window.allSites[data.category] !== undefined) {
                     window.allSites[data.category].push(data);
                 }
-            });
-
-            Object.keys(window.allSites).forEach(catKey => {
-                let sites = window.allSites[catKey];
-                if (sites.length === 0) return;
-                const missingOrder = sites.some(s => typeof s.order !== 'number');
-                if (missingOrder) {
-                    sites.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-                    sites.forEach((s, idx) => s.order = idx);
-                    sites.forEach(s => setDoc(doc(db, "sites", s.id), { order: s.order }, { merge: true }).catch(() => {}));
-                }
-                sites.sort((a, b) => (a.order ?? 999999) - (b.order ?? 999999));
             });
         };
 
@@ -821,9 +808,6 @@
             try {
                 await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
                 await setDoc(doc(db, "categories", prevCat.id), { order: prevCat.order }, { merge: true });
-                // RE-FETCH + REBUILD (this fixes the arrows completely)
-                await window.loadCategories();
-                window.reloadAdminCategories();
             } catch (e) {
                 alert("Reorder error: " + e.message);
             }
@@ -840,9 +824,6 @@
             try {
                 await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
                 await setDoc(doc(db, "categories", nextCat.id), { order: nextCat.order }, { merge: true });
-                // RE-FETCH + REBUILD (this fixes the arrows completely)
-                await window.loadCategories();
-                window.reloadAdminCategories();
             } catch (e) {
                 alert("Reorder error: " + e.message);
             }
@@ -856,43 +837,65 @@
             document.getElementById('cat-action-btn').textContent = "Update Category";
         };
 
-        window.moveSiteUp = async (siteId, categoryKey) => {
-            const sites = (window.allSites || {})[categoryKey] || [];
-            const idx = sites.findIndex(s => s.id === siteId);
-            if (idx <= 0) return;
-            const thisSite = sites[idx];
-            const prevSite = sites[idx - 1];
-            const temp = thisSite.order;
-            thisSite.order = prevSite.order;
-            prevSite.order = temp;
+        window.reloadAdminCategories = () => {
+            const container = document.getElementById('admin-categories-list');
+            container.innerHTML = '';
+            if (!(window.allCategories || []).length) {
+                container.innerHTML = '<p class="p-8 text-center text-white/50">No categories yet. Add one above!</p>';
+                return;
+            }
+            let html = '';
+            window.allCategories.forEach(cat => {
+                html += `
+                    <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group">
+                        <div class="flex items-center gap-6">
+                            <i class="fa-solid ${cat.icon} text-4xl"></i>
+                            <div>
+                                <div class="font-semibold text-xl">${cat.label}</div>
+                                <div class="text-xs text-white/50 font-mono">key: ${cat.key}</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="window.moveCategoryUp('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
+                            <button onclick="window.moveCategoryDown('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
+                            <button onclick="window.editCategory('${cat.id}', '${cat.key}', '${cat.label.replace(/'/g, "\\'")}', '${cat.icon}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl">Edit</button>
+                            <button onclick="window.deleteCategory('${cat.id}', '${cat.key}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl">Delete</button>
+                        </div>
+                    </div>`;
+            });
+            container.innerHTML = html;
+        };
+
+        window.addNewSiteFromAdmin = async () => {
+            const cat = document.getElementById('admin-cat-select').value;
+            const name = document.getElementById('new-site-name').value.trim();
+            const url = document.getElementById('new-site-url').value.trim();
+            const icon = document.getElementById('new-site-icon').value.trim();
+            const desc = document.getElementById('new-site-desc').value.trim();
+
+            if (!name || !url) return alert("Name and URL required");
+
             try {
-                await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
-                await setDoc(doc(db, "sites", prevSite.id), { order: prevSite.order }, { merge: true });
-                // RE-FETCH + REBUILD
+                await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc });
+                alert("Site added! Non-admin users will see a refresh prompt.");
+                ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                 await window.loadAllSites();
+                window.populateAllGrids();
                 window.reloadAdminSites();
             } catch (e) {
-                alert("Reorder error: " + e.message);
+                alert("Error: " + e.message);
             }
         };
 
-        window.moveSiteDown = async (siteId, categoryKey) => {
-            const sites = (window.allSites || {})[categoryKey] || [];
-            const idx = sites.findIndex(s => s.id === siteId);
-            if (idx >= sites.length - 1 || idx < 0) return;
-            const thisSite = sites[idx];
-            const nextSite = sites[idx + 1];
-            const temp = thisSite.order;
-            thisSite.order = nextSite.order;
-            nextSite.order = temp;
+        window.deleteSite = async (id) => {
+            if (!confirm("Delete forever?")) return;
             try {
-                await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
-                await setDoc(doc(db, "sites", nextSite.id), { order: nextSite.order }, { merge: true });
-                // RE-FETCH + REBUILD
+                await deleteDoc(doc(db, "sites", id));
                 await window.loadAllSites();
+                window.populateAllGrids();
                 window.reloadAdminSites();
             } catch (e) {
-                alert("Reorder error: " + e.message);
+                alert("Error: " + e.message);
             }
         };
 
@@ -927,80 +930,13 @@
                     ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                     btn.textContent = 'Add New Site';
                     btn.onclick = window.addNewSiteFromAdmin;
+                    await window.loadAllSites();
+                    window.populateAllGrids();
+                    window.reloadAdminSites();
                 } catch (e) {
                     alert("Error updating site: " + e.message);
                 }
             };
-        };
-
-        window.reloadAdminCategories = () => {
-            const container = document.getElementById('admin-categories-list');
-            container.innerHTML = '';
-            if (!(window.allCategories || []).length) {
-                container.innerHTML = '<p class="p-8 text-center text-white/50">No categories yet. Add one above!</p>';
-                return;
-            }
-            let html = '';
-            window.allCategories.forEach(cat => {
-                html += `
-                    <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-3xl group">
-                        <div class="flex items-center gap-6">
-                            <i class="fa-solid ${cat.icon} text-4xl"></i>
-                            <div>
-                                <div class="font-semibold text-xl">${cat.label}</div>
-                                <div class="text-xs text-white/50 font-mono">key: ${cat.key}</div>
-                            </div>
-                        </div>
-                        <div class="flex gap-3">
-                            <button onclick="window.moveCategoryUp('${cat.id}'); event.stopPropagation()" 
-                                    class="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-2xl text-xl">↑</button>
-                            <button onclick="window.moveCategoryDown('${cat.id}'); event.stopPropagation()" 
-                                    class="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-2xl text-xl">↓</button>
-                            <button onclick="window.editCategory('${cat.id}', '${cat.key}', '${cat.label.replace(/'/g, "\\'")}', '${cat.icon}'); event.stopPropagation()" 
-                                    class="px-6 py-2 text-sm bg-blue-900/70 hover:bg-blue-900 text-blue-300 rounded-2xl">Edit</button>
-                            <button onclick="window.deleteCategory('${cat.id}', '${cat.key}'); event.stopPropagation()" 
-                                    class="px-6 py-2 text-sm bg-red-900/70 hover:bg-red-900 text-red-300 rounded-2xl">Delete</button>
-                        </div>
-                    </div>`;
-            });
-            container.innerHTML = html;
-        };
-
-        window.addNewSiteFromAdmin = async () => {
-            const cat = document.getElementById('admin-cat-select').value;
-            const name = document.getElementById('new-site-name').value.trim();
-            const url = document.getElementById('new-site-url').value.trim();
-            const icon = document.getElementById('new-site-icon').value.trim();
-            const desc = document.getElementById('new-site-desc').value.trim();
-
-            if (!name || !url) return alert("Name and URL required");
-
-            const currentSites = window.allSites[cat] || [];
-            const maxOrder = currentSites.length ? Math.max(...currentSites.map(s => s.order ?? -1)) + 1 : 0;
-
-            try {
-                await addDoc(collection(db, "sites"), { 
-                    category: cat, 
-                    name, 
-                    url, 
-                    icon, 
-                    desc,
-                    order: maxOrder 
-                });
-                alert("Site added! Non-admin users will see a refresh prompt.");
-                ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.deleteSite = async (id) => {
-            if (!confirm("Delete forever?")) return;
-            try {
-                await deleteDoc(doc(db, "sites", id));
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
         };
 
         window.reloadAdminSites = () => {
@@ -1015,7 +951,7 @@
                     sites.forEach(s => {
                         const iconDisplay = s.icon ? `<div class="text-5xl">${s.icon}</div>` : '<div class="text-5xl opacity-30">–</div>';
                         html += `
-                            <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-3xl group transition-all">
+                            <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group transition-all">
                                 <div class="flex items-center gap-6">
                                     ${iconDisplay}
                                     <div>
@@ -1025,16 +961,11 @@
                                     </div>
                                 </div>
                                 <div class="flex gap-3">
-                                    <button onclick="window.moveSiteUp('${s.id}', '${s.category}'); event.stopPropagation()" 
-                                            class="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-2xl text-xl">↑</button>
-                                    <button onclick="window.moveSiteDown('${s.id}', '${s.category}'); event.stopPropagation()" 
-                                            class="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-2xl text-xl">↓</button>
-                                    <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation()" 
-                                            class="px-6 py-2 text-sm bg-blue-900/70 hover:bg-blue-900 text-blue-300 rounded-2xl">
+                                    <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation();" 
+                                            class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">
                                         Edit
                                     </button>
-                                    <button onclick="window.deleteSite('${s.id}'); event.stopPropagation();" 
-                                            class="px-6 py-2 text-sm bg-red-900/70 hover:bg-red-900 text-red-300 rounded-2xl">
+                                    <button onclick="window.deleteSite('${s.id}'); event.stopPropagation();" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">
                                         Delete
                                     </button>
                                 </div>
@@ -1057,11 +988,9 @@
         window.deleteSite = window.deleteSite;
         window.reloadAdminSites = window.reloadAdminSites;
         window.loadCategories = window.loadCategories;
-        window.moveSiteUp = window.moveSiteUp;
-        window.moveSiteDown = window.moveSiteDown;
     </script>
 
-    <!-- Global scope functions -->
+    <!-- Global scope functions (needed for onclick) -->
     <script>
         window.switchTab = function(index) {
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
@@ -1094,6 +1023,9 @@
             if (!confirm("Reset all & sign out?")) return;
             localStorage.clear();
             document.documentElement.style.setProperty('--accent', '#ffffff');
+            const cb = document.getElementById('newtab-toggle');
+            if (cb) cb.checked = true;
+            localStorage.setItem('starlinkNewTab', 'true');
             firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
         };
 
@@ -1104,6 +1036,17 @@
 
         function loadTheme() {
             setTheme(localStorage.getItem('starlinkAccent') || '#ffffff');
+        }
+
+        function saveNewTabPreference(val) {
+            localStorage.setItem('starlinkNewTab', val ? 'true' : 'false');
+        }
+
+        function loadNewTabPreference() {
+            const saved = localStorage.getItem('starlinkNewTab');
+            const cb = document.getElementById('newtab-toggle');
+            cb.checked = saved === null || saved === 'true';
+            saveNewTabPreference(cb.checked);
         }
 
         function createStar(x, y) {
@@ -1185,7 +1128,8 @@
                     <div class="text-white/60 text-sm">${site.desc || ''}</div>
                 `;
                 card.onclick = () => {
-                    window.open(site.url, '_blank');
+                    const nt = document.getElementById('newtab-toggle').checked;
+                    (nt ? window.open : location.assign)(site.url, nt ? '_blank' : '_self');
                 };
                 cont.appendChild(card);
             });
@@ -1293,7 +1237,9 @@
 
         function initialize() {
             loadTheme();
+            loadNewTabPreference();
             initStars();
+            document.getElementById('newtab-toggle')?.addEventListener('change', e => saveNewTabPreference(e.target.checked));
         }
 
         window.onload = initialize;
