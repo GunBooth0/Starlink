@@ -438,10 +438,6 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        // ────────────────────────────────────────────────
-        //   All Firebase / auth / data logic stays here
-        // ────────────────────────────────────────────────
-
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
@@ -668,14 +664,27 @@
                     window.allSites[data.category].push(data);
                 }
             });
-            // Sort exactly like categories (order number first, legacy sites at end by name)
+
+            // CRITICAL FIX: Normalize orders for EVERY category (including proxies) so arrows always work
             Object.keys(window.allSites).forEach(catKey => {
-                window.allSites[catKey].sort((a, b) => {
-                    const oa = typeof a.order === 'number' ? a.order : 999999;
-                    const ob = typeof b.order === 'number' ? b.order : 999999;
-                    if (oa !== ob) return oa - ob;
-                    return (a.name || '').localeCompare(b.name || '');
-                });
+                let sites = window.allSites[catKey];
+                if (sites.length === 0) return;
+
+                const missingOrder = sites.some(s => typeof s.order !== 'number');
+                if (missingOrder) {
+                    // Sort legacy sites by name and assign clean sequential orders
+                    sites.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                    sites.forEach((s, idx) => {
+                        s.order = idx;
+                    });
+                    // Background write so DB stays in sync
+                    sites.forEach(s => {
+                        setDoc(doc(db, "sites", s.id), { order: s.order }, { merge: true }).catch(() => {});
+                    });
+                }
+
+                // Final sort by order (now guaranteed to have numbers)
+                sites.sort((a, b) => (a.order ?? 999999) - (b.order ?? 999999));
             });
         };
 
@@ -837,20 +846,19 @@
             document.getElementById('cat-action-btn').textContent = "Update Category";
         };
 
-        // EXACT SAME ARROW SYSTEM AS CATEGORIES (now fully consistent – no manual reload)
         window.moveSiteUp = async (siteId, categoryKey) => {
             const sites = (window.allSites || {})[categoryKey] || [];
             const idx = sites.findIndex(s => s.id === siteId);
             if (idx <= 0) return;
             const thisSite = sites[idx];
             const prevSite = sites[idx - 1];
-            const temp = thisSite.order ?? 999999;
-            thisSite.order = prevSite.order ?? 999999;
+            const temp = thisSite.order;
+            thisSite.order = prevSite.order;
             prevSite.order = temp;
             try {
                 await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
                 await setDoc(doc(db, "sites", prevSite.id), { order: prevSite.order }, { merge: true });
-                // NO manual reload here – the sitesListener will fire and reload everything (same as categories)
+                window.reloadAdminSites(); // instant UI update (exactly like categories)
             } catch (e) {
                 alert("Reorder error: " + e.message);
             }
@@ -862,13 +870,13 @@
             if (idx >= sites.length - 1 || idx < 0) return;
             const thisSite = sites[idx];
             const nextSite = sites[idx + 1];
-            const temp = thisSite.order ?? 999999;
-            thisSite.order = nextSite.order ?? 999999;
+            const temp = thisSite.order;
+            thisSite.order = nextSite.order;
             nextSite.order = temp;
             try {
                 await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
                 await setDoc(doc(db, "sites", nextSite.id), { order: nextSite.order }, { merge: true });
-                // NO manual reload here – the sitesListener will fire and reload everything
+                window.reloadAdminSites(); // instant UI update
             } catch (e) {
                 alert("Reorder error: " + e.message);
             }
@@ -913,7 +921,7 @@
             if (!name || !url) return alert("Name and URL required");
 
             const currentSites = window.allSites[cat] || [];
-            const maxOrder = currentSites.reduce((max, s) => Math.max(max, typeof s.order === 'number' ? s.order : -1), -1) + 1;
+            const maxOrder = currentSites.length ? Math.max(...currentSites.map(s => s.order ?? -1)) + 1 : 0;
 
             try {
                 await addDoc(collection(db, "sites"), { 
@@ -1032,7 +1040,7 @@
         window.moveSiteDown = window.moveSiteDown;
     </script>
 
-    <!-- Global scope functions (needed for onclick) -->
+    <!-- Global scope functions -->
     <script>
         window.switchTab = function(index) {
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
@@ -1156,7 +1164,6 @@
                     <div class="text-white/60 text-sm">${site.desc || ''}</div>
                 `;
                 card.onclick = () => {
-                    // Always open in new tab (Link Behavior setting removed)
                     window.open(site.url, '_blank');
                 };
                 cont.appendChild(card);
