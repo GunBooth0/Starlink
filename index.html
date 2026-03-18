@@ -698,6 +698,10 @@
                     window.allSites[data.category].push(data);
                 }
             });
+            // Sort each category's sites by order field
+            Object.keys(window.allSites).forEach(key => {
+                window.allSites[key].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+            });
         };
 
         window.populateAllGrids = () => {
@@ -950,7 +954,9 @@
             if (!name || !url) return alert("Name and URL required");
 
             try {
-                await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc });
+                const catSites = window.allSites[cat] || [];
+                const maxOrder = catSites.length ? Math.max(...catSites.map(s => s.order ?? 0)) + 1 : 0;
+                await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc, order: maxOrder });
                 alert("Site added! Non-admin users will see a refresh prompt.");
                 ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                 await window.loadAllSites();
@@ -1036,6 +1042,8 @@
                                     </div>
                                 </div>
                                 <div class="flex gap-3">
+                                    <button onclick="window.moveSiteUp('${s.id}', '${s.category}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl transition-colors">↑</button>
+                                    <button onclick="window.moveSiteDown('${s.id}', '${s.category}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl transition-colors">↓</button>
                                     <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation();" 
                                             class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">
                                         Edit
@@ -1052,6 +1060,43 @@
             });
         };
 
+
+        window.moveSiteUp = async (siteId, catKey) => {
+            const sites = window.allSites[catKey] || [];
+            const idx = sites.findIndex(s => s.id === siteId);
+            if (idx <= 0) return;
+            const a = sites[idx], b = sites[idx - 1];
+            const tempOrder = a.order ?? idx;
+            const newOrderA = b.order ?? (idx - 1);
+            const newOrderB = tempOrder;
+            try {
+                await setDoc(doc(db, "sites", a.id), { order: newOrderA }, { merge: true });
+                await setDoc(doc(db, "sites", b.id), { order: newOrderB }, { merge: true });
+                a.order = newOrderA; b.order = newOrderB;
+                sites.sort((x, y) => (x.order ?? 0) - (y.order ?? 0));
+                window.populateAllGrids();
+                window.reloadAdminSites();
+            } catch (e) { alert("Error: " + e.message); }
+        };
+
+        window.moveSiteDown = async (siteId, catKey) => {
+            const sites = window.allSites[catKey] || [];
+            const idx = sites.findIndex(s => s.id === siteId);
+            if (idx < 0 || idx >= sites.length - 1) return;
+            const a = sites[idx], b = sites[idx + 1];
+            const tempOrder = a.order ?? idx;
+            const newOrderA = b.order ?? (idx + 1);
+            const newOrderB = tempOrder;
+            try {
+                await setDoc(doc(db, "sites", a.id), { order: newOrderA }, { merge: true });
+                await setDoc(doc(db, "sites", b.id), { order: newOrderB }, { merge: true });
+                a.order = newOrderA; b.order = newOrderB;
+                sites.sort((x, y) => (x.order ?? 0) - (y.order ?? 0));
+                window.populateAllGrids();
+                window.reloadAdminSites();
+            } catch (e) { alert("Error: " + e.message); }
+        };
+
         window.loadAllSites = window.loadAllSites;
         window.populateAllGrids = window.populateAllGrids;
         window.showGlobalAnnouncement = window.showGlobalAnnouncement;
@@ -1063,6 +1108,8 @@
         window.setAdminUser = window.setAdminUser;
         window.addNewSiteFromAdmin = window.addNewSiteFromAdmin;
         window.deleteSite = window.deleteSite;
+        window.moveSiteUp = window.moveSiteUp;
+        window.moveSiteDown = window.moveSiteDown;
         window.reloadAdminSites = window.reloadAdminSites;
         window.loadCategories = window.loadCategories;
     </script>
