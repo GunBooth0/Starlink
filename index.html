@@ -514,7 +514,7 @@
                     window.populateAllGrids();
                     window.populateCategorySelect();
                     await window.showGlobalAnnouncement();
-                    await window.buildNav();
+                    window.buildNav();
                     let isAdminUser = (user.email === ADMIN_EMAIL);
 if (!isAdminUser) {
     const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -1211,92 +1211,93 @@ window.toggleBan = async (uid, ban) => {
             });
         };
 
-        window.buildNav = async () => {
-            const navLinks = document.getElementById('nav-links');
-            if (!navLinks) return;
-            if (!window.currentUser) {
-                navLinks.innerHTML = `
-                    <div onclick="window.switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
-                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-                    </div>
-                `;
-                return;
-            }
-
-            // Check if user is admin via hardcoded email OR Firestore flag
-let isAdmin = (window.currentUser.email === ADMIN_EMAIL);
-if (!isAdmin) {
-    const userDoc = await getDoc(doc(db, "users", window.currentUser.uid));
-    if (userDoc.exists() && userDoc.data().isAdmin === true) {
-        isAdmin = true;
+        window.buildNav = () => {
+    const navLinks = document.getElementById('nav-links');
+    if (!navLinks) return;
+    if (!window.currentUser) {
+        navLinks.innerHTML = `
+            <div onclick="window.switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
+                <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+            </div>
+        `;
+        return;
     }
-}
-            let html = '';
-            window.tabMapping = [];
-            let idx = 0;
 
-            if (isAdmin) {
-                html += `
-                    <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                        <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
-                    </div>
-                `;
-                window.tabMapping.push({contentId: 'content-admin', title: 'Admin Panel', icon: 'fa-crown'});
-                idx++;
-                html += '<div class="sidebar-separator mx-6"></div>';
-            }
+    // Use the pre‑computed admin flag
+    const isAdmin = window.currentUserIsAdmin || false;
 
-            const homeActive = !isAdmin ? 'active-tab' : '';
-            html += `
-                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${homeActive}" id="tab-${idx}">
-                    <i class="fa-solid fa-house w-5"></i> <span>Home</span>
-                </div>
-            `;
-            window.tabMapping.push({contentId: 'content-home', title: 'Home', icon: 'fa-house'});
-            idx++;
+    let html = '';
+    window.tabMapping = [];
+    let idx = 0;
 
-            (window.allCategories || []).forEach(cat => {
-                html += `
-                    <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                        <i class="fa-solid ${cat.icon} w-5"></i> <span>${cat.label}</span>
-                    </div>
-                `;
-                window.tabMapping.push({contentId: `content-${cat.key}`, title: cat.label, icon: cat.icon});
-                idx++;
-            });
+    if (isAdmin) {
+        html += `
+            <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
+            </div>
+        `;
+        window.tabMapping.push({contentId: 'content-admin', title: 'Admin Panel', icon: 'fa-crown'});
+        idx++;
+        html += '<div class="sidebar-separator mx-6"></div>';
+    }
 
-            html += `
-                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
-                </div>
-            `;
-            window.tabMapping.push({contentId: 'content-settings', title: 'Settings', icon: 'fa-gear'});
-            idx++;
+    // Home tab
+    const homeActiveClass = !isAdmin ? 'active-tab' : '';
+    html += `
+        <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${homeActiveClass}" id="tab-${idx}">
+            <i class="fa-solid fa-house w-5"></i> <span>Home</span>
+        </div>
+    `;
+    window.tabMapping.push({contentId: 'content-home', title: 'Home', icon: 'fa-house'});
+    idx++;
 
-            html += `
-                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-                </div>
-            `;
-            window.tabMapping.push({contentId: 'content-account', title: 'Account', icon: 'fa-user'});
-            idx++;
+    // Categories
+    (window.allCategories || []).forEach(cat => {
+        html += `
+            <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                <i class="fa-solid ${cat.icon} w-5"></i> <span>${cat.label}</span>
+            </div>
+        `;
+        window.tabMapping.push({contentId: `content-${cat.key}`, title: cat.label, icon: cat.icon});
+        idx++;
+    });
 
-            html += `
-                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
-                </div>
-            `;
-            window.tabMapping.push({contentId: 'content-credits', title: 'Credits', icon: 'fa-heart'});
-            idx++;
+    // Settings
+    html += `
+        <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+            <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
+        </div>
+    `;
+    window.tabMapping.push({contentId: 'content-settings', title: 'Settings', icon: 'fa-gear'});
+    idx++;
 
-            html += `
-                <div onclick="window.requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
-                    <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
-                </div>
-            `;
+    // Account
+    html += `
+        <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+            <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+        </div>
+    `;
+    window.tabMapping.push({contentId: 'content-account', title: 'Account', icon: 'fa-user'});
+    idx++;
 
-            navLinks.innerHTML = html;
-        };
+    // Credits
+    html += `
+        <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+            <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
+        </div>
+    `;
+    window.tabMapping.push({contentId: 'content-credits', title: 'Credits', icon: 'fa-heart'});
+    idx++;
+
+    // Request a Site
+    html += `
+        <div onclick="window.requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
+            <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
+        </div>
+    `;
+
+    navLinks.innerHTML = html;
+};
 
         window.populateCategorySelect = () => {
             const select = document.getElementById('admin-cat-select');
