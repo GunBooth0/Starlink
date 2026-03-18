@@ -742,8 +742,8 @@
     try {
         const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
         const snap = await getDocs(q);
-        // Get the current user's UID to prevent self-modification
-        const currentUserUid = firebaseAuth.auth.currentUser?.uid;
+        const currentUser = firebaseAuth.auth.currentUser;
+        const isCurrentUserSuperAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
 
         let html = `<table class="w-full text-sm"><thead class="bg-black/60 sticky top-0"><tr class="border-b border-white/10">
             <th class="px-6 py-4 text-left">Email</th>
@@ -764,30 +764,46 @@
                 <td class="px-6 py-4 text-white/70">${date}</td>
                 <td class="px-6 py-4 font-mono text-xs text-white/50">${d.id}</td>`;
 
-            // Admin column: show toggle button, but not for yourself
-            if (d.id === currentUserUid) {
+            // ----- Admin column -----
+            if (data.email === ADMIN_EMAIL) {
                 html += `<td class="px-6 py-4">—</td>`;
-            } else {
+            } else if (isCurrentUserSuperAdmin) {
+                // Super admin sees buttons for everyone else
                 if (data.isAdmin) {
                     html += `<td class="px-6 py-4"><button onclick="toggleAdmin('${d.id}', false)" class="px-3 py-1 text-xs bg-yellow-600 hover:bg-yellow-700 text-white rounded-2xl">Remove Admin</button></td>`;
                 } else {
                     html += `<td class="px-6 py-4"><button onclick="toggleAdmin('${d.id}', true)" class="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-2xl">Make Admin</button></td>`;
                 }
+            } else {
+                // Non‑super admin: no admin buttons at all
+                html += `<td class="px-6 py-4">—</td>`;
             }
 
-            // Ban column: show toggle button, not for yourself
-            if (d.id === currentUserUid) {
+            // ----- Ban column -----
+            if (data.email === ADMIN_EMAIL) {
                 html += `<td class="px-6 py-4">—</td>`;
-            } else {
+            } else if (isCurrentUserSuperAdmin) {
+                // Super admin sees ban buttons for everyone except themselves
                 if (data.banned) {
                     html += `<td class="px-6 py-4"><button onclick="toggleBan('${d.id}', false)" class="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded-2xl">Unban</button></td>`;
                 } else {
                     html += `<td class="px-6 py-4"><button onclick="toggleBan('${d.id}', true)" class="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded-2xl">Ban</button></td>`;
                 }
+            } else {
+                // Non‑super admin: show ban buttons only for non‑admins
+                if (data.isAdmin) {
+                    html += `<td class="px-6 py-4">—</td>`;
+                } else {
+                    if (data.banned) {
+                        html += `<td class="px-6 py-4"><button onclick="toggleBan('${d.id}', false)" class="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded-2xl">Unban</button></td>`;
+                    } else {
+                        html += `<td class="px-6 py-4"><button onclick="toggleBan('${d.id}', true)" class="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded-2xl">Ban</button></td>`;
+                    }
+                }
             }
 
-            // Delete column: keep existing delete button, but also prevent self-delete
-            if (d.id === currentUserUid) {
+            // ----- Delete column -----
+            if (data.email === ADMIN_EMAIL) {
                 html += `<td class="px-6 py-4">—</td>`;
             } else {
                 html += `<td class="px-6 py-4">
@@ -805,6 +821,22 @@
     }
 };
         window.toggleAdmin = async (uid, makeAdmin) => {
+    const targetDoc = await getDoc(doc(db, "users", uid));
+    if (!targetDoc.exists()) return alert("User not found");
+    const targetEmail = targetDoc.data().email;
+
+    // Only the super admin (gunnarbooth@gmail.com) can change admin status
+    const currentUser = auth.currentUser;
+    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        alert("Only the super admin can modify admin privileges.");
+        return;
+    }
+
+    if (targetEmail === ADMIN_EMAIL) {
+        alert("You cannot change the super admin's status.");
+        return;
+    }
+
     if (!confirm(`Are you sure you want to ${makeAdmin ? 'make this user an admin' : 'remove admin privileges'}?`)) return;
     try {
         await setDoc(doc(db, "users", uid), { isAdmin: makeAdmin }, { merge: true });
@@ -816,6 +848,26 @@
 };
 
 window.toggleBan = async (uid, ban) => {
+    const targetDoc = await getDoc(doc(db, "users", uid));
+    if (!targetDoc.exists()) return alert("User not found");
+    const targetData = targetDoc.data();
+    const targetEmail = targetData.email;
+
+    // Never allow banning the super admin
+    if (targetEmail === ADMIN_EMAIL) {
+        alert("You cannot ban the super admin.");
+        return;
+    }
+
+    const currentUser = auth.currentUser;
+    // If current user is not the super admin, prevent banning another admin
+    if (currentUser && currentUser.email !== ADMIN_EMAIL) {
+        if (targetData.isAdmin === true) {
+            alert("You cannot ban another admin.");
+            return;
+        }
+    }
+
     if (!confirm(`Are you sure you want to ${ban ? 'ban' : 'unban'} this user?`)) return;
     try {
         await setDoc(doc(db, "users", uid), { banned: ban }, { merge: true });
@@ -825,17 +877,6 @@ window.toggleBan = async (uid, ban) => {
         alert("Error: " + e.message);
     }
 };
-
-        window.deleteUserFromAdmin = async (uid) => {
-            if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
-            try {
-                await deleteDoc(doc(db, "users", uid));
-                alert("User removed from list.");
-                window.loadAdminUsers();
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
 
         window.addOrUpdateCategory = async () => {
             const key = document.getElementById('new-cat-key').value.trim().toLowerCase().replace(/\s+/g, '');
