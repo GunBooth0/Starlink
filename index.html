@@ -222,6 +222,15 @@
             <div class="h-full px-10 flex items-center gap-4">
                 <i id="current-tab-icon" class="text-3xl fa-solid fa-lock"></i>
                 <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Sign In Required</div>
+                <div id="search-wrapper" class="hidden flex-1 max-w-md mx-6">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-white/40 text-sm pointer-events-none"></i>
+                        <input id="search-input" type="text" placeholder="Search sites..." autocomplete="off"
+                            style="margin:0;padding:0.55rem 1rem 0.55rem 2.5rem;border-radius:0.75rem;font-size:0.95rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);width:100%;"
+                            oninput="window.handleSearch(this.value)">
+                        <button id="search-clear" onclick="window.clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white" style="width:auto;padding:0;margin:0;background:transparent;border:none;font-size:0.85rem;">✕</button>
+                    </div>
+                </div>
                 <div class="ml-auto flex items-center gap-4">
                     <span id="user-status" class="text-sm text-white/70"></span>
                     <span id="online-counter" class="hidden items-center gap-2 text-sm text-white/60"><span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span><span id="online-count">0</span> online</span>
@@ -236,6 +245,16 @@
                 <div class="flex items-center gap-3">
                     <i class="fa-solid fa-bullhorn text-2xl text-[var(--accent)]"></i>
                     <span id="announcement-text-display" class="text-lg font-medium"></span>
+                </div>
+            </div>
+
+
+            <!-- SEARCH RESULTS -->
+            <div id="content-search" class="tab-content hidden">
+                <div class="max-w-5xl mx-auto">
+                    <h2 class="text-2xl font-semibold mb-6 text-white/70">Search results for: <span id="search-query-label" class="text-[var(--accent)]"></span></h2>
+                    <div id="search-results-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6"></div>
+                    <p id="search-no-results" class="hidden text-center text-white/40 text-xl mt-20">No sites found</p>
                 </div>
             </div>
 
@@ -556,6 +575,8 @@
                     await window.showGlobalAnnouncement();
                     window.buildNav();
                     window.startPresence(user.uid);
+                    document.getElementById('search-wrapper').classList.remove('hidden');
+                    document.getElementById('search-wrapper').classList.add('flex');
                     window.switchTab(window.isAdminUser ? 1 : 0);
                     if (window.isAdminUser) window.loadSiteRequests();
                     window.initialLoadComplete = true;
@@ -610,6 +631,8 @@
 
             } else {
                 window.stopPresence();
+                document.getElementById('search-wrapper').classList.add('hidden');
+                document.getElementById('search-wrapper').classList.remove('flex');
                 statusEl.textContent = '';
                 currentTabEl.textContent = 'Sign In Required';
                 currentIconEl.className = 'text-3xl fa-solid fa-lock';
@@ -1350,6 +1373,77 @@
             localStorage.clear();
             document.documentElement.style.setProperty('--accent', '#ffffff');
             firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
+        };
+
+
+        window.handleSearch = (query) => {
+            const clearBtn = document.getElementById('search-clear');
+            const q = query.trim().toLowerCase();
+
+            if (!q) {
+                window.clearSearch();
+                return;
+            }
+
+            clearBtn.classList.remove('hidden');
+            document.getElementById('search-query-label').textContent = query.trim();
+
+            // Show search tab, hide all others
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('content-search').classList.remove('hidden');
+            document.getElementById('current-tab').textContent = 'Search';
+            document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-magnifying-glass';
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
+
+            // Gather all sites across all categories
+            const allSites = [];
+            (window.allCategories || []).forEach(cat => {
+                (window.allSites?.[cat.key] || []).forEach(site => {
+                    allSites.push({ ...site, catLabel: cat.label });
+                });
+            });
+
+            const matches = allSites.filter(s =>
+                (s.name || '').toLowerCase().includes(q) ||
+                (s.desc || '').toLowerCase().includes(q) ||
+                (s.catLabel || '').toLowerCase().includes(q)
+            );
+
+            const grid = document.getElementById('search-results-grid');
+            const noResults = document.getElementById('search-no-results');
+            grid.innerHTML = '';
+
+            if (!matches.length) {
+                noResults.classList.remove('hidden');
+                return;
+            }
+            noResults.classList.add('hidden');
+
+            matches.forEach(site => {
+                const iconDisplay = site.icon
+                    ? `<div class="text-5xl mb-6 transition-transform group-hover:scale-125">${site.icon}</div>`
+                    : '<div class="text-5xl mb-6 opacity-30 transition-transform group-hover:scale-125">–</div>';
+                const card = document.createElement('div');
+                card.className = 'card rounded-3xl p-6 cursor-pointer group';
+                card.innerHTML = `
+                    ${iconDisplay}
+                    <div class="font-semibold text-xl mb-1">${site.name}</div>
+                    <div class="text-white/40 text-xs mb-2">${site.catLabel}</div>
+                    <div class="text-white/60 text-sm">${site.desc || ''}</div>
+                `;
+                card.onclick = () => window.open(site.url, '_blank');
+                grid.appendChild(card);
+            });
+        };
+
+        window.clearSearch = () => {
+            const input = document.getElementById('search-input');
+            const clearBtn = document.getElementById('search-clear');
+            if (input) input.value = '';
+            if (clearBtn) clearBtn.classList.add('hidden');
+            // Return to previous tab state — just go home
+            const homeIdx = (window.tabMapping || []).findIndex(t => t.contentId === 'content-home');
+            if (homeIdx >= 0) window.switchTab(homeIdx);
         };
 
         function setTheme(color) {
