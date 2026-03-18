@@ -278,25 +278,13 @@
             <!-- DYNAMIC CATEGORY CONTENTS -->
             <div id="dynamic-category-contents"></div>
 
-            <!-- SETTINGS -->
+            <!-- SETTINGS (Link Behavior removed) -->
             <div id="content-settings" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
                     <h3 class="text-2xl font-semibold mb-6">Appearance • Choose Theme</h3>
                     <p class="text-white/70 mb-8">Click a color to instantly change the accent, stars, glow, and sidebar highlights</p>
                     <div id="theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div>
-                    <div class="mt-12 pt-8 border-t border-white/10">
-                        <h3 class="text-2xl font-semibold mb-6">Link Behavior</h3>
-                        <div class="flex justify-between items-center py-4">
-                            <div class="flex items-center gap-x-3 text-lg">
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                <span>Open links in new tab</span>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" class="sr-only peer" id="newtab-toggle">
-                                <div class="w-14 h-7 bg-white/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]"></div>
-                            </label>
-                        </div>
-                    </div>
+                    
                     <div class="mt-12 pt-8 border-t border-white/10">
                         <h3 class="text-2xl font-semibold mb-6 text-red-400">Danger Zone</h3>
                         <button onclick="resetEverything()" class="bg-red-600 hover:bg-red-700 text-white font-medium py-4 px-8 rounded-xl transition-colors text-lg">
@@ -391,9 +379,12 @@
 
                     <!-- Sites Management -->
                     <div>
-                        <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
-                            <i class="fa-solid fa-globe"></i> Manage Sites
-                        </h3>
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-semibold flex items-center gap-3">
+                                <i class="fa-solid fa-globe"></i> Manage Sites
+                            </h3>
+                            <button onclick="reloadAdminSites()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
+                        </div>
                         <div class="bg-black/40 p-8 rounded-3xl mb-10" id="admin-sites-management">
                             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                                 <div>
@@ -677,6 +668,10 @@
                     window.allSites[data.category].push(data);
                 }
             });
+            // Sort sites by creation time (or you can add order field later)
+            Object.keys(window.allSites).forEach(key => {
+                window.allSites[key].sort((a,b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
+            });
         };
 
         window.populateAllGrids = () => {
@@ -866,6 +861,57 @@
             container.innerHTML = html;
         };
 
+        // ────────────────────────────────────────────────
+        //   SITE REORDERING LOGIC
+        // ────────────────────────────────────────────────
+
+        window.moveSiteUp = async (siteId, category) => {
+            const sites = window.allSites[category] || [];
+            const idx = sites.findIndex(s => s.id === siteId);
+            if (idx <= 0) return;
+
+            // For simplicity we're using creation time difference as proxy for order
+            // Better: add & maintain an "order" field like categories
+            const thisSite = sites[idx];
+            const prevSite = sites[idx - 1];
+
+            // Swap their createdAt (hacky but works if no real order field)
+            const tempTime = thisSite.createdAt;
+            thisSite.createdAt = prevSite.createdAt;
+            prevSite.createdAt = tempTime;
+
+            try {
+                await setDoc(doc(db, "sites", thisSite.id), { createdAt: thisSite.createdAt }, { merge: true });
+                await setDoc(doc(db, "sites", prevSite.id), { createdAt: prevSite.createdAt }, { merge: true });
+                alert("Site moved up! Refresh list to see order.");
+                window.reloadAdminSites();
+            } catch (e) {
+                alert("Move error: " + e.message);
+            }
+        };
+
+        window.moveSiteDown = async (siteId, category) => {
+            const sites = window.allSites[category] || [];
+            const idx = sites.findIndex(s => s.id === siteId);
+            if (idx >= sites.length - 1 || idx < 0) return;
+
+            const thisSite = sites[idx];
+            const nextSite = sites[idx + 1];
+
+            const tempTime = thisSite.createdAt;
+            thisSite.createdAt = nextSite.createdAt;
+            nextSite.createdAt = tempTime;
+
+            try {
+                await setDoc(doc(db, "sites", thisSite.id), { createdAt: thisSite.createdAt }, { merge: true });
+                await setDoc(doc(db, "sites", nextSite.id), { createdAt: nextSite.createdAt }, { merge: true });
+                alert("Site moved down! Refresh list to see order.");
+                window.reloadAdminSites();
+            } catch (e) {
+                alert("Move error: " + e.message);
+            }
+        };
+
         window.addNewSiteFromAdmin = async () => {
             const cat = document.getElementById('admin-cat-select').value;
             const name = document.getElementById('new-site-name').value.trim();
@@ -876,7 +922,14 @@
             if (!name || !url) return alert("Name and URL required");
 
             try {
-                await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc });
+                await addDoc(collection(db, "sites"), { 
+                    category: cat, 
+                    name, 
+                    url, 
+                    icon, 
+                    desc,
+                    createdAt: serverTimestamp()
+                });
                 alert("Site added! Non-admin users will see a refresh prompt.");
                 ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                 await window.loadAllSites();
@@ -961,11 +1014,15 @@
                                     </div>
                                 </div>
                                 <div class="flex gap-3">
-                                    <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation();" 
+                                    <button onclick="window.moveSiteUp('${s.id}', '${s.category}'); event.stopPropagation()" 
+                                            class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
+                                    <button onclick="window.moveSiteDown('${s.id}', '${s.category}'); event.stopPropagation()" 
+                                            class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
+                                    <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation()" 
                                             class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">
                                         Edit
                                     </button>
-                                    <button onclick="window.deleteSite('${s.id}'); event.stopPropagation();" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">
+                                    <button onclick="window.deleteSite('${s.id}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">
                                         Delete
                                     </button>
                                 </div>
@@ -1023,9 +1080,6 @@
             if (!confirm("Reset all & sign out?")) return;
             localStorage.clear();
             document.documentElement.style.setProperty('--accent', '#ffffff');
-            const cb = document.getElementById('newtab-toggle');
-            if (cb) cb.checked = true;
-            localStorage.setItem('starlinkNewTab', 'true');
             firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
         };
 
@@ -1038,15 +1092,10 @@
             setTheme(localStorage.getItem('starlinkAccent') || '#ffffff');
         }
 
-        function saveNewTabPreference(val) {
-            localStorage.setItem('starlinkNewTab', val ? 'true' : 'false');
-        }
-
-        function loadNewTabPreference() {
-            const saved = localStorage.getItem('starlinkNewTab');
-            const cb = document.getElementById('newtab-toggle');
-            cb.checked = saved === null || saved === 'true';
-            saveNewTabPreference(cb.checked);
+        function initialize() {
+            loadTheme();
+            initStars();
+            document.getElementById('newtab-toggle')?.addEventListener('change', e => saveNewTabPreference(e.target.checked));
         }
 
         function createStar(x, y) {
@@ -1128,8 +1177,7 @@
                     <div class="text-white/60 text-sm">${site.desc || ''}</div>
                 `;
                 card.onclick = () => {
-                    const nt = document.getElementById('newtab-toggle').checked;
-                    (nt ? window.open : location.assign)(site.url, nt ? '_blank' : '_self');
+                    window.open(site.url, '_blank');
                 };
                 cont.appendChild(card);
             });
@@ -1234,13 +1282,6 @@
                 `<option value="${cat.key}">${cat.label}</option>`
             ).join('');
         };
-
-        function initialize() {
-            loadTheme();
-            loadNewTabPreference();
-            initStars();
-            document.getElementById('newtab-toggle')?.addEventListener('change', e => saveNewTabPreference(e.target.checked));
-        }
 
         window.onload = initialize;
     </script>
