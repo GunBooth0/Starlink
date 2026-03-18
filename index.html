@@ -298,6 +298,108 @@
         </div>
     </div>
 
+        <!-- Announcement -->
+                    <div class="mb-16">
+                        <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
+                            <i class="fa-solid fa-bullhorn"></i> Global Announcement
+                        </h3>
+                        <textarea id="announcement-input" rows="3" class="w-full p-6 bg-black/60 border border-white/30 rounded-3xl text-white text-lg resize-y focus:border-[var(--accent)]" placeholder="Message visible to ALL logged-in users..."></textarea>
+                        <div class="flex gap-4 mt-4">
+                            <button onclick="saveGlobalAnnouncement()" class="auth-btn flex-1">Publish</button>
+                            <button onclick="clearAnnouncement()" class="github-style-btn flex-1">Clear</button>
+                        </div>
+                    </div>
+
+                    <!-- Users -->
+                    <div class="mb-16">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-semibold flex items-center gap-3">
+                                <i class="fa-solid fa-users"></i> Registered Users
+                            </h3>
+                            <div class="flex gap-4">
+                                <button onclick="loadAdminUsers()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
+                                <a href="https://console.firebase.google.com/project/starlink-42031/authentication/users" target="_blank" rel="noopener noreferrer" class="github-style-btn text-sm px-4 py-3">
+                                    <i class="fa-solid fa-external-link-alt"></i> Firebase Authentication
+                                </a>
+                            </div>
+                        </div>
+                        <div id="users-table" class="bg-black/30 rounded-3xl p-2 max-h-[420px] overflow-auto"></div>
+                        <p class="text-xs text-white/50 mt-4 text-center">Delete removes the user from this list.<br>Full auth deletion still required in Firebase Console → Authentication</p>
+                    </div>
+
+                    <!-- Categories Management -->
+                    <div class="mb-16">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-semibold flex items-center gap-3">
+                                <i class="fa-solid fa-list"></i> Manage Categories
+                            </h3>
+                            <button onclick="reloadAdminCategories()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
+                        </div>
+                        <div class="bg-black/40 p-8 rounded-3xl mb-10">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="text-xs text-white/50 block mb-2">Key (unique lowercase, no spaces)</label>
+                                    <input id="new-cat-key" type="text" placeholder="newcat" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-white/50 block mb-2">Display Label</label>
+                                    <input id="new-cat-label" type="text" placeholder="New Category" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-white/50 block mb-2">Font Awesome Icon (e.g. fa-gamepad)</label>
+                                    <input id="new-cat-icon" type="text" placeholder="fa-gamepad" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                </div>
+                            </div>
+                            <button id="cat-action-btn" onclick="addOrUpdateCategory()" class="auth-btn mt-8 py-6 text-lg w-full">Add Category</button>
+                        </div>
+                        <div id="admin-categories-list" class="space-y-4"></div>
+                    </div>
+
+                    <!-- Sites Management -->
+                    <div>
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-semibold flex items-center gap-3">
+                                <i class="fa-solid fa-globe"></i> Manage Sites
+                            </h3>
+                            <button onclick="reloadAdminSites()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
+                        </div>
+                        <div class="bg-black/40 p-8 rounded-3xl mb-10" id="admin-sites-management">
+                            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                <div>
+                                    <label class="text-xs text-white/50 block mb-2">Category</label>
+                                    <select id="admin-cat-select" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                        <!-- Populated dynamically -->
+                                    </select>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="text-xs text-white/50 block mb-2">Site Name</label>
+                                    <input id="new-site-name" type="text" placeholder="Site Name" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="text-xs text-white/50 block mb-2">URL</label>
+                                    <input id="new-site-url" type="text" placeholder="https://example.com" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                <div>
+                                    <label class="text-xs text-white/50 block mb-2">Icon (emoji) – optional</label>
+                                    <input id="new-site-icon" type="text" placeholder="Leave blank for no icon" maxlength="2" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-white/50 block mb-2">Description (optional)</label>
+                                    <input id="new-site-desc" type="text" placeholder="Short description" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                </div>
+                            </div>
+                            <button id="add-update-site-btn" onclick="addNewSiteFromAdmin()" class="auth-btn mt-8 py-6 text-lg w-full">Add New Site</button>
+                        </div>
+
+                        <div id="admin-sites-list" class="space-y-10"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- REFRESH MODAL -->
     <div id="refresh-modal">
         <div id="refresh-content">
