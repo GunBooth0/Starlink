@@ -223,10 +223,6 @@
                 <i id="current-tab-icon" class="text-3xl fa-solid fa-lock"></i>
                 <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Sign In Required</div>
                 <span id="user-status" class="ml-auto text-sm text-white/70"></span>
-                <span id="online-count" class="ml-4 text-sm text-white/70">
-    <i class="fa-solid fa-circle text-green-500 text-xs mr-1"></i>
-    <span id="online-num">0</span> online
-</span>
             </div>
         </div>
 
@@ -462,7 +458,6 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const usersVersionRef = doc(db, "config", "usersVersion");
 
         window.db = db;
         window.firebaseAuth = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, auth };
@@ -475,20 +470,10 @@
         let sitesListener = null;
         let announcementListener = null;
         let categoriesListener = null;
-        let usersVersionListener = null;
         window.initialLoadComplete = false;
 
-       async function updateUIForAuth(user) {
+        function updateUIForAuth(user) {
             window.currentUser = user;
-            if (user) {
-    // Check if the user is banned
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists() && userDoc.data().banned === true) {
-        alert("Your account has been suspended. You cannot log in.");
-        await signOut(auth);
-        return; // stop everything
-    }
-}
             const statusEl = document.getElementById('user-status');
             const navLinks = document.getElementById('nav-links');
             const userInfo = document.getElementById('user-info');
@@ -509,28 +494,18 @@
                 accountTitle.textContent = 'Account';
 
                 setTimeout(async () => {
-    // First, determine if the user is an admin
-    let isAdminUser = (user.email === ADMIN_EMAIL);
-    if (!isAdminUser) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists() && userDoc.data().isAdmin === true) {
-            isAdminUser = true;
-        }
-    }
-    window.currentUserIsAdmin = isAdminUser; // set the global flag
-
-    // Now build the UI with the correct admin flag
-    populateThemeGrid();
-    await window.loadCategories();
-    window.createCategoryContents();
-    await window.loadAllSites();
-    window.populateAllGrids();
-    window.populateCategorySelect();
-    await window.showGlobalAnnouncement();
-    window.buildNav(); // this will see window.currentUserIsAdmin properly
-    window.switchTab(isAdminUser ? 1 : 0);
-    window.initialLoadComplete = true;
-}, 100);
+                    populateThemeGrid();
+                    await window.loadCategories();
+                    window.createCategoryContents();
+                    await window.loadAllSites();
+                    window.populateAllGrids();
+                    window.populateCategorySelect();
+                    await window.showGlobalAnnouncement();
+                    window.buildNav();
+                    const isAdminUser = user.email === ADMIN_EMAIL;
+                    window.switchTab(isAdminUser ? 1 : 0);
+                    window.initialLoadComplete = true;
+                }, 100);
 
                 sitesListener = onSnapshot(collection(db, "sites"), async () => {
                     await window.loadAllSites();
@@ -564,14 +539,6 @@
                     }
                 });
 
-                                // Listen for changes to user permissions (ban, admin)
-                usersVersionListener = onSnapshot(usersVersionRef, () => {
-                    // Only show modal for non‑admins after initial load
-                    if (window.initialLoadComplete && user.email !== ADMIN_EMAIL && !window.currentUserIsAdmin) {
-                        document.getElementById('refresh-modal').classList.add('show');
-                    }
-                });
-
             } else {
                 statusEl.textContent = '';
                 currentTabEl.textContent = 'Sign In Required';
@@ -585,7 +552,6 @@
                     </div>
                 `;
                 window.switchTab(0);
-                window.currentUserIsAdmin = false;
             }
         }
 
@@ -606,11 +572,9 @@
                 } else {
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
                     await setDoc(doc(db, "users", cred.user.uid), {
-    email,
-    createdAt: serverTimestamp(),
-    isAdmin: false,      // 👈 new
-    banned: false        // 👈 new
-});
+                        email,
+                        createdAt: serverTimestamp()
+                    });
                     await sendEmailVerification(cred.user);
                     alert("Verification email sent! Check inbox.");
                     await signOut(auth);
@@ -747,159 +711,41 @@
         };
 
         window.loadAdminUsers = async () => {
-    const container = document.getElementById('users-table');
-    container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
-    try {
-        const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
-        const snap = await getDocs(q);
-        const currentUser = firebaseAuth.auth.currentUser;
-        const isCurrentUserSuperAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
-
-        let html = `<table class="w-full text-sm"><thead class="bg-black/60 sticky top-0"><tr class="border-b border-white/10">
-            <th class="px-6 py-4 text-left">Email</th>
-            <th class="px-6 py-4 text-left">Joined</th>
-            <th class="px-6 py-4 text-left">UID</th>
-            <th class="px-6 py-4 text-left">Admin</th>
-            <th class="px-6 py-4 text-left">Ban</th>
-            <th class="px-6 py-4 text-left">Delete</th>
-        </tr></thead><tbody class="divide-y divide-white/10">`;
-
-        snap.forEach(d => {
-            const data = d.data();
-            const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '—';
-            
-            // Start the row
-            html += `<tr>
-                <td class="px-6 py-4 font-medium">${data.email}</td>
-                <td class="px-6 py-4 text-white/70">${date}</td>
-                <td class="px-6 py-4 font-mono text-xs text-white/50">${d.id}</td>`;
-
-            // ----- Admin column -----
-            if (data.email === ADMIN_EMAIL) {
-                html += `<td class="px-6 py-4">—</td>`;
-            } else if (isCurrentUserSuperAdmin) {
-                // Super admin sees buttons for everyone else
-                if (data.isAdmin) {
-                    html += `<td class="px-6 py-4"><button onclick="toggleAdmin('${d.id}', false)" class="px-3 py-1 text-xs bg-yellow-600 hover:bg-yellow-700 text-white rounded-2xl">Remove Admin</button></td>`;
-                } else {
-                    html += `<td class="px-6 py-4"><button onclick="toggleAdmin('${d.id}', true)" class="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-2xl">Make Admin</button></td>`;
-                }
-            } else {
-                // Non‑super admin: no admin buttons at all
-                html += `<td class="px-6 py-4">—</td>`;
+            const container = document.getElementById('users-table');
+            container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
+            try {
+                const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
+                const snap = await getDocs(q);
+                let html = `<table class="w-full text-sm"><thead class="bg-black/60 sticky top-0"><tr class="border-b border-white/10"><th class="px-6 py-4 text-left">Email</th><th class="px-6 py-4 text-left">Joined</th><th class="px-6 py-4 text-left">UID</th><th class="px-6 py-4 text-left">Actions</th></tr></thead><tbody class="divide-y divide-white/10">`;
+                snap.forEach(d => {
+                    const data = d.data();
+                    const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '—';
+                    html += `<tr>
+                        <td class="px-6 py-4 font-medium">${data.email}</td>
+                        <td class="px-6 py-4 text-white/70">${date}</td>
+                        <td class="px-6 py-4 font-mono text-xs text-white/50">${d.id}</td>
+                        <td class="px-6 py-4">
+                            <button onclick="deleteUserFromAdmin('${d.id}'); event.stopPropagation();" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Delete</button>
+                        </td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                container.innerHTML = snap.empty ? '<p class="p-8 text-center text-white/50">No users yet</p>' : html;
+            } catch (e) {
+                container.innerHTML = `<p class="p-8 text-red-400">Error loading users.<br>Check Firestore rules.</p>`;
             }
-
-            // ----- Ban column -----
-            if (data.email === ADMIN_EMAIL) {
-                html += `<td class="px-6 py-4">—</td>`;
-            } else if (isCurrentUserSuperAdmin) {
-                // Super admin sees ban buttons for everyone except themselves
-                if (data.banned) {
-                    html += `<td class="px-6 py-4"><button onclick="toggleBan('${d.id}', false)" class="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded-2xl">Unban</button></td>`;
-                } else {
-                    html += `<td class="px-6 py-4"><button onclick="toggleBan('${d.id}', true)" class="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded-2xl">Ban</button></td>`;
-                }
-            } else {
-                // Non‑super admin: show ban buttons only for non‑admins
-                if (data.isAdmin) {
-                    html += `<td class="px-6 py-4">—</td>`;
-                } else {
-                    if (data.banned) {
-                        html += `<td class="px-6 py-4"><button onclick="toggleBan('${d.id}', false)" class="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded-2xl">Unban</button></td>`;
-                    } else {
-                        html += `<td class="px-6 py-4"><button onclick="toggleBan('${d.id}', true)" class="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded-2xl">Ban</button></td>`;
-                    }
-                }
-            }
-
-            // ----- Delete column -----
-            if (data.email === ADMIN_EMAIL) {
-                html += `<td class="px-6 py-4">—</td>`;
-            } else {
-                html += `<td class="px-6 py-4">
-                    <button onclick="deleteUserFromAdmin('${d.id}'); event.stopPropagation();" class="px-3 py-1 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl">Delete</button>
-                </td>`;
-            }
-
-            html += `</tr>`;
-        });
-
-        html += '</tbody></table>';
-        container.innerHTML = snap.empty ? '<p class="p-8 text-center text-white/50">No users yet</p>' : html;
-    } catch (e) {
-        container.innerHTML = `<p class="p-8 text-red-400">Error loading users.<br>Check Firestore rules.</p>`;
-    }
-};
-        window.toggleAdmin = async (uid, makeAdmin) => {
-    const targetDoc = await getDoc(doc(db, "users", uid));
-    if (!targetDoc.exists()) return alert("User not found");
-    const targetEmail = targetDoc.data().email;
-
-    // Only the super admin (gunnarbooth@gmail.com) can change admin status
-    const currentUser = auth.currentUser;
-    if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
-        alert("Only the super admin can modify admin privileges.");
-        return;
-    }
-
-    if (targetEmail === ADMIN_EMAIL) {
-        alert("You cannot change the super admin's status.");
-        return;
-    }
-
-    if (!confirm(`Are you sure you want to ${makeAdmin ? 'make this user an admin' : 'remove admin privileges'}?`)) return;
-    try {
-        await setDoc(doc(db, "users", uid), { isAdmin: makeAdmin }, { merge: true });
-        await setDoc(doc(db, "config", "usersVersion"), { version: serverTimestamp() }, { merge: true });
-        alert("Admin status updated!");
-        window.loadAdminUsers(); // refresh the list
-    } catch (e) {
-        alert("Error: " + e.message);
-    }
-};
-
-window.toggleBan = async (uid, ban) => {
-    const targetDoc = await getDoc(doc(db, "users", uid));
-    if (!targetDoc.exists()) return alert("User not found");
-    const targetData = targetDoc.data();
-    const targetEmail = targetData.email;
-
-    // Never allow banning the super admin
-    if (targetEmail === ADMIN_EMAIL) {
-        alert("You cannot ban the super admin.");
-        return;
-    }
-
-    const currentUser = auth.currentUser;
-    // If current user is not the super admin, prevent banning another admin
-    if (currentUser && currentUser.email !== ADMIN_EMAIL) {
-        if (targetData.isAdmin === true) {
-            alert("You cannot ban another admin.");
-            return;
-        }
-    }
-
-    if (!confirm(`Are you sure you want to ${ban ? 'ban' : 'unban'} this user?`)) return;
-    try {
-        await setDoc(doc(db, "users", uid), { banned: ban }, { merge: true });
-        alert("Ban status updated!");
-        window.loadAdminUsers(); // refresh the list
-    } catch (e) {
-        alert("Error: " + e.message);
-    }
-};
+        };
 
         window.deleteUserFromAdmin = async (uid) => {
-    if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
-    try {
-        await deleteDoc(doc(db, "users", uid));
-        await setDoc(doc(db, "config", "usersVersion"), { version: serverTimestamp() }, { merge: true });
-        alert("User removed from list.");
-        window.loadAdminUsers();
-    } catch (e) {
-        alert("Error: " + e.message);
-    }
-};
+            if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
+            try {
+                await deleteDoc(doc(db, "users", uid));
+                alert("User removed from list.");
+                window.loadAdminUsers();
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
 
         window.addOrUpdateCategory = async () => {
             const key = document.getElementById('new-cat-key').value.trim().toLowerCase().replace(/\s+/g, '');
@@ -1279,92 +1125,84 @@ window.toggleBan = async (uid, ban) => {
         };
 
         window.buildNav = () => {
-    const navLinks = document.getElementById('nav-links');
-    if (!navLinks) return;
-    if (!window.currentUser) {
-        navLinks.innerHTML = `
-            <div onclick="window.switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
-                <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-            </div>
-        `;
-        return;
-    }
+            const navLinks = document.getElementById('nav-links');
+            if (!navLinks) return;
+            if (!window.currentUser) {
+                navLinks.innerHTML = `
+                    <div onclick="window.switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
+                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+                    </div>
+                `;
+                return;
+            }
 
-    // Use the pre‑computed admin flag
-    const isAdmin = window.currentUserIsAdmin || false;
+            const isAdmin = window.currentUser.email === ADMIN_EMAIL;
+            let html = '';
+            window.tabMapping = [];
+            let idx = 0;
 
-    let html = '';
-    window.tabMapping = [];
-    let idx = 0;
+            if (isAdmin) {
+                html += `
+                    <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                        <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
+                    </div>
+                `;
+                window.tabMapping.push({contentId: 'content-admin', title: 'Admin Panel', icon: 'fa-crown'});
+                idx++;
+                html += '<div class="sidebar-separator mx-6"></div>';
+            }
 
-    if (isAdmin) {
-        html += `
-            <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
-            </div>
-        `;
-        window.tabMapping.push({contentId: 'content-admin', title: 'Admin Panel', icon: 'fa-crown'});
-        idx++;
-        html += '<div class="sidebar-separator mx-6"></div>';
-    }
+            const homeActive = !isAdmin ? 'active-tab' : '';
+            html += `
+                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${homeActive}" id="tab-${idx}">
+                    <i class="fa-solid fa-house w-5"></i> <span>Home</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-home', title: 'Home', icon: 'fa-house'});
+            idx++;
 
-    // Home tab
-    const homeActiveClass = !isAdmin ? 'active-tab' : '';
-    html += `
-        <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${homeActiveClass}" id="tab-${idx}">
-            <i class="fa-solid fa-house w-5"></i> <span>Home</span>
-        </div>
-    `;
-    window.tabMapping.push({contentId: 'content-home', title: 'Home', icon: 'fa-house'});
-    idx++;
+            (window.allCategories || []).forEach(cat => {
+                html += `
+                    <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                        <i class="fa-solid ${cat.icon} w-5"></i> <span>${cat.label}</span>
+                    </div>
+                `;
+                window.tabMapping.push({contentId: `content-${cat.key}`, title: cat.label, icon: cat.icon});
+                idx++;
+            });
 
-    // Categories
-    (window.allCategories || []).forEach(cat => {
-        html += `
-            <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                <i class="fa-solid ${cat.icon} w-5"></i> <span>${cat.label}</span>
-            </div>
-        `;
-        window.tabMapping.push({contentId: `content-${cat.key}`, title: cat.label, icon: cat.icon});
-        idx++;
-    });
+            html += `
+                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                    <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-settings', title: 'Settings', icon: 'fa-gear'});
+            idx++;
 
-    // Settings
-    html += `
-        <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-            <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
-        </div>
-    `;
-    window.tabMapping.push({contentId: 'content-settings', title: 'Settings', icon: 'fa-gear'});
-    idx++;
+            html += `
+                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                    <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-account', title: 'Account', icon: 'fa-user'});
+            idx++;
 
-    // Account
-    html += `
-        <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-            <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-        </div>
-    `;
-    window.tabMapping.push({contentId: 'content-account', title: 'Account', icon: 'fa-user'});
-    idx++;
+            html += `
+                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                    <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-credits', title: 'Credits', icon: 'fa-heart'});
+            idx++;
 
-    // Credits
-    html += `
-        <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-            <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
-        </div>
-    `;
-    window.tabMapping.push({contentId: 'content-credits', title: 'Credits', icon: 'fa-heart'});
-    idx++;
+            html += `
+                <div onclick="window.requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
+                    <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
+                </div>
+            `;
 
-    // Request a Site
-    html += `
-        <div onclick="window.requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
-            <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
-        </div>
-    `;
-
-    navLinks.innerHTML = html;
-};
+            navLinks.innerHTML = html;
+        };
 
         window.populateCategorySelect = () => {
             const select = document.getElementById('admin-cat-select');
