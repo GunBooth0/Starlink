@@ -522,6 +522,7 @@ if (!isAdminUser) {
         isAdminUser = true;
     }
 }
+                    window.currentUserIsAdmin = false;
                     window.switchTab(isAdminUser ? 1 : 0);
                     window.initialLoadComplete = true;
                 }, 100);
@@ -571,6 +572,7 @@ if (!isAdminUser) {
                     </div>
                 `;
                 window.switchTab(0);
+                window.currentUserIsAdmin = false;
             }
         }
 
