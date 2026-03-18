@@ -95,26 +95,6 @@
             height: 100vh;
             padding-top: 4rem;
         }
-        input[type="email"], input[type="password"], input[type="text"], textarea, select {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.25);
-            color: white;
-            padding: 1rem 1.25rem;
-            border-radius: 1rem;
-            width: 100%;
-            margin-bottom: 1.25rem;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
-            background: rgba(255,255,255,0.12);
-        }
-        input::placeholder, textarea::placeholder {
-            color: rgba(255,255,255,0.5);
-        }
         button {
             padding: 1.25rem 2rem;
             border-radius: 1rem;
@@ -125,41 +105,21 @@
             width: 100%;
             font-size: 1.2rem;
         }
-        .auth-btn {
-            background: var(--accent);
-            color: #000;
-        }
-        .auth-btn:hover {
-            background: white;
-            transform: translateY(-2px);
-        }
         .github-style-btn {
             background: black;
             border: 1px solid rgba(255,255,255,0.3);
             color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 1rem;
-            font-weight: 500;
-            cursor: pointer;
             transition: all 0.3s ease;
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 0.75rem;
-            width: 100%;
             justify-content: center;
+            gap: 0.75rem;
             font-size: 1.1rem;
         }
         .github-style-btn:hover {
             border-color: var(--accent);
             transform: translateY(-2px);
         }
-        #auth-message {
-            margin-top: 1.5rem;
-            text-align: center;
-            font-size: 1.1rem;
-        }
-        .success { color: #10b981; }
-        .error { color: #ef4444; }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -234,25 +194,28 @@
                 </div>
             </div>
 
-            <!-- ACCOUNT TAB -->
+            <!-- ACCOUNT TAB – Google only -->
             <div id="content-account" class="tab-content">
                 <div class="max-w-md mx-auto py-12">
                     <h2 class="text-3xl font-bold text-center mb-8" id="account-title">Sign In Required</h2>
-                    <div id="auth-form" class="glass p-8 rounded-3xl">
-                        <h3 class="text-xl font-semibold mb-6 text-center" id="form-title">Sign In</h3>
-                        <input type="email" id="email" placeholder="Email address" required autocomplete="email">
-                        <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
-                        <button id="auth-btn" class="auth-btn mt-6">Sign In</button>
-                        <p class="text-center mt-6 text-white/70 text-sm">
-                            <span id="toggle-link" class="text-[var(--accent)] cursor-pointer hover:underline">Don't have an account? Sign Up</span>
+                    <div id="auth-form" class="glass p-10 rounded-3xl text-center">
+                        <h3 class="text-2xl font-semibold mb-8">Sign in or sign up</h3>
+                        <button id="google-signin-btn" class="github-style-btn text-lg py-6 flex items-center justify-center gap-4 w-full">
+                            <i class="fa-brands fa-google text-2xl"></i>
+                            Continue with Google
+                        </button>
+                        <p class="mt-8 text-white/60 text-sm">
+                            Fast & secure — no password or email verification needed<br>
+                            Powered by Google
                         </p>
                     </div>
                     <div id="user-info" class="hidden text-center mt-12">
-                        <p class="text-2xl mb-8">Logged in as: <span id="user-email" class="font-bold text-[var(--accent)]"></span></p>
-                        <button onclick="changeEmail()" class="github-style-btn"><i class="fa-solid fa-envelope"></i> Change Email</button>
-                        <button onclick="changePassword()" class="github-style-btn"><i class="fa-solid fa-key"></i> Change Password</button>
-                        <button onclick="deleteAccount()" class="github-style-btn"><i class="fa-solid fa-trash-can"></i> Delete Account</button>
-                        <button onclick="firebaseAuth.signOut(firebaseAuth.auth)" class="github-style-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                        <img id="user-photo" class="w-24 h-24 rounded-full mx-auto mb-6 object-cover border-4 border-[var(--accent)]" src="" alt="Profile">
+                        <p class="text-2xl mb-4">Welcome back, <span id="user-name" class="font-bold text-[var(--accent)]"></span></p>
+                        <p class="text-lg mb-8">Email: <span id="user-email" class="font-medium"></span></p>
+                        <button onclick="firebaseAuth.signOut(firebaseAuth.auth)" class="github-style-btn">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        </button>
                         <p id="auth-message" class="mt-6"></p>
                     </div>
                 </div>
@@ -308,114 +271,6 @@
                     </a>
                 </div>
             </div>
-
-            <!-- ADMIN PANEL -->
-            <div id="content-admin" class="tab-content hidden">
-                <div class="glass rounded-3xl p-10 max-w-6xl mx-auto">
-                    <div class="flex items-center justify-between mb-10">
-                        <h2 class="text-4xl font-bold logo-font tracking-tighter">Admin Panel</h2>
-                        <div class="text-xs bg-white/10 px-4 py-2 rounded-2xl font-mono">Admin only</div>
-                    </div>
-
-                    <!-- Announcement -->
-                    <div class="mb-16">
-                        <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
-                            <i class="fa-solid fa-bullhorn"></i> Global Announcement
-                        </h3>
-                        <textarea id="announcement-input" rows="3" class="w-full p-6 bg-black/60 border border-white/30 rounded-3xl text-white text-lg resize-y focus:border-[var(--accent)]" placeholder="Message visible to ALL logged-in users..."></textarea>
-                        <div class="flex gap-4 mt-4">
-                            <button onclick="saveGlobalAnnouncement()" class="auth-btn flex-1">Publish</button>
-                            <button onclick="clearAnnouncement()" class="github-style-btn flex-1">Clear</button>
-                        </div>
-                    </div>
-
-                    <!-- Users -->
-                    <div class="mb-16">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-users"></i> Registered Users
-                            </h3>
-                            <div class="flex gap-4">
-                                <button onclick="loadAdminUsers()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
-                                <a href="https://console.firebase.google.com/project/starlink-42031/authentication/users" target="_blank" rel="noopener noreferrer" class="github-style-btn text-sm px-4 py-3">
-                                    <i class="fa-solid fa-external-link-alt"></i> Firebase Authentication
-                                </a>
-                            </div>
-                        </div>
-                        <div id="users-table" class="bg-black/30 rounded-3xl p-2 max-h-[420px] overflow-auto"></div>
-                        <p class="text-xs text-white/50 mt-4 text-center">Delete removes the user from this list.<br>Full auth deletion still required in Firebase Console → Authentication</p>
-                    </div>
-
-                    <!-- Categories Management -->
-                    <div class="mb-16">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-list"></i> Manage Categories
-                            </h3>
-                            <button onclick="reloadAdminCategories()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
-                        </div>
-                        <div class="bg-black/40 p-8 rounded-3xl mb-10">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="text-xs text-white/50 block mb-2">Key (unique lowercase, no spaces)</label>
-                                    <input id="new-cat-key" type="text" placeholder="newcat" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
-                                </div>
-                                <div>
-                                    <label class="text-xs text-white/50 block mb-2">Display Label</label>
-                                    <input id="new-cat-label" type="text" placeholder="New Category" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
-                                </div>
-                                <div>
-                                    <label class="text-xs text-white/50 block mb-2">Font Awesome Icon (e.g. fa-gamepad)</label>
-                                    <input id="new-cat-icon" type="text" placeholder="fa-gamepad" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
-                                </div>
-                            </div>
-                            <button id="cat-action-btn" onclick="addOrUpdateCategory()" class="auth-btn mt-8 py-6 text-lg w-full">Add Category</button>
-                        </div>
-                        <div id="admin-categories-list" class="space-y-4"></div>
-                    </div>
-
-                    <!-- Sites Management -->
-                    <div>
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-globe"></i> Manage Sites
-                            </h3>
-                            <button onclick="reloadAdminSites()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
-                        </div>
-                        <div class="bg-black/40 p-8 rounded-3xl mb-10" id="admin-sites-management">
-                            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                                <div>
-                                    <label class="text-xs text-white/50 block mb-2">Category</label>
-                                    <select id="admin-cat-select" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
-                                        <!-- Populated dynamically -->
-                                    </select>
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="text-xs text-white/50 block mb-2">Site Name</label>
-                                    <input id="new-site-name" type="text" placeholder="Site Name" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="text-xs text-white/50 block mb-2">URL</label>
-                                    <input id="new-site-url" type="text" placeholder="https://example.com" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                <div>
-                                    <label class="text-xs text-white/50 block mb-2">Icon (emoji) – optional</label>
-                                    <input id="new-site-icon" type="text" placeholder="Leave blank for no icon" maxlength="2" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
-                                </div>
-                                <div>
-                                    <label class="text-xs text-white/50 block mb-2">Description (optional)</label>
-                                    <input id="new-site-desc" type="text" placeholder="Short description" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
-                                </div>
-                            </div>
-                            <button id="add-update-site-btn" onclick="addNewSiteFromAdmin()" class="auth-btn mt-8 py-6 text-lg w-full">Add New Site</button>
-                        </div>
-
-                        <div id="admin-sites-list" class="space-y-10"></div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -433,23 +288,25 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
+    <!-- Firebase + Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { 
             getAuth, 
-            createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword, 
+            GoogleAuthProvider, 
+            signInWithPopup, 
             signOut, 
-            onAuthStateChanged, 
-            deleteUser, 
-            sendPasswordResetEmail, 
-            updateEmail, 
-            reauthenticateWithCredential, 
-            EmailAuthProvider,
-            sendEmailVerification   // ← FIXED: this was missing
+            onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+        import { 
+            getFirestore, 
+            collection, 
+            doc, 
+            setDoc, 
+            getDoc, 
+            serverTimestamp, 
+            onSnapshot 
+        } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDI979T4jI-ZbGbRDFo-kNZPyG3Pc8gkXw",
@@ -465,617 +322,80 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        window.db = db;
-        window.firebaseAuth = { 
-            createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword, 
-            signOut, 
-            onAuthStateChanged, 
-            deleteUser, 
-            sendPasswordResetEmail, 
-            updateEmail, 
-            reauthenticateWithCredential, 
-            EmailAuthProvider, 
-            sendEmailVerification,
-            auth 
-        };
+        window.firebaseAuth = { signInWithPopup, signOut, onAuthStateChanged, auth };
 
         window.currentUser = null;
         const ADMIN_EMAIL = "gunnarbooth@gmail.com";
-        window.ADMIN_EMAIL = ADMIN_EMAIL;
-        window.editingCategoryId = null;
 
         let sitesListener = null;
         let announcementListener = null;
         let categoriesListener = null;
         window.initialLoadComplete = false;
+        window.allCategories = [];
+        window.allSites = {};
+
+        // Google Sign-In
+        document.getElementById('google-signin-btn')?.addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            provider.addScope('email profile');
+
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+
+                const userRef = doc(db, "users", user.uid);
+                const snap = await getDoc(userRef);
+
+                if (!snap.exists()) {
+                    await setDoc(userRef, {
+                        email: user.email,
+                        displayName: user.displayName || user.email.split('@')[0],
+                        photoURL: user.photoURL || '',
+                        createdAt: serverTimestamp()
+                    });
+                }
+
+                window.currentUser = user;
+                updateUIForAuth(user);
+            } catch (e) {
+                console.error(e);
+                alert("Google sign-in failed: " + (e.message || "Unknown error"));
+            }
+        });
 
         function updateUIForAuth(user) {
             window.currentUser = user;
-            const statusEl = document.getElementById('user-status');
-            const navLinks = document.getElementById('nav-links');
-            const userInfo = document.getElementById('user-info');
-            const authForm = document.getElementById('auth-form');
-            const accountTitle = document.getElementById('account-title');
-            const currentTabEl = document.getElementById('current-tab');
-            const currentIconEl = document.getElementById('current-tab-icon');
-
-            if (sitesListener) sitesListener();
-            if (announcementListener) announcementListener();
-            if (categoriesListener) categoriesListener();
 
             if (user) {
-                if (!user.emailVerified) {
-                    signOut(auth);
-                    alert("Please verify your email first.\n\nCheck your inbox (and spam folder).");
-                    updateUIForAuth(null);
-                    return;
-                }
-
-                statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
-                userInfo?.classList.remove('hidden');
+                document.getElementById('user-status').textContent = `Logged in as ${user.displayName || user.email.split('@')[0]}`;
                 document.getElementById('user-email').textContent = user.email;
-                authForm?.classList.add('hidden');
-                accountTitle.textContent = 'Account';
+                document.getElementById('user-name').textContent = user.displayName || user.email.split('@')[0];
+                document.getElementById('user-photo').src = user.photoURL || 'https://via.placeholder.com/96?text=User';
+                document.getElementById('user-info').classList.remove('hidden');
+                document.getElementById('auth-form').classList.add('hidden');
+                document.getElementById('account-title').textContent = 'Account';
 
-                setTimeout(async () => {
-                    populateThemeGrid();
-                    await window.loadCategories();
-                    window.createCategoryContents();
-                    await window.loadAllSites();
-                    window.populateAllGrids();
-                    window.populateCategorySelect();
-                    await window.showGlobalAnnouncement();
-                    window.buildNav();
-                    const isAdminUser = user.email === ADMIN_EMAIL;
-                    window.switchTab(isAdminUser ? 1 : 0);
-                    window.initialLoadComplete = true;
+                setTimeout(() => {
+                    buildNav();
+                    switchTab(user.email === ADMIN_EMAIL ? 1 : 0);
+                    initialLoadComplete = true;
                 }, 100);
-
-                sitesListener = onSnapshot(collection(db, "sites"), async () => {
-                    await window.loadAllSites();
-                    window.populateAllGrids();
-                    if (user.email === ADMIN_EMAIL && !document.getElementById('content-admin').classList.contains('hidden')) {
-                        window.reloadAdminSites();
-                    } else if (window.initialLoadComplete) {
-                        document.getElementById('refresh-modal').classList.add('show');
-                    }
-                });
-
-                announcementListener = onSnapshot(doc(db, "config", "announcement"), () => {
-                    if (user.email !== ADMIN_EMAIL && window.initialLoadComplete) {
-                        document.getElementById('refresh-modal').classList.add('show');
-                    } else {
-                        window.showGlobalAnnouncement();
-                    }
-                });
-
-                categoriesListener = onSnapshot(collection(db, "categories"), async () => {
-                    if (!window.initialLoadComplete) return;
-                    await window.loadCategories();
-                    window.createCategoryContents();
-                    window.populateAllGrids();
-                    window.buildNav();
-                    window.populateCategorySelect();
-                    if (user.email === ADMIN_EMAIL && !document.getElementById('content-admin').classList.contains('hidden')) {
-                        window.reloadAdminCategories();
-                    } else {
-                        document.getElementById('refresh-modal').classList.add('show');
-                    }
-                });
-
             } else {
-                statusEl.textContent = '';
-                currentTabEl.textContent = 'Sign In Required';
-                currentIconEl.className = 'text-3xl fa-solid fa-lock';
-                userInfo?.classList.add('hidden');
-                authForm?.classList.remove('hidden');
-                accountTitle.textContent = 'Sign In Required';
-                navLinks.innerHTML = `
-                    <div onclick="window.switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
+                document.getElementById('user-status').textContent = '';
+                document.getElementById('current-tab').textContent = 'Sign In Required';
+                document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-lock';
+                document.getElementById('user-info').classList.add('hidden');
+                document.getElementById('auth-form').classList.remove('hidden');
+                document.getElementById('account-title').textContent = 'Sign In Required';
+
+                document.getElementById('nav-links').innerHTML = `
+                    <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
                     </div>
                 `;
-                window.switchTab(0);
+                switchTab(0);
             }
         }
-
-        firebaseAuth.onAuthStateChanged(auth, updateUIForAuth);
-
-        // ────────────────────────────────────────────────
-        // Auth / Account logic
-        // ────────────────────────────────────────────────
-
-        document.getElementById('auth-btn')?.addEventListener('click', async () => {
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const isSignIn = document.getElementById('form-title').textContent === 'Sign In';
-
-            if (!email || !password) {
-                alert("Please enter both email and password.");
-                return;
-            }
-
-            try {
-                if (isSignIn) {
-                    const cred = await signInWithEmailAndPassword(auth, email, password);
-                    if (!cred.user.emailVerified) {
-                        await signOut(auth);
-                        alert("Please verify your email first.\n\nCheck your inbox (and spam/junk folder).");
-                        return;
-                    }
-                    updateUIForAuth(cred.user);
-                } else {
-                    const cred = await createUserWithEmailAndPassword(auth, email, password);
-                    await setDoc(doc(db, "users", cred.user.uid), {
-                        email,
-                        createdAt: serverTimestamp()
-                    });
-                    await sendEmailVerification(cred.user);
-                    await signOut(auth);
-
-                    alert("Verification email sent!\n\nPlease check your inbox (and spam/junk folder) and click the link to verify your account before signing in.");
-
-                    // Switch back to sign-in form
-                    document.getElementById('form-title').textContent = 'Sign In';
-                    document.getElementById('auth-btn').textContent = 'Sign In';
-                    document.getElementById('toggle-link').textContent = "Don't have an account? Sign Up";
-                    updateUIForAuth(null);
-                }
-            } catch (e) {
-                let msg = e.message;
-                if (msg.includes('email-already-in-use')) msg = "This email is already in use.";
-                if (msg.includes('weak-password')) msg = "Password should be at least 6 characters.";
-                if (msg.includes('invalid-email')) msg = "Invalid email format.";
-                alert(msg);
-            }
-        });
-
-        document.getElementById('toggle-link')?.addEventListener('click', e => {
-            e.preventDefault();
-            const isSignIn = document.getElementById('form-title').textContent === 'Sign In';
-            document.getElementById('form-title').textContent = isSignIn ? 'Sign Up' : 'Sign In';
-            document.getElementById('auth-btn').textContent = isSignIn ? 'Sign Up' : 'Sign In';
-            document.getElementById('toggle-link').textContent = isSignIn ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
-        });
-
-        window.deleteAccount = async () => {
-            if (!confirm("Delete account permanently? This cannot be undone.")) return;
-            const user = auth.currentUser;
-            if (!user) return alert("Not logged in.");
-            try {
-                await deleteDoc(doc(db, "users", user.uid));
-                await deleteUser(user);
-                alert("Account fully deleted.");
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.changePassword = async () => {
-            const user = auth.currentUser;
-            if (!user?.email) return alert("Not logged in.");
-            try {
-                await sendPasswordResetEmail(auth, user.email);
-                document.getElementById('auth-message').textContent = "Password reset email sent!";
-                document.getElementById('auth-message').className = "success";
-            } catch (e) {
-                document.getElementById('auth-message').textContent = "Error: " + e.message;
-                document.getElementById('auth-message').className = "error";
-            }
-        };
-
-        window.changeEmail = async () => {
-            const user = auth.currentUser;
-            if (!user) return alert("Not logged in.");
-            const newEmail = prompt("New email:", user.email);
-            if (!newEmail || newEmail === user.email) return;
-            const pass = prompt("Current password:");
-            if (!pass) return;
-            try {
-                const cred = EmailAuthProvider.credential(user.email, pass);
-                await reauthenticateWithCredential(user, cred);
-                await updateEmail(user, newEmail);
-                alert("Email updated! Verify new email.");
-                document.getElementById('user-email').textContent = newEmail;
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        // ────────────────────────────────────────────────
-        // Categories / Sites / Admin / UI functions (unchanged from original)
-        // ────────────────────────────────────────────────
-
-        window.loadCategories = async () => {
-            const catRef = collection(db, "categories");
-            let snap = await getDocs(catRef);
-            if (snap.empty) {
-                const defaults = [
-                    { key: "games", label: "Games", icon: "fa-gamepad", order: 0 },
-                    { key: "ai", label: "AI Tools", icon: "fa-brain", order: 1 },
-                    { key: "tv", label: "TV & Streaming", icon: "fa-tv", order: 2 },
-                    { key: "proxies", label: "Proxies", icon: "fa-shield-halved", order: 3 },
-                    { key: "music", label: "Music", icon: "fa-music", order: 4 }
-                ];
-                for (const def of defaults) {
-                    await addDoc(catRef, def);
-                }
-                snap = await getDocs(catRef);
-            }
-            window.allCategories = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-        };
-
-        window.addOrUpdateCategory = async () => {
-            const key = document.getElementById('new-cat-key').value.trim().toLowerCase().replace(/\s+/g, '');
-            const label = document.getElementById('new-cat-label').value.trim();
-            let icon = document.getElementById('new-cat-icon').value.trim();
-            if (!icon.startsWith('fa-')) icon = 'fa-' + icon;
-            if (!key || !label) return alert("Key and Label required (key must be lowercase, no spaces)");
-
-            if (window.editingCategoryId) {
-                try {
-                    await setDoc(doc(db, "categories", window.editingCategoryId), { key, label, icon }, { merge: true });
-                    alert("Category updated!");
-                    window.editingCategoryId = null;
-                    document.getElementById('cat-action-btn').textContent = "Add Category";
-                    ['new-cat-key','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
-                } catch (e) {
-                    alert("Error: " + e.message);
-                }
-            } else {
-                if ((window.allCategories || []).some(c => c.key === key)) return alert("Key already exists!");
-                const maxOrder = window.allCategories?.length ? Math.max(...window.allCategories.map(c => c.order ?? 0)) + 1 : 0;
-                try {
-                    await addDoc(collection(db, "categories"), { key, label, icon, order: maxOrder });
-                    alert("Category added!");
-                    ['new-cat-key','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
-                } catch (e) {
-                    alert("Error: " + e.message);
-                }
-            }
-        };
-
-        window.deleteCategory = async (docId, key) => {
-            if (!confirm(`Delete category "${key}" forever? Sites in this category will no longer appear until moved.`)) return;
-            try {
-                await deleteDoc(doc(db, "categories", docId));
-                alert("Category deleted!");
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.moveCategoryUp = async (docId) => {
-            const idx = (window.allCategories || []).findIndex(c => c.id === docId);
-            if (idx <= 0) return;
-            const thisCat = window.allCategories[idx];
-            const prevCat = window.allCategories[idx - 1];
-            const temp = thisCat.order ?? 999999;
-            thisCat.order = prevCat.order ?? 999999;
-            prevCat.order = temp;
-            try {
-                await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
-                await setDoc(doc(db, "categories", prevCat.id), { order: prevCat.order }, { merge: true });
-            } catch (e) {
-                alert("Reorder error: " + e.message);
-            }
-        };
-
-        window.moveCategoryDown = async (docId) => {
-            const idx = (window.allCategories || []).findIndex(c => c.id === docId);
-            if (idx >= (window.allCategories || []).length - 1) return;
-            const thisCat = window.allCategories[idx];
-            const nextCat = window.allCategories[idx + 1];
-            const temp = thisCat.order ?? 999999;
-            thisCat.order = nextCat.order ?? 999999;
-            nextCat.order = temp;
-            try {
-                await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
-                await setDoc(doc(db, "categories", nextCat.id), { order: nextCat.order }, { merge: true });
-            } catch (e) {
-                alert("Reorder error: " + e.message);
-            }
-        };
-
-        window.editCategory = (docId, key, label, icon) => {
-            window.editingCategoryId = docId;
-            document.getElementById('new-cat-key').value = key;
-            document.getElementById('new-cat-label').value = label;
-            document.getElementById('new-cat-icon').value = icon;
-            document.getElementById('cat-action-btn').textContent = "Update Category";
-        };
-
-        window.reloadAdminCategories = () => {
-            const container = document.getElementById('admin-categories-list');
-            container.innerHTML = '';
-            if (!(window.allCategories || []).length) {
-                container.innerHTML = '<p class="p-8 text-center text-white/50">No categories yet. Add one above!</p>';
-                return;
-            }
-            let html = '';
-            window.allCategories.forEach(cat => {
-                html += `
-                    <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group">
-                        <div class="flex items-center gap-6">
-                            <i class="fa-solid ${cat.icon} text-4xl"></i>
-                            <div>
-                                <div class="font-semibold text-xl">${cat.label}</div>
-                                <div class="text-xs text-white/50 font-mono">key: ${cat.key}</div>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="window.moveCategoryUp('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
-                            <button onclick="window.moveCategoryDown('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
-                            <button onclick="window.editCategory('${cat.id}', '${cat.key}', '${cat.label.replace(/'/g, "\\'")}', '${cat.icon}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl">Edit</button>
-                            <button onclick="window.deleteCategory('${cat.id}', '${cat.key}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl">Delete</button>
-                        </div>
-                    </div>`;
-            });
-            container.innerHTML = html;
-        };
-
-        window.loadAllSites = async () => {
-            const snap = await getDocs(collection(db, "sites"));
-            window.allSites = {};
-            (window.allCategories || []).forEach(cat => window.allSites[cat.key] = []);
-            snap.forEach(d => {
-                const data = d.data();
-                data.id = d.id;
-                if (window.allSites[data.category] !== undefined) {
-                    window.allSites[data.category].push(data);
-                }
-            });
-            Object.keys(window.allSites).forEach(key => {
-                window.allSites[key].sort((a, b) => (a.order ?? 999999999) - (b.order ?? 999999999));
-            });
-        };
-
-        window.moveSiteUp = async (siteId, category) => {
-            const sites = window.allSites[category] || [];
-            const idx = sites.findIndex(s => s.id === siteId);
-            if (idx <= 0) return;
-            const thisSite = sites[idx];
-            const prevSite = sites[idx - 1];
-            const temp = thisSite.order ?? 999999999;
-            thisSite.order = prevSite.order ?? 999999999;
-            prevSite.order = temp;
-            try {
-                await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
-                await setDoc(doc(db, "sites", prevSite.id), { order: prevSite.order }, { merge: true });
-                window.reloadAdminSites();
-            } catch (e) {
-                alert("Move error: " + e.message);
-            }
-        };
-
-        window.moveSiteDown = async (siteId, category) => {
-            const sites = window.allSites[category] || [];
-            const idx = sites.findIndex(s => s.id === siteId);
-            if (idx < 0 || idx >= sites.length - 1) return;
-            const thisSite = sites[idx];
-            const nextSite = sites[idx + 1];
-            const temp = thisSite.order ?? 999999999;
-            thisSite.order = nextSite.order ?? 999999999;
-            nextSite.order = temp;
-            try {
-                await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
-                await setDoc(doc(db, "sites", nextSite.id), { order: nextSite.order }, { merge: true });
-                window.reloadAdminSites();
-            } catch (e) {
-                alert("Move error: " + e.message);
-            }
-        };
-
-        window.addNewSiteFromAdmin = async () => {
-            const cat = document.getElementById('admin-cat-select').value;
-            const name = document.getElementById('new-site-name').value.trim();
-            const url = document.getElementById('new-site-url').value.trim();
-            const icon = document.getElementById('new-site-icon').value.trim();
-            const desc = document.getElementById('new-site-desc').value.trim();
-
-            if (!name || !url) return alert("Name and URL required");
-
-            const currentInCat = window.allSites[cat] || [];
-            const maxOrder = currentInCat.length ? Math.max(...currentInCat.map(s => s.order ?? 0)) + 1 : 0;
-
-            try {
-                await addDoc(collection(db, "sites"), { 
-                    category: cat, 
-                    name, 
-                    url, 
-                    icon, 
-                    desc,
-                    order: maxOrder,
-                    createdAt: serverTimestamp()
-                });
-                alert("Site added! Non-admin users will see a refresh prompt.");
-                ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
-                await window.loadAllSites();
-                window.populateAllGrids();
-                window.reloadAdminSites();
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.deleteSite = async (id) => {
-            if (!confirm("Delete forever?")) return;
-            try {
-                await deleteDoc(doc(db, "sites", id));
-                await window.loadAllSites();
-                window.populateAllGrids();
-                window.reloadAdminSites();
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.editSite = (id, category, name, url, icon, desc) => {
-            document.getElementById('admin-cat-select').value = category;
-            document.getElementById('new-site-name').value = name;
-            document.getElementById('new-site-url').value = url;
-            document.getElementById('new-site-icon').value = icon || '';
-            document.getElementById('new-site-desc').value = desc || '';
-
-            const btn = document.getElementById('add-update-site-btn');
-            btn.textContent = 'Update Site';
-            btn.onclick = async () => {
-                const newCat = document.getElementById('admin-cat-select').value;
-                const newName = document.getElementById('new-site-name').value.trim();
-                const newUrl = document.getElementById('new-site-url').value.trim();
-                const newIcon = document.getElementById('new-site-icon').value.trim();
-                const newDesc = document.getElementById('new-site-desc').value.trim();
-
-                if (!newName || !newUrl) return alert("Name and URL required");
-
-                try {
-                    await setDoc(doc(db, "sites", id), {
-                        category: newCat,
-                        name: newName,
-                        url: newUrl,
-                        icon: newIcon,
-                        desc: newDesc,
-                        updatedAt: serverTimestamp()
-                    }, { merge: true });
-                    alert("Site updated successfully!");
-                    ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
-                    btn.textContent = 'Add New Site';
-                    btn.onclick = window.addNewSiteFromAdmin;
-                    await window.loadAllSites();
-                    window.populateAllGrids();
-                    window.reloadAdminSites();
-                } catch (e) {
-                    alert("Error updating site: " + e.message);
-                }
-            };
-        };
-
-        window.reloadAdminSites = () => {
-            const container = document.getElementById('admin-sites-list');
-            container.innerHTML = '';
-            (window.allCategories || []).forEach(cat => {
-                const sites = window.allSites[cat.key] || [];
-                let html = `<div class="border border-white/10 rounded-3xl p-8"><div class="flex justify-between items-center mb-6"><h4 class="text-2xl font-medium">${cat.label}</h4><span class="text-xs bg-white/10 px-4 py-1.5 rounded-2xl">${sites.length} sites</span></div><div class="space-y-4">`;
-                if (!sites.length) {
-                    html += '<p class="text-white/40 pl-2">No sites yet</p>';
-                } else {
-                    sites.forEach(s => {
-                        const iconDisplay = s.icon ? `<div class="text-5xl">${s.icon}</div>` : '<div class="text-5xl opacity-30">–</div>';
-                        html += `
-                            <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group transition-all">
-                                <div class="flex items-center gap-6">
-                                    ${iconDisplay}
-                                    <div>
-                                        <div class="font-semibold text-xl">${s.name}</div>
-                                        <a href="${s.url}" target="_blank" class="text-xs text-[var(--accent)] break-all">${s.url}</a>
-                                        ${s.desc ? `<div class="text-xs text-white/60 mt-1">${s.desc}</div>` : ''}
-                                    </div>
-                                </div>
-                                <div class="flex gap-3">
-                                    <button onclick="window.moveSiteUp('${s.id}', '${s.category}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
-                                    <button onclick="window.moveSiteDown('${s.id}', '${s.category}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
-                                    <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation()" 
-                                            class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">
-                                        Edit
-                                    </button>
-                                    <button onclick="window.deleteSite('${s.id}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>`;
-                    });
-                }
-                html += '</div></div>';
-                container.innerHTML += html;
-            });
-        };
-
-        window.populateAllGrids = () => {
-            (window.allCategories || []).forEach(cat => populateGrid(cat.key, `${cat.key}-grid`));
-        };
-
-        window.showGlobalAnnouncement = async () => {
-            const banner = document.getElementById('global-announcement');
-            try {
-                const docSnap = await getDoc(doc(db, "config", "announcement"));
-                if (docSnap.exists() && docSnap.data().message?.trim()) {
-                    document.getElementById('announcement-text-display').textContent = docSnap.data().message;
-                    banner.classList.remove('hidden');
-                } else {
-                    banner.classList.add('hidden');
-                }
-            } catch {
-                banner.classList.add('hidden');
-            }
-        };
-
-        window.saveGlobalAnnouncement = async () => {
-            const msg = document.getElementById('announcement-input').value.trim();
-            if (!msg) return alert("Cannot be empty");
-            try {
-                await setDoc(doc(db, "config", "announcement"), { message: msg, updatedAt: serverTimestamp() });
-                alert("Published! Non-admin users will see a refresh prompt.");
-                document.getElementById('announcement-input').value = '';
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.clearAnnouncement = async () => {
-            if (!confirm("Clear announcement?")) return;
-            try {
-                await deleteDoc(doc(db, "config", "announcement"));
-                alert("Announcement cleared! Non-admin users will see a refresh prompt.");
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.loadAdminUsers = async () => {
-            const container = document.getElementById('users-table');
-            container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
-            try {
-                const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
-                const snap = await getDocs(q);
-                let html = `<table class="w-full text-sm"><thead class="bg-black/60 sticky top-0"><tr class="border-b border-white/10"><th class="px-6 py-4 text-left">Email</th><th class="px-6 py-4 text-left">Joined</th><th class="px-6 py-4 text-left">UID</th><th class="px-6 py-4 text-left">Actions</th></tr></thead><tbody class="divide-y divide-white/10">`;
-                snap.forEach(d => {
-                    const data = d.data();
-                    const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '—';
-                    html += `<tr>
-                        <td class="px-6 py-4 font-medium">${data.email}</td>
-                        <td class="px-6 py-4 text-white/70">${date}</td>
-                        <td class="px-6 py-4 font-mono text-xs text-white/50">${d.id}</td>
-                        <td class="px-6 py-4">
-                            <button onclick="deleteUserFromAdmin('${d.id}'); event.stopPropagation();" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Delete</button>
-                        </td>
-                    </tr>`;
-                });
-                html += '</tbody></table>';
-                container.innerHTML = snap.empty ? '<p class="p-8 text-center text-white/50">No users yet</p>' : html;
-            } catch (e) {
-                container.innerHTML = `<p class="p-8 text-red-400">Error loading users.<br>Check Firestore rules.</p>`;
-            }
-        };
-
-        window.deleteUserFromAdmin = async (uid) => {
-            if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
-            try {
-                await deleteDoc(doc(db, "users", uid));
-                alert("User removed from list.");
-                window.loadAdminUsers();
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.populateCategorySelect = () => {
-            const select = document.getElementById('admin-cat-select');
-            if (!select) return;
-            select.innerHTML = (window.allCategories || []).map(cat => 
-                `<option value="${cat.key}">${cat.label}</option>`
-            ).join('');
-        };
 
         function setTheme(color) {
             document.documentElement.style.setProperty('--accent', color);
@@ -1100,8 +420,7 @@
             document.getElementById('star-bg').appendChild(s);
 
             const check = setInterval(() => {
-                const rect = s.getBoundingClientRect();
-                if (rect.top < -window.innerHeight * 4) {
+                if (s.getBoundingClientRect().top < -window.innerHeight * 4) {
                     s.remove();
                     clearInterval(check);
                 }
@@ -1110,20 +429,15 @@
 
         function initStars() {
             for (let i = 0; i < 100; i++) {
-                const x = Math.random() * window.innerWidth;
-                const y = Math.random() * window.innerHeight * 1.5;
-                createStar(x, y);
+                createStar(Math.random() * window.innerWidth, Math.random() * window.innerHeight * 1.5);
             }
-
             setInterval(() => {
-                const x = Math.random() * window.innerWidth;
-                const y = window.innerHeight + 80;
-                createStar(x, y);
+                createStar(Math.random() * window.innerWidth, window.innerHeight + 80);
             }, 5000 + Math.random() * 5000);
         }
 
         document.addEventListener('click', e => {
-            if (e.target.closest('button, a, input, select, textarea, label, svg, .card, .nav-link, #refresh-modal, #add-update-site-btn, .github-style-btn, .auth-btn, .users-table, .admin-sites-list')) return;
+            if (e.target.closest('button, a, svg, .card, .nav-link, #refresh-modal, .github-style-btn')) return;
             createStar(e.clientX, e.clientY);
         });
 
@@ -1149,120 +463,10 @@
             });
         }
 
-        function populateGrid(catKey, gridId) {
-            const cont = document.getElementById(gridId);
-            if (!cont) return;
-            cont.innerHTML = '';
-            (window.allSites?.[catKey] || []).forEach(site => {
-                const iconDisplay = site.icon ? `<div class="text-5xl mb-6 transition-transform group-hover:scale-125">${site.icon}</div>` : '<div class="text-5xl mb-6 opacity-30 transition-transform group-hover:scale-125">–</div>';
-                const card = document.createElement('div');
-                card.className = 'card rounded-3xl p-6 cursor-pointer group';
-                card.innerHTML = `
-                    ${iconDisplay}
-                    <div class="font-semibold text-xl mb-2">${site.name}</div>
-                    <div class="text-white/60 text-sm">${site.desc || ''}</div>
-                `;
-                card.onclick = () => window.open(site.url, '_blank');
-                cont.appendChild(card);
-            });
-        }
-
-        window.createCategoryContents = () => {
-            const container = document.getElementById('dynamic-category-contents');
-            container.innerHTML = '';
-            (window.allCategories || []).forEach(cat => {
-                const div = document.createElement('div');
-                div.id = `content-${cat.key}`;
-                div.className = 'tab-content hidden';
-                div.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="${cat.key}-grid"></div>`;
-                container.appendChild(div);
-            });
-        };
-
-        window.buildNav = () => {
-            const navLinks = document.getElementById('nav-links');
-            if (!navLinks) return;
-            if (!window.currentUser) {
-                navLinks.innerHTML = `
-                    <div onclick="window.switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
-                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-                    </div>
-                `;
-                return;
-            }
-
-            const isAdmin = window.currentUser.email === ADMIN_EMAIL;
-            let html = '';
-            window.tabMapping = [];
-            let idx = 0;
-
-            if (isAdmin) {
-                html += `
-                    <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                        <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
-                    </div>
-                `;
-                window.tabMapping.push({contentId: 'content-admin', title: 'Admin Panel', icon: 'fa-crown'});
-                idx++;
-                html += '<div class="sidebar-separator mx-6"></div>';
-            }
-
-            const homeActive = !isAdmin ? 'active-tab' : '';
-            html += `
-                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${homeActive}" id="tab-${idx}">
-                    <i class="fa-solid fa-house w-5"></i> <span>Home</span>
-                </div>
-            `;
-            window.tabMapping.push({contentId: 'content-home', title: 'Home', icon: 'fa-house'});
-            idx++;
-
-            (window.allCategories || []).forEach(cat => {
-                html += `
-                    <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                        <i class="fa-solid ${cat.icon} w-5"></i> <span>${cat.label}</span>
-                    </div>
-                `;
-                window.tabMapping.push({contentId: `content-${cat.key}`, title: cat.label, icon: cat.icon});
-                idx++;
-            });
-
-            html += `
-                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
-                </div>
-            `;
-            window.tabMapping.push({contentId: 'content-settings', title: 'Settings', icon: 'fa-gear'});
-            idx++;
-
-            html += `
-                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-                </div>
-            `;
-            window.tabMapping.push({contentId: 'content-account', title: 'Account', icon: 'fa-user'});
-            idx++;
-
-            html += `
-                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
-                </div>
-            `;
-            window.tabMapping.push({contentId: 'content-credits', title: 'Credits', icon: 'fa-heart'});
-            idx++;
-
-            html += `
-                <div onclick="window.requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
-                    <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
-                </div>
-            `;
-
-            navLinks.innerHTML = html;
-        };
-
         window.switchTab = function(index) {
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
-            const activeEl = document.getElementById(`tab-${index}`);
-            if (activeEl) activeEl.classList.add('active-tab');
+            const active = document.getElementById(`tab-${index}`);
+            if (active) active.classList.add('active-tab');
 
             if (!window.currentUser) {
                 document.getElementById('current-tab').textContent = 'Sign In Required';
@@ -1272,18 +476,28 @@
                 return;
             }
 
-            const mapping = (window.tabMapping || [])[index];
-            if (!mapping) return;
-
-            document.getElementById('current-tab').textContent = mapping.title;
-            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${mapping.icon}`;
-
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(mapping.contentId)?.classList.remove('hidden');
-        };
-
-        window.requestSite = function() {
-            window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
+            if (index === 0 && currentUser.email === ADMIN_EMAIL) {
+                document.getElementById('content-admin')?.classList.remove('hidden');
+                document.getElementById('current-tab').textContent = 'Admin Panel';
+                document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-crown';
+            } else if (index === 0) {
+                document.getElementById('content-home')?.classList.remove('hidden');
+                document.getElementById('current-tab').textContent = 'Home';
+                document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-house';
+            } else if (index === 1) {
+                document.getElementById('content-settings')?.classList.remove('hidden');
+                document.getElementById('current-tab').textContent = 'Settings';
+                document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-gear';
+            } else if (index === 2) {
+                document.getElementById('content-account')?.classList.remove('hidden');
+                document.getElementById('current-tab').textContent = 'Account';
+                document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-user';
+            } else {
+                document.getElementById('content-credits')?.classList.remove('hidden');
+                document.getElementById('current-tab').textContent = 'Credits';
+                document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-heart';
+            }
         };
 
         window.resetEverything = function() {
@@ -1296,6 +510,7 @@
         function initialize() {
             loadTheme();
             initStars();
+            populateThemeGrid();
         }
 
         window.onload = initialize;
