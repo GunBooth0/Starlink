@@ -395,8 +395,8 @@
                         <p class="text-xs text-white/50 mt-4 text-center">Delete removes the user from this list.<br>Full auth deletion still required in Firebase Console → Authentication</p>
                     </div>
 
-                    <!-- Site Requests -->
-                    <div class="mb-16">
+                    <!-- Site Requests (owner only) -->
+                    <div class="mb-16" id="site-requests-section" style="display:none;">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="text-2xl font-semibold flex items-center gap-3">
                                 <i class="fa-solid fa-paper-plane"></i> Site Requests
@@ -558,6 +558,7 @@
         window.firebaseAuth = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, auth };
 
         window.currentUser = null;
+        window.isAdminUser = false;
         const ADMIN_EMAIL = "gunnarbooth@gmail.com";
         window.ADMIN_EMAIL = ADMIN_EMAIL;
         window.editingCategoryId = null;
@@ -618,11 +619,16 @@
                     document.getElementById('search-wrapper').classList.remove('hidden');
                     document.getElementById('search-wrapper').classList.add('flex');
                     window.switchTab(window.isAdminUser ? 1 : 0);
-                    if (window.isAdminUser) window.loadSiteRequests();
-                    if (auth.currentUser?.email === ADMIN_EMAIL) {
-                        const adminReqSection = document.getElementById('admin-requests-section');
-                        if (adminReqSection) adminReqSection.style.display = '';
-                        window.loadAdminRequests();
+                    if (window.isAdminUser) {
+                        const isOwnerInit = auth.currentUser?.email === ADMIN_EMAIL;
+                        const siteReqSectionInit = document.getElementById('site-requests-section');
+                        const adminReqSectionInit = document.getElementById('admin-requests-section');
+                        if (isOwnerInit) {
+                            if (siteReqSectionInit) siteReqSectionInit.style.display = '';
+                            if (adminReqSectionInit) adminReqSectionInit.style.display = '';
+                            window.loadSiteRequests();
+                            window.loadAdminRequests();
+                        }
                     }
                     window.initialLoadComplete = true;
                 }, 100);
@@ -1554,12 +1560,16 @@
             document.getElementById(mapping.contentId)?.classList.remove('hidden');
             if (mapping.contentId === 'content-request-admin') window.checkExistingAdminRequest();
             if (mapping.contentId === 'content-admin') {
-                window.loadSiteRequests();
+                const isOwnerNow = auth.currentUser?.email === ADMIN_EMAIL;
+                const siteReqSection = document.getElementById('site-requests-section');
                 const adminReqSection = document.getElementById('admin-requests-section');
-                if (auth.currentUser?.email === ADMIN_EMAIL) {
+                if (isOwnerNow) {
+                    if (siteReqSection) siteReqSection.style.display = '';
                     if (adminReqSection) adminReqSection.style.display = '';
+                    window.loadSiteRequests();
                     window.loadAdminRequests();
                 } else {
+                    if (siteReqSection) siteReqSection.style.display = 'none';
                     if (adminReqSection) adminReqSection.style.display = 'none';
                 }
             }
@@ -1823,13 +1833,14 @@
             window.tabMapping.push({contentId: 'content-credits', title: 'Credits', icon: 'fa-heart'});
             idx++;
 
-            if (!isAdmin) {
+            const isOwnerUser = window.currentUser?.email === ADMIN_EMAIL;
+            if (!isAdmin && !isOwnerUser) {
                 html += `
                     <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                        <i class="fa-solid fa-crown w-5"></i> <span>Request Admin</span>
+                        <i class="fa-solid fa-shield-halved w-5"></i> <span>Request Admin</span>
                     </div>
                 `;
-                window.tabMapping.push({contentId: 'content-request-admin', title: 'Request Admin', icon: 'fa-crown'});
+                window.tabMapping.push({contentId: 'content-request-admin', title: 'Request Admin', icon: 'fa-shield-halved'});
                 idx++;
             }
 
