@@ -516,13 +516,13 @@
                     await window.showGlobalAnnouncement();
                     window.buildNav();
                     let isAdminUser = (user.email === ADMIN_EMAIL);
-if (!isAdminUser) {
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists() && userDoc.data().isAdmin === true) {
-        isAdminUser = true;
-    }
-}
-                    window.currentUserIsAdmin = false;
+                    if (!isAdminUser) {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists() && userDoc.data().isAdmin === true) {
+                    isAdminUser = true;
+                            }
+                    }
+                    window.currentUserIsAdmin = isAdminUser;
                     window.switchTab(isAdminUser ? 1 : 0);
                     window.initialLoadComplete = true;
                 }, 100);
