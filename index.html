@@ -447,548 +447,663 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        // ────────────────────────────────────────────────
-        //   All Firebase / auth / data logic stays here
-        // ────────────────────────────────────────────────
+    // ────────────────────────────────────────────────
+    //   All Firebase / auth / data logic stays here
+    // ────────────────────────────────────────────────
 
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+    import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDI979T4jI-ZbGbRDFo-kNZPyG3Pc8gkXw",
-            authDomain: "starlink-42031.firebaseapp.com",
-            projectId: "starlink-42031",
-            storageBucket: "starlink-42031.firebasestorage.app",
-            messagingSenderId: "264424976547",
-            appId: "1:264424976547:web:6725648e3ae60397870f16",
-            measurementId: "G-Z2B3TBENYK"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyDI979T4jI-ZbGbRDFo-kNZPyG3Pc8gkXw",
+        authDomain: "starlink-42031.firebaseapp.com",
+        projectId: "starlink-42031",
+        storageBucket: "starlink-42031.firebasestorage.app",
+        messagingSenderId: "264424976547",
+        appId: "1:264424976547:web:6725648e3ae60397870f16",
+        measurementId: "G-Z2B3TBENYK"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-        window.db = db;
-        window.firebaseAuth = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, auth };
+    window.db = db;
+    window.firebaseAuth = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, auth };
 
-        window.currentUser = null;
-        const ADMIN_EMAIL = "gunnarbooth@gmail.com";
-        window.ADMIN_EMAIL = ADMIN_EMAIL;
-        window.editingCategoryId = null;
+    window.currentUser = null;
+    const ADMIN_EMAIL = "gunnarbooth@gmail.com";
+    window.ADMIN_EMAIL = ADMIN_EMAIL;
+    window.editingCategoryId = null;
 
-        let sitesListener = null;
-        let announcementListener = null;
-        let categoriesListener = null;
-        window.initialLoadComplete = false;
+    let sitesListener = null;
+    let announcementListener = null;
+    let categoriesListener = null;
+    window.initialLoadComplete = false;
 
-        function updateUIForAuth(user) {
-            window.currentUser = user;
-            const statusEl = document.getElementById('user-status');
-            const navLinks = document.getElementById('nav-links');
-            const userInfo = document.getElementById('user-info');
-            const authForm = document.getElementById('auth-form');
-            const accountTitle = document.getElementById('account-title');
-            const currentTabEl = document.getElementById('current-tab');
-            const currentIconEl = document.getElementById('current-tab-icon');
+    // ────────────────────────────────────────────────
+    //  Auth state listener & UI updates
+    // ────────────────────────────────────────────────
+    function updateUIForAuth(user) {
+        window.currentUser = user;
+        const statusEl = document.getElementById('user-status');
+        const navLinks = document.getElementById('nav-links');
+        const userInfo = document.getElementById('user-info');
+        const authForm = document.getElementById('auth-form');
+        const accountTitle = document.getElementById('account-title');
+        const currentTabEl = document.getElementById('current-tab');
+        const currentIconEl = document.getElementById('current-tab-icon');
 
-            if (sitesListener) sitesListener();
-            if (announcementListener) announcementListener();
-            if (categoriesListener) categoriesListener();
+        if (sitesListener) sitesListener();
+        if (announcementListener) announcementListener();
+        if (categoriesListener) categoriesListener();
 
-            if (user) {
-                statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
-                userInfo?.classList.remove('hidden');
-                document.getElementById('user-email').textContent = user.email;
-                authForm?.classList.add('hidden');
-                accountTitle.textContent = 'Account';
+        if (user) {
+            statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
+            userInfo?.classList.remove('hidden');
+            document.getElementById('user-email').textContent = user.email;
+            authForm?.classList.add('hidden');
+            accountTitle.textContent = 'Account';
 
-                setTimeout(async () => {
-                    populateThemeGrid();
-                    await window.loadCategories();
-                    window.createCategoryContents();
-                    await window.loadAllSites();
-                    window.populateAllGrids();
-                    window.populateCategorySelect();
-                    await window.showGlobalAnnouncement();
-                    window.buildNav();
-                    const isAdminUser = user.email === ADMIN_EMAIL;
-                    window.switchTab(isAdminUser ? 1 : 0);
-                    window.initialLoadComplete = true;
-                }, 100);
+            setTimeout(async () => {
+                populateThemeGrid();
+                await window.loadCategories();
+                window.createCategoryContents();
+                await window.loadAllSites();
+                window.populateAllGrids();
+                window.populateCategorySelect();
+                await window.showGlobalAnnouncement();
+                window.buildNav();
+                const isAdminUser = user.email === ADMIN_EMAIL;
+                window.switchTab(isAdminUser ? 1 : 0);
+                window.initialLoadComplete = true;
+            }, 100);
 
-                sitesListener = onSnapshot(collection(db, "sites"), async () => {
-                    await window.loadAllSites();
-                    window.populateAllGrids();
-                    if (user.email === ADMIN_EMAIL && !document.getElementById('content-admin').classList.contains('hidden')) {
-                        window.reloadAdminSites();
-                    } else if (window.initialLoadComplete) {
-                        document.getElementById('refresh-modal').classList.add('show');
-                    }
-                });
-
-                announcementListener = onSnapshot(doc(db, "config", "announcement"), () => {
-                    if (user.email !== ADMIN_EMAIL && window.initialLoadComplete) {
-                        document.getElementById('refresh-modal').classList.add('show');
-                    } else {
-                        window.showGlobalAnnouncement();
-                    }
-                });
-
-                categoriesListener = onSnapshot(collection(db, "categories"), async () => {
-                    if (!window.initialLoadComplete) return;
-                    await window.loadCategories();
-                    window.createCategoryContents();
-                    window.populateAllGrids();
-                    window.buildNav();
-                    window.populateCategorySelect();
-                    if (user.email === ADMIN_EMAIL && !document.getElementById('content-admin').classList.contains('hidden')) {
-                        window.reloadAdminCategories();
-                    } else {
-                        document.getElementById('refresh-modal').classList.add('show');
-                    }
-                });
-
-            } else {
-                statusEl.textContent = '';
-                currentTabEl.textContent = 'Sign In Required';
-                currentIconEl.className = 'text-3xl fa-solid fa-lock';
-                userInfo?.classList.add('hidden');
-                authForm?.classList.remove('hidden');
-                accountTitle.textContent = 'Sign In Required';
-                navLinks.innerHTML = `
-                    <div onclick="window.switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
-                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-                    </div>
-                `;
-                window.switchTab(0);
-            }
-        }
-
-        firebaseAuth.onAuthStateChanged(auth, updateUIForAuth);
-
-        document.getElementById('auth-btn')?.addEventListener('click', async () => {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            try {
-                if (document.getElementById('form-title').textContent === 'Sign In') {
-                    const cred = await signInWithEmailAndPassword(auth, email, password);
-                    if (!cred.user.emailVerified) {
-                        alert("Please verify your email first.");
-                        await signOut(auth);
-                        return;
-                    }
-                    updateUIForAuth(cred.user);
-                } else {
-                    const cred = await createUserWithEmailAndPassword(auth, email, password);
-                    await setDoc(doc(db, "users", cred.user.uid), {
-                        email,
-                        createdAt: serverTimestamp()
-                    });
-                    await sendEmailVerification(cred.user);
-                    alert("Verification email sent! Check inbox.");
-                    await signOut(auth);
-                    updateUIForAuth(null);
-                }
-            } catch (e) {
-                alert(e.message);
-            }
-        });
-
-        document.getElementById('toggle-link')?.addEventListener('click', e => {
-            e.preventDefault();
-            const isSignIn = document.getElementById('form-title').textContent === 'Sign In';
-            document.getElementById('form-title').textContent = isSignIn ? 'Sign Up' : 'Sign In';
-            document.getElementById('auth-btn').textContent = isSignIn ? 'Sign Up' : 'Sign In';
-            document.getElementById('toggle-link').textContent = isSignIn ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
-        });
-
-        window.deleteAccount = async () => {
-            if (!confirm("Delete account permanently? This cannot be undone.")) return;
-            const user = auth.currentUser;
-            if (!user) return alert("Not logged in.");
-            try {
-                await deleteDoc(doc(db, "users", user.uid));
-                await deleteUser(user);
-                alert("Account fully deleted.");
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.changePassword = async () => {
-            const user = auth.currentUser;
-            if (!user?.email) return alert("Not logged in.");
-            try {
-                await sendPasswordResetEmail(auth, user.email);
-                document.getElementById('auth-message').textContent = "Password reset email sent!";
-                document.getElementById('auth-message').className = "success";
-            } catch (e) {
-                document.getElementById('auth-message').textContent = "Error: " + e.message;
-                document.getElementById('auth-message').className = "error";
-            }
-        };
-
-        window.changeEmail = async () => {
-            const user = auth.currentUser;
-            if (!user) return alert("Not logged in.");
-            const newEmail = prompt("New email:", user.email);
-            if (!newEmail || newEmail === user.email) return;
-            const pass = prompt("Current password:");
-            if (!pass) return;
-            try {
-                const cred = EmailAuthProvider.credential(user.email, pass);
-                await reauthenticateWithCredential(user, cred);
-                await updateEmail(user, newEmail);
-                alert("Email updated! Verify new email.");
-                document.getElementById('user-email').textContent = newEmail;
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.loadCategories = async () => {
-            const catRef = collection(db, "categories");
-            let snap = await getDocs(catRef);
-            if (snap.empty) {
-                const defaults = [
-                    { key: "games", label: "Games", icon: "fa-gamepad", order: 0 },
-                    { key: "ai", label: "AI Tools", icon: "fa-brain", order: 1 },
-                    { key: "tv", label: "TV & Streaming", icon: "fa-tv", order: 2 },
-                    { key: "proxies", label: "Proxies", icon: "fa-shield-halved", order: 3 },
-                    { key: "music", label: "Music", icon: "fa-music", order: 4 }
-                ];
-                for (const def of defaults) {
-                    await addDoc(catRef, def);
-                }
-                snap = await getDocs(catRef);
-            }
-            window.allCategories = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-        };
-
-        window.loadAllSites = async () => {
-            const snap = await getDocs(collection(db, "sites"));
-            window.allSites = {};
-            (window.allCategories || []).forEach(cat => window.allSites[cat.key] = []);
-            snap.forEach(d => {
-                const data = d.data();
-                data.id = d.id;
-                if (window.allSites[data.category] !== undefined) {
-                    window.allSites[data.category].push(data);
+            sitesListener = onSnapshot(collection(db, "sites"), async () => {
+                await window.loadAllSites();
+                window.populateAllGrids();
+                if (user.email === ADMIN_EMAIL && !document.getElementById('content-admin').classList.contains('hidden')) {
+                    window.reloadAdminSites();
+                } else if (window.initialLoadComplete) {
+                    document.getElementById('refresh-modal').classList.add('show');
                 }
             });
-        };
 
-        window.populateAllGrids = () => {
-            (window.allCategories || []).forEach(cat => populateGrid(cat.key, `${cat.key}-grid`));
-        };
-
-        window.showGlobalAnnouncement = async () => {
-            const banner = document.getElementById('global-announcement');
-            try {
-                const docSnap = await getDoc(doc(db, "config", "announcement"));
-                if (docSnap.exists() && docSnap.data().message?.trim()) {
-                    document.getElementById('announcement-text-display').textContent = docSnap.data().message;
-                    banner.classList.remove('hidden');
+            announcementListener = onSnapshot(doc(db, "config", "announcement"), () => {
+                if (user.email !== ADMIN_EMAIL && window.initialLoadComplete) {
+                    document.getElementById('refresh-modal').classList.add('show');
                 } else {
-                    banner.classList.add('hidden');
+                    window.showGlobalAnnouncement();
                 }
-            } catch {
+            });
+
+            categoriesListener = onSnapshot(collection(db, "categories"), async () => {
+                if (!window.initialLoadComplete) return;
+                await window.loadCategories();
+                window.createCategoryContents();
+                window.populateAllGrids();
+                window.buildNav();
+                window.populateCategorySelect();
+                if (user.email === ADMIN_EMAIL && !document.getElementById('content-admin').classList.contains('hidden')) {
+                    window.reloadAdminCategories();
+                } else {
+                    document.getElementById('refresh-modal').classList.add('show');
+                }
+            });
+
+        } else {
+            statusEl.textContent = '';
+            currentTabEl.textContent = 'Sign In Required';
+            currentIconEl.className = 'text-3xl fa-solid fa-lock';
+            userInfo?.classList.add('hidden');
+            authForm?.classList.remove('hidden');
+            accountTitle.textContent = 'Sign In Required';
+            navLinks.innerHTML = `
+                <div onclick="window.switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
+                    <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+                </div>
+            `;
+            window.switchTab(0);
+        }
+    }
+
+    firebaseAuth.onAuthStateChanged(auth, updateUIForAuth);
+
+    // ────────────────────────────────────────────────
+    //  Auth form handlers
+    // ────────────────────────────────────────────────
+    document.getElementById('auth-btn')?.addEventListener('click', async () => {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        try {
+            if (document.getElementById('form-title').textContent === 'Sign In') {
+                const cred = await signInWithEmailAndPassword(auth, email, password);
+                if (!cred.user.emailVerified) {
+                    alert("Please verify your email first.");
+                    await signOut(auth);
+                    return;
+                }
+                updateUIForAuth(cred.user);
+            } else {
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                await setDoc(doc(db, "users", cred.user.uid), {
+                    email,
+                    createdAt: serverTimestamp()
+                });
+                await sendEmailVerification(cred.user);
+                alert("Verification email sent! Check inbox.");
+                await signOut(auth);
+                updateUIForAuth(null);
+            }
+        } catch (e) {
+            alert(e.message);
+        }
+    });
+
+    document.getElementById('toggle-link')?.addEventListener('click', e => {
+        e.preventDefault();
+        const isSignIn = document.getElementById('form-title').textContent === 'Sign In';
+        document.getElementById('form-title').textContent = isSignIn ? 'Sign Up' : 'Sign In';
+        document.getElementById('auth-btn').textContent = isSignIn ? 'Sign Up' : 'Sign In';
+        document.getElementById('toggle-link').textContent = isSignIn ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
+    });
+
+    window.deleteAccount = async () => {
+        if (!confirm("Delete account permanently? This cannot be undone.")) return;
+        const user = auth.currentUser;
+        if (!user) return alert("Not logged in.");
+        try {
+            await deleteDoc(doc(db, "users", user.uid));
+            await deleteUser(user);
+            alert("Account fully deleted.");
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+    };
+
+    window.changePassword = async () => {
+        const user = auth.currentUser;
+        if (!user?.email) return alert("Not logged in.");
+        try {
+            await sendPasswordResetEmail(auth, user.email);
+            document.getElementById('auth-message').textContent = "Password reset email sent!";
+            document.getElementById('auth-message').className = "success";
+        } catch (e) {
+            document.getElementById('auth-message').textContent = "Error: " + e.message;
+            document.getElementById('auth-message').className = "error";
+        }
+    };
+
+    window.changeEmail = async () => {
+        const user = auth.currentUser;
+        if (!user) return alert("Not logged in.");
+        const newEmail = prompt("New email:", user.email);
+        if (!newEmail || newEmail === user.email) return;
+        const pass = prompt("Current password:");
+        if (!pass) return;
+        try {
+            const cred = EmailAuthProvider.credential(user.email, pass);
+            await reauthenticateWithCredential(user, cred);
+            await updateEmail(user, newEmail);
+            alert("Email updated! Verify new email.");
+            document.getElementById('user-email').textContent = newEmail;
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+    };
+
+    // ────────────────────────────────────────────────
+    //  Data loading
+    // ────────────────────────────────────────────────
+    window.loadCategories = async () => {
+        const catRef = collection(db, "categories");
+        let snap = await getDocs(catRef);
+        if (snap.empty) {
+            const defaults = [
+                { key: "games", label: "Games", icon: "fa-gamepad", order: 0 },
+                { key: "ai", label: "AI Tools", icon: "fa-brain", order: 1 },
+                { key: "tv", label: "TV & Streaming", icon: "fa-tv", order: 2 },
+                { key: "proxies", label: "Proxies", icon: "fa-shield-halved", order: 3 },
+                { key: "music", label: "Music", icon: "fa-music", order: 4 }
+            ];
+            for (const def of defaults) {
+                await addDoc(catRef, def);
+            }
+            snap = await getDocs(catRef);
+        }
+        window.allCategories = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    };
+
+    window.loadAllSites = async () => {
+        const snap = await getDocs(collection(db, "sites"));
+        window.allSites = {};
+        (window.allCategories || []).forEach(cat => window.allSites[cat.key] = []);
+
+        const temp = {};
+        snap.forEach(d => {
+            const data = d.data();
+            data.id = d.id;
+            if (!temp[data.category]) temp[data.category] = [];
+            temp[data.category].push(data);
+        });
+
+        Object.keys(temp).forEach(catKey => {
+            if (window.allSites[catKey] !== undefined) {
+                window.allSites[catKey] = temp[catKey].sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999));
+            }
+        });
+    };
+
+    window.populateAllGrids = () => {
+        (window.allCategories || []).forEach(cat => populateGrid(cat.key, `${cat.key}-grid`));
+    };
+
+    // ────────────────────────────────────────────────
+    //  Announcement
+    // ────────────────────────────────────────────────
+    window.showGlobalAnnouncement = async () => {
+        const banner = document.getElementById('global-announcement');
+        try {
+            const docSnap = await getDoc(doc(db, "config", "announcement"));
+            if (docSnap.exists() && docSnap.data().message?.trim()) {
+                document.getElementById('announcement-text-display').textContent = docSnap.data().message;
+                banner.classList.remove('hidden');
+            } else {
                 banner.classList.add('hidden');
             }
-        };
+        } catch {
+            banner.classList.add('hidden');
+        }
+    };
 
-        window.saveGlobalAnnouncement = async () => {
-            const msg = document.getElementById('announcement-input').value.trim();
-            if (!msg) return alert("Cannot be empty");
-            try {
-                await setDoc(doc(db, "config", "announcement"), { message: msg, updatedAt: serverTimestamp() });
-                alert("Published! Non-admin users will see a refresh prompt.");
-                document.getElementById('announcement-input').value = '';
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
+    window.saveGlobalAnnouncement = async () => {
+        const msg = document.getElementById('announcement-input').value.trim();
+        if (!msg) return alert("Cannot be empty");
+        try {
+            await setDoc(doc(db, "config", "announcement"), { message: msg, updatedAt: serverTimestamp() });
+            alert("Published! Non-admin users will see a refresh prompt.");
+            document.getElementById('announcement-input').value = '';
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+    };
 
-        window.clearAnnouncement = async () => {
-            if (!confirm("Clear announcement?")) return;
-            try {
-                await deleteDoc(doc(db, "config", "announcement"));
-                alert("Announcement cleared! Non-admin users will see a refresh prompt.");
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
+    window.clearAnnouncement = async () => {
+        if (!confirm("Clear announcement?")) return;
+        try {
+            await deleteDoc(doc(db, "config", "announcement"));
+            alert("Announcement cleared! Non-admin users will see a refresh prompt.");
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+    };
 
-        window.loadAdminUsers = async () => {
-            const container = document.getElementById('users-table');
-            container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
-            try {
-                const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
-                const snap = await getDocs(q);
-                let html = `<table class="w-full text-sm"><thead class="bg-black/60 sticky top-0"><tr class="border-b border-white/10"><th class="px-6 py-4 text-left">Email</th><th class="px-6 py-4 text-left">Joined</th><th class="px-6 py-4 text-left">UID</th><th class="px-6 py-4 text-left">Actions</th></tr></thead><tbody class="divide-y divide-white/10">`;
-                snap.forEach(d => {
-                    const data = d.data();
-                    const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '—';
-                    html += `<tr>
-                        <td class="px-6 py-4 font-medium">${data.email}</td>
-                        <td class="px-6 py-4 text-white/70">${date}</td>
-                        <td class="px-6 py-4 font-mono text-xs text-white/50">${d.id}</td>
-                        <td class="px-6 py-4">
-                            <button onclick="deleteUserFromAdmin('${d.id}'); event.stopPropagation();" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Delete</button>
-                        </td>
-                    </tr>`;
-                });
-                html += '</tbody></table>';
-                container.innerHTML = snap.empty ? '<p class="p-8 text-center text-white/50">No users yet</p>' : html;
-            } catch (e) {
-                container.innerHTML = `<p class="p-8 text-red-400">Error loading users.<br>Check Firestore rules.</p>`;
-            }
-        };
-
-        window.deleteUserFromAdmin = async (uid) => {
-            if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
-            try {
-                await deleteDoc(doc(db, "users", uid));
-                alert("User removed from list.");
-                window.loadAdminUsers();
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.addOrUpdateCategory = async () => {
-            const key = document.getElementById('new-cat-key').value.trim().toLowerCase().replace(/\s+/g, '');
-            const label = document.getElementById('new-cat-label').value.trim();
-            let icon = document.getElementById('new-cat-icon').value.trim();
-            if (!icon.startsWith('fa-')) icon = 'fa-' + icon;
-            if (!key || !label) return alert("Key and Label required (key must be lowercase, no spaces)");
-
-            if (window.editingCategoryId) {
-                try {
-                    await setDoc(doc(db, "categories", window.editingCategoryId), { key, label, icon }, { merge: true });
-                    alert("Category updated!");
-                    window.editingCategoryId = null;
-                    document.getElementById('cat-action-btn').textContent = "Add Category";
-                    ['new-cat-key','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
-                } catch (e) {
-                    alert("Error: " + e.message);
-                }
-            } else {
-                if ((window.allCategories || []).some(c => c.key === key)) return alert("Key already exists!");
-                const maxOrder = (window.allCategories || []).length ? Math.max(...(window.allCategories || []).map(c => c.order ?? 0)) + 1 : 0;
-                try {
-                    await addDoc(collection(db, "categories"), { key, label, icon, order: maxOrder });
-                    alert("Category added!");
-                    ['new-cat-key','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
-                } catch (e) {
-                    alert("Error: " + e.message);
-                }
-            }
-        };
-
-        window.deleteCategory = async (docId, key) => {
-            if (!confirm(`Delete category "${key}" forever? Sites in this category will no longer appear until moved.`)) return;
-            try {
-                await deleteDoc(doc(db, "categories", docId));
-                alert("Category deleted!");
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.moveCategoryUp = async (docId) => {
-            const idx = (window.allCategories || []).findIndex(c => c.id === docId);
-            if (idx <= 0) return;
-            const thisCat = window.allCategories[idx];
-            const prevCat = window.allCategories[idx - 1];
-            const temp = thisCat.order;
-            thisCat.order = prevCat.order;
-            prevCat.order = temp;
-            try {
-                await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
-                await setDoc(doc(db, "categories", prevCat.id), { order: prevCat.order }, { merge: true });
-            } catch (e) {
-                alert("Reorder error: " + e.message);
-            }
-        };
-
-        window.moveCategoryDown = async (docId) => {
-            const idx = (window.allCategories || []).findIndex(c => c.id === docId);
-            if (idx >= (window.allCategories || []).length - 1) return;
-            const thisCat = window.allCategories[idx];
-            const nextCat = window.allCategories[idx + 1];
-            const temp = thisCat.order;
-            thisCat.order = nextCat.order;
-            nextCat.order = temp;
-            try {
-                await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
-                await setDoc(doc(db, "categories", nextCat.id), { order: nextCat.order }, { merge: true });
-            } catch (e) {
-                alert("Reorder error: " + e.message);
-            }
-        };
-
-        window.editCategory = (docId, key, label, icon) => {
-            window.editingCategoryId = docId;
-            document.getElementById('new-cat-key').value = key;
-            document.getElementById('new-cat-label').value = label;
-            document.getElementById('new-cat-icon').value = icon;
-            document.getElementById('cat-action-btn').textContent = "Update Category";
-        };
-
-        window.reloadAdminCategories = () => {
-            const container = document.getElementById('admin-categories-list');
-            container.innerHTML = '';
-            if (!(window.allCategories || []).length) {
-                container.innerHTML = '<p class="p-8 text-center text-white/50">No categories yet. Add one above!</p>';
-                return;
-            }
-            let html = '';
-            window.allCategories.forEach(cat => {
-                html += `
-                    <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group">
-                        <div class="flex items-center gap-6">
-                            <i class="fa-solid ${cat.icon} text-4xl"></i>
-                            <div>
-                                <div class="font-semibold text-xl">${cat.label}</div>
-                                <div class="text-xs text-white/50 font-mono">key: ${cat.key}</div>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="window.moveCategoryUp('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
-                            <button onclick="window.moveCategoryDown('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
-                            <button onclick="window.editCategory('${cat.id}', '${cat.key}', '${cat.label.replace(/'/g, "\\'")}', '${cat.icon}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl">Edit</button>
-                            <button onclick="window.deleteCategory('${cat.id}', '${cat.key}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl">Delete</button>
-                        </div>
-                    </div>`;
+    // ────────────────────────────────────────────────
+    //  Admin: Users
+    // ────────────────────────────────────────────────
+    window.loadAdminUsers = async () => {
+        const container = document.getElementById('users-table');
+        container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
+        try {
+            const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
+            const snap = await getDocs(q);
+            let html = `<table class="w-full text-sm"><thead class="bg-black/60 sticky top-0"><tr class="border-b border-white/10"><th class="px-6 py-4 text-left">Email</th><th class="px-6 py-4 text-left">Joined</th><th class="px-6 py-4 text-left">UID</th><th class="px-6 py-4 text-left">Actions</th></tr></thead><tbody class="divide-y divide-white/10">`;
+            snap.forEach(d => {
+                const data = d.data();
+                const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '—';
+                html += `<tr>
+                    <td class="px-6 py-4 font-medium">${data.email}</td>
+                    <td class="px-6 py-4 text-white/70">${date}</td>
+                    <td class="px-6 py-4 font-mono text-xs text-white/50">${d.id}</td>
+                    <td class="px-6 py-4">
+                        <button onclick="deleteUserFromAdmin('${d.id}'); event.stopPropagation();" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Delete</button>
+                    </td>
+                </tr>`;
             });
-            container.innerHTML = html;
-        };
+            html += '</tbody></table>';
+            container.innerHTML = snap.empty ? '<p class="p-8 text-center text-white/50">No users yet</p>' : html;
+        } catch (e) {
+            container.innerHTML = `<p class="p-8 text-red-400">Error loading users.<br>Check Firestore rules.</p>`;
+        }
+    };
 
-        window.addNewSiteFromAdmin = async () => {
-            const cat = document.getElementById('admin-cat-select').value;
-            const name = document.getElementById('new-site-name').value.trim();
-            const url = document.getElementById('new-site-url').value.trim();
-            const icon = document.getElementById('new-site-icon').value.trim();
-            const desc = document.getElementById('new-site-desc').value.trim();
+    window.deleteUserFromAdmin = async (uid) => {
+        if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
+        try {
+            await deleteDoc(doc(db, "users", uid));
+            alert("User removed from list.");
+            window.loadAdminUsers();
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+    };
 
-            if (!name || !url) return alert("Name and URL required");
+    // ────────────────────────────────────────────────
+    //  Admin: Categories
+    // ────────────────────────────────────────────────
+    window.addOrUpdateCategory = async () => {
+        const key = document.getElementById('new-cat-key').value.trim().toLowerCase().replace(/\s+/g, '');
+        const label = document.getElementById('new-cat-label').value.trim();
+        let icon = document.getElementById('new-cat-icon').value.trim();
+        if (!icon.startsWith('fa-')) icon = 'fa-' + icon;
+        if (!key || !label) return alert("Key and Label required (key must be lowercase, no spaces)");
+
+        if (window.editingCategoryId) {
+            try {
+                await setDoc(doc(db, "categories", window.editingCategoryId), { key, label, icon }, { merge: true });
+                alert("Category updated!");
+                window.editingCategoryId = null;
+                document.getElementById('cat-action-btn').textContent = "Add Category";
+                ['new-cat-key','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        } else {
+            if ((window.allCategories || []).some(c => c.key === key)) return alert("Key already exists!");
+            const maxOrder = (window.allCategories || []).length ? Math.max(...(window.allCategories || []).map(c => c.order ?? 0)) + 1 : 0;
+            try {
+                await addDoc(collection(db, "categories"), { key, label, icon, order: maxOrder });
+                alert("Category added!");
+                ['new-cat-key','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        }
+    };
+
+    window.deleteCategory = async (docId, key) => {
+        if (!confirm(`Delete category "${key}" forever? Sites in this category will no longer appear until moved.`)) return;
+        try {
+            await deleteDoc(doc(db, "categories", docId));
+            alert("Category deleted!");
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+    };
+
+    window.moveCategoryUp = async (docId) => {
+        const idx = (window.allCategories || []).findIndex(c => c.id === docId);
+        if (idx <= 0) return;
+        const thisCat = window.allCategories[idx];
+        const prevCat = window.allCategories[idx - 1];
+        const temp = thisCat.order;
+        thisCat.order = prevCat.order;
+        prevCat.order = temp;
+        try {
+            await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
+            await setDoc(doc(db, "categories", prevCat.id), { order: prevCat.order }, { merge: true });
+        } catch (e) {
+            alert("Reorder error: " + e.message);
+        }
+    };
+
+    window.moveCategoryDown = async (docId) => {
+        const idx = (window.allCategories || []).findIndex(c => c.id === docId);
+        if (idx >= (window.allCategories || []).length - 1) return;
+        const thisCat = window.allCategories[idx];
+        const nextCat = window.allCategories[idx + 1];
+        const temp = thisCat.order;
+        thisCat.order = nextCat.order;
+        nextCat.order = temp;
+        try {
+            await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
+            await setDoc(doc(db, "categories", nextCat.id), { order: nextCat.order }, { merge: true });
+        } catch (e) {
+            alert("Reorder error: " + e.message);
+        }
+    };
+
+    window.editCategory = (docId, key, label, icon) => {
+        window.editingCategoryId = docId;
+        document.getElementById('new-cat-key').value = key;
+        document.getElementById('new-cat-label').value = label;
+        document.getElementById('new-cat-icon').value = icon;
+        document.getElementById('cat-action-btn').textContent = "Update Category";
+    };
+
+    window.reloadAdminCategories = () => {
+        const container = document.getElementById('admin-categories-list');
+        container.innerHTML = '';
+        if (!(window.allCategories || []).length) {
+            container.innerHTML = '<p class="p-8 text-center text-white/50">No categories yet. Add one above!</p>';
+            return;
+        }
+        let html = '';
+        window.allCategories.forEach(cat => {
+            html += `
+                <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group">
+                    <div class="flex items-center gap-6">
+                        <i class="fa-solid ${cat.icon} text-4xl"></i>
+                        <div>
+                            <div class="font-semibold text-xl">${cat.label}</div>
+                            <div class="text-xs text-white/50 font-mono">key: ${cat.key}</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="window.moveCategoryUp('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
+                        <button onclick="window.moveCategoryDown('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
+                        <button onclick="window.editCategory('${cat.id}', '${cat.key}', '${cat.label.replace(/'/g, "\\'")}', '${cat.icon}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl">Edit</button>
+                        <button onclick="window.deleteCategory('${cat.id}', '${cat.key}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl">Delete</button>
+                    </div>
+                </div>`;
+        });
+        container.innerHTML = html;
+    };
+
+    // ────────────────────────────────────────────────
+    //  Admin: Sites (with ordering!)
+    // ────────────────────────────────────────────────
+    window.addNewSiteFromAdmin = async () => {
+        const cat = document.getElementById('admin-cat-select').value;
+        const name = document.getElementById('new-site-name').value.trim();
+        const url = document.getElementById('new-site-url').value.trim();
+        const icon = document.getElementById('new-site-icon').value.trim();
+        const desc = document.getElementById('new-site-desc').value.trim();
+
+        if (!name || !url) return alert("Name and URL required");
+
+        const sitesInCat = window.allSites[cat] || [];
+        const maxOrder = sitesInCat.length > 0 
+            ? Math.max(...sitesInCat.map(s => s.order ?? 0)) + 1 
+            : 0;
+
+        try {
+            await addDoc(collection(db, "sites"), { 
+                category: cat, 
+                name, 
+                url, 
+                icon, 
+                desc,
+                order: maxOrder,
+                createdAt: serverTimestamp()
+            });
+            alert("Site added! Non-admin users will see a refresh prompt.");
+            ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
+            await window.loadAllSites();
+            window.populateAllGrids();
+            window.reloadAdminSites();
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+    };
+
+    window.deleteSite = async (id) => {
+        if (!confirm("Delete forever?")) return;
+        try {
+            await deleteDoc(doc(db, "sites", id));
+            await window.loadAllSites();
+            window.populateAllGrids();
+            window.reloadAdminSites();
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+    };
+
+    window.editSite = (id, category, name, url, icon, desc) => {
+        document.getElementById('admin-cat-select').value = category;
+        document.getElementById('new-site-name').value = name;
+        document.getElementById('new-site-url').value = url;
+        document.getElementById('new-site-icon').value = icon || '';
+        document.getElementById('new-site-desc').value = desc || '';
+
+        const btn = document.getElementById('add-update-site-btn');
+        btn.textContent = 'Update Site';
+        btn.onclick = async () => {
+            const newCat = document.getElementById('admin-cat-select').value;
+            const newName = document.getElementById('new-site-name').value.trim();
+            const newUrl = document.getElementById('new-site-url').value.trim();
+            const newIcon = document.getElementById('new-site-icon').value.trim();
+            const newDesc = document.getElementById('new-site-desc').value.trim();
+
+            if (!newName || !newUrl) return alert("Name and URL required");
+
+            const currentOrder = window.allSites[category]?.find(s => s.id === id)?.order ?? 0;
 
             try {
-                await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc });
-                alert("Site added! Non-admin users will see a refresh prompt.");
+                await setDoc(doc(db, "sites", id), {
+                    category: newCat,
+                    name: newName,
+                    url: newUrl,
+                    icon: newIcon,
+                    desc: newDesc,
+                    order: currentOrder,           // preserve order when editing
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+                alert("Site updated successfully!");
                 ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
+                btn.textContent = 'Add New Site';
+                btn.onclick = window.addNewSiteFromAdmin;
                 await window.loadAllSites();
                 window.populateAllGrids();
                 window.reloadAdminSites();
             } catch (e) {
-                alert("Error: " + e.message);
+                alert("Error updating site: " + e.message);
             }
         };
+    };
 
-        window.deleteSite = async (id) => {
-            if (!confirm("Delete forever?")) return;
-            try {
-                await deleteDoc(doc(db, "sites", id));
-                await window.loadAllSites();
-                window.populateAllGrids();
-                window.reloadAdminSites();
-            } catch (e) {
-                alert("Error: " + e.message);
+    window.moveSiteUp = async (siteId, category) => {
+        const sites = window.allSites[category] || [];
+        const idx = sites.findIndex(s => s.id === siteId);
+        if (idx <= 0) return;
+
+        const thisSite = sites[idx];
+        const prevSite = sites[idx - 1];
+
+        const temp = thisSite.order ?? idx;
+        thisSite.order = prevSite.order ?? (idx - 1);
+        prevSite.order = temp;
+
+        try {
+            await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
+            await setDoc(doc(db, "sites", prevSite.id), { order: prevSite.order }, { merge: true });
+            alert("Order updated — refresh admin list to see change");
+            window.reloadAdminSites();
+        } catch (e) {
+            alert("Reorder error: " + e.message);
+        }
+    };
+
+    window.moveSiteDown = async (siteId, category) => {
+        const sites = window.allSites[category] || [];
+        const idx = sites.findIndex(s => s.id === siteId);
+        if (idx >= sites.length - 1) return;
+
+        const thisSite = sites[idx];
+        const nextSite = sites[idx + 1];
+
+        const temp = thisSite.order ?? idx;
+        thisSite.order = nextSite.order ?? (idx + 1);
+        nextSite.order = temp;
+
+        try {
+            await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
+            await setDoc(doc(db, "sites", nextSite.id), { order: nextSite.order }, { merge: true });
+            alert("Order updated — refresh admin list to see change");
+            window.reloadAdminSites();
+        } catch (e) {
+            alert("Reorder error: " + e.message);
+        }
+    };
+
+    window.reloadAdminSites = () => {
+        const container = document.getElementById('admin-sites-list');
+        container.innerHTML = '';
+        (window.allCategories || []).forEach(cat => {
+            const sites = window.allSites[cat.key] || [];
+            let html = `<div class="border border-white/10 rounded-3xl p-8 mb-10">
+                <div class="flex justify-between items-center mb-6">
+                    <h4 class="text-2xl font-medium">${cat.label}</h4>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs bg-white/10 px-4 py-1.5 rounded-2xl">${sites.length} sites</span>
+                        <button onclick="window.reloadAdminSites()" class="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-xl">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="space-y-4">`;
+
+            if (!sites.length) {
+                html += '<p class="text-white/40 pl-2">No sites yet</p>';
+            } else {
+                sites.forEach(s => {
+                    const iconDisplay = s.icon ? `<div class="text-5xl">${s.icon}</div>` : '<div class="text-5xl opacity-30">–</div>';
+                    html += `
+                        <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group transition-all">
+                            <div class="flex items-center gap-6">
+                                ${iconDisplay}
+                                <div>
+                                    <div class="font-semibold text-xl">${s.name}</div>
+                                    <a href="${s.url}" target="_blank" class="text-xs text-[var(--accent)] break-all">${s.url}</a>
+                                    ${s.desc ? `<div class="text-xs text-white/60 mt-1">${s.desc}</div>` : ''}
+                                </div>
+                            </div>
+                            <div class="flex gap-2 items-center">
+                                <button onclick="window.moveSiteUp('${s.id}', '${s.category}'); event.stopPropagation()" 
+                                        class="px-3 py-1.5 text-xs bg-white/10 hover:bg-white/25 rounded-xl">↑</button>
+                                <button onclick="window.moveSiteDown('${s.id}', '${s.category}'); event.stopPropagation()" 
+                                        class="px-3 py-1.5 text-xs bg-white/10 hover:bg-white/25 rounded-xl">↓</button>
+                                <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation()" 
+                                        class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">
+                                    Edit
+                                </button>
+                                <button onclick="window.deleteSite('${s.id}'); event.stopPropagation()" 
+                                        class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>`;
+                });
             }
-        };
+            html += '</div></div>';
+            container.innerHTML += html;
+        });
+    };
 
-        window.editSite = (id, category, name, url, icon, desc) => {
-            document.getElementById('admin-cat-select').value = category;
-            document.getElementById('new-site-name').value = name;
-            document.getElementById('new-site-url').value = url;
-            document.getElementById('new-site-icon').value = icon || '';
-            document.getElementById('new-site-desc').value = desc || '';
+    window.populateCategorySelect = () => {
+        const select = document.getElementById('admin-cat-select');
+        if (!select) return;
+        select.innerHTML = (window.allCategories || []).map(cat => 
+            `<option value="${cat.key}">${cat.label}</option>`
+        ).join('');
+    };
 
-            const btn = document.getElementById('add-update-site-btn');
-            btn.textContent = 'Update Site';
-            btn.onclick = async () => {
-                const newCat = document.getElementById('admin-cat-select').value;
-                const newName = document.getElementById('new-site-name').value.trim();
-                const newUrl = document.getElementById('new-site-url').value.trim();
-                const newIcon = document.getElementById('new-site-icon').value.trim();
-                const newDesc = document.getElementById('new-site-desc').value.trim();
-
-                if (!newName || !newUrl) return alert("Name and URL required");
-
-                try {
-                    await setDoc(doc(db, "sites", id), {
-                        category: newCat,
-                        name: newName,
-                        url: newUrl,
-                        icon: newIcon,
-                        desc: newDesc,
-                        updatedAt: serverTimestamp()
-                    }, { merge: true });
-                    alert("Site updated successfully!");
-                    ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
-                    btn.textContent = 'Add New Site';
-                    btn.onclick = window.addNewSiteFromAdmin;
-                    await window.loadAllSites();
-                    window.populateAllGrids();
-                    window.reloadAdminSites();
-                } catch (e) {
-                    alert("Error updating site: " + e.message);
-                }
-            };
-        };
-
-        window.reloadAdminSites = () => {
-            const container = document.getElementById('admin-sites-list');
-            container.innerHTML = '';
-            (window.allCategories || []).forEach(cat => {
-                const sites = window.allSites[cat.key] || [];
-                let html = `<div class="border border-white/10 rounded-3xl p-8"><div class="flex justify-between items-center mb-6"><h4 class="text-2xl font-medium">${cat.label}</h4><span class="text-xs bg-white/10 px-4 py-1.5 rounded-2xl">${sites.length} sites</span></div><div class="space-y-4">`;
-                if (!sites.length) {
-                    html += '<p class="text-white/40 pl-2">No sites yet</p>';
-                } else {
-                    sites.forEach(s => {
-                        const iconDisplay = s.icon ? `<div class="text-5xl">${s.icon}</div>` : '<div class="text-5xl opacity-30">–</div>';
-                        html += `
-                            <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group transition-all">
-                                <div class="flex items-center gap-6">
-                                    ${iconDisplay}
-                                    <div>
-                                        <div class="font-semibold text-xl">${s.name}</div>
-                                        <a href="${s.url}" target="_blank" class="text-xs text-[var(--accent)] break-all">${s.url}</a>
-                                        ${s.desc ? `<div class="text-xs text-white/60 mt-1">${s.desc}</div>` : ''}
-                                    </div>
-                                </div>
-                                <div class="flex gap-3">
-                                    <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation();" 
-                                            class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">
-                                        Edit
-                                    </button>
-                                    <button onclick="window.deleteSite('${s.id}'); event.stopPropagation();" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>`;
-                    });
-                }
-                html += '</div></div>';
-                container.innerHTML += html;
-            });
-        };
-
-        window.loadAllSites = window.loadAllSites;
-        window.populateAllGrids = window.populateAllGrids;
-        window.showGlobalAnnouncement = window.showGlobalAnnouncement;
-        window.saveGlobalAnnouncement = window.saveGlobalAnnouncement;
-        window.clearAnnouncement = window.clearAnnouncement;
-        window.loadAdminUsers = window.loadAdminUsers;
-        window.deleteUserFromAdmin = window.deleteUserFromAdmin;
-        window.addNewSiteFromAdmin = window.addNewSiteFromAdmin;
-        window.deleteSite = window.deleteSite;
-        window.reloadAdminSites = window.reloadAdminSites;
-        window.loadCategories = window.loadCategories;
-    </script>
+    // ────────────────────────────────────────────────
+    //  Export for global access
+    // ────────────────────────────────────────────────
+    window.loadAllSites = window.loadAllSites;
+    window.populateAllGrids = window.populateAllGrids;
+    window.showGlobalAnnouncement = window.showGlobalAnnouncement;
+    window.saveGlobalAnnouncement = window.saveGlobalAnnouncement;
+    window.clearAnnouncement = window.clearAnnouncement;
+    window.loadAdminUsers = window.loadAdminUsers;
+    window.deleteUserFromAdmin = window.deleteUserFromAdmin;
+    window.addNewSiteFromAdmin = window.addNewSiteFromAdmin;
+    window.deleteSite = window.deleteSite;
+    window.reloadAdminSites = window.reloadAdminSites;
+    window.loadCategories = window.loadCategories;
+</script>
 
     <!-- Global scope functions (needed for onclick) -->
     <script>
