@@ -195,12 +195,13 @@
             background: rgba(255,255,255,0.15);
             margin: 1.25rem 0;
         }
-        .verification-box {
-            background: rgba(245, 158, 11, 0.15);
-            border: 1px solid #f59e0b;
+        #verification-warning {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid #ef4444;
             border-radius: 1rem;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 600px;
             text-align: center;
         }
     </style>
@@ -234,6 +235,18 @@
 
         <div class="pt-24 pb-20 px-10 tail-container">
 
+            <!-- VERIFICATION WARNING -->
+            <div id="verification-warning" class="hidden max-w-4xl mx-auto mb-8 p-8 glass rounded-3xl border-l-4 border-red-500">
+                <h2 class="text-3xl font-bold text-red-400 mb-6">Email Verification Required</h2>
+                <p class="text-lg mb-6 leading-relaxed">
+                    A verification email has been sent to your inbox.<br>
+                    Please check your email (including spam/junk folder) and click the verification link.<br>
+                    You will not be able to access the site until your email is verified.
+                </p>
+                <button id="resend-verification" class="auth-btn py-5 text-xl w-auto px-12 mx-auto block">Resend Verification Email</button>
+                <p id="resend-message" class="mt-6 text-center text-lg"></p>
+            </div>
+
             <!-- GLOBAL ANNOUNCEMENT -->
             <div id="global-announcement" class="hidden max-w-4xl mx-auto mb-8 p-6 glass rounded-3xl border-l-4 border-[var(--accent)]">
                 <div class="flex items-center gap-3">
@@ -242,11 +255,10 @@
                 </div>
             </div>
 
-            <!-- ACCOUNT TAB / VERIFICATION SCREEN -->
+            <!-- ACCOUNT TAB -->
             <div id="content-account" class="tab-content">
                 <div class="max-w-md mx-auto py-12">
                     <h2 class="text-3xl font-bold text-center mb-8" id="account-title">Sign In Required</h2>
-                    
                     <div id="auth-form" class="glass p-8 rounded-3xl">
                         <h3 class="text-xl font-semibold mb-6 text-center" id="form-title">Sign In</h3>
                         <input type="email" id="email" placeholder="Email address" required autocomplete="email">
@@ -256,27 +268,6 @@
                             <span id="toggle-link" class="text-[var(--accent)] cursor-pointer hover:underline">Don't have an account? Sign Up</span>
                         </p>
                     </div>
-
-                    <!-- VERIFICATION PENDING STATE -->
-                    <div id="verification-pending" class="hidden">
-                        <div class="verification-box">
-                            <i class="fa-solid fa-envelope-open-text text-5xl text-yellow-400 mb-6"></i>
-                            <h3 class="text-2xl font-bold mb-3">Verify Your Email</h3>
-                            <p class="text-white/90 mb-4">
-                                A verification link has been sent to <strong id="pending-email-display"></strong>.
-                            </p>
-                            <p class="text-white/70 mb-6 text-sm">
-                                Please check your inbox (and spam/junk folder) and click the link to activate your account.
-                            </p>
-                            <button id="resend-verification-btn" class="github-style-btn mb-4">
-                                <i class="fa-solid fa-redo"></i> Resend Verification Email
-                            </button>
-                        </div>
-                        <button onclick="firebaseAuth.signOut(firebaseAuth.auth)" class="github-style-btn w-full">
-                            <i class="fa-solid fa-right-from-bracket"></i> Sign Out
-                        </button>
-                    </div>
-
                     <div id="user-info" class="hidden text-center mt-12">
                         <p class="text-2xl mb-8">Logged in as: <span id="user-email" class="font-bold text-[var(--accent)]"></span></p>
                         <button onclick="changeEmail()" class="github-style-btn"><i class="fa-solid fa-envelope"></i> Change Email</button>
@@ -289,7 +280,7 @@
             </div>
 
             <!-- HOME -->
-            <div id="content-home" class="tab-content">
+            <div id="content-home" class="tab-content hidden">
                 <div class="max-w-4xl mx-auto text-center pt-12">
                     <svg width="180" height="180" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
                         <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
@@ -405,7 +396,7 @@
                     </div>
 
                     <!-- Sites Management -->
-                    <div>
+                    <div class="mb-16">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="text-2xl font-semibold flex items-center gap-3">
                                 <i class="fa-solid fa-globe"></i> Manage Sites
@@ -472,12 +463,12 @@
             signInWithEmailAndPassword, 
             signOut, 
             onAuthStateChanged, 
-            sendEmailVerification,
-            sendPasswordResetEmail,
-            updateEmail,
-            deleteUser,
-            reauthenticateWithCredential,
-            EmailAuthProvider
+            deleteUser, 
+            sendPasswordResetEmail, 
+            updateEmail, 
+            reauthenticateWithCredential, 
+            EmailAuthProvider,
+            sendEmailVerification 
         } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
@@ -501,12 +492,12 @@
             signInWithEmailAndPassword, 
             signOut, 
             onAuthStateChanged, 
-            sendEmailVerification,
-            sendPasswordResetEmail,
-            updateEmail,
-            deleteUser,
-            reauthenticateWithCredential,
+            deleteUser, 
+            sendPasswordResetEmail, 
+            updateEmail, 
+            reauthenticateWithCredential, 
             EmailAuthProvider, 
+            sendEmailVerification,
             auth 
         };
 
@@ -519,401 +510,252 @@
         let announcementListener = null;
         let categoriesListener = null;
         window.initialLoadComplete = false;
-        window.allCategories = [];
-        window.allSites = {};
 
-        // ────────────────────────────────────────────────
-        // Auth State Listener (core verification enforcement)
-        // ────────────────────────────────────────────────
-        onAuthStateChanged(auth, async (user) => {
+        // Real-time auth state listener with verification enforcement
+        firebaseAuth.onAuthStateChanged(auth, (user) => {
             window.currentUser = user;
+            updateUIForAuth(user);
+        });
 
+        async function updateUIForAuth(user) {
+            const statusEl = document.getElementById('user-status');
+            const navLinks = document.getElementById('nav-links');
+            const userInfo = document.getElementById('user-info');
+            const authForm = document.getElementById('auth-form');
+            const accountTitle = document.getElementById('account-title');
+            const currentTabEl = document.getElementById('current-tab');
+            const currentIconEl = document.getElementById('current-tab-icon');
+            const verificationWarning = document.getElementById('verification-warning');
+
+            // Clean up old listeners
             if (sitesListener) sitesListener();
             if (announcementListener) announcementListener();
             if (categoriesListener) categoriesListener();
 
-            const statusEl = document.getElementById('user-status');
-            if (!user) {
-                statusEl.textContent = '';
-                document.getElementById('auth-form').classList.remove('hidden');
-                document.getElementById('verification-pending').classList.add('hidden');
-                document.getElementById('user-info').classList.add('hidden');
-                document.getElementById('account-title').textContent = 'Sign In Required';
-                switchTab(0);
-                buildNav();
-                return;
-            }
+            if (user) {
+                statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
+                document.getElementById('user-email').textContent = user.email;
 
-            const isVerified = user.emailVerified;
-            const isAdmin = user.email === ADMIN_EMAIL;
+                if (!user.emailVerified) {
+                    // Not verified → lock to account tab with warning
+                    authForm?.classList.add('hidden');
+                    userInfo?.classList.remove('hidden');
+                    accountTitle.textContent = 'Verify Your Email';
+                    verificationWarning.classList.remove('hidden');
 
-            statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
-            document.getElementById('user-email').textContent = user.email;
-
-            if (!isVerified && !isAdmin) {
-                document.getElementById('auth-form').classList.add('hidden');
-                document.getElementById('user-info').classList.add('hidden');
-                document.getElementById('verification-pending').classList.remove('hidden');
-                document.getElementById('pending-email-display').textContent = user.email;
-                document.getElementById('account-title').textContent = 'Verify Your Email';
-                switchTab(0);
-                buildNav();
-                return;
-            }
-
-            document.getElementById('auth-form').classList.add('hidden');
-            document.getElementById('verification-pending').classList.add('hidden');
-            document.getElementById('user-info').classList.remove('hidden');
-            document.getElementById('account-title').textContent = 'Account';
-
-            setTimeout(async () => {
-                populateThemeGrid();
-                await loadCategories();
-                createCategoryContents();
-                await loadAllSites();
-                populateAllGrids();
-                populateCategorySelect();
-                await showGlobalAnnouncement();
-                buildNav();
-                switchTab(isAdmin ? 0 : 1);
-                initialLoadComplete = true;
-            }, 100);
-
-            sitesListener = onSnapshot(collection(db, "sites"), async () => {
-                await loadAllSites();
-                populateAllGrids();
-                if (isAdmin && !document.getElementById('content-admin').classList.contains('hidden')) {
-                    reloadAdminSites();
-                } else if (initialLoadComplete) {
-                    document.getElementById('refresh-modal').classList.add('show');
+                    // Minimal nav: only Account tab
+                    navLinks.innerHTML = `
+                        <div onclick="window.switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
+                            <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+                        </div>
+                    `;
+                    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+                    document.getElementById('content-account')?.classList.remove('hidden');
+                    currentTabEl.textContent = 'Verify Email';
+                    currentIconEl.className = 'text-3xl fa-solid fa-envelope';
+                    return;
                 }
-            });
 
-            announcementListener = onSnapshot(doc(db, "config", "announcement"), () => {
-                if (!isAdmin && initialLoadComplete) {
-                    document.getElementById('refresh-modal').classList.add('show');
-                } else {
-                    showGlobalAnnouncement();
-                }
-            });
+                // User is verified → show full UI
+                verificationWarning.classList.add('hidden');
+                userInfo?.classList.remove('hidden');
+                authForm?.classList.add('hidden');
+                accountTitle.textContent = 'Account';
 
-            categoriesListener = onSnapshot(collection(db, "categories"), async () => {
-                if (!initialLoadComplete) return;
-                await loadCategories();
-                createCategoryContents();
-                populateAllGrids();
-                buildNav();
-                populateCategorySelect();
-                if (initialLoadComplete) document.getElementById('refresh-modal').classList.add('show');
-            });
-        });
+                // Load everything
+                setTimeout(async () => {
+                    populateThemeGrid();
+                    await window.loadCategories();
+                    window.createCategoryContents();
+                    await window.loadAllSites();
+                    window.populateAllGrids();
+                    window.populateCategorySelect();
+                    await window.showGlobalAnnouncement();
+                    window.buildNav();
+                    const isAdminUser = user.email === ADMIN_EMAIL;
+                    window.switchTab(isAdminUser ? 1 : 0);
+                    window.initialLoadComplete = true;
+                }, 100);
 
-        // ────────────────────────────────────────────────
-        // Sign In / Sign Up button logic
-        // ────────────────────────────────────────────────
-        document.getElementById('toggle-link').onclick = () => {
-            const title = document.getElementById('form-title');
-            const btn = document.getElementById('auth-btn');
-            const link = document.getElementById('toggle-link');
-            if (title.textContent === 'Sign In') {
-                title.textContent = 'Sign Up';
-                btn.textContent = 'Create Account';
-                link.textContent = 'Already have an account? Sign In';
+                // Real-time listeners
+                sitesListener = onSnapshot(collection(db, "sites"), async () => {
+                    await window.loadAllSites();
+                    window.populateAllGrids();
+                    if (user.email === ADMIN_EMAIL && !document.getElementById('content-admin').classList.contains('hidden')) {
+                        window.reloadAdminSites();
+                    } else if (window.initialLoadComplete) {
+                        document.getElementById('refresh-modal').classList.add('show');
+                    }
+                });
+
+                announcementListener = onSnapshot(doc(db, "config", "announcement"), () => {
+                    if (user.email !== ADMIN_EMAIL && window.initialLoadComplete) {
+                        document.getElementById('refresh-modal').classList.add('show');
+                    } else {
+                        window.showGlobalAnnouncement();
+                    }
+                });
+
+                categoriesListener = onSnapshot(collection(db, "categories"), async () => {
+                    if (!window.initialLoadComplete) return;
+                    await window.loadCategories();
+                    window.createCategoryContents();
+                    window.populateAllGrids();
+                    window.buildNav();
+                    window.populateCategorySelect();
+                    if (user.email === ADMIN_EMAIL && !document.getElementById('content-admin').classList.contains('hidden')) {
+                        window.reloadAdminCategories();
+                    } else {
+                        document.getElementById('refresh-modal').classList.add('show');
+                    }
+                });
+
             } else {
-                title.textContent = 'Sign In';
-                btn.textContent = 'Sign In';
-                link.textContent = "Don't have an account? Sign Up";
+                // No user → sign-in screen
+                statusEl.textContent = '';
+                currentTabEl.textContent = 'Sign In Required';
+                currentIconEl.className = 'text-3xl fa-solid fa-lock';
+                userInfo?.classList.add('hidden');
+                authForm?.classList.remove('hidden');
+                accountTitle.textContent = 'Sign In Required';
+                verificationWarning.classList.add('hidden');
+                navLinks.innerHTML = `
+                    <div onclick="window.switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
+                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+                    </div>
+                `;
+                window.switchTab(0);
             }
-        };
+        }
 
-        document.getElementById('auth-btn').onclick = async () => {
+        // Sign In / Sign Up handler
+        document.getElementById('auth-btn')?.addEventListener('click', async () => {
             const email = document.getElementById('email').value.trim();
-            const pass = document.getElementById('password').value;
-            const isSignup = document.getElementById('form-title').textContent === 'Sign Up';
-            const msg = document.getElementById('auth-message');
-
-            msg.textContent = '';
-            msg.className = '';
+            const password = document.getElementById('password').value;
+            const messageEl = document.getElementById('auth-message');
 
             try {
-                if (isSignup) {
-                    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-                    await sendEmailVerification(cred.user);
-                    msg.className = 'success';
-                    msg.textContent = 'Account created — check your email for verification link';
-                    document.getElementById('pending-email-display').textContent = email;
-                    document.getElementById('auth-form').classList.add('hidden');
-                    document.getElementById('verification-pending').classList.remove('hidden');
+                if (document.getElementById('form-title').textContent === 'Sign In') {
+                    const cred = await signInWithEmailAndPassword(auth, email, password);
+                    if (!cred.user.emailVerified) {
+                        messageEl.textContent = "Please verify your email first. Check your inbox.";
+                        messageEl.className = "error";
+                        return;
+                    }
+                    // Verified → listener handles UI update
                 } else {
-                    await signInWithEmailAndPassword(auth, email, pass);
-                    msg.className = 'success';
-                    msg.textContent = 'Signed in successfully';
+                    // Sign Up
+                    const cred = await createUserWithEmailAndPassword(auth, email, password);
+                    await setDoc(doc(db, "users", cred.user.uid), {
+                        email,
+                        createdAt: serverTimestamp()
+                    });
+                    await sendEmailVerification(cred.user);
+                    messageEl.textContent = "Verification email sent! Please check your inbox (and spam/junk) and click the link to verify your account.";
+                    messageEl.className = "success";
+                    // Do NOT sign out — stay logged in and force verification
                 }
             } catch (e) {
-                msg.className = 'error';
-                let err = e.message;
-                if (err.includes('email-already-in-use')) err = 'That email is already in use.';
-                if (err.includes('weak-password')) err = 'Password must be at least 6 characters.';
-                if (err.includes('invalid-email')) err = 'Please enter a valid email.';
-                if (err.includes('user-not-found') || err.includes('wrong-password')) err = 'Incorrect email or password.';
-                msg.textContent = err;
+                messageEl.textContent = e.message;
+                messageEl.className = "error";
             }
-        };
+        });
 
         // Resend verification
-        document.getElementById('resend-verification-btn').onclick = async () => {
-            if (!auth.currentUser) return;
+        document.getElementById('resend-verification')?.addEventListener('click', async () => {
+            const user = auth.currentUser;
+            const msgEl = document.getElementById('resend-message');
+            if (!user) return;
             try {
-                await sendEmailVerification(auth.currentUser);
-                alert('Verification email resent — check your inbox (and spam folder)');
+                await sendEmailVerification(user);
+                msgEl.textContent = "Verification email resent! Check your inbox.";
+                msgEl.className = "success";
             } catch (e) {
-                alert('Could not resend: ' + e.message);
+                msgEl.textContent = "Error: " + e.message;
+                msgEl.className = "error";
             }
-        };
-
-        // ────────────────────────────────────────────────
-        // Navigation & Tab Switching (updated to limit for unverified)
-        // ────────────────────────────────────────────────
-        window.tabMapping = [];
-
-        window.buildNav = () => {
-            const navLinks = document.getElementById('nav-links');
-            if (!navLinks) return;
-
-            if (!currentUser) {
-                navLinks.innerHTML = `
-                    <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
-                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-                    </div>
-                `;
-                return;
-            }
-
-            const verified = currentUser.emailVerified;
-            const admin = currentUser.email === ADMIN_EMAIL;
-
-            if (!verified && !admin) {
-                navLinks.innerHTML = `
-                    <div onclick="switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
-                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-                    </div>
-                `;
-                return;
-            }
-
-            let html = '';
-            window.tabMapping = [];
-            let idx = 0;
-
-            if (admin) {
-                html += `
-                    <div onclick="switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                        <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
-                    </div>`;
-                tabMapping.push({contentId: 'content-admin', title: 'Admin Panel', icon: 'fa-crown'});
-                idx++;
-                html += '<div class="sidebar-separator mx-6"></div>';
-            }
-
-            const homeActive = !admin ? 'active-tab' : '';
-            html += `
-                <div onclick="switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${homeActive}" id="tab-${idx}">
-                    <i class="fa-solid fa-house w-5"></i> <span>Home</span>
-                </div>`;
-            tabMapping.push({contentId: 'content-home', title: 'Home', icon: 'fa-house'});
-            idx++;
-
-            (allCategories || []).forEach(cat => {
-                html += `
-                    <div onclick="switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                        <i class="fa-solid ${cat.icon} w-5"></i> <span>${cat.label}</span>
-                    </div>`;
-                tabMapping.push({contentId: `content-${cat.key}`, title: cat.label, icon: cat.icon});
-                idx++;
-            });
-
-            html += `
-                <div onclick="switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
-                </div>`;
-            tabMapping.push({contentId: 'content-settings', title: 'Settings', icon: 'fa-gear'});
-            idx++;
-
-            html += `
-                <div onclick="switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-                </div>`;
-            tabMapping.push({contentId: 'content-account', title: 'Account', icon: 'fa-user'});
-            idx++;
-
-            html += `
-                <div onclick="switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
-                </div>`;
-            tabMapping.push({contentId: 'content-credits', title: 'Credits', icon: 'fa-heart'});
-            idx++;
-
-            html += `
-                <div onclick="requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
-                    <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
-                </div>`;
-
-            navLinks.innerHTML = html;
-        };
-
-        window.switchTab = function(index) {
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
-            const activeEl = document.getElementById(`tab-${index}`);
-            if (activeEl) activeEl.classList.add('active-tab');
-
-            if (!window.currentUser) {
-                document.getElementById('current-tab').textContent = 'Sign In Required';
-                document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-lock';
-                document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-                document.getElementById('content-account')?.classList.remove('hidden');
-                return;
-            }
-
-            const mapping = (window.tabMapping || [])[index];
-            if (!mapping) return;
-
-            document.getElementById('current-tab').textContent = mapping.title;
-            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${mapping.icon}`;
-
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(mapping.contentId)?.classList.remove('hidden');
-        };
-
-        window.requestSite = function() {
-            window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
-        };
-
-        window.resetEverything = function() {
-            if (!confirm("Reset all & sign out?")) return;
-            localStorage.clear();
-            document.documentElement.style.setProperty('--accent', '#ffffff');
-            firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
-        };
-
-        // ────────────────────────────────────────────────
-        // Theme & Stars (unchanged)
-        // ────────────────────────────────────────────────
-        function setTheme(color) {
-            document.documentElement.style.setProperty('--accent', color);
-            localStorage.setItem('starlinkAccent', color);
-        }
-
-        function loadTheme() {
-            setTheme(localStorage.getItem('starlinkAccent') || '#ffffff');
-        }
-
-        function createStar(x, y) {
-            const s = document.createElement('div');
-            s.className = 'star';
-            s.style.left = `${x}px`;
-            s.style.top = `${y}px`;
-            const size = Math.random() * 4 + 2;
-            s.style.width = s.style.height = `${size}px`;
-            const dur = Math.random() * 25 + 15;
-            s.style.animationDuration = `${dur}s`;
-            const drift = (Math.random() - 0.5) * 100;
-            s.style.transform = `translateX(${drift}px)`;
-            document.getElementById('star-bg').appendChild(s);
-
-            const check = setInterval(() => {
-                if (s.getBoundingClientRect().top < -window.innerHeight * 4) {
-                    s.remove();
-                    clearInterval(check);
-                }
-            }, 8000);
-        }
-
-        function initStars() {
-            for (let i = 0; i < 100; i++) {
-                createStar(Math.random() * window.innerWidth, Math.random() * window.innerHeight * 1.5);
-            }
-            setInterval(() => {
-                createStar(Math.random() * window.innerWidth, window.innerHeight + 80);
-            }, 5000 + Math.random() * 5000);
-        }
-
-        document.addEventListener('click', e => {
-            if (e.target.closest('button, a, input, select, textarea, label, svg, .card, .nav-link, #refresh-modal, #add-update-site-btn, .github-style-btn, .auth-btn, .users-table, .admin-sites-list')) return;
-            createStar(e.clientX, e.clientY);
         });
 
-        function populateThemeGrid() {
-            const cont = document.getElementById('theme-grid');
-            cont.innerHTML = '';
-            const themes = [
-                {name:"White",color:"#ffffff"},{name:"Red",color:"#ef4444"},{name:"Blue",color:"#3b82f6"},
-                {name:"Green",color:"#10b981"},{name:"Purple",color:"#8b5cf6"},{name:"Pink",color:"#ec4899"},
-                {name:"Cyan",color:"#22d3ee"},{name:"Yellow",color:"#f59e0b"},{name:"Lime",color:"#84cc16"},
-                {name:"Teal",color:"#14b8a6"},{name:"Rose",color:"#f43f5e"},{name:"Indigo",color:"#6366f1"},
-                {name:"Orange",color:"#f97316"},{name:"Magenta",color:"#d946ef"},{name:"Sky Blue",color:"#0ea5e9"}
-            ];
-            themes.forEach(t => {
-                const el = document.createElement('div');
-                el.className = 'cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-white/50 transition-all shadow-md';
-                el.innerHTML = `
-                    <div class="h-24 flex items-center justify-center" style="background:${t.color}"><span class="text-5xl drop-shadow-xl">★</span></div>
-                    <div class="text-center py-3 text-xs font-medium bg-black/70">${t.name}</div>
-                `;
-                el.onclick = () => setTheme(t.color);
-                cont.appendChild(el);
-            });
-        }
+        // Toggle sign in / sign up
+        document.getElementById('toggle-link')?.addEventListener('click', e => {
+            e.preventDefault();
+            const isSignIn = document.getElementById('form-title').textContent === 'Sign In';
+            document.getElementById('form-title').textContent = isSignIn ? 'Sign Up' : 'Sign In';
+            document.getElementById('auth-btn').textContent = isSignIn ? 'Sign Up' : 'Sign In';
+            document.getElementById('toggle-link').textContent = isSignIn ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
+        });
 
-        function populateGrid(catKey, gridId) {
-            const cont = document.getElementById(gridId);
-            if (!cont) return;
-            cont.innerHTML = '';
-            (window.allSites?.[catKey] || []).forEach(site => {
-                const iconDisplay = site.icon ? `<div class="text-5xl mb-6 transition-transform group-hover:scale-125">${site.icon}</div>` : '<div class="text-5xl mb-6 opacity-30 transition-transform group-hover:scale-125">–</div>';
-                const card = document.createElement('div');
-                card.className = 'card rounded-3xl p-6 cursor-pointer group';
-                card.innerHTML = `
-                    ${iconDisplay}
-                    <div class="font-semibold text-xl mb-2">${site.name}</div>
-                    <div class="text-white/60 text-sm">${site.desc || ''}</div>
-                `;
-                card.onclick = () => window.open(site.url, '_blank');
-                cont.appendChild(card);
-            });
-        }
+        // ────────────────────────────────────────────────
+        // Your existing functions below (unchanged)
+        // ────────────────────────────────────────────────
 
-        window.createCategoryContents = () => {
-            const container = document.getElementById('dynamic-category-contents');
-            container.innerHTML = '';
-            (window.allCategories || []).forEach(cat => {
-                const div = document.createElement('div');
-                div.id = `content-${cat.key}`;
-                div.className = 'tab-content hidden';
-                div.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="${cat.key}-grid"></div>`;
-                container.appendChild(div);
-            });
+        window.deleteAccount = async () => {
+            if (!confirm("Delete account permanently? This cannot be undone.")) return;
+            const user = auth.currentUser;
+            if (!user) return alert("Not logged in.");
+            try {
+                await deleteDoc(doc(db, "users", user.uid));
+                await deleteUser(user);
+                alert("Account fully deleted.");
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
         };
 
-        // ────────────────────────────────────────────────
-        // Your original data loading & admin functions follow here unchanged
-        // (loadCategories, loadAllSites, showGlobalAnnouncement, saveGlobalAnnouncement, loadAdminUsers, etc.)
-        // ────────────────────────────────────────────────
+        window.changePassword = async () => {
+            const user = auth.currentUser;
+            if (!user?.email) return alert("Not logged in.");
+            try {
+                await sendPasswordResetEmail(auth, user.email);
+                document.getElementById('auth-message').textContent = "Password reset email sent!";
+                document.getElementById('auth-message').className = "success";
+            } catch (e) {
+                document.getElementById('auth-message').textContent = "Error: " + e.message;
+                document.getElementById('auth-message').className = "error";
+            }
+        };
+
+        window.changeEmail = async () => {
+            const user = auth.currentUser;
+            if (!user) return alert("Not logged in.");
+            const newEmail = prompt("New email:", user.email);
+            if (!newEmail || newEmail === user.email) return;
+            const pass = prompt("Current password:");
+            if (!pass) return;
+            try {
+                const cred = EmailAuthProvider.credential(user.email, pass);
+                await reauthenticateWithCredential(user, cred);
+                await updateEmail(user, newEmail);
+                alert("Email updated! Verify new email.");
+                document.getElementById('user-email').textContent = newEmail;
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
 
         window.loadCategories = async () => {
-            const snap = await getDocs(collection(db, "categories"));
-            window.allCategories = [];
-            snap.forEach(d => {
-                const data = d.data();
-                data.id = d.id;
-                window.allCategories.push(data);
-            });
-            window.allCategories.sort((a,b) => (a.order||0) - (b.order||0));
+            const catRef = collection(db, "categories");
+            let snap = await getDocs(catRef);
+            if (snap.empty) {
+                const defaults = [
+                    { key: "games", label: "Games", icon: "fa-gamepad", order: 0 },
+                    { key: "ai", label: "AI Tools", icon: "fa-brain", order: 1 },
+                    { key: "tv", label: "TV & Streaming", icon: "fa-tv", order: 2 },
+                    { key: "proxies", label: "Proxies", icon: "fa-shield-halved", order: 3 },
+                    { key: "music", label: "Music", icon: "fa-music", order: 4 }
+                ];
+                for (const def of defaults) {
+                    await addDoc(catRef, def);
+                }
+                snap = await getDocs(catRef);
+            }
+            window.allCategories = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         };
 
         window.loadAllSites = async () => {
             const snap = await getDocs(collection(db, "sites"));
             window.allSites = {};
-            allCategories.forEach(cat => window.allSites[cat.key] = []);
+            (window.allCategories || []).forEach(cat => window.allSites[cat.key] = []);
             snap.forEach(d => {
                 const data = d.data();
                 data.id = d.id;
@@ -921,8 +763,16 @@
                     window.allSites[data.category].push(data);
                 }
             });
-            Object.keys(window.allSites).forEach(key => {
-                window.allSites[key].sort((a,b) => (a.order ?? 999999) - (b.order ?? 999999));
+            Object.keys(window.allSites).forEach(catKey => {
+                let sites = window.allSites[catKey];
+                if (sites.length === 0) return;
+                const missingOrder = sites.some(s => typeof s.order !== 'number');
+                if (missingOrder) {
+                    sites.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                    sites.forEach((s, idx) => s.order = idx);
+                    sites.forEach(s => setDoc(doc(db, "sites", s.id), { order: s.order }, { merge: true }).catch(() => {}));
+                }
+                sites.sort((a, b) => (a.order ?? 999999) - (b.order ?? 999999));
             });
         };
 
@@ -1002,6 +852,483 @@
             } catch (e) {
                 alert("Error: " + e.message);
             }
+        };
+
+        window.addOrUpdateCategory = async () => {
+            const key = document.getElementById('new-cat-key').value.trim().toLowerCase().replace(/\s+/g, '');
+            const label = document.getElementById('new-cat-label').value.trim();
+            let icon = document.getElementById('new-cat-icon').value.trim();
+            if (!icon.startsWith('fa-')) icon = 'fa-' + icon;
+            if (!key || !label) return alert("Key and Label required (key must be lowercase, no spaces)");
+
+            if (window.editingCategoryId) {
+                try {
+                    await setDoc(doc(db, "categories", window.editingCategoryId), { key, label, icon }, { merge: true });
+                    alert("Category updated!");
+                    window.editingCategoryId = null;
+                    document.getElementById('cat-action-btn').textContent = "Add Category";
+                    ['new-cat-key','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
+                } catch (e) {
+                    alert("Error: " + e.message);
+                }
+            } else {
+                if ((window.allCategories || []).some(c => c.key === key)) return alert("Key already exists!");
+                const maxOrder = (window.allCategories || []).length ? Math.max(...(window.allCategories || []).map(c => c.order ?? 0)) + 1 : 0;
+                try {
+                    await addDoc(collection(db, "categories"), { key, label, icon, order: maxOrder });
+                    alert("Category added!");
+                    ['new-cat-key','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
+                } catch (e) {
+                    alert("Error: " + e.message);
+                }
+            }
+        };
+
+        window.deleteCategory = async (docId, key) => {
+            if (!confirm(`Delete category "${key}" forever? Sites in this category will no longer appear until moved.`)) return;
+            try {
+                await deleteDoc(doc(db, "categories", docId));
+                alert("Category deleted!");
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        window.moveCategoryUp = async (docId) => {
+            const idx = (window.allCategories || []).findIndex(c => c.id === docId);
+            if (idx <= 0) return;
+            const thisCat = window.allCategories[idx];
+            const prevCat = window.allCategories[idx - 1];
+            const temp = thisCat.order;
+            thisCat.order = prevCat.order;
+            prevCat.order = temp;
+            try {
+                await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
+                await setDoc(doc(db, "categories", prevCat.id), { order: prevCat.order }, { merge: true });
+                window.reloadAdminCategories();
+            } catch (e) {
+                alert("Reorder error: " + e.message);
+            }
+        };
+
+        window.moveCategoryDown = async (docId) => {
+            const idx = (window.allCategories || []).findIndex(c => c.id === docId);
+            if (idx >= (window.allCategories || []).length - 1) return;
+            const thisCat = window.allCategories[idx];
+            const nextCat = window.allCategories[idx + 1];
+            const temp = thisCat.order;
+            thisCat.order = nextCat.order;
+            nextCat.order = temp;
+            try {
+                await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
+                await setDoc(doc(db, "categories", nextCat.id), { order: nextCat.order }, { merge: true });
+                window.reloadAdminCategories();
+            } catch (e) {
+                alert("Reorder error: " + e.message);
+            }
+        };
+
+        window.editCategory = (docId, key, label, icon) => {
+            window.editingCategoryId = docId;
+            document.getElementById('new-cat-key').value = key;
+            document.getElementById('new-cat-label').value = label;
+            document.getElementById('new-cat-icon').value = icon;
+            document.getElementById('cat-action-btn').textContent = "Update Category";
+        };
+
+        window.moveSiteUp = async (siteId, categoryKey) => {
+            const sites = (window.allSites || {})[categoryKey] || [];
+            const idx = sites.findIndex(s => s.id === siteId);
+            if (idx <= 0) return;
+            const thisSite = sites[idx];
+            const prevSite = sites[idx - 1];
+            const temp = thisSite.order ?? 999999;
+            thisSite.order = prevSite.order ?? 999999;
+            prevSite.order = temp;
+            try {
+                await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
+                await setDoc(doc(db, "sites", prevSite.id), { order: prevSite.order }, { merge: true });
+                window.reloadAdminSites();
+            } catch (e) {
+                alert("Reorder error: " + e.message);
+            }
+        };
+
+        window.moveSiteDown = async (siteId, categoryKey) => {
+            const sites = (window.allSites || {})[categoryKey] || [];
+            const idx = sites.findIndex(s => s.id === siteId);
+            if (idx >= sites.length - 1 || idx < 0) return;
+            const thisSite = sites[idx];
+            const nextSite = sites[idx + 1];
+            const temp = thisSite.order ?? 999999;
+            thisSite.order = nextSite.order ?? 999999;
+            nextSite.order = temp;
+            try {
+                await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
+                await setDoc(doc(db, "sites", nextSite.id), { order: nextSite.order }, { merge: true });
+                window.reloadAdminSites();
+            } catch (e) {
+                alert("Reorder error: " + e.message);
+            }
+        };
+
+        window.reloadAdminCategories = () => {
+            const container = document.getElementById('admin-categories-list');
+            container.innerHTML = '';
+            if (!(window.allCategories || []).length) {
+                container.innerHTML = '<p class="p-8 text-center text-white/50">No categories yet. Add one above!</p>';
+                return;
+            }
+            let html = '';
+            window.allCategories.forEach(cat => {
+                html += `
+                    <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group">
+                        <div class="flex items-center gap-6">
+                            <i class="fa-solid ${cat.icon} text-4xl"></i>
+                            <div>
+                                <div class="font-semibold text-xl">${cat.label}</div>
+                                <div class="text-xs text-white/50 font-mono">key: ${cat.key}</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="window.moveCategoryUp('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
+                            <button onclick="window.moveCategoryDown('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
+                            <button onclick="window.editCategory('${cat.id}', '${cat.key}', '${cat.label.replace(/'/g, "\\'")}', '${cat.icon}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl">Edit</button>
+                            <button onclick="window.deleteCategory('${cat.id}', '${cat.key}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl">Delete</button>
+                        </div>
+                    </div>`;
+            });
+            container.innerHTML = html;
+        };
+
+        window.addNewSiteFromAdmin = async () => {
+            const cat = document.getElementById('admin-cat-select').value;
+            const name = document.getElementById('new-site-name').value.trim();
+            const url = document.getElementById('new-site-url').value.trim();
+            const icon = document.getElementById('new-site-icon').value.trim();
+            const desc = document.getElementById('new-site-desc').value.trim();
+
+            if (!name || !url) return alert("Name and URL required");
+
+            const currentSites = window.allSites[cat] || [];
+            const maxOrder = currentSites.length ? Math.max(...currentSites.map(s => s.order ?? -1)) + 1 : 0;
+
+            try {
+                await addDoc(collection(db, "sites"), { 
+                    category: cat, 
+                    name, 
+                    url, 
+                    icon, 
+                    desc,
+                    order: maxOrder 
+                });
+                alert("Site added! Non-admin users will see a refresh prompt.");
+                ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        window.deleteSite = async (id) => {
+            if (!confirm("Delete forever?")) return;
+            try {
+                await deleteDoc(doc(db, "sites", id));
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        window.editSite = (id, category, name, url, icon, desc) => {
+            document.getElementById('admin-cat-select').value = category;
+            document.getElementById('new-site-name').value = name;
+            document.getElementById('new-site-url').value = url;
+            document.getElementById('new-site-icon').value = icon || '';
+            document.getElementById('new-site-desc').value = desc || '';
+
+            const btn = document.getElementById('add-update-site-btn');
+            btn.textContent = 'Update Site';
+            btn.onclick = async () => {
+                const newCat = document.getElementById('admin-cat-select').value;
+                const newName = document.getElementById('new-site-name').value.trim();
+                const newUrl = document.getElementById('new-site-url').value.trim();
+                const newIcon = document.getElementById('new-site-icon').value.trim();
+                const newDesc = document.getElementById('new-site-desc').value.trim();
+
+                if (!newName || !newUrl) return alert("Name and URL required");
+
+                try {
+                    await setDoc(doc(db, "sites", id), {
+                        category: newCat,
+                        name: newName,
+                        url: newUrl,
+                        icon: newIcon,
+                        desc: newDesc,
+                        updatedAt: serverTimestamp()
+                    }, { merge: true });
+                    alert("Site updated successfully!");
+                    ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
+                    btn.textContent = 'Add New Site';
+                    btn.onclick = window.addNewSiteFromAdmin;
+                } catch (e) {
+                    alert("Error updating site: " + e.message);
+                }
+            };
+        };
+
+        window.reloadAdminSites = () => {
+            const container = document.getElementById('admin-sites-list');
+            container.innerHTML = '';
+            (window.allCategories || []).forEach(cat => {
+                const sites = window.allSites[cat.key] || [];
+                let html = `<div class="border border-white/10 rounded-3xl p-8"><div class="flex justify-between items-center mb-6"><h4 class="text-2xl font-medium">${cat.label}</h4><span class="text-xs bg-white/10 px-4 py-1.5 rounded-2xl">${sites.length} sites</span></div><div class="space-y-4">`;
+                if (!sites.length) {
+                    html += '<p class="text-white/40 pl-2">No sites yet</p>';
+                } else {
+                    sites.forEach(s => {
+                        const iconDisplay = s.icon ? `<div class="text-5xl">${s.icon}</div>` : '<div class="text-5xl opacity-30">–</div>';
+                        html += `
+                            <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group transition-all">
+                                <div class="flex items-center gap-6">
+                                    ${iconDisplay}
+                                    <div>
+                                        <div class="font-semibold text-xl">${s.name}</div>
+                                        <a href="${s.url}" target="_blank" class="text-xs text-[var(--accent)] break-all">${s.url}</a>
+                                        ${s.desc ? `<div class="text-xs text-white/60 mt-1">${s.desc}</div>` : ''}
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="window.moveSiteUp('${s.id}', '${s.category}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
+                                    <button onclick="window.moveSiteDown('${s.id}', '${s.category}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
+                                    <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation()" 
+                                            class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">
+                                        Edit
+                                    </button>
+                                    <button onclick="window.deleteSite('${s.id}'); event.stopPropagation();" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>`;
+                    });
+                }
+                html += '</div></div>';
+                container.innerHTML += html;
+            });
+        };
+
+        // ────────────────────────────────────────────────
+        // UI helpers
+        // ────────────────────────────────────────────────
+
+        function setTheme(color) {
+            document.documentElement.style.setProperty('--accent', color);
+            localStorage.setItem('starlinkAccent', color);
+        }
+
+        function loadTheme() {
+            setTheme(localStorage.getItem('starlinkAccent') || '#ffffff');
+        }
+
+        function createStar(x, y) {
+            const s = document.createElement('div');
+            s.className = 'star';
+            s.style.left = `${x}px`;
+            s.style.top = `${y}px`;
+            const size = Math.random() * 4 + 2;
+            s.style.width = s.style.height = `${size}px`;
+            const dur = Math.random() * 25 + 15;
+            s.style.animationDuration = `${dur}s`;
+            const drift = (Math.random() - 0.5) * 100;
+            s.style.transform = `translateX(${drift}px)`;
+            document.getElementById('star-bg').appendChild(s);
+
+            const check = setInterval(() => {
+                const rect = s.getBoundingClientRect();
+                if (rect.top < -window.innerHeight * 4) {
+                    s.remove();
+                    clearInterval(check);
+                }
+            }, 8000);
+        }
+
+        function initStars() {
+            for (let i = 0; i < 100; i++) {
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight * 1.5;
+                createStar(x, y);
+            }
+
+            setInterval(() => {
+                const x = Math.random() * window.innerWidth;
+                const y = window.innerHeight + 80;
+                createStar(x, y);
+            }, 5000 + Math.random() * 5000);
+        }
+
+        document.addEventListener('click', e => {
+            if (e.target.closest('button, a, input, select, textarea, label, svg, .card, .nav-link, #refresh-modal, #add-update-site-btn, .github-style-btn, .auth-btn, .users-table, .admin-sites-list')) {
+                return;
+            }
+            createStar(e.clientX, e.clientY);
+        });
+
+        function populateThemeGrid() {
+            const cont = document.getElementById('theme-grid');
+            cont.innerHTML = '';
+            const themes = [
+                {name:"White",color:"#ffffff"},{name:"Red",color:"#ef4444"},{name:"Blue",color:"#3b82f6"},
+                {name:"Green",color:"#10b981"},{name:"Purple",color:"#8b5cf6"},{name:"Pink",color:"#ec4899"},
+                {name:"Cyan",color:"#22d3ee"},{name:"Yellow",color:"#f59e0b"},{name:"Lime",color:"#84cc16"},
+                {name:"Teal",color:"#14b8a6"},{name:"Rose",color:"#f43f5e"},{name:"Indigo",color:"#6366f1"},
+                {name:"Orange",color:"#f97316"},{name:"Magenta",color:"#d946ef"},{name:"Sky Blue",color:"#0ea5e9"}
+            ];
+            themes.forEach(t => {
+                const el = document.createElement('div');
+                el.className = 'cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-white/50 transition-all shadow-md';
+                el.innerHTML = `
+                    <div class="h-24 flex items-center justify-center" style="background:${t.color}"><span class="text-5xl drop-shadow-xl">★</span></div>
+                    <div class="text-center py-3 text-xs font-medium bg-black/70">${t.name}</div>
+                `;
+                el.onclick = () => setTheme(t.color);
+                cont.appendChild(el);
+            });
+        }
+
+        function populateGrid(catKey, gridId) {
+            const cont = document.getElementById(gridId);
+            if (!cont) return;
+            cont.innerHTML = '';
+            (window.allSites?.[catKey] || []).forEach(site => {
+                const iconDisplay = site.icon ? `<div class="text-5xl mb-6 transition-transform group-hover:scale-125">${site.icon}</div>` : '<div class="text-5xl mb-6 opacity-30 transition-transform group-hover:scale-125">–</div>';
+                const card = document.createElement('div');
+                card.className = 'card rounded-3xl p-6 cursor-pointer group';
+                card.innerHTML = `
+                    ${iconDisplay}
+                    <div class="font-semibold text-xl mb-2">${site.name}</div>
+                    <div class="text-white/60 text-sm">${site.desc || ''}</div>
+                `;
+                card.onclick = () => {
+                    window.open(site.url, '_blank');
+                };
+                cont.appendChild(card);
+            });
+        }
+
+        window.createCategoryContents = () => {
+            const container = document.getElementById('dynamic-category-contents');
+            container.innerHTML = '';
+            (window.allCategories || []).forEach(cat => {
+                const div = document.createElement('div');
+                div.id = `content-${cat.key}`;
+                div.className = 'tab-content hidden';
+                div.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6" id="${cat.key}-grid"></div>`;
+                container.appendChild(div);
+            });
+        };
+
+        window.buildNav = () => {
+            const navLinks = document.getElementById('nav-links');
+            if (!navLinks) return;
+            if (!window.currentUser) {
+                navLinks.innerHTML = `
+                    <div onclick="window.switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
+                        <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+                    </div>
+                `;
+                return;
+            }
+
+            const isAdmin = window.currentUser.email === ADMIN_EMAIL;
+            let html = '';
+            window.tabMapping = [];
+            let idx = 0;
+
+            if (isAdmin) {
+                html += `
+                    <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                        <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
+                    </div>
+                `;
+                window.tabMapping.push({contentId: 'content-admin', title: 'Admin Panel', icon: 'fa-crown'});
+                idx++;
+                html += '<div class="sidebar-separator mx-6"></div>';
+            }
+
+            const homeActive = !isAdmin ? 'active-tab' : '';
+            html += `
+                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${homeActive}" id="tab-${idx}">
+                    <i class="fa-solid fa-house w-5"></i> <span>Home</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-home', title: 'Home', icon: 'fa-house'});
+            idx++;
+
+            (window.allCategories || []).forEach(cat => {
+                html += `
+                    <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                        <i class="fa-solid ${cat.icon} w-5"></i> <span>${cat.label}</span>
+                    </div>
+                `;
+                window.tabMapping.push({contentId: `content-${cat.key}`, title: cat.label, icon: cat.icon});
+                idx++;
+            });
+
+            html += `
+                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                    <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-settings', title: 'Settings', icon: 'fa-gear'});
+            idx++;
+
+            html += `
+                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                    <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-account', title: 'Account', icon: 'fa-user'});
+            idx++;
+
+            html += `
+                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                    <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-credits', title: 'Credits', icon: 'fa-heart'});
+            idx++;
+
+            html += `
+                <div onclick="window.requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
+                    <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
+                </div>
+            `;
+
+            navLinks.innerHTML = html;
+        };
+
+        window.switchTab = function(index) {
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
+            const activeEl = document.getElementById(`tab-${index}`);
+            if (activeEl) activeEl.classList.add('active-tab');
+
+            const mapping = (window.tabMapping || [])[index];
+            if (!mapping) return;
+
+            document.getElementById('current-tab').textContent = mapping.title;
+            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${mapping.icon}`;
+
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(mapping.contentId)?.classList.remove('hidden');
+        };
+
+        window.requestSite = function() {
+            window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
+        };
+
+        window.resetEverything = function() {
+            if (!confirm("Reset all & sign out?")) return;
+            localStorage.clear();
+            document.documentElement.style.setProperty('--accent', '#ffffff');
+            firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
         };
 
         window.populateCategorySelect = () => {
