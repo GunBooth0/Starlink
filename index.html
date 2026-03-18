@@ -892,6 +892,18 @@ window.toggleBan = async (uid, ban) => {
     }
 };
 
+        window.deleteUserFromAdmin = async (uid) => {
+    if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
+    try {
+        await deleteDoc(doc(db, "users", uid));
+        await setDoc(doc(db, "config", "usersVersion"), { version: serverTimestamp() }, { merge: true });
+        alert("User removed from list.");
+        window.loadAdminUsers();
+    } catch (e) {
+        alert("Error: " + e.message);
+    }
+};
+
         window.addOrUpdateCategory = async () => {
             const key = document.getElementById('new-cat-key').value.trim().toLowerCase().replace(/\s+/g, '');
             const label = document.getElementById('new-cat-label').value.trim();
