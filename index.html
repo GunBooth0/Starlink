@@ -444,8 +444,11 @@
             </div>
             <input id="req-name" type="text" placeholder="Site name" class="w-full">
             <input id="req-url" type="text" placeholder="URL (e.g. https://example.com)" class="w-full">
-            <select id="req-category" class="w-full"></select>
-            <input id="req-desc" type="text" placeholder="Short description (optional)" class="w-full">
+            <select id="req-category" class="w-full" style="font-size:1.1rem;padding:1rem 1.25rem;"></select>
+            <div class="flex gap-4">
+                <input id="req-icon" type="text" placeholder="Icon (emoji) – optional" maxlength="2" style="flex:1">
+                <input id="req-desc" type="text" placeholder="Short description (optional)" style="flex:3">
+            </div>
             <button onclick="window.submitSiteRequest()" class="auth-btn w-full mt-2">Submit Request</button>
             <p id="req-message" class="text-center text-sm mt-4 hidden"></p>
         </div>
@@ -1094,19 +1097,29 @@
         };
 
 
+        // Normalize order values for a category so they are 0,1,2,3... with no duplicates
+        async function normalizeSiteOrder(catKey) {
+            const sites = window.allSites[catKey] || [];
+            const batch = sites.map((s, i) => {
+                s.order = i;
+                return setDoc(doc(db, "sites", s.id), { order: i }, { merge: true });
+            });
+            await Promise.all(batch);
+        }
+
         window.moveSiteUp = async (siteId, catKey) => {
             const sites = window.allSites[catKey] || [];
+            // Normalize first so order values are guaranteed sequential
+            sites.forEach((s, i) => s.order = i);
             const idx = sites.findIndex(s => s.id === siteId);
             if (idx <= 0) return;
             const a = sites[idx], b = sites[idx - 1];
-            const tempOrder = a.order ?? idx;
-            const newOrderA = b.order ?? (idx - 1);
-            const newOrderB = tempOrder;
+            // Swap positions
+            [a.order, b.order] = [b.order, a.order];
             try {
-                await setDoc(doc(db, "sites", a.id), { order: newOrderA }, { merge: true });
-                await setDoc(doc(db, "sites", b.id), { order: newOrderB }, { merge: true });
-                a.order = newOrderA; b.order = newOrderB;
-                sites.sort((x, y) => (x.order ?? 0) - (y.order ?? 0));
+                await setDoc(doc(db, "sites", a.id), { order: a.order }, { merge: true });
+                await setDoc(doc(db, "sites", b.id), { order: b.order }, { merge: true });
+                sites.sort((x, y) => x.order - y.order);
                 window.populateAllGrids();
                 window.reloadAdminSites();
             } catch (e) { alert("Error: " + e.message); }
@@ -1114,17 +1127,17 @@
 
         window.moveSiteDown = async (siteId, catKey) => {
             const sites = window.allSites[catKey] || [];
+            // Normalize first so order values are guaranteed sequential
+            sites.forEach((s, i) => s.order = i);
             const idx = sites.findIndex(s => s.id === siteId);
             if (idx < 0 || idx >= sites.length - 1) return;
             const a = sites[idx], b = sites[idx + 1];
-            const tempOrder = a.order ?? idx;
-            const newOrderA = b.order ?? (idx + 1);
-            const newOrderB = tempOrder;
+            // Swap positions
+            [a.order, b.order] = [b.order, a.order];
             try {
-                await setDoc(doc(db, "sites", a.id), { order: newOrderA }, { merge: true });
-                await setDoc(doc(db, "sites", b.id), { order: newOrderB }, { merge: true });
-                a.order = newOrderA; b.order = newOrderB;
-                sites.sort((x, y) => (x.order ?? 0) - (y.order ?? 0));
+                await setDoc(doc(db, "sites", a.id), { order: a.order }, { merge: true });
+                await setDoc(doc(db, "sites", b.id), { order: b.order }, { merge: true });
+                sites.sort((x, y) => x.order - y.order);
                 window.populateAllGrids();
                 window.reloadAdminSites();
             } catch (e) { alert("Error: " + e.message); }
@@ -1170,7 +1183,7 @@
                 sel.innerHTML = (window.allCategories || []).map(c => `<option value="${c.key}">${c.label}</option>`).join('');
             }
             document.getElementById('req-message').classList.add('hidden');
-            ['req-name','req-url','req-desc'].forEach(id => document.getElementById(id).value = '');
+            ['req-name','req-url','req-icon','req-desc'].forEach(id => document.getElementById(id).value = '');
             const modal = document.getElementById('request-modal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -1180,12 +1193,13 @@
             const name = document.getElementById('req-name').value.trim();
             const url = document.getElementById('req-url').value.trim();
             const category = document.getElementById('req-category').value;
+            const icon = document.getElementById('req-icon').value.trim();
             const desc = document.getElementById('req-desc').value.trim();
             const msgEl = document.getElementById('req-message');
             if (!name || !url) { msgEl.textContent = 'Name and URL are required.'; msgEl.className = 'text-center text-sm mt-4 error'; msgEl.classList.remove('hidden'); return; }
             try {
                 await addDoc(collection(db, "siteRequests"), {
-                    name, url, category, desc,
+                    name, url, category, icon, desc,
                     requestedBy: auth.currentUser?.email || 'unknown',
                     requestedAt: serverTimestamp(),
                     status: 'pending'
@@ -1193,7 +1207,7 @@
                 msgEl.textContent = 'Request submitted! The admin will review it shortly.';
                 msgEl.className = 'text-center text-sm mt-4 success';
                 msgEl.classList.remove('hidden');
-                ['req-name','req-url','req-desc'].forEach(id => document.getElementById(id).value = '');
+                ['req-name','req-url','req-icon','req-desc'].forEach(id => document.getElementById(id).value = '');
                 setTimeout(() => {
                     const modal = document.getElementById('request-modal');
                     modal.classList.add('hidden'); modal.classList.remove('flex');
@@ -1245,17 +1259,22 @@
             }
         };
 
-        window.approveSiteRequest = async (reqId, name, url, category, desc) => {
+        window.approveSiteRequest = async (reqId, name, url, category, icon, desc) => {
             try {
                 const catSites = window.allSites[category] || [];
                 const maxOrder = catSites.length ? Math.max(...catSites.map(s => s.order ?? 0)) + 1 : 0;
-                await addDoc(collection(db, "sites"), { category, name, url, icon: '', desc, order: maxOrder });
-                await setDoc(doc(db, "siteRequests", reqId), { status: 'approved' }, { merge: true });
-                alert(`"${name}" approved and added to ${category}!`);
+                await addDoc(collection(db, "sites"), { category, name, url, icon: icon || '', desc, order: maxOrder });
+                await deleteDoc(doc(db, "siteRequests", reqId));
+                const row = document.getElementById('req-row-' + reqId);
+                if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
                 await window.loadAllSites();
                 window.populateAllGrids();
                 window.reloadAdminSites();
-                window.loadSiteRequests();
+                // Update badge count
+                const remaining = document.querySelectorAll('[id^="req-row-"]').length - 1;
+                const badge = document.getElementById('requests-badge');
+                if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('site-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending requests</p>'; }
+                else { badge.textContent = remaining; }
             } catch(e) { alert("Error: " + e.message); }
         };
 
@@ -1263,7 +1282,12 @@
             if (!confirm("Reject and remove this request?")) return;
             try {
                 await deleteDoc(doc(db, "siteRequests", reqId));
-                window.loadSiteRequests();
+                const row = document.getElementById('req-row-' + reqId);
+                if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
+                const remaining = document.querySelectorAll('[id^="req-row-"]').length - 1;
+                const badge = document.getElementById('requests-badge');
+                if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('site-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending requests</p>'; }
+                else { badge.textContent = remaining; }
             } catch(e) { alert("Error: " + e.message); }
         };
 
