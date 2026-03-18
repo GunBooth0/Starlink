@@ -168,7 +168,6 @@
             padding: 1rem;
             text-align: left;
         }
-        /* Blocking refresh modal */
         #refresh-modal {
             position: fixed;
             inset: 0;
@@ -191,7 +190,6 @@
             text-align: center;
             box-shadow: 0 0 60px rgba(255,255,255,0.2);
         }
-        /* Sidebar separator line */
         .sidebar-separator {
             height: 1px;
             background: rgba(255,255,255,0.15);
@@ -450,10 +448,6 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        // ────────────────────────────────────────────────
-        //   All Firebase / auth / data logic stays here
-        // ────────────────────────────────────────────────
-
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
@@ -670,63 +664,67 @@
         };
 
         window.loadAllSites = async () => {
+            console.log("[loadAllSites] Starting...");
             const snap = await getDocs(collection(db, "sites"));
             window.allSites = {};
             (window.allCategories || []).forEach(cat => window.allSites[cat.key] = []);
-            
-            const sitesWithoutOrder = [];
-            
+
+            const sitesToFix = [];
+
             snap.forEach(d => {
                 const data = d.data();
                 data.id = d.id;
                 if (window.allSites[data.category] !== undefined) {
                     window.allSites[data.category].push(data);
-                    if (data.order === undefined || data.order === null) {
-                        sitesWithoutOrder.push({ ref: doc(db, "sites", d.id), data });
+                    const o = data.order;
+                    if (o === undefined || o === null || typeof o !== 'number' || isNaN(o)) {
+                        sitesToFix.push({id: d.id, category: data.category, name: data.name || '(unnamed)'});
                     }
                 }
             });
 
-            // Auto-assign missing orders (alphabetical default within each category)
+            console.log(`[loadAllSites] Found ${sitesToFix.length} sites missing or invalid order`);
+
             Object.keys(window.allSites).forEach(catKey => {
-                let sites = window.allSites[catKey];
-                
-                // Split into ordered and unordered
-                const ordered = sites.filter(s => s.order !== undefined && s.order !== null);
-                const unordered = sites.filter(s => s.order === undefined || s.order === null);
-                
-                // Sort unordered alphabetically by name
-                unordered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-                
-                // Find next available order
-                let nextOrder = ordered.length > 0 
-                    ? Math.max(...ordered.map(s => Number(s.order))) + 1 
-                    : 0;
-                
-                // Assign sequential orders
-                unordered.forEach(site => {
-                    site.order = nextOrder++;
+                let sites = window.allSites[catKey] || [];
+
+                const valid = sites.filter(s => {
+                    const o = s.order;
+                    return o !== undefined && o !== null && typeof o === 'number' && !isNaN(o);
                 });
-                
-                // Recombine and sort everything by order
-                sites = [...ordered, ...unordered].sort((a, b) => Number(a.order) - Number(b.order));
-                window.allSites[catKey] = sites;
+                const invalid = sites.filter(s => !valid.includes(s));
+
+                valid.sort((a, b) => a.order - b.order);
+
+                let nextOrder = valid.length ? Math.max(...valid.map(s => s.order)) + 1 : 0;
+
+                invalid.forEach(s => {
+                    s.order = nextOrder++;
+                    console.log(`Assigned order ${s.order} to "${s.name || s.id}" in ${catKey}`);
+                });
+
+                window.allSites[catKey] = [...valid, ...invalid].sort((a, b) => a.order - b.order);
             });
 
-            // Persist any missing orders to Firestore using batch
-            if (sitesWithoutOrder.length > 0) {
-                console.log(`Assigning default order to ${sitesWithoutOrder.length} sites...`);
+            if (sitesToFix.length > 0) {
                 const batch = writeBatch(db);
-                sitesWithoutOrder.forEach(({ ref, data }) => {
-                    batch.set(ref, { order: data.order }, { merge: true });
+                sitesToFix.forEach(({id, category}) => {
+                    const site = window.allSites[category].find(s => s.id === id);
+                    if (site?.order !== undefined) {
+                        batch.set(doc(db, "sites", id), {order: site.order}, {merge: true});
+                    }
                 });
                 try {
                     await batch.commit();
-                    console.log("Default orders saved successfully.");
+                    console.log(`[loadAllSites] Fixed and saved ${sitesToFix.length} sites`);
                 } catch (err) {
-                    console.error("Failed to save default site orders:", err);
+                    console.error("[loadAllSites] Batch save failed:", err);
                 }
+            } else {
+                console.log("[loadAllSites] No fixes needed");
             }
+
+            console.log("[loadAllSites] Done");
         };
 
         window.populateAllGrids = () => {
@@ -926,7 +924,7 @@
             if (!name || !url) return alert("Name and URL required");
 
             const catSites = (window.allSites || {})[cat] || [];
-            const maxOrder = catSites.length ? Math.max(...catSites.map(s => Number(s.order ?? 0))) + 1 : 0;
+            const maxOrder = catSites.length ? Math.max(...catSites.map(s => Number(s.order || 0))) + 1 : 0;
 
             try {
                 await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc, order: maxOrder });
@@ -998,8 +996,8 @@
             if (idx <= 0) return;
             const thisSite = sites[idx];
             const prevSite = sites[idx - 1];
-            const temp = thisSite.order;
-            thisSite.order = prevSite.order;
+            const temp = Number(thisSite.order);
+            thisSite.order = Number(prevSite.order);
             prevSite.order = temp;
             try {
                 await Promise.all([
@@ -1018,8 +1016,8 @@
             if (idx >= sites.length - 1) return;
             const thisSite = sites[idx];
             const nextSite = sites[idx + 1];
-            const temp = thisSite.order;
-            thisSite.order = nextSite.order;
+            const temp = Number(thisSite.order);
+            thisSite.order = Number(nextSite.order);
             nextSite.order = temp;
             try {
                 await Promise.all([
@@ -1087,7 +1085,7 @@
         window.moveSiteDown = window.moveSiteDown;
     </script>
 
-    <!-- Global scope functions (needed for onclick) -->
+    <!-- Global scope functions -->
     <script>
         window.switchTab = function(index) {
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
