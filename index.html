@@ -751,11 +751,13 @@
                                 ? `<span class="px-3 py-1 bg-purple-900/60 text-purple-400 rounded-xl text-xs font-semibold">Admin</span>`
                                 : `<span class="px-3 py-1 bg-green-900/60 text-green-400 rounded-xl text-xs font-semibold">Active</span>`;
 
-                    const banBtn = isOwner ? '' : isBanned
+                    const isCurrentUserOwner = auth.currentUser?.email === ADMIN_EMAIL;
+
+                    const banBtn = (isOwner || !isCurrentUserOwner) ? '' : isBanned
                         ? `<button onclick="window.setBanUser('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-green-900/60 hover:bg-green-900 text-green-400 rounded-2xl transition-colors">Unban</button>`
                         : `<button onclick="window.setBanUser('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-orange-900/60 hover:bg-orange-900 text-orange-400 rounded-2xl transition-colors">Ban</button>`;
 
-                    const adminBtn = isOwner ? '' : isUserAdmin
+                    const adminBtn = (isOwner || !isCurrentUserOwner) ? '' : isUserAdmin
                         ? `<button onclick="window.setAdminUser('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-purple-900/60 hover:bg-purple-900 text-purple-400 rounded-2xl transition-colors">Revoke Admin</button>`
                         : `<button onclick="window.setAdminUser('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">Make Admin</button>`;
 
@@ -784,8 +786,8 @@
             if (!confirm(`Are you sure you want to ${action} this user?`)) return;
             try {
                 await setDoc(doc(db, "users", uid), { banned: ban }, { merge: true });
-                alert(`User ${ban ? 'banned' : 'unbanned'} successfully.`);
-                window.loadAdminUsers();
+                await window.loadAdminUsers();
+                document.getElementById('refresh-modal').classList.add('show');
             } catch (e) {
                 alert("Error: " + e.message);
             }
@@ -796,8 +798,8 @@
             if (!confirm(`Are you sure you want to ${action} this user?`)) return;
             try {
                 await setDoc(doc(db, "users", uid), { isAdmin: grant }, { merge: true });
-                alert(`Admin access ${grant ? 'granted' : 'revoked'} successfully.`);
-                window.loadAdminUsers();
+                await window.loadAdminUsers();
+                document.getElementById('refresh-modal').classList.add('show');
             } catch (e) {
                 alert("Error: " + e.message);
             }
