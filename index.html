@@ -472,7 +472,7 @@
         let categoriesListener = null;
         window.initialLoadComplete = false;
 
-        function updateUIForAuth(user) {
+        async function updateUIForAuth(user) {
             window.currentUser = user;
             const statusEl = document.getElementById('user-status');
             const navLinks = document.getElementById('nav-links');
@@ -487,6 +487,21 @@
             if (categoriesListener) categoriesListener();
 
             if (user) {
+                // Check banned + isAdmin from Firestore before showing UI
+                let userDocData = {};
+                try {
+                    const userSnap = await getDoc(doc(db, "users", user.uid));
+                    if (userSnap.exists()) userDocData = userSnap.data();
+                } catch (_) {}
+
+                if (userDocData.banned === true) {
+                    await signOut(auth);
+                    alert("Your account has been banned. Please contact the administrator.");
+                    return;
+                }
+
+                window.isAdminUser = user.email === ADMIN_EMAIL || userDocData.isAdmin === true;
+
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
                 userInfo?.classList.remove('hidden');
                 document.getElementById('user-email').textContent = user.email;
@@ -502,15 +517,14 @@
                     window.populateCategorySelect();
                     await window.showGlobalAnnouncement();
                     window.buildNav();
-                    const isAdminUser = user.email === ADMIN_EMAIL;
-                    window.switchTab(isAdminUser ? 1 : 0);
+                    window.switchTab(window.isAdminUser ? 1 : 0);
                     window.initialLoadComplete = true;
                 }, 100);
 
                 sitesListener = onSnapshot(collection(db, "sites"), async () => {
                     await window.loadAllSites();
                     window.populateAllGrids();
-                    if (user.email === ADMIN_EMAIL && !document.getElementById('content-admin').classList.contains('hidden')) {
+                    if (window.isAdminUser && !document.getElementById('content-admin').classList.contains('hidden')) {
                         window.reloadAdminSites();
                     } else if (window.initialLoadComplete) {
                         document.getElementById('refresh-modal').classList.add('show');
@@ -518,7 +532,7 @@
                 });
 
                 announcementListener = onSnapshot(doc(db, "config", "announcement"), () => {
-                    if (user.email !== ADMIN_EMAIL && window.initialLoadComplete) {
+                    if (!window.isAdminUser && window.initialLoadComplete) {
                         document.getElementById('refresh-modal').classList.add('show');
                     } else {
                         window.showGlobalAnnouncement();
@@ -532,7 +546,7 @@
                     window.populateAllGrids();
                     window.buildNav();
                     window.populateCategorySelect();
-                    if (user.email === ADMIN_EMAIL && !document.getElementById('content-admin').classList.contains('hidden')) {
+                    if (window.isAdminUser && !document.getElementById('content-admin').classList.contains('hidden')) {
                         window.reloadAdminCategories();
                     } else {
                         document.getElementById('refresh-modal').classList.add('show');
@@ -716,16 +730,45 @@
             try {
                 const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
                 const snap = await getDocs(q);
-                let html = `<table class="w-full text-sm"><thead class="bg-black/60 sticky top-0"><tr class="border-b border-white/10"><th class="px-6 py-4 text-left">Email</th><th class="px-6 py-4 text-left">Joined</th><th class="px-6 py-4 text-left">UID</th><th class="px-6 py-4 text-left">Actions</th></tr></thead><tbody class="divide-y divide-white/10">`;
+                let html = `<table class="w-full text-sm"><thead class="bg-black/60 sticky top-0"><tr class="border-b border-white/10">
+                    <th class="px-6 py-4 text-left">Email</th>
+                    <th class="px-6 py-4 text-left">Joined</th>
+                    <th class="px-6 py-4 text-left">Status</th>
+                    <th class="px-6 py-4 text-left">Actions</th>
+                </tr></thead><tbody class="divide-y divide-white/10">`;
                 snap.forEach(d => {
                     const data = d.data();
                     const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '—';
+                    const isBanned = data.banned === true;
+                    const isUserAdmin = data.isAdmin === true || data.email === ADMIN_EMAIL;
+                    const isOwner = data.email === ADMIN_EMAIL;
+
+                    const statusBadge = isBanned
+                        ? `<span class="px-3 py-1 bg-red-900/60 text-red-400 rounded-xl text-xs font-semibold">Banned</span>`
+                        : isOwner
+                            ? `<span class="px-3 py-1 bg-yellow-900/60 text-yellow-400 rounded-xl text-xs font-semibold">Owner</span>`
+                            : isUserAdmin
+                                ? `<span class="px-3 py-1 bg-purple-900/60 text-purple-400 rounded-xl text-xs font-semibold">Admin</span>`
+                                : `<span class="px-3 py-1 bg-green-900/60 text-green-400 rounded-xl text-xs font-semibold">Active</span>`;
+
+                    const banBtn = isOwner ? '' : isBanned
+                        ? `<button onclick="window.setBanUser('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-green-900/60 hover:bg-green-900 text-green-400 rounded-2xl transition-colors">Unban</button>`
+                        : `<button onclick="window.setBanUser('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-orange-900/60 hover:bg-orange-900 text-orange-400 rounded-2xl transition-colors">Ban</button>`;
+
+                    const adminBtn = isOwner ? '' : isUserAdmin
+                        ? `<button onclick="window.setAdminUser('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-purple-900/60 hover:bg-purple-900 text-purple-400 rounded-2xl transition-colors">Revoke Admin</button>`
+                        : `<button onclick="window.setAdminUser('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">Make Admin</button>`;
+
                     html += `<tr>
                         <td class="px-6 py-4 font-medium">${data.email}</td>
                         <td class="px-6 py-4 text-white/70">${date}</td>
-                        <td class="px-6 py-4 font-mono text-xs text-white/50">${d.id}</td>
+                        <td class="px-6 py-4">${statusBadge}</td>
                         <td class="px-6 py-4">
-                            <button onclick="deleteUserFromAdmin('${d.id}'); event.stopPropagation();" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Delete</button>
+                            <div class="flex gap-2 flex-wrap">
+                                ${banBtn}
+                                ${adminBtn}
+                                ${isOwner ? '' : `<button onclick="deleteUserFromAdmin('${d.id}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Delete</button>`}
+                            </div>
                         </td>
                     </tr>`;
                 });
@@ -733,6 +776,30 @@
                 container.innerHTML = snap.empty ? '<p class="p-8 text-center text-white/50">No users yet</p>' : html;
             } catch (e) {
                 container.innerHTML = `<p class="p-8 text-red-400">Error loading users.<br>Check Firestore rules.</p>`;
+            }
+        };
+
+        window.setBanUser = async (uid, ban) => {
+            const action = ban ? 'ban' : 'unban';
+            if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+            try {
+                await setDoc(doc(db, "users", uid), { banned: ban }, { merge: true });
+                alert(`User ${ban ? 'banned' : 'unbanned'} successfully.`);
+                window.loadAdminUsers();
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        window.setAdminUser = async (uid, grant) => {
+            const action = grant ? 'grant admin access to' : 'revoke admin access from';
+            if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+            try {
+                await setDoc(doc(db, "users", uid), { isAdmin: grant }, { merge: true });
+                alert(`Admin access ${grant ? 'granted' : 'revoked'} successfully.`);
+                window.loadAdminUsers();
+            } catch (e) {
+                alert("Error: " + e.message);
             }
         };
 
@@ -975,6 +1042,8 @@
         window.clearAnnouncement = window.clearAnnouncement;
         window.loadAdminUsers = window.loadAdminUsers;
         window.deleteUserFromAdmin = window.deleteUserFromAdmin;
+        window.setBanUser = window.setBanUser;
+        window.setAdminUser = window.setAdminUser;
         window.addNewSiteFromAdmin = window.addNewSiteFromAdmin;
         window.deleteSite = window.deleteSite;
         window.reloadAdminSites = window.reloadAdminSites;
@@ -1136,7 +1205,7 @@
                 return;
             }
 
-            const isAdmin = window.currentUser.email === ADMIN_EMAIL;
+            const isAdmin = window.isAdminUser === true;
             let html = '';
             window.tabMapping = [];
             let idx = 0;
