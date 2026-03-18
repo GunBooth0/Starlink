@@ -168,6 +168,7 @@
             padding: 1rem;
             text-align: left;
         }
+        /* Blocking refresh modal */
         #refresh-modal {
             position: fixed;
             inset: 0;
@@ -190,6 +191,7 @@
             text-align: center;
             box-shadow: 0 0 60px rgba(255,255,255,0.2);
         }
+        /* Sidebar separator line */
         .sidebar-separator {
             height: 1px;
             background: rgba(255,255,255,0.15);
@@ -389,12 +391,9 @@
 
                     <!-- Sites Management -->
                     <div>
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-globe"></i> Manage Sites
-                            </h3>
-                            <button onclick="reloadAdminSites()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
-                        </div>
+                        <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
+                            <i class="fa-solid fa-globe"></i> Manage Sites
+                        </h3>
                         <div class="bg-black/40 p-8 rounded-3xl mb-10" id="admin-sites-management">
                             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                                 <div>
@@ -448,9 +447,13 @@
 
     <!-- Firebase SDK -->
     <script type="module">
+        // ────────────────────────────────────────────────
+        //   All Firebase / auth / data logic stays here
+        // ────────────────────────────────────────────────
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDI979T4jI-ZbGbRDFo-kNZPyG3Pc8gkXw",
@@ -664,67 +667,16 @@
         };
 
         window.loadAllSites = async () => {
-            console.log("[loadAllSites] Starting...");
             const snap = await getDocs(collection(db, "sites"));
             window.allSites = {};
             (window.allCategories || []).forEach(cat => window.allSites[cat.key] = []);
-
-            const sitesToFix = [];
-
             snap.forEach(d => {
                 const data = d.data();
                 data.id = d.id;
                 if (window.allSites[data.category] !== undefined) {
                     window.allSites[data.category].push(data);
-                    const o = data.order;
-                    if (o === undefined || o === null || typeof o !== 'number' || isNaN(o)) {
-                        sitesToFix.push({id: d.id, category: data.category, name: data.name || '(unnamed)'});
-                    }
                 }
             });
-
-            console.log(`[loadAllSites] Found ${sitesToFix.length} sites missing or invalid order`);
-
-            Object.keys(window.allSites).forEach(catKey => {
-                let sites = window.allSites[catKey] || [];
-
-                const valid = sites.filter(s => {
-                    const o = s.order;
-                    return o !== undefined && o !== null && typeof o === 'number' && !isNaN(o);
-                });
-                const invalid = sites.filter(s => !valid.includes(s));
-
-                valid.sort((a, b) => a.order - b.order);
-
-                let nextOrder = valid.length ? Math.max(...valid.map(s => s.order)) + 1 : 0;
-
-                invalid.forEach(s => {
-                    s.order = nextOrder++;
-                    console.log(`Assigned order ${s.order} to "${s.name || s.id}" in ${catKey}`);
-                });
-
-                window.allSites[catKey] = [...valid, ...invalid].sort((a, b) => a.order - b.order);
-            });
-
-            if (sitesToFix.length > 0) {
-                const batch = writeBatch(db);
-                sitesToFix.forEach(({id, category}) => {
-                    const site = window.allSites[category].find(s => s.id === id);
-                    if (site?.order !== undefined) {
-                        batch.set(doc(db, "sites", id), {order: site.order}, {merge: true});
-                    }
-                });
-                try {
-                    await batch.commit();
-                    console.log(`[loadAllSites] Fixed and saved ${sitesToFix.length} sites`);
-                } catch (err) {
-                    console.error("[loadAllSites] Batch save failed:", err);
-                }
-            } else {
-                console.log("[loadAllSites] No fixes needed");
-            }
-
-            console.log("[loadAllSites] Done");
         };
 
         window.populateAllGrids = () => {
@@ -923,11 +875,8 @@
 
             if (!name || !url) return alert("Name and URL required");
 
-            const catSites = (window.allSites || {})[cat] || [];
-            const maxOrder = catSites.length ? Math.max(...catSites.map(s => Number(s.order || 0))) + 1 : 0;
-
             try {
-                await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc, order: maxOrder });
+                await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc });
                 alert("Site added! Non-admin users will see a refresh prompt.");
                 ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                 await window.loadAllSites();
@@ -990,46 +939,6 @@
             };
         };
 
-        window.moveSiteUp = async (siteId, catKey) => {
-            const sites = window.allSites[catKey] || [];
-            const idx = sites.findIndex(s => s.id === siteId);
-            if (idx <= 0) return;
-            const thisSite = sites[idx];
-            const prevSite = sites[idx - 1];
-            const temp = Number(thisSite.order);
-            thisSite.order = Number(prevSite.order);
-            prevSite.order = temp;
-            try {
-                await Promise.all([
-                    setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true }),
-                    setDoc(doc(db, "sites", prevSite.id), { order: prevSite.order }, { merge: true })
-                ]);
-                window.reloadAdminSites();
-            } catch (e) {
-                alert("Reorder error: " + e.message);
-            }
-        };
-
-        window.moveSiteDown = async (siteId, catKey) => {
-            const sites = window.allSites[catKey] || [];
-            const idx = sites.findIndex(s => s.id === siteId);
-            if (idx >= sites.length - 1) return;
-            const thisSite = sites[idx];
-            const nextSite = sites[idx + 1];
-            const temp = Number(thisSite.order);
-            thisSite.order = Number(nextSite.order);
-            nextSite.order = temp;
-            try {
-                await Promise.all([
-                    setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true }),
-                    setDoc(doc(db, "sites", nextSite.id), { order: nextSite.order }, { merge: true })
-                ]);
-                window.reloadAdminSites();
-            } catch (e) {
-                alert("Reorder error: " + e.message);
-            }
-        };
-
         window.reloadAdminSites = () => {
             const container = document.getElementById('admin-sites-list');
             container.innerHTML = '';
@@ -1052,9 +961,7 @@
                                     </div>
                                 </div>
                                 <div class="flex gap-3">
-                                    <button onclick="window.moveSiteUp('${s.id}', '${cat.key}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
-                                    <button onclick="window.moveSiteDown('${s.id}', '${cat.key}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
-                                    <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation()" 
+                                    <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation();" 
                                             class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">
                                         Edit
                                     </button>
@@ -1081,11 +988,9 @@
         window.deleteSite = window.deleteSite;
         window.reloadAdminSites = window.reloadAdminSites;
         window.loadCategories = window.loadCategories;
-        window.moveSiteUp = window.moveSiteUp;
-        window.moveSiteDown = window.moveSiteDown;
     </script>
 
-    <!-- Global scope functions -->
+    <!-- Global scope functions (needed for onclick) -->
     <script>
         window.switchTab = function(index) {
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
