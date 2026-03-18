@@ -514,7 +514,7 @@
                     window.populateAllGrids();
                     window.populateCategorySelect();
                     await window.showGlobalAnnouncement();
-                    window.buildNav();
+                    await window.buildNav();
                     let isAdminUser = (user.email === ADMIN_EMAIL);
 if (!isAdminUser) {
     const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -1209,7 +1209,7 @@ window.toggleBan = async (uid, ban) => {
             });
         };
 
-        window.buildNav = () => {
+        window.buildNav = async () => {
             const navLinks = document.getElementById('nav-links');
             if (!navLinks) return;
             if (!window.currentUser) {
