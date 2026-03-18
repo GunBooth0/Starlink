@@ -222,7 +222,7 @@
             <div class="h-full px-10 flex items-center gap-4">
                 <i id="current-tab-icon" class="text-3xl fa-solid fa-lock"></i>
                 <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Sign In Required</div>
-                <span id="user-status" class="ml-auto text-sm text-white/70"></span>
+                <span id="online-counter" class="hidden items-center gap-2 text-sm text-white/60"><span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span><span id="online-count">0</span> online</span><span id="user-status" class="ml-4 text-sm text-white/70"></span>
             </div>
         </div>
 
@@ -348,6 +348,20 @@
                         <p class="text-xs text-white/50 mt-4 text-center">Delete removes the user from this list.<br>Full auth deletion still required in Firebase Console → Authentication</p>
                     </div>
 
+                    <!-- Site Requests -->
+                    <div class="mb-16">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-semibold flex items-center gap-3">
+                                <i class="fa-solid fa-paper-plane"></i> Site Requests
+                                <span id="requests-badge" class="hidden text-xs bg-[var(--accent)] text-black px-3 py-1 rounded-full font-bold"></span>
+                            </h3>
+                            <button onclick="window.loadSiteRequests()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
+                        </div>
+                        <div id="site-requests-list" class="bg-black/30 rounded-3xl p-2 max-h-[480px] overflow-auto">
+                            <p class="p-8 text-center text-white/50">Click Refresh to load requests</p>
+                        </div>
+                    </div>
+
                     <!-- Categories Management -->
                     <div class="mb-16">
                         <div class="flex items-center justify-between mb-6">
@@ -421,6 +435,22 @@
         </div>
     </div>
 
+    <!-- REQUEST A SITE MODAL -->
+    <div id="request-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9998] hidden items-center justify-center">
+        <div class="glass border border-white/20 rounded-3xl p-10 max-w-lg w-full mx-6 shadow-2xl">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold logo-font tracking-tight">Request a Site</h2>
+                <button onclick="document.getElementById('request-modal').classList.add('hidden');document.getElementById('request-modal').classList.remove('flex');" class="text-white/50 hover:text-white text-2xl w-auto p-0 m-0 bg-transparent border-none" style="width:auto;padding:0;margin:0;">✕</button>
+            </div>
+            <input id="req-name" type="text" placeholder="Site name" class="w-full">
+            <input id="req-url" type="text" placeholder="URL (e.g. https://example.com)" class="w-full">
+            <select id="req-category" class="w-full"></select>
+            <input id="req-desc" type="text" placeholder="Short description (optional)" class="w-full">
+            <button onclick="window.submitSiteRequest()" class="auth-btn w-full mt-2">Submit Request</button>
+            <p id="req-message" class="text-center text-sm mt-4 hidden"></p>
+        </div>
+    </div>
+
     <!-- REFRESH MODAL -->
     <div id="refresh-modal">
         <div id="refresh-content">
@@ -443,7 +473,7 @@
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, where, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDI979T4jI-ZbGbRDFo-kNZPyG3Pc8gkXw",
@@ -519,7 +549,9 @@
                     window.populateCategorySelect();
                     await window.showGlobalAnnouncement();
                     window.buildNav();
+                    window.startPresence(user.uid);
                     window.switchTab(window.isAdminUser ? 1 : 0);
+                    if (window.isAdminUser) window.loadSiteRequests();
                     window.initialLoadComplete = true;
                 }, 100);
 
@@ -571,6 +603,7 @@
                 });
 
             } else {
+                window.stopPresence();
                 statusEl.textContent = '';
                 currentTabEl.textContent = 'Sign In Required';
                 currentIconEl.className = 'text-3xl fa-solid fa-lock';
@@ -1097,6 +1130,143 @@
             } catch (e) { alert("Error: " + e.message); }
         };
 
+
+        // ── Presence tracking ──
+        let presenceRef = null;
+        let presenceListener = null;
+
+        window.startPresence = async (uid) => {
+            presenceRef = doc(db, "presence", uid);
+            await setDoc(presenceRef, { uid, online: true, lastSeen: serverTimestamp() });
+            window.addEventListener('beforeunload', () => {
+                navigator.sendBeacon && deleteDoc(presenceRef);
+                deleteDoc(presenceRef);
+            });
+            if (presenceListener) presenceListener();
+            presenceListener = onSnapshot(collection(db, "presence"), (snap) => {
+                const count = snap.size;
+                const el = document.getElementById('online-counter');
+                const num = document.getElementById('online-count');
+                if (el && num) {
+                    num.textContent = count;
+                    el.classList.remove('hidden');
+                    el.classList.add('flex');
+                }
+            });
+        };
+
+        window.stopPresence = async () => {
+            if (presenceRef) { try { await deleteDoc(presenceRef); } catch(_) {} presenceRef = null; }
+            if (presenceListener) { presenceListener(); presenceListener = null; }
+            const el = document.getElementById('online-counter');
+            if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
+        };
+
+        // ── Site requests ──
+        window.openRequestModal = () => {
+            // Populate category select
+            const sel = document.getElementById('req-category');
+            if (sel) {
+                sel.innerHTML = (window.allCategories || []).map(c => `<option value="${c.key}">${c.label}</option>`).join('');
+            }
+            document.getElementById('req-message').classList.add('hidden');
+            ['req-name','req-url','req-desc'].forEach(id => document.getElementById(id).value = '');
+            const modal = document.getElementById('request-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.submitSiteRequest = async () => {
+            const name = document.getElementById('req-name').value.trim();
+            const url = document.getElementById('req-url').value.trim();
+            const category = document.getElementById('req-category').value;
+            const desc = document.getElementById('req-desc').value.trim();
+            const msgEl = document.getElementById('req-message');
+            if (!name || !url) { msgEl.textContent = 'Name and URL are required.'; msgEl.className = 'text-center text-sm mt-4 error'; msgEl.classList.remove('hidden'); return; }
+            try {
+                await addDoc(collection(db, "siteRequests"), {
+                    name, url, category, desc,
+                    requestedBy: auth.currentUser?.email || 'unknown',
+                    requestedAt: serverTimestamp(),
+                    status: 'pending'
+                });
+                msgEl.textContent = 'Request submitted! The admin will review it shortly.';
+                msgEl.className = 'text-center text-sm mt-4 success';
+                msgEl.classList.remove('hidden');
+                ['req-name','req-url','req-desc'].forEach(id => document.getElementById(id).value = '');
+                setTimeout(() => {
+                    const modal = document.getElementById('request-modal');
+                    modal.classList.add('hidden'); modal.classList.remove('flex');
+                }, 2000);
+            } catch(e) {
+                msgEl.textContent = 'Error: ' + e.message;
+                msgEl.className = 'text-center text-sm mt-4 error';
+                msgEl.classList.remove('hidden');
+            }
+        };
+
+        window.loadSiteRequests = async () => {
+            const container = document.getElementById('site-requests-list');
+            container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
+            try {
+                const q = query(collection(db, "siteRequests"), orderBy("requestedAt", "desc"));
+                const snap = await getDocs(q);
+                const pending = snap.docs.filter(d => d.data().status === 'pending');
+                const badge = document.getElementById('requests-badge');
+                if (pending.length > 0) { badge.textContent = pending.length; badge.classList.remove('hidden'); }
+                else { badge.classList.add('hidden'); }
+                if (snap.empty) { container.innerHTML = '<p class="p-8 text-center text-white/50">No requests yet</p>'; return; }
+                let html = '<div class="divide-y divide-white/10">';
+                snap.docs.forEach(d => {
+                    const r = d.data();
+                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : '—';
+                    const statusColor = r.status === 'pending' ? 'text-yellow-400' : r.status === 'approved' ? 'text-green-400' : 'text-red-400';
+                    const actions = r.status === 'pending' ? `
+                        <button onclick="window.approveSiteRequest('${d.id}', '${r.name.replace(/'/g,"\'")}', '${r.url.replace(/'/g,"\'")}', '${r.category}', '${(r.desc||'').replace(/'/g,"\'")}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-green-900/60 hover:bg-green-900 text-green-400 rounded-2xl transition-colors">Approve</button>
+                        <button onclick="window.rejectSiteRequest('${d.id}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Reject</button>
+                    ` : '';
+                    html += `<div class="flex justify-between items-start p-6 hover:bg-white/5 transition-all">
+                        <div class="flex-1 min-w-0 mr-6">
+                            <div class="font-semibold text-lg">${r.name}</div>
+                            <a href="${r.url}" target="_blank" class="text-xs text-[var(--accent)] break-all">${r.url}</a>
+                            ${r.desc ? `<div class="text-xs text-white/60 mt-1">${r.desc}</div>` : ''}
+                            <div class="text-xs text-white/40 mt-2">By ${r.requestedBy} · ${date} · Category: ${r.category}</div>
+                        </div>
+                        <div class="flex flex-col items-end gap-2 shrink-0">
+                            <span class="text-xs font-semibold ${statusColor} capitalize">${r.status}</span>
+                            <div class="flex gap-2">${actions}</div>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch(e) {
+                container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`;
+            }
+        };
+
+        window.approveSiteRequest = async (reqId, name, url, category, desc) => {
+            try {
+                const catSites = window.allSites[category] || [];
+                const maxOrder = catSites.length ? Math.max(...catSites.map(s => s.order ?? 0)) + 1 : 0;
+                await addDoc(collection(db, "sites"), { category, name, url, icon: '', desc, order: maxOrder });
+                await setDoc(doc(db, "siteRequests", reqId), { status: 'approved' }, { merge: true });
+                alert(`"${name}" approved and added to ${category}!`);
+                await window.loadAllSites();
+                window.populateAllGrids();
+                window.reloadAdminSites();
+                window.loadSiteRequests();
+            } catch(e) { alert("Error: " + e.message); }
+        };
+
+        window.rejectSiteRequest = async (reqId) => {
+            if (!confirm("Reject and remove this request?")) return;
+            try {
+                await deleteDoc(doc(db, "siteRequests", reqId));
+                window.loadSiteRequests();
+            } catch(e) { alert("Error: " + e.message); }
+        };
+
         window.loadAllSites = window.loadAllSites;
         window.populateAllGrids = window.populateAllGrids;
         window.showGlobalAnnouncement = window.showGlobalAnnouncement;
@@ -1112,6 +1282,13 @@
         window.moveSiteDown = window.moveSiteDown;
         window.reloadAdminSites = window.reloadAdminSites;
         window.loadCategories = window.loadCategories;
+        window.openRequestModal = window.openRequestModal;
+        window.submitSiteRequest = window.submitSiteRequest;
+        window.loadSiteRequests = window.loadSiteRequests;
+        window.approveSiteRequest = window.approveSiteRequest;
+        window.rejectSiteRequest = window.rejectSiteRequest;
+        window.startPresence = window.startPresence;
+        window.stopPresence = window.stopPresence;
     </script>
 
     <!-- Global scope functions (needed for onclick) -->
@@ -1139,9 +1316,7 @@
             document.getElementById(mapping.contentId)?.classList.remove('hidden');
         };
 
-        window.requestSite = function() {
-            window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
-        };
+        window.requestSite = function() { window.openRequestModal(); };
 
         window.resetEverything = function() {
             if (!confirm("Reset all & sign out?")) return;
@@ -1329,7 +1504,7 @@
             idx++;
 
             html += `
-                <div onclick="window.requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
+                <div onclick="window.openRequestModal()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
                     <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
                 </div>
             `;
