@@ -297,6 +297,31 @@
                 </div>
             </div>
 
+
+            <!-- REQUEST ADMIN TAB -->
+            <div id="content-request-admin" class="tab-content hidden">
+                <div class="max-w-xl mx-auto py-12">
+                    <div class="glass rounded-3xl p-10">
+                        <div class="text-center mb-8">
+                            <i class="fa-solid fa-crown text-5xl mb-4" style="color:var(--accent)"></i>
+                            <h2 class="text-3xl font-bold logo-font tracking-tight mb-2">Request Admin Access</h2>
+                            <p class="text-white/60 text-sm">Tell the owner why you'd like admin access. They'll review your request and get back to you.</p>
+                        </div>
+                        <div id="admin-req-already" class="hidden text-center py-6">
+                            <i class="fa-solid fa-clock text-4xl text-yellow-400 mb-4"></i>
+                            <p class="text-xl font-semibold text-yellow-400 mb-2">Request Pending</p>
+                            <p class="text-white/60 text-sm">You already have a pending request. The owner will review it shortly.</p>
+                            <button onclick="window.cancelAdminRequest()" class="github-style-btn mt-6" style="width:auto;padding:0.75rem 2rem;">Cancel Request</button>
+                        </div>
+                        <div id="admin-req-form">
+                            <textarea id="admin-req-reason" rows="5" placeholder="Why do you want admin access? Be specific — the more detail, the better." class="w-full" style="resize:vertical;"></textarea>
+                            <button onclick="window.submitAdminRequest()" class="auth-btn w-full mt-2">Submit Request</button>
+                        </div>
+                        <p id="admin-req-message" class="text-center text-sm mt-4 hidden"></p>
+                    </div>
+                </div>
+            </div>
+
             <!-- DYNAMIC CATEGORY CONTENTS -->
             <div id="dynamic-category-contents"></div>
 
@@ -380,6 +405,21 @@
                             <button onclick="window.loadSiteRequests()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
                         </div>
                         <div id="site-requests-list" class="bg-black/30 rounded-3xl p-2 max-h-[480px] overflow-auto">
+                            <p class="p-8 text-center text-white/50">Click Refresh to load requests</p>
+                        </div>
+                    </div>
+
+
+                    <!-- Admin Access Requests -->
+                    <div class="mb-16">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-semibold flex items-center gap-3">
+                                <i class="fa-solid fa-crown"></i> Admin Access Requests
+                                <span id="admin-req-badge" class="hidden text-xs bg-[var(--accent)] text-black px-3 py-1 rounded-full font-bold"></span>
+                            </h3>
+                            <button onclick="window.loadAdminRequests()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
+                        </div>
+                        <div id="admin-requests-list" class="bg-black/30 rounded-3xl p-2 max-h-[480px] overflow-auto">
                             <p class="p-8 text-center text-white/50">Click Refresh to load requests</p>
                         </div>
                     </div>
@@ -578,7 +618,7 @@
                     document.getElementById('search-wrapper').classList.remove('hidden');
                     document.getElementById('search-wrapper').classList.add('flex');
                     window.switchTab(window.isAdminUser ? 1 : 0);
-                    if (window.isAdminUser) window.loadSiteRequests();
+                    if (window.isAdminUser) { window.loadSiteRequests(); window.loadAdminRequests(); }
                     window.initialLoadComplete = true;
                 }, 100);
 
@@ -1317,6 +1357,141 @@
             } catch(e) { alert("Error: " + e.message); }
         };
 
+
+        // ── Admin Access Requests ──
+
+        window.submitAdminRequest = async () => {
+            const reason = document.getElementById('admin-req-reason').value.trim();
+            const msgEl = document.getElementById('admin-req-message');
+            if (!reason) {
+                msgEl.textContent = 'Please explain why you want admin access.';
+                msgEl.className = 'text-center text-sm mt-4 error';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+            try {
+                // Check for existing pending request
+                const existing = await getDocs(query(collection(db, "adminRequests"),
+                    where("uid", "==", auth.currentUser.uid),
+                    where("status", "==", "pending")
+                ));
+                if (!existing.empty) {
+                    msgEl.textContent = 'You already have a pending request.';
+                    msgEl.className = 'text-center text-sm mt-4 error';
+                    msgEl.classList.remove('hidden');
+                    return;
+                }
+                await addDoc(collection(db, "adminRequests"), {
+                    uid: auth.currentUser.uid,
+                    email: auth.currentUser.email,
+                    reason,
+                    requestedAt: serverTimestamp(),
+                    status: 'pending'
+                });
+                document.getElementById('admin-req-reason').value = '';
+                document.getElementById('admin-req-form').classList.add('hidden');
+                document.getElementById('admin-req-already').classList.remove('hidden');
+                msgEl.classList.add('hidden');
+            } catch(e) {
+                msgEl.textContent = 'Error: ' + e.message;
+                msgEl.className = 'text-center text-sm mt-4 error';
+                msgEl.classList.remove('hidden');
+            }
+        };
+
+        window.cancelAdminRequest = async () => {
+            if (!confirm('Cancel your admin request?')) return;
+            try {
+                const snap = await getDocs(query(collection(db, "adminRequests"),
+                    where("uid", "==", auth.currentUser.uid),
+                    where("status", "==", "pending")
+                ));
+                for (const d of snap.docs) await deleteDoc(doc(db, "adminRequests", d.id));
+                document.getElementById('admin-req-form').classList.remove('hidden');
+                document.getElementById('admin-req-already').classList.add('hidden');
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
+        window.checkExistingAdminRequest = async () => {
+            try {
+                const snap = await getDocs(query(collection(db, "adminRequests"),
+                    where("uid", "==", auth.currentUser.uid),
+                    where("status", "==", "pending")
+                ));
+                if (!snap.empty) {
+                    document.getElementById('admin-req-form').classList.add('hidden');
+                    document.getElementById('admin-req-already').classList.remove('hidden');
+                } else {
+                    document.getElementById('admin-req-form').classList.remove('hidden');
+                    document.getElementById('admin-req-already').classList.add('hidden');
+                }
+            } catch(_) {}
+        };
+
+        window.loadAdminRequests = async () => {
+            const container = document.getElementById('admin-requests-list');
+            container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
+            try {
+                const q = query(collection(db, "adminRequests"), orderBy("requestedAt", "desc"));
+                const snap = await getDocs(q);
+                const pending = snap.docs.filter(d => d.data().status === 'pending');
+                const badge = document.getElementById('admin-req-badge');
+                if (pending.length > 0) { badge.textContent = pending.length; badge.classList.remove('hidden'); }
+                else { badge.classList.add('hidden'); }
+                if (!pending.length) { container.innerHTML = '<p class="p-8 text-center text-white/50">No pending admin requests</p>'; return; }
+                let html = '<div class="divide-y divide-white/10">';
+                pending.forEach(d => {
+                    const r = d.data();
+                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : '—';
+                    html += `<div id="admin-req-row-${d.id}" class="p-6 hover:bg-white/5 transition-all">
+                        <div class="flex justify-between items-start gap-6">
+                            <div class="flex-1 min-w-0">
+                                <div class="font-semibold text-lg mb-1">${r.email}</div>
+                                <div class="text-xs text-white/40 mb-3">${date}</div>
+                                <div class="bg-black/40 rounded-2xl p-4 text-white/80 text-sm leading-relaxed">${r.reason}</div>
+                            </div>
+                            <div class="flex gap-2 shrink-0 mt-1">
+                                <button onclick="window.approveAdminRequest('${d.id}', '${r.uid}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-green-900/60 hover:bg-green-900 text-green-400 rounded-2xl transition-colors">Approve</button>
+                                <button onclick="window.denyAdminRequest('${d.id}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Deny</button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch(e) {
+                container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`;
+            }
+        };
+
+        window.approveAdminRequest = async (reqId, uid) => {
+            try {
+                await setDoc(doc(db, "users", uid), { isAdmin: true }, { merge: true });
+                await deleteDoc(doc(db, "adminRequests", reqId));
+                const row = document.getElementById('admin-req-row-' + reqId);
+                if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
+                const remaining = document.querySelectorAll('[id^="admin-req-row-"]').length - 1;
+                const badge = document.getElementById('admin-req-badge');
+                if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('admin-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending admin requests</p>'; }
+                else { badge.textContent = remaining; }
+                // Reload users table so the new admin badge shows
+                window.loadAdminUsers();
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
+        window.denyAdminRequest = async (reqId) => {
+            if (!confirm('Deny and remove this request?')) return;
+            try {
+                await deleteDoc(doc(db, "adminRequests", reqId));
+                const row = document.getElementById('admin-req-row-' + reqId);
+                if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
+                const remaining = document.querySelectorAll('[id^="admin-req-row-"]').length - 1;
+                const badge = document.getElementById('admin-req-badge');
+                if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('admin-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending admin requests</p>'; }
+                else { badge.textContent = remaining; }
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
         window.loadAllSites = window.loadAllSites;
         window.populateAllGrids = window.populateAllGrids;
         window.showGlobalAnnouncement = window.showGlobalAnnouncement;
@@ -1339,6 +1514,12 @@
         window.rejectSiteRequest = window.rejectSiteRequest;
         window.startPresence = window.startPresence;
         window.stopPresence = window.stopPresence;
+        window.submitAdminRequest = window.submitAdminRequest;
+        window.cancelAdminRequest = window.cancelAdminRequest;
+        window.checkExistingAdminRequest = window.checkExistingAdminRequest;
+        window.loadAdminRequests = window.loadAdminRequests;
+        window.approveAdminRequest = window.approveAdminRequest;
+        window.denyAdminRequest = window.denyAdminRequest;
     </script>
 
     <!-- Global scope functions (needed for onclick) -->
@@ -1364,6 +1545,8 @@
 
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(mapping.contentId)?.classList.remove('hidden');
+            if (mapping.contentId === 'content-request-admin') window.checkExistingAdminRequest();
+            if (mapping.contentId === 'content-admin') { window.loadAdminRequests(); }
         };
 
         window.requestSite = function() { window.openRequestModal(); };
@@ -1623,6 +1806,16 @@
             `;
             window.tabMapping.push({contentId: 'content-credits', title: 'Credits', icon: 'fa-heart'});
             idx++;
+
+            if (!isAdmin) {
+                html += `
+                    <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                        <i class="fa-solid fa-crown w-5"></i> <span>Request Admin</span>
+                    </div>
+                `;
+                window.tabMapping.push({contentId: 'content-request-admin', title: 'Request Admin', icon: 'fa-crown'});
+                idx++;
+            }
 
             html += `
                 <div onclick="window.openRequestModal()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
