@@ -1837,10 +1837,10 @@
             if (!isAdmin && !isOwnerUser) {
                 html += `
                     <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                        <i class="fa-solid fa-shield-halved w-5"></i> <span>Request Admin</span>
+                        <i class="fa-solid fa-crown w-5"></i> <span>Request Admin</span>
                     </div>
                 `;
-                window.tabMapping.push({contentId: 'content-request-admin', title: 'Request Admin', icon: 'fa-shield-halved'});
+                window.tabMapping.push({contentId: 'content-request-admin', title: 'Request Admin', icon: 'fa-crown'});
                 idx++;
             }
 
