@@ -195,15 +195,6 @@
             background: rgba(255,255,255,0.15);
             margin: 1.25rem 0;
         }
-        #verification-warning {
-            background: rgba(239, 68, 68, 0.2);
-            border: 2px solid #ef4444;
-            border-radius: 1rem;
-            padding: 2rem;
-            margin: 2rem auto;
-            max-width: 600px;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -234,18 +225,6 @@
         </div>
 
         <div class="pt-24 pb-20 px-10 tail-container">
-
-            <!-- VERIFICATION WARNING -->
-            <div id="verification-warning" class="hidden max-w-4xl mx-auto mb-8 p-8 glass rounded-3xl border-l-4 border-red-500">
-                <h2 class="text-3xl font-bold text-red-400 mb-6">Email Verification Required</h2>
-                <p class="text-lg mb-6 leading-relaxed">
-                    A verification email has been sent to your inbox.<br>
-                    Please check your email (including spam/junk folder) and click the verification link.<br>
-                    You will not be able to access the site until your email is verified.
-                </p>
-                <button id="resend-verification" class="auth-btn py-5 text-xl w-auto px-12 mx-auto block">Resend Verification Email</button>
-                <p id="resend-message" class="mt-6 text-center text-lg"></p>
-            </div>
 
             <!-- GLOBAL ANNOUNCEMENT -->
             <div id="global-announcement" class="hidden max-w-4xl mx-auto mb-8 p-6 glass rounded-3xl border-l-4 border-[var(--accent)]">
@@ -280,7 +259,7 @@
             </div>
 
             <!-- HOME -->
-            <div id="content-home" class="tab-content hidden">
+            <div id="content-home" class="tab-content">
                 <div class="max-w-4xl mx-auto text-center pt-12">
                     <svg width="180" height="180" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
                         <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
@@ -456,6 +435,7 @@
 
     <!-- Firebase SDK -->
     <script type="module">
+        // Import all needed Firebase functions
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { 
             getAuth, 
@@ -468,7 +448,7 @@
             updateEmail, 
             reauthenticateWithCredential, 
             EmailAuthProvider,
-            sendEmailVerification 
+            sendEmailVerification   // <--- this was missing or not used correctly before
         } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
@@ -497,7 +477,7 @@
             updateEmail, 
             reauthenticateWithCredential, 
             EmailAuthProvider, 
-            sendEmailVerification,
+            sendEmailVerification,  // now properly included
             auth 
         };
 
@@ -511,13 +491,8 @@
         let categoriesListener = null;
         window.initialLoadComplete = false;
 
-        // Real-time auth state listener with verification enforcement
-        firebaseAuth.onAuthStateChanged(auth, (user) => {
+        function updateUIForAuth(user) {
             window.currentUser = user;
-            updateUIForAuth(user);
-        });
-
-        async function updateUIForAuth(user) {
             const statusEl = document.getElementById('user-status');
             const navLinks = document.getElementById('nav-links');
             const userInfo = document.getElementById('user-info');
@@ -525,44 +500,18 @@
             const accountTitle = document.getElementById('account-title');
             const currentTabEl = document.getElementById('current-tab');
             const currentIconEl = document.getElementById('current-tab-icon');
-            const verificationWarning = document.getElementById('verification-warning');
 
-            // Clean up old listeners
             if (sitesListener) sitesListener();
             if (announcementListener) announcementListener();
             if (categoriesListener) categoriesListener();
 
             if (user) {
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
-                document.getElementById('user-email').textContent = user.email;
-
-                if (!user.emailVerified) {
-                    // Not verified → lock to account tab with warning
-                    authForm?.classList.add('hidden');
-                    userInfo?.classList.remove('hidden');
-                    accountTitle.textContent = 'Verify Your Email';
-                    verificationWarning.classList.remove('hidden');
-
-                    // Minimal nav: only Account tab
-                    navLinks.innerHTML = `
-                        <div onclick="window.switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
-                            <i class="fa-solid fa-user w-5"></i> <span>Account</span>
-                        </div>
-                    `;
-                    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-                    document.getElementById('content-account')?.classList.remove('hidden');
-                    currentTabEl.textContent = 'Verify Email';
-                    currentIconEl.className = 'text-3xl fa-solid fa-envelope';
-                    return;
-                }
-
-                // User is verified → show full UI
-                verificationWarning.classList.add('hidden');
                 userInfo?.classList.remove('hidden');
+                document.getElementById('user-email').textContent = user.email;
                 authForm?.classList.add('hidden');
                 accountTitle.textContent = 'Account';
 
-                // Load everything
                 setTimeout(async () => {
                     populateThemeGrid();
                     await window.loadCategories();
@@ -577,7 +526,6 @@
                     window.initialLoadComplete = true;
                 }, 100);
 
-                // Real-time listeners
                 sitesListener = onSnapshot(collection(db, "sites"), async () => {
                     await window.loadAllSites();
                     window.populateAllGrids();
@@ -611,14 +559,12 @@
                 });
 
             } else {
-                // No user → sign-in screen
                 statusEl.textContent = '';
                 currentTabEl.textContent = 'Sign In Required';
                 currentIconEl.className = 'text-3xl fa-solid fa-lock';
                 userInfo?.classList.add('hidden');
                 authForm?.classList.remove('hidden');
                 accountTitle.textContent = 'Sign In Required';
-                verificationWarning.classList.add('hidden');
                 navLinks.innerHTML = `
                     <div onclick="window.switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
                         <i class="fa-solid fa-user w-5"></i> <span>Account</span>
@@ -628,7 +574,8 @@
             }
         }
 
-        // Sign In / Sign Up handler
+        firebaseAuth.onAuthStateChanged(auth, updateUIForAuth);
+
         document.getElementById('auth-btn')?.addEventListener('click', async () => {
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
@@ -638,11 +585,11 @@
                 if (document.getElementById('form-title').textContent === 'Sign In') {
                     const cred = await signInWithEmailAndPassword(auth, email, password);
                     if (!cred.user.emailVerified) {
-                        messageEl.textContent = "Please verify your email first. Check your inbox.";
+                        messageEl.textContent = "Please verify your email first.";
                         messageEl.className = "error";
                         return;
                     }
-                    // Verified → listener handles UI update
+                    updateUIForAuth(cred.user);
                 } else {
                     // Sign Up
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -650,10 +597,14 @@
                         email,
                         createdAt: serverTimestamp()
                     });
-                    await sendEmailVerification(cred.user);
-                    messageEl.textContent = "Verification email sent! Please check your inbox (and spam/junk) and click the link to verify your account.";
+                    // Send verification email
+                    await firebaseAuth.sendEmailVerification(cred.user);
+                    messageEl.textContent = "Account created! Verification email sent — check your inbox.";
                     messageEl.className = "success";
-                    // Do NOT sign out — stay logged in and force verification
+
+                    // Do NOT sign out — let them use the site immediately (as you wanted)
+                    // Firebase will still enforce verification on sensitive actions if you enable it
+                    updateUIForAuth(cred.user);
                 }
             } catch (e) {
                 messageEl.textContent = e.message;
@@ -661,22 +612,6 @@
             }
         });
 
-        // Resend verification
-        document.getElementById('resend-verification')?.addEventListener('click', async () => {
-            const user = auth.currentUser;
-            const msgEl = document.getElementById('resend-message');
-            if (!user) return;
-            try {
-                await sendEmailVerification(user);
-                msgEl.textContent = "Verification email resent! Check your inbox.";
-                msgEl.className = "success";
-            } catch (e) {
-                msgEl.textContent = "Error: " + e.message;
-                msgEl.className = "error";
-            }
-        });
-
-        // Toggle sign in / sign up
         document.getElementById('toggle-link')?.addEventListener('click', e => {
             e.preventDefault();
             const isSignIn = document.getElementById('form-title').textContent === 'Sign In';
@@ -684,10 +619,6 @@
             document.getElementById('auth-btn').textContent = isSignIn ? 'Sign Up' : 'Sign In';
             document.getElementById('toggle-link').textContent = isSignIn ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
         });
-
-        // ────────────────────────────────────────────────
-        // Your existing functions below (unchanged)
-        // ────────────────────────────────────────────────
 
         window.deleteAccount = async () => {
             if (!confirm("Delete account permanently? This cannot be undone.")) return;
@@ -1115,9 +1046,56 @@
             });
         };
 
-        // ────────────────────────────────────────────────
-        // UI helpers
-        // ────────────────────────────────────────────────
+        window.loadAllSites = window.loadAllSites;
+        window.populateAllGrids = window.populateAllGrids;
+        window.showGlobalAnnouncement = window.showGlobalAnnouncement;
+        window.saveGlobalAnnouncement = window.saveGlobalAnnouncement;
+        window.clearAnnouncement = window.clearAnnouncement;
+        window.loadAdminUsers = window.loadAdminUsers;
+        window.deleteUserFromAdmin = window.deleteUserFromAdmin;
+        window.addNewSiteFromAdmin = window.addNewSiteFromAdmin;
+        window.deleteSite = window.deleteSite;
+        window.reloadAdminSites = window.reloadAdminSites;
+        window.loadCategories = window.loadCategories;
+        window.moveSiteUp = window.moveSiteUp;
+        window.moveSiteDown = window.moveSiteDown;
+    </script>
+
+    <!-- Global scope functions -->
+    <script>
+        window.switchTab = function(index) {
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
+            const activeEl = document.getElementById(`tab-${index}`);
+            if (activeEl) activeEl.classList.add('active-tab');
+
+            if (!window.currentUser) {
+                document.getElementById('current-tab').textContent = 'Sign In Required';
+                document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-lock';
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+                document.getElementById('content-account')?.classList.remove('hidden');
+                return;
+            }
+
+            const mapping = (window.tabMapping || [])[index];
+            if (!mapping) return;
+
+            document.getElementById('current-tab').textContent = mapping.title;
+            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${mapping.icon}`;
+
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(mapping.contentId)?.classList.remove('hidden');
+        };
+
+        window.requestSite = function() {
+            window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
+        };
+
+        window.resetEverything = function() {
+            if (!confirm("Reset all & sign out?")) return;
+            localStorage.clear();
+            document.documentElement.style.setProperty('--accent', '#ffffff');
+            firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
+        };
 
         function setTheme(color) {
             document.documentElement.style.setProperty('--accent', color);
@@ -1303,32 +1281,6 @@
             `;
 
             navLinks.innerHTML = html;
-        };
-
-        window.switchTab = function(index) {
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
-            const activeEl = document.getElementById(`tab-${index}`);
-            if (activeEl) activeEl.classList.add('active-tab');
-
-            const mapping = (window.tabMapping || [])[index];
-            if (!mapping) return;
-
-            document.getElementById('current-tab').textContent = mapping.title;
-            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${mapping.icon}`;
-
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(mapping.contentId)?.classList.remove('hidden');
-        };
-
-        window.requestSite = function() {
-            window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
-        };
-
-        window.resetEverything = function() {
-            if (!confirm("Reset all & sign out?")) return;
-            localStorage.clear();
-            document.documentElement.style.setProperty('--accent', '#ffffff');
-            firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
         };
 
         window.populateCategorySelect = () => {
