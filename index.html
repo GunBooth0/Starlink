@@ -223,6 +223,10 @@
                 <i id="current-tab-icon" class="text-3xl fa-solid fa-lock"></i>
                 <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Sign In Required</div>
                 <span id="user-status" class="ml-auto text-sm text-white/70"></span>
+                <span id="online-count" class="ml-4 text-sm text-white/70">
+    <i class="fa-solid fa-circle text-green-500 text-xs mr-1"></i>
+    <span id="online-num">0</span> online
+</span>
             </div>
         </div>
 
@@ -441,7 +445,7 @@
         //   All Firebase / auth / data logic stays here
         // ────────────────────────────────────────────────
 
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { initializeApp, where } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
@@ -472,8 +476,17 @@
         let categoriesListener = null;
         window.initialLoadComplete = false;
 
-        function updateUIForAuth(user) {
+       async function updateUIForAuth(user) {
             window.currentUser = user;
+            if (user) {
+    // Check if the user is banned
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    if (userDoc.exists() && userDoc.data().banned === true) {
+        alert("Your account has been suspended. You cannot log in.");
+        await signOut(auth);
+        return; // stop everything
+    }
+}
             const statusEl = document.getElementById('user-status');
             const navLinks = document.getElementById('nav-links');
             const userInfo = document.getElementById('user-info');
@@ -502,7 +515,13 @@
                     window.populateCategorySelect();
                     await window.showGlobalAnnouncement();
                     window.buildNav();
-                    const isAdminUser = user.email === ADMIN_EMAIL;
+                    let isAdminUser = (user.email === ADMIN_EMAIL);
+if (!isAdminUser) {
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    if (userDoc.exists() && userDoc.data().isAdmin === true) {
+        isAdminUser = true;
+    }
+}
                     window.switchTab(isAdminUser ? 1 : 0);
                     window.initialLoadComplete = true;
                 }, 100);
@@ -572,9 +591,11 @@
                 } else {
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
                     await setDoc(doc(db, "users", cred.user.uid), {
-                        email,
-                        createdAt: serverTimestamp()
-                    });
+    email,
+    createdAt: serverTimestamp(),
+    isAdmin: false,      // 👈 new
+    banned: false        // 👈 new
+});
                     await sendEmailVerification(cred.user);
                     alert("Verification email sent! Check inbox.");
                     await signOut(auth);
@@ -711,30 +732,94 @@
         };
 
         window.loadAdminUsers = async () => {
-            const container = document.getElementById('users-table');
-            container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
-            try {
-                const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
-                const snap = await getDocs(q);
-                let html = `<table class="w-full text-sm"><thead class="bg-black/60 sticky top-0"><tr class="border-b border-white/10"><th class="px-6 py-4 text-left">Email</th><th class="px-6 py-4 text-left">Joined</th><th class="px-6 py-4 text-left">UID</th><th class="px-6 py-4 text-left">Actions</th></tr></thead><tbody class="divide-y divide-white/10">`;
-                snap.forEach(d => {
-                    const data = d.data();
-                    const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '—';
-                    html += `<tr>
-                        <td class="px-6 py-4 font-medium">${data.email}</td>
-                        <td class="px-6 py-4 text-white/70">${date}</td>
-                        <td class="px-6 py-4 font-mono text-xs text-white/50">${d.id}</td>
-                        <td class="px-6 py-4">
-                            <button onclick="deleteUserFromAdmin('${d.id}'); event.stopPropagation();" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Delete</button>
-                        </td>
-                    </tr>`;
-                });
-                html += '</tbody></table>';
-                container.innerHTML = snap.empty ? '<p class="p-8 text-center text-white/50">No users yet</p>' : html;
-            } catch (e) {
-                container.innerHTML = `<p class="p-8 text-red-400">Error loading users.<br>Check Firestore rules.</p>`;
+    const container = document.getElementById('users-table');
+    container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
+    try {
+        const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
+        const snap = await getDocs(q);
+        // Get the current user's UID to prevent self-modification
+        const currentUserUid = firebaseAuth.auth.currentUser?.uid;
+
+        let html = `<table class="w-full text-sm"><thead class="bg-black/60 sticky top-0"><tr class="border-b border-white/10">
+            <th class="px-6 py-4 text-left">Email</th>
+            <th class="px-6 py-4 text-left">Joined</th>
+            <th class="px-6 py-4 text-left">UID</th>
+            <th class="px-6 py-4 text-left">Admin</th>
+            <th class="px-6 py-4 text-left">Ban</th>
+            <th class="px-6 py-4 text-left">Delete</th>
+        </tr></thead><tbody class="divide-y divide-white/10">`;
+
+        snap.forEach(d => {
+            const data = d.data();
+            const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '—';
+            
+            // Start the row
+            html += `<tr>
+                <td class="px-6 py-4 font-medium">${data.email}</td>
+                <td class="px-6 py-4 text-white/70">${date}</td>
+                <td class="px-6 py-4 font-mono text-xs text-white/50">${d.id}</td>`;
+
+            // Admin column: show toggle button, but not for yourself
+            if (d.id === currentUserUid) {
+                html += `<td class="px-6 py-4">—</td>`;
+            } else {
+                if (data.isAdmin) {
+                    html += `<td class="px-6 py-4"><button onclick="toggleAdmin('${d.id}', false)" class="px-3 py-1 text-xs bg-yellow-600 hover:bg-yellow-700 text-white rounded-2xl">Remove Admin</button></td>`;
+                } else {
+                    html += `<td class="px-6 py-4"><button onclick="toggleAdmin('${d.id}', true)" class="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-2xl">Make Admin</button></td>`;
+                }
             }
-        };
+
+            // Ban column: show toggle button, not for yourself
+            if (d.id === currentUserUid) {
+                html += `<td class="px-6 py-4">—</td>`;
+            } else {
+                if (data.banned) {
+                    html += `<td class="px-6 py-4"><button onclick="toggleBan('${d.id}', false)" class="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded-2xl">Unban</button></td>`;
+                } else {
+                    html += `<td class="px-6 py-4"><button onclick="toggleBan('${d.id}', true)" class="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded-2xl">Ban</button></td>`;
+                }
+            }
+
+            // Delete column: keep existing delete button, but also prevent self-delete
+            if (d.id === currentUserUid) {
+                html += `<td class="px-6 py-4">—</td>`;
+            } else {
+                html += `<td class="px-6 py-4">
+                    <button onclick="deleteUserFromAdmin('${d.id}'); event.stopPropagation();" class="px-3 py-1 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl">Delete</button>
+                </td>`;
+            }
+
+            html += `</tr>`;
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = snap.empty ? '<p class="p-8 text-center text-white/50">No users yet</p>' : html;
+    } catch (e) {
+        container.innerHTML = `<p class="p-8 text-red-400">Error loading users.<br>Check Firestore rules.</p>`;
+    }
+};
+        window.toggleAdmin = async (uid, makeAdmin) => {
+    if (!confirm(`Are you sure you want to ${makeAdmin ? 'make this user an admin' : 'remove admin privileges'}?`)) return;
+    try {
+        await setDoc(doc(db, "users", uid), { isAdmin: makeAdmin }, { merge: true });
+        alert("Admin status updated!");
+        window.loadAdminUsers(); // refresh the list
+    } catch (e) {
+        alert("Error: " + e.message);
+    }
+};
+
+window.toggleBan = async (uid, ban) => {
+    if (!confirm(`Are you sure you want to ${ban ? 'ban' : 'unban'} this user?`)) return;
+    try {
+        await setDoc(doc(db, "users", uid), { banned: ban }, { merge: true });
+        alert("Ban status updated!");
+        window.loadAdminUsers(); // refresh the list
+    } catch (e) {
+        alert("Error: " + e.message);
+    }
+};
 
         window.deleteUserFromAdmin = async (uid) => {
             if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
@@ -1136,7 +1221,14 @@
                 return;
             }
 
-            const isAdmin = window.currentUser.email === ADMIN_EMAIL;
+            // Check if user is admin via hardcoded email OR Firestore flag
+let isAdmin = (window.currentUser.email === ADMIN_EMAIL);
+if (!isAdmin) {
+    const userDoc = await getDoc(doc(db, "users", window.currentUser.uid));
+    if (userDoc.exists() && userDoc.data().isAdmin === true) {
+        isAdmin = true;
+    }
+}
             let html = '';
             window.tabMapping = [];
             let idx = 0;
