@@ -391,9 +391,12 @@
 
                     <!-- Sites Management -->
                     <div>
-                        <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
-                            <i class="fa-solid fa-globe"></i> Manage Sites
-                        </h3>
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-semibold flex items-center gap-3">
+                                <i class="fa-solid fa-globe"></i> Manage Sites
+                            </h3>
+                            <button onclick="reloadAdminSites()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
+                        </div>
                         <div class="bg-black/40 p-8 rounded-3xl mb-10" id="admin-sites-management">
                             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                                 <div>
@@ -677,6 +680,28 @@
                     window.allSites[data.category].push(data);
                 }
             });
+
+            // NEW: Sites now support ordering (like categories)
+            // If any site is missing an order field, we assign default order alphabetically
+            // and persist it to Firestore so reordering works immediately
+            Object.keys(window.allSites).forEach(catKey => {
+                let sites = window.allSites[catKey];
+                const hasMissingOrder = sites.some(s => s.order === undefined);
+                if (hasMissingOrder) {
+                    // default sort by name for consistent first-time ordering
+                    sites.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                    sites.forEach((s, i) => {
+                        s.order = i;
+                    });
+                    // persist defaults (non-blocking)
+                    Promise.all(sites.map(s => 
+                        setDoc(doc(db, "sites", s.id), { order: s.order }, { merge: true })
+                    )).catch(e => console.error("Failed to assign default site orders:", e));
+                } else {
+                    // normal sort by saved order
+                    sites.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                }
+            });
         };
 
         window.populateAllGrids = () => {
@@ -875,8 +900,12 @@
 
             if (!name || !url) return alert("Name and URL required");
 
+            // NEW: assign next order in this category (so new sites appear at the bottom by default)
+            const catSites = (window.allSites || {})[cat] || [];
+            const maxOrder = catSites.length ? Math.max(...catSites.map(s => s.order ?? 0)) + 1 : 0;
+
             try {
-                await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc });
+                await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc, order: maxOrder });
                 alert("Site added! Non-admin users will see a refresh prompt.");
                 ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                 await window.loadAllSites();
@@ -939,6 +968,47 @@
             };
         };
 
+        // NEW: Reorder sites (exactly like categories) + Refresh List button already added in HTML
+        window.moveSiteUp = async (siteId, catKey) => {
+            const sites = window.allSites[catKey] || [];
+            const idx = sites.findIndex(s => s.id === siteId);
+            if (idx <= 0) return;
+            const thisSite = sites[idx];
+            const prevSite = sites[idx - 1];
+            const temp = thisSite.order;
+            thisSite.order = prevSite.order;
+            prevSite.order = temp;
+            try {
+                await Promise.all([
+                    setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true }),
+                    setDoc(doc(db, "sites", prevSite.id), { order: prevSite.order }, { merge: true })
+                ]);
+                window.reloadAdminSites(); // immediate UI update
+            } catch (e) {
+                alert("Reorder error: " + e.message);
+            }
+        };
+
+        window.moveSiteDown = async (siteId, catKey) => {
+            const sites = window.allSites[catKey] || [];
+            const idx = sites.findIndex(s => s.id === siteId);
+            if (idx >= sites.length - 1) return;
+            const thisSite = sites[idx];
+            const nextSite = sites[idx + 1];
+            const temp = thisSite.order;
+            thisSite.order = nextSite.order;
+            nextSite.order = temp;
+            try {
+                await Promise.all([
+                    setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true }),
+                    setDoc(doc(db, "sites", nextSite.id), { order: nextSite.order }, { merge: true })
+                ]);
+                window.reloadAdminSites();
+            } catch (e) {
+                alert("Reorder error: " + e.message);
+            }
+        };
+
         window.reloadAdminSites = () => {
             const container = document.getElementById('admin-sites-list');
             container.innerHTML = '';
@@ -961,7 +1031,10 @@
                                     </div>
                                 </div>
                                 <div class="flex gap-3">
-                                    <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation();" 
+                                    <!-- NEW: Up / Down reorder buttons (exactly like categories) -->
+                                    <button onclick="window.moveSiteUp('${s.id}', '${cat.key}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
+                                    <button onclick="window.moveSiteDown('${s.id}', '${cat.key}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
+                                    <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation()" 
                                             class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">
                                         Edit
                                     </button>
@@ -988,6 +1061,9 @@
         window.deleteSite = window.deleteSite;
         window.reloadAdminSites = window.reloadAdminSites;
         window.loadCategories = window.loadCategories;
+        // NEW reorder functions exposed
+        window.moveSiteUp = window.moveSiteUp;
+        window.moveSiteDown = window.moveSiteDown;
     </script>
 
     <!-- Global scope functions (needed for onclick) -->
