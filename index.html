@@ -285,19 +285,6 @@
                     <p class="text-white/70 mb-8">Click a color to instantly change the accent, stars, glow, and sidebar highlights</p>
                     <div id="theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div>
                     <div class="mt-12 pt-8 border-t border-white/10">
-                        <h3 class="text-2xl font-semibold mb-6">Link Behavior</h3>
-                        <div class="flex justify-between items-center py-4">
-                            <div class="flex items-center gap-x-3 text-lg">
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                <span>Open links in new tab</span>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" class="sr-only peer" id="newtab-toggle">
-                                <div class="w-14 h-7 bg-white/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]"></div>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="mt-12 pt-8 border-t border-white/10">
                         <h3 class="text-2xl font-semibold mb-6 text-red-400">Danger Zone</h3>
                         <button onclick="resetEverything()" class="bg-red-600 hover:bg-red-700 text-white font-medium py-4 px-8 rounded-xl transition-colors text-lg">
                             Reset Everything (theme, preferences & sign out)
@@ -391,9 +378,12 @@
 
                     <!-- Sites Management -->
                     <div>
-                        <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
-                            <i class="fa-solid fa-globe"></i> Manage Sites
-                        </h3>
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-semibold flex items-center gap-3">
+                                <i class="fa-solid fa-globe"></i> Manage Sites
+                            </h3>
+                            <button onclick="reloadAdminSites()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
+                        </div>
                         <div class="bg-black/40 p-8 rounded-3xl mb-10" id="admin-sites-management">
                             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                                 <div>
@@ -940,6 +930,7 @@
         };
 
         window.reloadAdminSites = () => {
+            window.populateCategorySelect(); // Keeps category dropdown up to date
             const container = document.getElementById('admin-sites-list');
             container.innerHTML = '';
             (window.allCategories || []).forEach(cat => {
@@ -1023,9 +1014,6 @@
             if (!confirm("Reset all & sign out?")) return;
             localStorage.clear();
             document.documentElement.style.setProperty('--accent', '#ffffff');
-            const cb = document.getElementById('newtab-toggle');
-            if (cb) cb.checked = true;
-            localStorage.setItem('starlinkNewTab', 'true');
             firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
         };
 
@@ -1036,17 +1024,6 @@
 
         function loadTheme() {
             setTheme(localStorage.getItem('starlinkAccent') || '#ffffff');
-        }
-
-        function saveNewTabPreference(val) {
-            localStorage.setItem('starlinkNewTab', val ? 'true' : 'false');
-        }
-
-        function loadNewTabPreference() {
-            const saved = localStorage.getItem('starlinkNewTab');
-            const cb = document.getElementById('newtab-toggle');
-            cb.checked = saved === null || saved === 'true';
-            saveNewTabPreference(cb.checked);
         }
 
         function createStar(x, y) {
@@ -1128,8 +1105,8 @@
                     <div class="text-white/60 text-sm">${site.desc || ''}</div>
                 `;
                 card.onclick = () => {
-                    const nt = document.getElementById('newtab-toggle').checked;
-                    (nt ? window.open : location.assign)(site.url, nt ? '_blank' : '_self');
+                    // Always open in new tab now (old toggle removed)
+                    window.open(site.url, '_blank');
                 };
                 cont.appendChild(card);
             });
@@ -1237,9 +1214,7 @@
 
         function initialize() {
             loadTheme();
-            loadNewTabPreference();
             initStars();
-            document.getElementById('newtab-toggle')?.addEventListener('change', e => saveNewTabPreference(e.target.checked));
         }
 
         window.onload = initialize;
