@@ -168,7 +168,6 @@
             padding: 1rem;
             text-align: left;
         }
-        /* Blocking refresh modal */
         #refresh-modal {
             position: fixed;
             inset: 0;
@@ -191,7 +190,6 @@
             text-align: center;
             box-shadow: 0 0 60px rgba(255,255,255,0.2);
         }
-        /* Sidebar separator line */
         .sidebar-separator {
             height: 1px;
             background: rgba(255,255,255,0.15);
@@ -278,13 +276,12 @@
             <!-- DYNAMIC CATEGORY CONTENTS -->
             <div id="dynamic-category-contents"></div>
 
-            <!-- SETTINGS (Link Behavior removed) -->
+            <!-- SETTINGS -->
             <div id="content-settings" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
                     <h3 class="text-2xl font-semibold mb-6">Appearance • Choose Theme</h3>
                     <p class="text-white/70 mb-8">Click a color to instantly change the accent, stars, glow, and sidebar highlights</p>
                     <div id="theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div>
-                    
                     <div class="mt-12 pt-8 border-t border-white/10">
                         <h3 class="text-2xl font-semibold mb-6 text-red-400">Danger Zone</h3>
                         <button onclick="resetEverything()" class="bg-red-600 hover:bg-red-700 text-white font-medium py-4 px-8 rounded-xl transition-colors text-lg">
@@ -438,12 +435,8 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        // ────────────────────────────────────────────────
-        //   All Firebase / auth / data logic stays here
-        // ────────────────────────────────────────────────
-
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -558,6 +551,10 @@
 
         firebaseAuth.onAuthStateChanged(auth, updateUIForAuth);
 
+        // ────────────────────────────────────────────────
+        // Auth / Account logic
+        // ────────────────────────────────────────────────
+
         document.getElementById('auth-btn')?.addEventListener('click', async () => {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -638,6 +635,10 @@
             }
         };
 
+        // ────────────────────────────────────────────────
+        // Categories
+        // ────────────────────────────────────────────────
+
         window.loadCategories = async () => {
             const catRef = collection(db, "categories");
             let snap = await getDocs(catRef);
@@ -657,6 +658,119 @@
             window.allCategories = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         };
 
+        window.addOrUpdateCategory = async () => {
+            const key = document.getElementById('new-cat-key').value.trim().toLowerCase().replace(/\s+/g, '');
+            const label = document.getElementById('new-cat-label').value.trim();
+            let icon = document.getElementById('new-cat-icon').value.trim();
+            if (!icon.startsWith('fa-')) icon = 'fa-' + icon;
+            if (!key || !label) return alert("Key and Label required (key must be lowercase, no spaces)");
+
+            if (window.editingCategoryId) {
+                try {
+                    await setDoc(doc(db, "categories", window.editingCategoryId), { key, label, icon }, { merge: true });
+                    alert("Category updated!");
+                    window.editingCategoryId = null;
+                    document.getElementById('cat-action-btn').textContent = "Add Category";
+                    ['new-cat-key','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
+                } catch (e) {
+                    alert("Error: " + e.message);
+                }
+            } else {
+                if ((window.allCategories || []).some(c => c.key === key)) return alert("Key already exists!");
+                const maxOrder = window.allCategories?.length ? Math.max(...window.allCategories.map(c => c.order ?? 0)) + 1 : 0;
+                try {
+                    await addDoc(collection(db, "categories"), { key, label, icon, order: maxOrder });
+                    alert("Category added!");
+                    ['new-cat-key','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
+                } catch (e) {
+                    alert("Error: " + e.message);
+                }
+            }
+        };
+
+        window.deleteCategory = async (docId, key) => {
+            if (!confirm(`Delete category "${key}" forever? Sites in this category will no longer appear until moved.`)) return;
+            try {
+                await deleteDoc(doc(db, "categories", docId));
+                alert("Category deleted!");
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        window.moveCategoryUp = async (docId) => {
+            const idx = (window.allCategories || []).findIndex(c => c.id === docId);
+            if (idx <= 0) return;
+            const thisCat = window.allCategories[idx];
+            const prevCat = window.allCategories[idx - 1];
+            const temp = thisCat.order ?? 999999;
+            thisCat.order = prevCat.order ?? 999999;
+            prevCat.order = temp;
+            try {
+                await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
+                await setDoc(doc(db, "categories", prevCat.id), { order: prevCat.order }, { merge: true });
+            } catch (e) {
+                alert("Reorder error: " + e.message);
+            }
+        };
+
+        window.moveCategoryDown = async (docId) => {
+            const idx = (window.allCategories || []).findIndex(c => c.id === docId);
+            if (idx >= (window.allCategories || []).length - 1) return;
+            const thisCat = window.allCategories[idx];
+            const nextCat = window.allCategories[idx + 1];
+            const temp = thisCat.order ?? 999999;
+            thisCat.order = nextCat.order ?? 999999;
+            nextCat.order = temp;
+            try {
+                await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
+                await setDoc(doc(db, "categories", nextCat.id), { order: nextCat.order }, { merge: true });
+            } catch (e) {
+                alert("Reorder error: " + e.message);
+            }
+        };
+
+        window.editCategory = (docId, key, label, icon) => {
+            window.editingCategoryId = docId;
+            document.getElementById('new-cat-key').value = key;
+            document.getElementById('new-cat-label').value = label;
+            document.getElementById('new-cat-icon').value = icon;
+            document.getElementById('cat-action-btn').textContent = "Update Category";
+        };
+
+        window.reloadAdminCategories = () => {
+            const container = document.getElementById('admin-categories-list');
+            container.innerHTML = '';
+            if (!(window.allCategories || []).length) {
+                container.innerHTML = '<p class="p-8 text-center text-white/50">No categories yet. Add one above!</p>';
+                return;
+            }
+            let html = '';
+            window.allCategories.forEach(cat => {
+                html += `
+                    <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group">
+                        <div class="flex items-center gap-6">
+                            <i class="fa-solid ${cat.icon} text-4xl"></i>
+                            <div>
+                                <div class="font-semibold text-xl">${cat.label}</div>
+                                <div class="text-xs text-white/50 font-mono">key: ${cat.key}</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="window.moveCategoryUp('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
+                            <button onclick="window.moveCategoryDown('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
+                            <button onclick="window.editCategory('${cat.id}', '${cat.key}', '${cat.label.replace(/'/g, "\\'")}', '${cat.icon}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl">Edit</button>
+                            <button onclick="window.deleteCategory('${cat.id}', '${cat.key}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl">Delete</button>
+                        </div>
+                    </div>`;
+            });
+            container.innerHTML = html;
+        };
+
+        // ────────────────────────────────────────────────
+        // Sites (with proper order field)
+        // ────────────────────────────────────────────────
+
         window.loadAllSites = async () => {
             const snap = await getDocs(collection(db, "sites"));
             window.allSites = {};
@@ -668,11 +782,187 @@
                     window.allSites[data.category].push(data);
                 }
             });
-            // Sort sites by creation time (or you can add order field later)
+            // Sort by order (missing order → very bottom)
             Object.keys(window.allSites).forEach(key => {
-                window.allSites[key].sort((a,b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
+                window.allSites[key].sort((a, b) => {
+                    const oa = a.order ?? 999999999;
+                    const ob = b.order ?? 999999999;
+                    return oa - ob;
+                });
             });
         };
+
+        window.moveSiteUp = async (siteId, category) => {
+            const sites = window.allSites[category] || [];
+            const idx = sites.findIndex(s => s.id === siteId);
+            if (idx <= 0) return;
+
+            const thisSite = sites[idx];
+            const prevSite = sites[idx - 1];
+
+            const temp = thisSite.order ?? 999999999;
+            thisSite.order = prevSite.order ?? 999999999;
+            prevSite.order = temp;
+
+            try {
+                await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
+                await setDoc(doc(db, "sites", prevSite.id), { order: prevSite.order }, { merge: true });
+                window.reloadAdminSites();
+            } catch (e) {
+                alert("Move error: " + e.message);
+            }
+        };
+
+        window.moveSiteDown = async (siteId, category) => {
+            const sites = window.allSites[category] || [];
+            const idx = sites.findIndex(s => s.id === siteId);
+            if (idx < 0 || idx >= sites.length - 1) return;
+
+            const thisSite = sites[idx];
+            const nextSite = sites[idx + 1];
+
+            const temp = thisSite.order ?? 999999999;
+            thisSite.order = nextSite.order ?? 999999999;
+            nextSite.order = temp;
+
+            try {
+                await setDoc(doc(db, "sites", thisSite.id), { order: thisSite.order }, { merge: true });
+                await setDoc(doc(db, "sites", nextSite.id), { order: nextSite.order }, { merge: true });
+                window.reloadAdminSites();
+            } catch (e) {
+                alert("Move error: " + e.message);
+            }
+        };
+
+        window.addNewSiteFromAdmin = async () => {
+            const cat = document.getElementById('admin-cat-select').value;
+            const name = document.getElementById('new-site-name').value.trim();
+            const url = document.getElementById('new-site-url').value.trim();
+            const icon = document.getElementById('new-site-icon').value.trim();
+            const desc = document.getElementById('new-site-desc').value.trim();
+
+            if (!name || !url) return alert("Name and URL required");
+
+            // Get next order number (max in this category + 1)
+            const currentInCat = window.allSites[cat] || [];
+            const maxOrder = currentInCat.length ? Math.max(...currentInCat.map(s => s.order ?? 0)) + 1 : 0;
+
+            try {
+                await addDoc(collection(db, "sites"), { 
+                    category: cat, 
+                    name, 
+                    url, 
+                    icon, 
+                    desc,
+                    order: maxOrder,
+                    createdAt: serverTimestamp()
+                });
+                alert("Site added! Non-admin users will see a refresh prompt.");
+                ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
+                await window.loadAllSites();
+                window.populateAllGrids();
+                window.reloadAdminSites();
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        window.deleteSite = async (id) => {
+            if (!confirm("Delete forever?")) return;
+            try {
+                await deleteDoc(doc(db, "sites", id));
+                await window.loadAllSites();
+                window.populateAllGrids();
+                window.reloadAdminSites();
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        window.editSite = (id, category, name, url, icon, desc) => {
+            document.getElementById('admin-cat-select').value = category;
+            document.getElementById('new-site-name').value = name;
+            document.getElementById('new-site-url').value = url;
+            document.getElementById('new-site-icon').value = icon || '';
+            document.getElementById('new-site-desc').value = desc || '';
+
+            const btn = document.getElementById('add-update-site-btn');
+            btn.textContent = 'Update Site';
+            btn.onclick = async () => {
+                const newCat = document.getElementById('admin-cat-select').value;
+                const newName = document.getElementById('new-site-name').value.trim();
+                const newUrl = document.getElementById('new-site-url').value.trim();
+                const newIcon = document.getElementById('new-site-icon').value.trim();
+                const newDesc = document.getElementById('new-site-desc').value.trim();
+
+                if (!newName || !newUrl) return alert("Name and URL required");
+
+                try {
+                    await setDoc(doc(db, "sites", id), {
+                        category: newCat,
+                        name: newName,
+                        url: newUrl,
+                        icon: newIcon,
+                        desc: newDesc,
+                        updatedAt: serverTimestamp()
+                        // Note: order is NOT changed during edit — only via arrows
+                    }, { merge: true });
+                    alert("Site updated successfully!");
+                    ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
+                    btn.textContent = 'Add New Site';
+                    btn.onclick = window.addNewSiteFromAdmin;
+                    await window.loadAllSites();
+                    window.populateAllGrids();
+                    window.reloadAdminSites();
+                } catch (e) {
+                    alert("Error updating site: " + e.message);
+                }
+            };
+        };
+
+        window.reloadAdminSites = () => {
+            const container = document.getElementById('admin-sites-list');
+            container.innerHTML = '';
+            (window.allCategories || []).forEach(cat => {
+                const sites = window.allSites[cat.key] || [];
+                let html = `<div class="border border-white/10 rounded-3xl p-8"><div class="flex justify-between items-center mb-6"><h4 class="text-2xl font-medium">${cat.label}</h4><span class="text-xs bg-white/10 px-4 py-1.5 rounded-2xl">${sites.length} sites</span></div><div class="space-y-4">`;
+                if (!sites.length) {
+                    html += '<p class="text-white/40 pl-2">No sites yet</p>';
+                } else {
+                    sites.forEach(s => {
+                        const iconDisplay = s.icon ? `<div class="text-5xl">${s.icon}</div>` : '<div class="text-5xl opacity-30">–</div>';
+                        html += `
+                            <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group transition-all">
+                                <div class="flex items-center gap-6">
+                                    ${iconDisplay}
+                                    <div>
+                                        <div class="font-semibold text-xl">${s.name}</div>
+                                        <a href="${s.url}" target="_blank" class="text-xs text-[var(--accent)] break-all">${s.url}</a>
+                                        ${s.desc ? `<div class="text-xs text-white/60 mt-1">${s.desc}</div>` : ''}
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <button onclick="window.moveSiteUp('${s.id}', '${s.category}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
+                                    <button onclick="window.moveSiteDown('${s.id}', '${s.category}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
+                                    <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation()" 
+                                            class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">
+                                        Edit
+                                    </button>
+                                    <button onclick="window.deleteSite('${s.id}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>`;
+                    });
+                }
+                html += '</div></div>';
+                container.innerHTML += html;
+            });
+        };
+
+        // ────────────────────────────────────────────────
+        // Other shared functions
+        // ────────────────────────────────────────────────
 
         window.populateAllGrids = () => {
             (window.allCategories || []).forEach(cat => populateGrid(cat.key, `${cat.key}-grid`));
@@ -752,336 +1042,17 @@
             }
         };
 
-        window.addOrUpdateCategory = async () => {
-            const key = document.getElementById('new-cat-key').value.trim().toLowerCase().replace(/\s+/g, '');
-            const label = document.getElementById('new-cat-label').value.trim();
-            let icon = document.getElementById('new-cat-icon').value.trim();
-            if (!icon.startsWith('fa-')) icon = 'fa-' + icon;
-            if (!key || !label) return alert("Key and Label required (key must be lowercase, no spaces)");
-
-            if (window.editingCategoryId) {
-                try {
-                    await setDoc(doc(db, "categories", window.editingCategoryId), { key, label, icon }, { merge: true });
-                    alert("Category updated!");
-                    window.editingCategoryId = null;
-                    document.getElementById('cat-action-btn').textContent = "Add Category";
-                    ['new-cat-key','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
-                } catch (e) {
-                    alert("Error: " + e.message);
-                }
-            } else {
-                if ((window.allCategories || []).some(c => c.key === key)) return alert("Key already exists!");
-                const maxOrder = (window.allCategories || []).length ? Math.max(...(window.allCategories || []).map(c => c.order ?? 0)) + 1 : 0;
-                try {
-                    await addDoc(collection(db, "categories"), { key, label, icon, order: maxOrder });
-                    alert("Category added!");
-                    ['new-cat-key','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
-                } catch (e) {
-                    alert("Error: " + e.message);
-                }
-            }
-        };
-
-        window.deleteCategory = async (docId, key) => {
-            if (!confirm(`Delete category "${key}" forever? Sites in this category will no longer appear until moved.`)) return;
-            try {
-                await deleteDoc(doc(db, "categories", docId));
-                alert("Category deleted!");
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.moveCategoryUp = async (docId) => {
-            const idx = (window.allCategories || []).findIndex(c => c.id === docId);
-            if (idx <= 0) return;
-            const thisCat = window.allCategories[idx];
-            const prevCat = window.allCategories[idx - 1];
-            const temp = thisCat.order;
-            thisCat.order = prevCat.order;
-            prevCat.order = temp;
-            try {
-                await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
-                await setDoc(doc(db, "categories", prevCat.id), { order: prevCat.order }, { merge: true });
-            } catch (e) {
-                alert("Reorder error: " + e.message);
-            }
-        };
-
-        window.moveCategoryDown = async (docId) => {
-            const idx = (window.allCategories || []).findIndex(c => c.id === docId);
-            if (idx >= (window.allCategories || []).length - 1) return;
-            const thisCat = window.allCategories[idx];
-            const nextCat = window.allCategories[idx + 1];
-            const temp = thisCat.order;
-            thisCat.order = nextCat.order;
-            nextCat.order = temp;
-            try {
-                await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
-                await setDoc(doc(db, "categories", nextCat.id), { order: nextCat.order }, { merge: true });
-            } catch (e) {
-                alert("Reorder error: " + e.message);
-            }
-        };
-
-        window.editCategory = (docId, key, label, icon) => {
-            window.editingCategoryId = docId;
-            document.getElementById('new-cat-key').value = key;
-            document.getElementById('new-cat-label').value = label;
-            document.getElementById('new-cat-icon').value = icon;
-            document.getElementById('cat-action-btn').textContent = "Update Category";
-        };
-
-        window.reloadAdminCategories = () => {
-            const container = document.getElementById('admin-categories-list');
-            container.innerHTML = '';
-            if (!(window.allCategories || []).length) {
-                container.innerHTML = '<p class="p-8 text-center text-white/50">No categories yet. Add one above!</p>';
-                return;
-            }
-            let html = '';
-            window.allCategories.forEach(cat => {
-                html += `
-                    <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group">
-                        <div class="flex items-center gap-6">
-                            <i class="fa-solid ${cat.icon} text-4xl"></i>
-                            <div>
-                                <div class="font-semibold text-xl">${cat.label}</div>
-                                <div class="text-xs text-white/50 font-mono">key: ${cat.key}</div>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="window.moveCategoryUp('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
-                            <button onclick="window.moveCategoryDown('${cat.id}'); event.stopPropagation()" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
-                            <button onclick="window.editCategory('${cat.id}', '${cat.key}', '${cat.label.replace(/'/g, "\\'")}', '${cat.icon}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl">Edit</button>
-                            <button onclick="window.deleteCategory('${cat.id}', '${cat.key}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl">Delete</button>
-                        </div>
-                    </div>`;
-            });
-            container.innerHTML = html;
+        window.populateCategorySelect = () => {
+            const select = document.getElementById('admin-cat-select');
+            if (!select) return;
+            select.innerHTML = (window.allCategories || []).map(cat => 
+                `<option value="${cat.key}">${cat.label}</option>`
+            ).join('');
         };
 
         // ────────────────────────────────────────────────
-        //   SITE REORDERING LOGIC
+        // UI / Theme / Stars / etc.
         // ────────────────────────────────────────────────
-
-        window.moveSiteUp = async (siteId, category) => {
-            const sites = window.allSites[category] || [];
-            const idx = sites.findIndex(s => s.id === siteId);
-            if (idx <= 0) return;
-
-            // For simplicity we're using creation time difference as proxy for order
-            // Better: add & maintain an "order" field like categories
-            const thisSite = sites[idx];
-            const prevSite = sites[idx - 1];
-
-            // Swap their createdAt (hacky but works if no real order field)
-            const tempTime = thisSite.createdAt;
-            thisSite.createdAt = prevSite.createdAt;
-            prevSite.createdAt = tempTime;
-
-            try {
-                await setDoc(doc(db, "sites", thisSite.id), { createdAt: thisSite.createdAt }, { merge: true });
-                await setDoc(doc(db, "sites", prevSite.id), { createdAt: prevSite.createdAt }, { merge: true });
-                alert("Site moved up! Refresh list to see order.");
-                window.reloadAdminSites();
-            } catch (e) {
-                alert("Move error: " + e.message);
-            }
-        };
-
-        window.moveSiteDown = async (siteId, category) => {
-            const sites = window.allSites[category] || [];
-            const idx = sites.findIndex(s => s.id === siteId);
-            if (idx >= sites.length - 1 || idx < 0) return;
-
-            const thisSite = sites[idx];
-            const nextSite = sites[idx + 1];
-
-            const tempTime = thisSite.createdAt;
-            thisSite.createdAt = nextSite.createdAt;
-            nextSite.createdAt = tempTime;
-
-            try {
-                await setDoc(doc(db, "sites", thisSite.id), { createdAt: thisSite.createdAt }, { merge: true });
-                await setDoc(doc(db, "sites", nextSite.id), { createdAt: nextSite.createdAt }, { merge: true });
-                alert("Site moved down! Refresh list to see order.");
-                window.reloadAdminSites();
-            } catch (e) {
-                alert("Move error: " + e.message);
-            }
-        };
-
-        window.addNewSiteFromAdmin = async () => {
-            const cat = document.getElementById('admin-cat-select').value;
-            const name = document.getElementById('new-site-name').value.trim();
-            const url = document.getElementById('new-site-url').value.trim();
-            const icon = document.getElementById('new-site-icon').value.trim();
-            const desc = document.getElementById('new-site-desc').value.trim();
-
-            if (!name || !url) return alert("Name and URL required");
-
-            try {
-                await addDoc(collection(db, "sites"), { 
-                    category: cat, 
-                    name, 
-                    url, 
-                    icon, 
-                    desc,
-                    createdAt: serverTimestamp()
-                });
-                alert("Site added! Non-admin users will see a refresh prompt.");
-                ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
-                await window.loadAllSites();
-                window.populateAllGrids();
-                window.reloadAdminSites();
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.deleteSite = async (id) => {
-            if (!confirm("Delete forever?")) return;
-            try {
-                await deleteDoc(doc(db, "sites", id));
-                await window.loadAllSites();
-                window.populateAllGrids();
-                window.reloadAdminSites();
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.editSite = (id, category, name, url, icon, desc) => {
-            document.getElementById('admin-cat-select').value = category;
-            document.getElementById('new-site-name').value = name;
-            document.getElementById('new-site-url').value = url;
-            document.getElementById('new-site-icon').value = icon || '';
-            document.getElementById('new-site-desc').value = desc || '';
-
-            const btn = document.getElementById('add-update-site-btn');
-            btn.textContent = 'Update Site';
-            btn.onclick = async () => {
-                const newCat = document.getElementById('admin-cat-select').value;
-                const newName = document.getElementById('new-site-name').value.trim();
-                const newUrl = document.getElementById('new-site-url').value.trim();
-                const newIcon = document.getElementById('new-site-icon').value.trim();
-                const newDesc = document.getElementById('new-site-desc').value.trim();
-
-                if (!newName || !newUrl) return alert("Name and URL required");
-
-                try {
-                    await setDoc(doc(db, "sites", id), {
-                        category: newCat,
-                        name: newName,
-                        url: newUrl,
-                        icon: newIcon,
-                        desc: newDesc,
-                        updatedAt: serverTimestamp()
-                    }, { merge: true });
-                    alert("Site updated successfully!");
-                    ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
-                    btn.textContent = 'Add New Site';
-                    btn.onclick = window.addNewSiteFromAdmin;
-                    await window.loadAllSites();
-                    window.populateAllGrids();
-                    window.reloadAdminSites();
-                } catch (e) {
-                    alert("Error updating site: " + e.message);
-                }
-            };
-        };
-
-        window.reloadAdminSites = () => {
-            const container = document.getElementById('admin-sites-list');
-            container.innerHTML = '';
-            (window.allCategories || []).forEach(cat => {
-                const sites = window.allSites[cat.key] || [];
-                let html = `<div class="border border-white/10 rounded-3xl p-8"><div class="flex justify-between items-center mb-6"><h4 class="text-2xl font-medium">${cat.label}</h4><span class="text-xs bg-white/10 px-4 py-1.5 rounded-2xl">${sites.length} sites</span></div><div class="space-y-4">`;
-                if (!sites.length) {
-                    html += '<p class="text-white/40 pl-2">No sites yet</p>';
-                } else {
-                    sites.forEach(s => {
-                        const iconDisplay = s.icon ? `<div class="text-5xl">${s.icon}</div>` : '<div class="text-5xl opacity-30">–</div>';
-                        html += `
-                            <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group transition-all">
-                                <div class="flex items-center gap-6">
-                                    ${iconDisplay}
-                                    <div>
-                                        <div class="font-semibold text-xl">${s.name}</div>
-                                        <a href="${s.url}" target="_blank" class="text-xs text-[var(--accent)] break-all">${s.url}</a>
-                                        ${s.desc ? `<div class="text-xs text-white/60 mt-1">${s.desc}</div>` : ''}
-                                    </div>
-                                </div>
-                                <div class="flex gap-3">
-                                    <button onclick="window.moveSiteUp('${s.id}', '${s.category}'); event.stopPropagation()" 
-                                            class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↑</button>
-                                    <button onclick="window.moveSiteDown('${s.id}', '${s.category}'); event.stopPropagation()" 
-                                            class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl">↓</button>
-                                    <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation()" 
-                                            class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">
-                                        Edit
-                                    </button>
-                                    <button onclick="window.deleteSite('${s.id}'); event.stopPropagation()" class="px-5 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>`;
-                    });
-                }
-                html += '</div></div>';
-                container.innerHTML += html;
-            });
-        };
-
-        window.loadAllSites = window.loadAllSites;
-        window.populateAllGrids = window.populateAllGrids;
-        window.showGlobalAnnouncement = window.showGlobalAnnouncement;
-        window.saveGlobalAnnouncement = window.saveGlobalAnnouncement;
-        window.clearAnnouncement = window.clearAnnouncement;
-        window.loadAdminUsers = window.loadAdminUsers;
-        window.deleteUserFromAdmin = window.deleteUserFromAdmin;
-        window.addNewSiteFromAdmin = window.addNewSiteFromAdmin;
-        window.deleteSite = window.deleteSite;
-        window.reloadAdminSites = window.reloadAdminSites;
-        window.loadCategories = window.loadCategories;
-    </script>
-
-    <!-- Global scope functions (needed for onclick) -->
-    <script>
-        window.switchTab = function(index) {
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
-            const activeEl = document.getElementById(`tab-${index}`);
-            if (activeEl) activeEl.classList.add('active-tab');
-
-            if (!window.currentUser) {
-                document.getElementById('current-tab').textContent = 'Sign In Required';
-                document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-lock';
-                document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-                document.getElementById('content-account')?.classList.remove('hidden');
-                return;
-            }
-
-            const mapping = (window.tabMapping || [])[index];
-            if (!mapping) return;
-
-            document.getElementById('current-tab').textContent = mapping.title;
-            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${mapping.icon}`;
-
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(mapping.contentId)?.classList.remove('hidden');
-        };
-
-        window.requestSite = function() {
-            window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
-        };
-
-        window.resetEverything = function() {
-            if (!confirm("Reset all & sign out?")) return;
-            localStorage.clear();
-            document.documentElement.style.setProperty('--accent', '#ffffff');
-            firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
-        };
 
         function setTheme(color) {
             document.documentElement.style.setProperty('--accent', color);
@@ -1090,12 +1061,6 @@
 
         function loadTheme() {
             setTheme(localStorage.getItem('starlinkAccent') || '#ffffff');
-        }
-
-        function initialize() {
-            loadTheme();
-            initStars();
-            document.getElementById('newtab-toggle')?.addEventListener('change', e => saveNewTabPreference(e.target.checked));
         }
 
         function createStar(x, y) {
@@ -1135,9 +1100,7 @@
         }
 
         document.addEventListener('click', e => {
-            if (e.target.closest('button, a, input, select, textarea, label, svg, .card, .nav-link, #refresh-modal, #add-update-site-btn, .github-style-btn, .auth-btn, .users-table, .admin-sites-list')) {
-                return;
-            }
+            if (e.target.closest('button, a, input, select, textarea, label, svg, .card, .nav-link, #refresh-modal, #add-update-site-btn, .github-style-btn, .auth-btn, .users-table, .admin-sites-list')) return;
             createStar(e.clientX, e.clientY);
         });
 
@@ -1176,9 +1139,7 @@
                     <div class="font-semibold text-xl mb-2">${site.name}</div>
                     <div class="text-white/60 text-sm">${site.desc || ''}</div>
                 `;
-                card.onclick = () => {
-                    window.open(site.url, '_blank');
-                };
+                card.onclick = () => window.open(site.url, '_blank');
                 cont.appendChild(card);
             });
         }
@@ -1275,13 +1236,44 @@
             navLinks.innerHTML = html;
         };
 
-        window.populateCategorySelect = () => {
-            const select = document.getElementById('admin-cat-select');
-            if (!select) return;
-            select.innerHTML = (window.allCategories || []).map(cat => 
-                `<option value="${cat.key}">${cat.label}</option>`
-            ).join('');
+        window.switchTab = function(index) {
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
+            const activeEl = document.getElementById(`tab-${index}`);
+            if (activeEl) activeEl.classList.add('active-tab');
+
+            if (!window.currentUser) {
+                document.getElementById('current-tab').textContent = 'Sign In Required';
+                document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-lock';
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+                document.getElementById('content-account')?.classList.remove('hidden');
+                return;
+            }
+
+            const mapping = (window.tabMapping || [])[index];
+            if (!mapping) return;
+
+            document.getElementById('current-tab').textContent = mapping.title;
+            document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${mapping.icon}`;
+
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(mapping.contentId)?.classList.remove('hidden');
         };
+
+        window.requestSite = function() {
+            window.open("https://forms.gle/8WpJKuJ4KuyyqtVdA", "_blank");
+        };
+
+        window.resetEverything = function() {
+            if (!confirm("Reset all & sign out?")) return;
+            localStorage.clear();
+            document.documentElement.style.setProperty('--accent', '#ffffff');
+            firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
+        };
+
+        function initialize() {
+            loadTheme();
+            initStars();
+        }
 
         window.onload = initialize;
     </script>
