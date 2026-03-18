@@ -197,6 +197,31 @@
             background: rgba(255,255,255,0.15);
             margin: 1.25rem 0;
         }
+        
+        /* Online counter styles */
+        .online-counter {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            color: #10b981;
+        }
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
     </style>
 </head>
 <body>
@@ -222,7 +247,16 @@
             <div class="h-full px-10 flex items-center gap-4">
                 <i id="current-tab-icon" class="text-3xl fa-solid fa-lock"></i>
                 <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Sign In Required</div>
-                <span id="user-status" class="ml-auto text-sm text-white/70"></span>
+                
+                <!-- ONLINE COUNTER (always visible) -->
+                <div id="online-counter-container" class="ml-auto flex items-center gap-4">
+                    <div class="online-counter">
+                        <span class="online-dot"></span>
+                        <span id="online-count">0</span>
+                        <span>online</span>
+                    </div>
+                    <span id="user-status" class="text-sm text-white/70"></span>
+                </div>
             </div>
         </div>
 
@@ -444,6 +478,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+        import { getDatabase, ref, onDisconnect, set, onValue, push, serverTimestamp as rtServerTimestamp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDI979T4jI-ZbGbRDFo-kNZPyG3Pc8gkXw",
@@ -452,14 +487,17 @@
             storageBucket: "starlink-42031.firebasestorage.app",
             messagingSenderId: "264424976547",
             appId: "1:264424976547:web:6725648e3ae60397870f16",
-            measurementId: "G-Z2B3TBENYK"
+            measurementId: "G-Z2B3TBENYK",
+            databaseURL: "https://starlink-42031-default-rtdb.firebaseio.com/" // Add this line for Realtime Database
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const rtdb = getDatabase(app); // Initialize Realtime Database
 
         window.db = db;
+        window.rtdb = rtdb;
         window.firebaseAuth = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, auth };
 
         window.currentUser = null;
@@ -471,6 +509,83 @@
         let announcementListener = null;
         let categoriesListener = null;
         window.initialLoadComplete = false;
+
+        // Online counter functionality
+        let userPresenceRef = null;
+        let connectedRef = null;
+        let onlineCountListener = null;
+
+        function initPresence(user) {
+            if (!user) return;
+            
+            // Clean up previous listeners
+            if (userPresenceRef) userPresenceRef = null;
+            if (connectedRef) connectedRef = null;
+            if (onlineCountListener) onlineCountListener();
+
+            const userId = user.uid;
+            const userStatusRef = ref(rtdb, `/status/${userId}`);
+            const lastActiveRef = ref(rtdb, `/last-active/${userId}`);
+            
+            // Update online count
+            const onlineCountRef = ref(rtdb, 'online-count');
+            
+            onlineCountListener = onValue(onlineCountRef, (snapshot) => {
+                const count = snapshot.val() || 0;
+                document.getElementById('online-count').textContent = count;
+            });
+
+            // Set up presence
+            connectedRef = ref(rtdb, '.info/connected');
+            onValue(connectedRef, (snap) => {
+                if (snap.val() === true) {
+                    // Add this device to presence list
+                    const presenceRef = push(ref(rtdb, '/presence'));
+                    set(presenceRef, {
+                        userId: userId,
+                        email: user.email,
+                        timestamp: rtServerTimestamp(),
+                        userAgent: navigator.userAgent
+                    });
+                    
+                    // Remove when disconnected
+                    onDisconnect(presenceRef).remove();
+                    
+                    // Update status
+                    set(userStatusRef, {
+                        online: true,
+                        lastSeen: rtServerTimestamp(),
+                        email: user.email
+                    });
+                    
+                    onDisconnect(userStatusRef).update({
+                        online: false,
+                        lastSeen: rtServerTimestamp()
+                    });
+                    
+                    // Update last active timestamp periodically
+                    set(lastActiveRef, rtServerTimestamp());
+                    const interval = setInterval(() => {
+                        if (auth.currentUser) {
+                            set(lastActiveRef, rtServerTimestamp());
+                        } else {
+                            clearInterval(interval);
+                        }
+                    }, 60000); // Update every minute
+                }
+            });
+        }
+
+        function cleanupPresence() {
+            if (window.currentUser) {
+                const userId = window.currentUser.uid;
+                const userStatusRef = ref(rtdb, `/status/${userId}`);
+                set(userStatusRef, {
+                    online: false,
+                    lastSeen: rtServerTimestamp()
+                });
+            }
+        }
 
         function updateUIForAuth(user) {
             window.currentUser = user;
@@ -492,6 +607,9 @@
                 document.getElementById('user-email').textContent = user.email;
                 authForm?.classList.add('hidden');
                 accountTitle.textContent = 'Account';
+
+                // Initialize presence for this user
+                initPresence(user);
 
                 setTimeout(async () => {
                     populateThemeGrid();
@@ -552,6 +670,11 @@
                     </div>
                 `;
                 window.switchTab(0);
+                // Set online count to 0 for non-logged in users
+                document.getElementById('online-count').textContent = '0';
+                
+                // Clean up presence
+                cleanupPresence();
             }
         }
 
@@ -1180,44 +1303,101 @@
             idx++;
 
             html += `
-                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                <div onclick="window.switchTab(${idx})" class="nav-link flex items
+                    window.buildNav = () => {
+        const navLinks = document.getElementById('nav-links');
+        if (!navLinks) return;
+        if (!window.currentUser) {
+            navLinks.innerHTML = `
+                <div onclick="window.switchTab(0)" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 active-tab" id="tab-0">
                     <i class="fa-solid fa-user w-5"></i> <span>Account</span>
                 </div>
             `;
-            window.tabMapping.push({contentId: 'content-account', title: 'Account', icon: 'fa-user'});
-            idx++;
-
-            html += `
-                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
-                </div>
-            `;
-            window.tabMapping.push({contentId: 'content-credits', title: 'Credits', icon: 'fa-heart'});
-            idx++;
-
-            html += `
-                <div onclick="window.requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
-                    <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
-                </div>
-            `;
-
-            navLinks.innerHTML = html;
-        };
-
-        window.populateCategorySelect = () => {
-            const select = document.getElementById('admin-cat-select');
-            if (!select) return;
-            select.innerHTML = (window.allCategories || []).map(cat => 
-                `<option value="${cat.key}">${cat.label}</option>`
-            ).join('');
-        };
-
-        function initialize() {
-            loadTheme();
-            initStars();
+            return;
         }
 
-        window.onload = initialize;
-    </script>
+        const isAdmin = window.currentUser.email === ADMIN_EMAIL;
+        let html = '';
+        window.tabMapping = [];
+        let idx = 0;
+
+        if (isAdmin) {
+            html += `
+                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                    <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-admin', title: 'Admin Panel', icon: 'fa-crown'});
+            idx++;
+            html += '<div class="sidebar-separator mx-6"></div>';
+        }
+
+        const homeActive = !isAdmin ? 'active-tab' : '';
+        html += `
+            <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${homeActive}" id="tab-${idx}">
+                <i class="fa-solid fa-house w-5"></i> <span>Home</span>
+            </div>
+        `;
+        window.tabMapping.push({contentId: 'content-home', title: 'Home', icon: 'fa-house'});
+        idx++;
+
+        (window.allCategories || []).forEach(cat => {
+            html += `
+                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                    <i class="fa-solid ${cat.icon} w-5"></i> <span>${cat.label}</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: `content-${cat.key}`, title: cat.label, icon: cat.icon});
+            idx++;
+        });
+
+        html += `
+            <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
+            </div>
+        `;
+        window.tabMapping.push({contentId: 'content-settings', title: 'Settings', icon: 'fa-gear'});
+        idx++;
+
+        html += `
+            <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                <i class="fa-solid fa-user w-5"></i> <span>Account</span>
+            </div>
+        `;
+        window.tabMapping.push({contentId: 'content-account', title: 'Account', icon: 'fa-user'});
+        idx++;
+
+        html += `
+            <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
+            </div>
+        `;
+        window.tabMapping.push({contentId: 'content-credits', title: 'Credits', icon: 'fa-heart'});
+        idx++;
+
+        html += `
+            <div onclick="window.requestSite()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
+                <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
+            </div>
+        `;
+
+        navLinks.innerHTML = html;
+    };
+
+    window.populateCategorySelect = () => {
+        const select = document.getElementById('admin-cat-select');
+        if (!select) return;
+        select.innerHTML = (window.allCategories || []).map(cat => 
+            `<option value="${cat.key}">${cat.label}</option>`
+        ).join('');
+    };
+
+    function initialize() {
+        loadTheme();
+        initStars();
+    }
+
+    window.onload = initialize;
+</script>
 </body>
 </html>
