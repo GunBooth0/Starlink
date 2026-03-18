@@ -470,6 +470,7 @@
         let sitesListener = null;
         let announcementListener = null;
         let categoriesListener = null;
+        let userDocListener = null;
         window.initialLoadComplete = false;
 
         async function updateUIForAuth(user) {
@@ -485,6 +486,7 @@
             if (sitesListener) sitesListener();
             if (announcementListener) announcementListener();
             if (categoriesListener) categoriesListener();
+            if (userDocListener) userDocListener();
 
             if (user) {
                 // Check banned + isAdmin from Firestore before showing UI
@@ -549,6 +551,21 @@
                     if (window.isAdminUser && !document.getElementById('content-admin').classList.contains('hidden')) {
                         window.reloadAdminCategories();
                     } else {
+                        document.getElementById('refresh-modal').classList.add('show');
+                    }
+                });
+
+                // Watch this user's own doc for ban or admin changes made by the owner
+                userDocListener = onSnapshot(doc(db, "users", user.uid), async (snap) => {
+                    if (!window.initialLoadComplete || !snap.exists()) return;
+                    const data = snap.data();
+                    if (data.banned === true) {
+                        await signOut(auth);
+                        alert("Your account has been banned. Please contact the administrator.");
+                        return;
+                    }
+                    const newIsAdmin = data.isAdmin === true || user.email === ADMIN_EMAIL;
+                    if (newIsAdmin !== window.isAdminUser) {
                         document.getElementById('refresh-modal').classList.add('show');
                     }
                 });
@@ -769,7 +786,7 @@
                             <div class="flex gap-2 flex-wrap">
                                 ${banBtn}
                                 ${adminBtn}
-                                ${isOwner ? '' : `<button onclick="deleteUserFromAdmin('${d.id}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Delete</button>`}
+                                ${(isOwner || !isCurrentUserOwner) ? '' : `<button onclick="deleteUserFromAdmin('${d.id}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Delete</button>`}
                             </div>
                         </td>
                     </tr>`;
@@ -786,8 +803,7 @@
             if (!confirm(`Are you sure you want to ${action} this user?`)) return;
             try {
                 await setDoc(doc(db, "users", uid), { banned: ban }, { merge: true });
-                await window.loadAdminUsers();
-                document.getElementById('refresh-modal').classList.add('show');
+                window.loadAdminUsers();
             } catch (e) {
                 alert("Error: " + e.message);
             }
@@ -798,8 +814,7 @@
             if (!confirm(`Are you sure you want to ${action} this user?`)) return;
             try {
                 await setDoc(doc(db, "users", uid), { isAdmin: grant }, { merge: true });
-                await window.loadAdminUsers();
-                document.getElementById('refresh-modal').classList.add('show');
+                window.loadAdminUsers();
             } catch (e) {
                 alert("Error: " + e.message);
             }
