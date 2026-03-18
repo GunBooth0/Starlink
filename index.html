@@ -507,25 +507,28 @@
                 accountTitle.textContent = 'Account';
 
                 setTimeout(async () => {
-                    populateThemeGrid();
-                    await window.loadCategories();
-                    window.createCategoryContents();
-                    await window.loadAllSites();
-                    window.populateAllGrids();
-                    window.populateCategorySelect();
-                    await window.showGlobalAnnouncement();
-                    window.buildNav();
-                    let isAdminUser = (user.email === ADMIN_EMAIL);
-                    if (!isAdminUser) {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists() && userDoc.data().isAdmin === true) {
-                    isAdminUser = true;
-                            }
-                    }
-                    window.currentUserIsAdmin = isAdminUser;
-                    window.switchTab(isAdminUser ? 1 : 0);
-                    window.initialLoadComplete = true;
-                }, 100);
+    // First, determine if the user is an admin
+    let isAdminUser = (user.email === ADMIN_EMAIL);
+    if (!isAdminUser) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists() && userDoc.data().isAdmin === true) {
+            isAdminUser = true;
+        }
+    }
+    window.currentUserIsAdmin = isAdminUser; // set the global flag
+
+    // Now build the UI with the correct admin flag
+    populateThemeGrid();
+    await window.loadCategories();
+    window.createCategoryContents();
+    await window.loadAllSites();
+    window.populateAllGrids();
+    window.populateCategorySelect();
+    await window.showGlobalAnnouncement();
+    window.buildNav(); // this will see window.currentUserIsAdmin properly
+    window.switchTab(isAdminUser ? 1 : 0);
+    window.initialLoadComplete = true;
+}, 100);
 
                 sitesListener = onSnapshot(collection(db, "sites"), async () => {
                     await window.loadAllSites();
