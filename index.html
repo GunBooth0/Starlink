@@ -462,6 +462,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const usersVersionRef = doc(db, "config", "usersVersion");
 
         window.db = db;
         window.firebaseAuth = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, auth };
@@ -474,6 +475,7 @@
         let sitesListener = null;
         let announcementListener = null;
         let categoriesListener = null;
+        let usersVersionListener = null;
         window.initialLoadComplete = false;
 
        async function updateUIForAuth(user) {
@@ -561,6 +563,17 @@
                         document.getElementById('refresh-modal').classList.add('show');
                     }
                 });
+
+                                // Listen for changes to user permissions (ban, admin)
+                usersVersionListener = onSnapshot(usersVersionRef, () => {
+                    // Only show modal for non‑admins after initial load
+                    if (window.initialLoadComplete && user.email !== ADMIN_EMAIL && !window.currentUserIsAdmin) {
+                        document.getElementById('refresh-modal').classList.add('show');
+                    }
+                });
+
+            } else {
+                statusEl.textContent = '';
 
             } else {
                 statusEl.textContent = '';
@@ -840,6 +853,7 @@
     if (!confirm(`Are you sure you want to ${makeAdmin ? 'make this user an admin' : 'remove admin privileges'}?`)) return;
     try {
         await setDoc(doc(db, "users", uid), { isAdmin: makeAdmin }, { merge: true });
+        await setDoc(doc(db, "config", "usersVersion"), { version: serverTimestamp() }, { merge: true });
         alert("Admin status updated!");
         window.loadAdminUsers(); // refresh the list
     } catch (e) {
