@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Starlink</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><path d=%22M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z%22 fill=%22%23ffffff%22/></svg>" type="image/svg+xml">
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Starlink">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Starlink">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <style>
@@ -233,7 +242,7 @@
                 </div>
                 <div class="ml-auto flex items-center gap-4">
                     <span id="user-status" class="text-sm text-white/70"></span>
-                    <span id="online-counter" class="hidden items-center gap-2 text-sm text-white/60"><span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span><span id="online-count">0</span> online</span>
+                    <span id="online-counter" class="hidden items-center gap-2 text-sm text-white/60"><span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span><span id="online-count">0</span> online</span><button id="pwa-install-btn" onclick="window.installPWA()" class="hidden items-center gap-2 text-sm text-white/60 hover:text-white transition-colors" style="width:auto;padding:0.35rem 0.85rem;margin:0;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:0.6rem;font-size:0.8rem;"><i class="fa-solid fa-download text-xs"></i> Install App</button>
                 </div>
             </div>
         </div>
@@ -1856,6 +1865,53 @@
         }
 
         window.onload = initialize;
+    </script>
+
+    <!-- PWA Service Worker + Install Prompt -->
+    <script>
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/Starlink/sw.js', { scope: '/Starlink/' })
+                    .then(reg => {
+                        // Check for updates
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New version available — could show update toast here
+                                }
+                            });
+                        });
+                    })
+                    .catch(err => console.log('SW registration failed:', err));
+            });
+        }
+
+        // Install prompt
+        let deferredPrompt = null;
+        const installBtn = document.getElementById('pwa-install-btn');
+
+        window.addEventListener('beforeinstallprompt', e => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (installBtn) {
+                installBtn.classList.remove('hidden');
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            deferredPrompt = null;
+            if (installBtn) installBtn.classList.add('hidden');
+        });
+
+        window.installPWA = async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            if (installBtn) installBtn.classList.add('hidden');
+        };
     </script>
 </body>
 </html>
