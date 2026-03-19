@@ -385,29 +385,63 @@
 
             <!-- LIVE CHAT TAB -->
             <div id="content-chat" class="tab-content hidden">
-                <div class="max-w-3xl mx-auto" style="height:calc(100vh - 10rem);display:flex;flex-direction:column;">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-2xl font-bold logo-font tracking-tight">Live Chat</h2>
-                        <span id="chat-online-count" class="text-xs text-white/50 flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span>
-                            <span id="chat-online-num">0</span> online
-                        </span>
+                <div style="display:flex;gap:1.5rem;height:calc(100vh - 10rem);">
+
+                    <!-- LEFT: Friends panel -->
+                    <div class="glass rounded-3xl" style="width:260px;min-width:260px;display:flex;flex-direction:column;overflow:hidden;">
+                        <div style="padding:1.25rem 1.25rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.1);">
+                            <div class="text-lg font-bold logo-font mb-3">Friends</div>
+                            <!-- Add friend input -->
+                            <div style="display:flex;gap:0.5rem;">
+                                <input id="friend-search-input" type="text" placeholder="Username..." maxlength="24"
+                                    style="flex:1;margin:0;padding:0.5rem 0.75rem;font-size:0.8rem;border-radius:0.75rem;">
+                                <button onclick="window.sendFriendRequest()" style="width:auto;margin:0;padding:0.5rem 0.75rem;font-size:0.8rem;border-radius:0.75rem;" class="auth-btn">
+                                    <i class="fa-solid fa-user-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Friend requests -->
+                        <div id="friend-requests-list" class="hidden" style="padding:0.75rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.08);"></div>
+                        <!-- Friends list -->
+                        <div id="friends-list" style="flex:1;overflow-y:auto;padding:0.75rem 0.5rem;">
+                            <p class="text-xs text-white/30 text-center mt-4">No friends yet</p>
+                        </div>
+                        <!-- Global chat button -->
+                        <div style="padding:0.75rem;border-top:1px solid rgba(255,255,255,0.08);">
+                            <button onclick="window.openGlobalChat()" id="global-chat-btn"
+                                style="width:100%;margin:0;padding:0.6rem 1rem;font-size:0.85rem;border-radius:0.75rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:white;text-align:left;display:flex;align-items:center;gap:0.5rem;">
+                                <i class="fa-solid fa-globe text-xs"></i> Global Chat
+                                <span id="global-chat-active-dot" class="w-2 h-2 rounded-full bg-[var(--accent)] ml-auto hidden"></span>
+                            </button>
+                        </div>
                     </div>
-                    <!-- Messages -->
-                    <div id="chat-messages" class="flex-1 overflow-y-auto glass rounded-3xl p-6 mb-4 space-y-3" style="min-height:0;border:1px solid rgba(255,255,255,0.12);">
-                        <p class="text-center text-white/30 text-sm">Loading messages...</p>
-                    </div>
-                    <!-- Typing indicator -->
-                    <div id="typing-indicator" class="text-xs text-white/40 italic mb-2 h-4 px-1"></div>
-                    <!-- Input -->
-                    <div class="flex gap-3">
-                        <input id="chat-input" type="text" placeholder="Say something..." maxlength="300"
-                            style="flex:1;margin:0;"
-                            onkeydown="if(event.key==='Enter')window.sendChatMessage()"
-                            oninput="window.handleTyping()">
-                        <button onclick="window.sendChatMessage()" class="auth-btn" style="width:auto;padding:0.9rem 1.75rem;margin:0;font-size:1rem;">
-                            <i class="fa-solid fa-paper-plane"></i>
-                        </button>
+
+                    <!-- RIGHT: Chat area -->
+                    <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+                        <!-- Chat header -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div id="chat-header-name" class="text-2xl font-bold logo-font tracking-tight">Live Chat</div>
+                            <span id="chat-online-count" class="text-xs text-white/50 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span>
+                                <span id="chat-online-num">0</span> online
+                            </span>
+                        </div>
+                        <!-- Messages -->
+                        <div id="chat-messages" class="flex-1 overflow-y-auto glass rounded-3xl p-6 mb-4 space-y-3" style="min-height:0;border:1px solid rgba(255,255,255,0.12);">
+                            <p class="text-center text-white/30 text-sm">Loading messages...</p>
+                        </div>
+                        <!-- Typing indicator -->
+                        <div id="typing-indicator" class="text-xs text-white/40 italic mb-2 h-4 px-1"></div>
+                        <!-- Input -->
+                        <div class="flex gap-3">
+                            <input id="chat-input" type="text" placeholder="Say something..." maxlength="300"
+                                style="flex:1;margin:0;"
+                                onkeydown="if(event.key==='Enter')window.sendChatMessage()"
+                                oninput="window.handleTyping()">
+                            <button onclick="window.sendChatMessage()" class="auth-btn" style="width:auto;padding:0.9rem 1.75rem;margin:0;font-size:1rem;">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -510,6 +544,20 @@
                             <p class="p-8 text-center text-white/50">Click Refresh to load requests</p>
                         </div>
                     </div>
+
+                    <!-- DMs Viewer (owner only) -->
+                    <div class="mb-16" id="dms-admin-section" style="display:none;">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-semibold flex items-center gap-3">
+                                <i class="fa-solid fa-envelope"></i> Direct Messages
+                            </h3>
+                            <button onclick="window.loadAdminDMs()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
+                        </div>
+                        <div id="dms-admin-list" class="glass rounded-3xl p-2 max-h-[480px] overflow-auto">
+                            <p class="p-8 text-center text-white/50">Click Refresh to load conversations</p>
+                        </div>
+                    </div>
+
                     <!-- Category Requests (owner only) -->
                     <div class="mb-16" id="cat-requests-section" style="display:none;">
                         <div class="flex items-center justify-between mb-6">
@@ -905,6 +953,7 @@
                 window.stopPresence();
                 window.stopChat();
                 window.stopTypingListener();
+                window.stopDMListeners();
                 document.getElementById('search-wrapper').classList.add('hidden');
                 document.getElementById('search-wrapper').classList.remove('flex');
                 statusEl.textContent = '';
@@ -2101,6 +2150,299 @@ window._signingUp = true;
             } catch(e) { alert('Error: ' + e.message); }
         };
 
+
+        // ══════════════════════════════════════════════
+        // FRIENDS & DMs
+        // ══════════════════════════════════════════════
+        let dmListener = null;
+        let friendsListener = null;
+        let friendRequestsListener = null;
+        window.currentDMUser = null; // {uid, displayName} of person we're DMing
+        window.chatMode = 'global'; // 'global' or 'dm'
+
+        // Generate a stable conversation ID from two UIDs
+        function dmConvoId(uid1, uid2) {
+            return [uid1, uid2].sort().join('_');
+        }
+
+        // ── Send friend request by username ──
+        window.sendFriendRequest = async () => {
+            const input = document.getElementById('friend-search-input');
+            const username = input?.value.trim();
+            if (!username) return alert('Enter a username to add.');
+            const me = auth.currentUser;
+            if (!me) return;
+            try {
+                // Find user by displayName
+                const snap = await getDocs(query(collection(db, "users"), where("displayName", "==", username)));
+                if (snap.empty) return alert(`No user found with username "${username}"`);
+                const targetDoc = snap.docs[0];
+                if (targetDoc.id === me.uid) return alert("You can't add yourself.");
+
+                // Check if already friends
+                const existingFriend = await getDoc(doc(db, "friends", me.uid, "list", targetDoc.id));
+                if (existingFriend.exists()) return alert('You are already friends with this user.');
+
+                // Check if request already sent
+                const existingReq = await getDoc(doc(db, "friendRequests", targetDoc.id, "incoming", me.uid));
+                if (existingReq.exists()) return alert('Friend request already sent.');
+
+                const mySnap = await getDoc(doc(db, "users", me.uid));
+                const myData = mySnap.exists() ? mySnap.data() : {};
+
+                // Write request to target's incoming
+                await setDoc(doc(db, "friendRequests", targetDoc.id, "incoming", me.uid), {
+                    fromUid: me.uid,
+                    fromName: myData.displayName || me.email.split('@')[0],
+                    sentAt: serverTimestamp()
+                });
+                input.value = '';
+                alert(`Friend request sent to ${username}!`);
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
+        // ── Load friends list in sidebar ──
+        window.loadFriendsList = () => {
+            if (friendsListener) friendsListener();
+            if (friendRequestsListener) friendRequestsListener();
+            const me = auth.currentUser;
+            if (!me) return;
+
+            // Listen to friend requests
+            friendRequestsListener = onSnapshot(collection(db, "friendRequests", me.uid, "incoming"), (snap) => {
+                const container = document.getElementById('friend-requests-list');
+                if (!container) return;
+                if (snap.empty) { container.classList.add('hidden'); return; }
+                container.classList.remove('hidden');
+                container.innerHTML = `<div class="text-xs text-white/50 mb-2 font-semibold">Friend Requests</div>` +
+                    snap.docs.map(d => {
+                        const r = d.data();
+                        return `<div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs text-white/80 flex-1 truncate">${r.fromName}</span>
+                            <button onclick="window.acceptFriendRequest('${d.id}','${r.fromName}')" style="width:auto;padding:0.2rem 0.5rem;margin:0;font-size:0.65rem;border-radius:0.5rem;" class="auth-btn">✓</button>
+                            <button onclick="window.declineFriendRequest('${d.id}')" style="width:auto;padding:0.2rem 0.5rem;margin:0;font-size:0.65rem;border-radius:0.5rem;background:rgba(255,0,0,0.2);border:1px solid rgba(255,0,0,0.3);color:#f87171;">✗</button>
+                        </div>`;
+                    }).join('');
+            });
+
+            // Listen to friends list
+            friendsListener = onSnapshot(collection(db, "friends", me.uid, "list"), async (snap) => {
+                const container = document.getElementById('friends-list');
+                if (!container) return;
+                if (snap.empty) { container.innerHTML = '<p class="text-xs text-white/30 text-center mt-4">No friends yet</p>'; return; }
+
+                // Get online UIDs
+                const onlineSnap = await getDocs(collection(db, "presence"));
+                const onlineUids = new Set(onlineSnap.docs.map(d => d.id));
+
+                container.innerHTML = snap.docs.map(d => {
+                    const f = d.data();
+                    const isOnline = onlineUids.has(d.id);
+                    const isActive = window.currentDMUser?.uid === d.id;
+                    return `<button onclick="window.openDM('${d.id}','${f.displayName.replace(/'/g,"\'")}');event.stopPropagation();"
+                        style="width:100%;text-align:left;margin:0;padding:0.6rem 0.75rem;border-radius:0.75rem;background:${isActive?'rgba(255,255,255,0.12)':'transparent'};border:${isActive?'1px solid rgba(255,255,255,0.2)':'1px solid transparent'};display:flex;align-items:center;gap:0.6rem;font-size:0.85rem;cursor:pointer;transition:all 0.2s;">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${isOnline?'#4ade80':'rgba(255,255,255,0.2)'}"></span>
+                        <span class="truncate text-white/80">${f.displayName}</span>
+                        <button onclick="window.removeFriend('${d.id}');event.stopPropagation();" style="width:auto;padding:0.1rem 0.35rem;margin:0;font-size:0.6rem;border-radius:0.4rem;background:rgba(255,0,0,0.15);border:1px solid rgba(255,0,0,0.25);color:#f87171;margin-left:auto;opacity:0.6;" title="Remove friend">✗</button>
+                    </button>`;
+                }).join('');
+            });
+        };
+
+        // ── Accept friend request ──
+        window.acceptFriendRequest = async (fromUid, fromName) => {
+            const me = auth.currentUser;
+            if (!me) return;
+            try {
+                const mySnap = await getDoc(doc(db, "users", me.uid));
+                const myData = mySnap.exists() ? mySnap.data() : {};
+                const myName = myData.displayName || me.email.split('@')[0];
+                // Add each other as friends
+                await setDoc(doc(db, "friends", me.uid, "list", fromUid), { displayName: fromName, addedAt: serverTimestamp() });
+                await setDoc(doc(db, "friends", fromUid, "list", me.uid), { displayName: myName, addedAt: serverTimestamp() });
+                // Remove request
+                await deleteDoc(doc(db, "friendRequests", me.uid, "incoming", fromUid));
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
+        // ── Decline friend request ──
+        window.declineFriendRequest = async (fromUid) => {
+            const me = auth.currentUser;
+            if (!me) return;
+            try { await deleteDoc(doc(db, "friendRequests", me.uid, "incoming", fromUid)); }
+            catch(e) { alert('Error: ' + e.message); }
+        };
+
+        // ── Remove friend ──
+        window.removeFriend = async (friendUid) => {
+            if (!confirm('Remove this friend?')) return;
+            const me = auth.currentUser;
+            try {
+                await deleteDoc(doc(db, "friends", me.uid, "list", friendUid));
+                await deleteDoc(doc(db, "friends", friendUid, "list", me.uid));
+                if (window.currentDMUser?.uid === friendUid) window.openGlobalChat();
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
+        // ── Open a DM conversation ──
+        window.openDM = (friendUid, friendName) => {
+            window.currentDMUser = { uid: friendUid, displayName: friendName };
+            window.chatMode = 'dm';
+
+            // Update header
+            const header = document.getElementById('chat-header-name');
+            if (header) header.textContent = `💬 ${friendName}`;
+
+            // Update global chat button style
+            const globalBtn = document.getElementById('global-chat-btn');
+            if (globalBtn) globalBtn.style.background = 'rgba(255,255,255,0.05)';
+
+            // Stop global chat listener, start DM listener
+            if (chatListener) { chatListener(); chatListener = null; }
+
+            const convoId = dmConvoId(auth.currentUser.uid, friendUid);
+            const messagesEl = document.getElementById('chat-messages');
+            messagesEl.innerHTML = '<p class="text-center text-white/30 text-sm py-8">Loading messages...</p>';
+
+            const q = query(collection(db, "dms", convoId, "messages"), orderBy("sentAt", "asc"));
+            dmListener = onSnapshot(q, (snap) => {
+                if (!messagesEl) return;
+                messagesEl.innerHTML = '';
+                if (snap.empty) {
+                    messagesEl.innerHTML = `<p class="text-center text-white/30 text-sm py-8">Start a conversation with ${friendName}!</p>`;
+                    return;
+                }
+                snap.forEach(d => {
+                    const m = d.data();
+                    const isMe = m.uid === auth.currentUser?.uid;
+                    const time = m.sentAt ? new Date(m.sentAt.toDate()).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+                    const deleteBtn = isMe ? `<button onclick="window.deleteDMMessage('${convoId}','${d.id}')" title="Delete" style="background:transparent;border:none;padding:0;margin:0;width:auto;cursor:pointer;color:rgba(255,255,255,0.3);font-size:0.75rem;" class="hover:text-red-400 transition-colors ml-1">✕</button>` : '';
+                    const div = document.createElement('div');
+                    div.className = `flex ${isMe ? 'justify-end' : 'justify-start'}`;
+                    div.innerHTML = `
+                        <div style="max-width:75%;">
+                            <div class="flex items-center gap-2 mb-1 ${isMe ? 'justify-end' : ''}">
+                                <span class="text-xs font-semibold text-[var(--accent)]">${m.displayName || '?'}</span>
+                                <span class="text-xs text-white/30">${time}</span>
+                                ${deleteBtn}
+                            </div>
+                            <div style="padding:0.6rem 1rem;border-radius:1rem;${isMe ? 'background:var(--accent);color:#000;border-bottom-right-radius:0.2rem;' : 'background:rgba(255,255,255,0.08);border-bottom-left-radius:0.2rem;'}">${m.text}</div>
+                        </div>`;
+                    messagesEl.appendChild(div);
+                });
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+            });
+
+            // Update friends list to highlight active
+            window.loadFriendsList();
+        };
+
+        // ── Open global chat ──
+        window.openGlobalChat = () => {
+            window.currentDMUser = null;
+            window.chatMode = 'global';
+            if (dmListener) { dmListener(); dmListener = null; }
+            const header = document.getElementById('chat-header-name');
+            if (header) header.textContent = 'Live Chat';
+            const dot = document.getElementById('global-chat-active-dot');
+            if (dot) dot.classList.remove('hidden');
+            window.initChat();
+            window.loadFriendsList();
+        };
+
+        // ── Send message (global or DM) ──
+        // Override sendChatMessage to handle DM mode
+        const _originalSendChat = window.sendChatMessage;
+        window.sendChatMessage = async () => {
+            if (window.chatMode === 'dm' && window.currentDMUser) {
+                const input = document.getElementById('chat-input');
+                const text = input?.value.trim();
+                if (!text) return;
+                const me = auth.currentUser;
+                if (!me) return;
+                try {
+                    const userSnap = await getDoc(doc(db, "users", me.uid));
+                    const userData = userSnap.exists() ? userSnap.data() : {};
+                    const convoId = dmConvoId(me.uid, window.currentDMUser.uid);
+                    await addDoc(collection(db, "dms", convoId, "messages"), {
+                        text,
+                        uid: me.uid,
+                        displayName: userData.displayName || me.email.split('@')[0],
+                        sentAt: serverTimestamp()
+                    });
+                    input.value = '';
+                } catch(e) { alert('Error: ' + e.message); }
+            } else {
+                await _originalSendChat();
+            }
+        };
+
+        // ── Delete DM message ──
+        window.deleteDMMessage = async (convoId, msgId) => {
+            try { await deleteDoc(doc(db, "dms", convoId, "messages", msgId)); }
+            catch(e) { alert('Error: ' + e.message); }
+        };
+
+        // ── Stop DM listener ──
+        window.stopDMListeners = () => {
+            if (dmListener) { dmListener(); dmListener = null; }
+            if (friendsListener) { friendsListener(); friendsListener = null; }
+            if (friendRequestsListener) { friendRequestsListener(); friendRequestsListener = null; }
+            window.currentDMUser = null;
+            window.chatMode = 'global';
+        };
+
+        // ── Load DMs for owner panel ──
+        window.loadAdminDMs = async () => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return;
+            const container = document.getElementById('dms-admin-list');
+            container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
+            try {
+                // Get all DM conversations by listing dms collection
+                const snap = await getDocs(collection(db, "dms"));
+                if (snap.empty) { container.innerHTML = '<p class="p-8 text-center text-white/50">No DM conversations yet</p>'; return; }
+                let html = '<div class="divide-y divide-white/10">';
+                for (const convoDoc of snap.docs) {
+                    const [uid1, uid2] = convoDoc.id.split('_');
+                    // Get last message
+                    const msgsSnap = await getDocs(query(collection(db, "dms", convoDoc.id, "messages"), orderBy("sentAt", "desc")));
+                    if (msgsSnap.empty) continue;
+                    const last = msgsSnap.docs[0].data();
+                    const count = msgsSnap.size;
+                    const time = last.sentAt ? new Date(last.sentAt.toDate()).toLocaleDateString() : '—';
+                    html += `<div class="p-4 hover:bg-white/5 cursor-pointer" onclick="window.viewAdminDM('${convoDoc.id}')">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs text-white/40 font-mono">${convoDoc.id.slice(0,20)}...</span>
+                            <span class="text-xs text-white/30">${time} · ${count} msgs</span>
+                        </div>
+                        <div class="text-sm text-white/70 truncate"><span class="text-white/40">${last.displayName}:</span> ${last.text}</div>
+                    </div>`;
+                }
+                html += '</div>';
+                container.innerHTML = html;
+            } catch(e) { container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`; }
+        };
+
+        window.viewAdminDM = async (convoId) => {
+            const container = document.getElementById('dms-admin-list');
+            container.innerHTML = '<p class="p-4 text-center text-white/50">Loading messages...</p>';
+            try {
+                const snap = await getDocs(query(collection(db, "dms", convoId, "messages"), orderBy("sentAt", "asc")));
+                let html = `<div class="p-4"><button onclick="window.loadAdminDMs()" style="width:auto;padding:0.4rem 1rem;margin:0 0 1rem;font-size:0.8rem;border-radius:0.75rem;" class="github-style-btn">← Back</button><div class="space-y-2">`;
+                snap.docs.forEach(d => {
+                    const m = d.data();
+                    const time = m.sentAt ? new Date(m.sentAt.toDate()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
+                    html += `<div class="flex gap-3 items-start">
+                        <span class="text-xs text-[var(--accent)] font-semibold whitespace-nowrap">${m.displayName}</span>
+                        <span class="text-xs text-white/30 whitespace-nowrap">${time}</span>
+                        <span class="text-sm text-white/80">${m.text}</span>
+                    </div>`;
+                });
+                html += '</div></div>';
+                container.innerHTML = html;
+            } catch(e) { container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`; }
+        };
+
         window.stopChat = () => {
             if (chatListener) { chatListener(); chatListener = null; }
         };
@@ -2238,6 +2580,17 @@ window._signingUp = true;
         window.initChat = window.initChat;
         window.sendChatMessage = window.sendChatMessage;
         window.stopChat = window.stopChat;
+        window.sendFriendRequest = window.sendFriendRequest;
+        window.acceptFriendRequest = window.acceptFriendRequest;
+        window.declineFriendRequest = window.declineFriendRequest;
+        window.removeFriend = window.removeFriend;
+        window.openDM = window.openDM;
+        window.openGlobalChat = window.openGlobalChat;
+        window.deleteDMMessage = window.deleteDMMessage;
+        window.stopDMListeners = window.stopDMListeners;
+        window.loadFriendsList = window.loadFriendsList;
+        window.loadAdminDMs = window.loadAdminDMs;
+        window.viewAdminDM = window.viewAdminDM;
         window.clearChat = window.clearChat;
         window.deleteChatMessage = window.deleteChatMessage;
         window.handleTyping = window.handleTyping;
@@ -2279,7 +2632,7 @@ window._signingUp = true;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(mapping.contentId)?.classList.remove('hidden');
             if (mapping.contentId === 'content-request-admin') window.checkExistingAdminRequest();
-            if (mapping.contentId === 'content-chat') { window.initChat(); window.startTypingListener(); }
+            if (mapping.contentId === 'content-chat') { window.openGlobalChat(); window.startTypingListener(); window.loadFriendsList(); }
             if (mapping.contentId === 'content-admin') {
                 populateAdminThemeGrid();
                 const isOwnerNow = auth.currentUser?.email === ADMIN_EMAIL;
@@ -2298,9 +2651,11 @@ window._signingUp = true;
                 // Owner only: admin access requests, owner requests, user management
                 if (isOwnerNow) {
                     if (adminReqSection) adminReqSection.style.display = '';
+                    if (dmAdminSection) dmAdminSection.style.display = '';
                     window.loadAdminRequests();
                 } else {
                     if (adminReqSection) adminReqSection.style.display = 'none';
+                    if (dmAdminSection) dmAdminSection.style.display = 'none';
                 }
             }
         };
