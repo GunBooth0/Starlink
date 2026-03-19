@@ -2213,14 +2213,6 @@
             window.tabMapping.push({contentId: 'content-home', title: 'Home', icon: 'fa-house'});
             idx++;
 
-            html += `
-                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-comments w-5"></i> <span>Live Chat</span>
-                </div>
-            `;
-            window.tabMapping.push({contentId: 'content-chat', title: 'Live Chat', icon: 'fa-comments'});
-            idx++;
-
             (window.allCategories || []).forEach(cat => {
                 html += `
                     <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
@@ -2237,6 +2229,14 @@
                 </div>
             `;
             window.tabMapping.push({contentId: 'content-settings', title: 'Settings', icon: 'fa-gear'});
+            idx++;
+
+            html += `
+                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                    <i class="fa-solid fa-comments w-5"></i> <span>Live Chat</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-chat', title: 'Live Chat', icon: 'fa-comments'});
             idx++;
 
             html += `
