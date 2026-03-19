@@ -458,8 +458,8 @@
             <div id="content-admin" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-6xl mx-auto">
                     <div class="flex items-center justify-between mb-10">
-                        <h2 class="text-4xl font-bold logo-font tracking-tighter">Admin Panel</h2>
-                        <div class="text-xs bg-white/10 px-4 py-2 rounded-2xl font-mono">Admin only</div>
+                        <h2 class="text-4xl font-bold logo-font tracking-tighter" id="main-panel-title">Admin Panel</h2>
+                        <div class="text-xs bg-white/10 px-4 py-2 rounded-2xl font-mono" id="panel-badge-label">Admin only</div>
                     </div>
 
                     <!-- Announcement -->
@@ -744,6 +744,13 @@
                 }
 
                 window.isAdminUser = user.email === ADMIN_EMAIL || userDocData.isAdmin === true;
+                // Update panel title based on whether this is the real owner
+                setTimeout(() => {
+                    const pt = document.getElementById('main-panel-title');
+                    const pb = document.getElementById('panel-badge-label');
+                    if (pt) pt.textContent = user.email === ADMIN_EMAIL ? 'Owner Panel' : 'Admin Panel';
+                    if (pb) pb.textContent = user.email === ADMIN_EMAIL ? 'Owner only' : 'Admin only';
+                }, 150);
                 loadTheme(); // re-apply theme now that isAdminUser is known
                 window.currentDisplayName = userDocData.displayName || '';
                 // If admin was revoked and had matrix theme, clear it locally
@@ -775,7 +782,7 @@
                     document.getElementById('search-wrapper').classList.add('flex');
                     window.switchTab(window.isAdminUser ? 1 : 0);
                     if (window.isAdminUser) {
-                        const isOwnerInit = window.isAdminUser === true;
+                        const isOwnerInit = auth.currentUser?.email === ADMIN_EMAIL;
                         const siteReqSectionInit = document.getElementById('site-requests-section');
                         const adminReqSectionInit = document.getElementById('admin-requests-section');
                         const catReqSectionInit = document.getElementById('cat-requests-section');
@@ -2325,7 +2332,7 @@
             if (mapping.contentId === 'content-chat') { window.initChat(); window.startTypingListener(); }
             if (mapping.contentId === 'content-admin') {
                 populateAdminThemeGrid();
-                const isOwnerNow = window.isAdminUser === true;
+                const isOwnerNow = auth.currentUser?.email === ADMIN_EMAIL;
                 const siteReqSection = document.getElementById('site-requests-section');
                 const adminReqSection = document.getElementById('admin-requests-section');
                 const catReqSection = document.getElementById('cat-requests-section');
@@ -2635,12 +2642,15 @@
             let idx = 0;
 
             if (isAdmin) {
+                const isRealOwner = window.currentUser?.email === ADMIN_EMAIL;
+                const panelNavLabel = isRealOwner ? 'Owner Panel' : 'Admin Panel';
+                const panelNavIcon = isRealOwner ? 'fa-star' : 'fa-crown';
                 html += `
                     <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                        <i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span>
+                        <i class="fa-solid ${panelNavIcon} w-5"></i> <span>${panelNavLabel}</span>
                     </div>
                 `;
-                window.tabMapping.push({contentId: 'content-admin', title: 'Admin Panel', icon: 'fa-crown'});
+                window.tabMapping.push({contentId: 'content-admin', title: panelNavLabel, icon: panelNavIcon});
                 idx++;
                 html += '<div class="sidebar-separator mx-6"></div>';
             }
