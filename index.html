@@ -830,13 +830,21 @@
 
                 // Watch this user's own doc for ban or admin changes made by the owner
                 userDocListener = onSnapshot(doc(db, "users", user.uid), async (snap) => {
-                    if (!window.initialLoadComplete || !snap.exists()) return;
+                    if (!window.initialLoadComplete) return;
+                    // Doc deleted — user was removed by owner
+                    if (!snap.exists()) {
+                        await signOut(auth);
+                        alert("Your account has been removed by the owner.");
+                        return;
+                    }
                     const data = snap.data();
+                    // Banned — sign out immediately
                     if (data.banned === true) {
                         await signOut(auth);
                         alert("Your account has been banned. Please contact the administrator.");
                         return;
                     }
+                    // Admin status changed — show refresh modal
                     const newIsAdmin = data.isAdmin === true || user.email === ADMIN_EMAIL;
                     if (newIsAdmin !== window.isAdminUser) {
                         document.getElementById('refresh-modal').classList.add('show');
