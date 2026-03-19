@@ -844,13 +844,16 @@
                 loadTheme(); // re-apply theme now that isAdminUser is known
                 window.currentDisplayName = userDocData.displayName || '';
                 // Always write to public usernames lookup on every login
-                // This registers existing users who signed up before this feature
                 const _nameToRegister = userDocData.displayName || user.email.split('@')[0];
                 try {
-                    await setDoc(doc(db, "usernames", _nameToRegister.toLowerCase()), {
-                        uid: user.uid,
-                        displayName: _nameToRegister
-                    });
+                    const _existingName = await getDoc(doc(db, "usernames", _nameToRegister.toLowerCase()));
+                    // Only write if not taken by someone else
+                    if (!_existingName.exists() || _existingName.data().uid === user.uid) {
+                        await setDoc(doc(db, "usernames", _nameToRegister.toLowerCase()), {
+                            uid: user.uid,
+                            displayName: _nameToRegister
+                        });
+                    }
                 } catch(_) {}
                 // If admin was revoked and had matrix theme, clear it locally
                 if (!window.isAdminUser && localStorage.getItem('starlinkSpecialTheme') === 'matrix') {
@@ -997,7 +1000,12 @@
                 } else {
                     const signupUsername = document.getElementById('signup-username').value.trim();
                     if (!signupUsername) { alert('Please choose a username before signing up.'); return; }
-window._signingUp = true;
+                    // Check username uniqueness before creating account
+                    try {
+                        const _takenSnap = await getDoc(doc(db, "usernames", signupUsername.toLowerCase()));
+                        if (_takenSnap.exists()) { alert(`Username "${signupUsername}" is already taken. Please choose a different one.`); return; }
+                    } catch(_) {}
+                    window._signingUp = true;
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
                     await setDoc(doc(db, "users", cred.user.uid), {
                         email,
@@ -2183,8 +2191,9 @@ window._signingUp = true;
             if (!me) return;
             try {
                 // Look up user via public usernames collection
+                // Try exact match first, then case-insensitive
                 const usernameSnap = await getDoc(doc(db, "usernames", username.toLowerCase()));
-                if (!usernameSnap.exists()) return alert(`No user found with username "${username}"`);
+                if (!usernameSnap.exists()) return alert(`No user found with username "${username}". They may need to log out and back in to register.`);
                 const targetUid = usernameSnap.data().uid;
                 const targetDisplayName = usernameSnap.data().displayName;
                 // Create a fake doc-like object for compatibility
@@ -2647,7 +2656,7 @@ window._signingUp = true;
             if (mapping.contentId === 'content-chat') { window.openGlobalChat(); window.startTypingListener(); window.loadFriendsList(); }
             if (mapping.contentId === 'content-admin') {
                 populateAdminThemeGrid();
-                const isOwnerNow = auth.currentUser?.email === ADMIN_EMAIL;
+                const isOwnerNow = window.firebaseAuth?.auth?.currentUser?.email === ADMIN_EMAIL;
                 const siteReqSection = document.getElementById('site-requests-section');
                 const adminReqSection = document.getElementById('admin-requests-section');
                 const catReqSection = document.getElementById('cat-requests-section');
