@@ -280,8 +280,21 @@
                             <span id="toggle-link" class="text-[var(--accent)] cursor-pointer hover:underline">Don't have an account? Sign Up</span>
                         </p>
                     </div>
-                    <div id="user-info" class="hidden text-center mt-12">
-                        <p class="text-2xl mb-8">Logged in as: <span id="user-email" class="font-bold text-[var(--accent)]"></span></p>
+                    <div id="user-info" class="hidden text-center mt-8">
+                        <!-- Role badge -->
+                        <div id="account-role-badge" class="inline-block mb-4 px-5 py-1.5 rounded-full text-sm font-bold tracking-wide"></div>
+                        <!-- Display name -->
+                        <div id="account-display-name" class="text-4xl font-bold logo-font tracking-tight mb-1"></div>
+                        <p class="text-white/50 text-sm mb-8"><span id="user-email" class="text-[var(--accent)]"></span></p>
+                        <!-- Display name editor -->
+                        <div class="glass rounded-2xl p-6 mb-6 text-left">
+                            <label class="text-xs text-white/50 block mb-2 font-medium">Display Name</label>
+                            <div class="flex gap-3">
+                                <input id="display-name-input" type="text" placeholder="Set your display name..." maxlength="24" style="margin:0;flex:1;">
+                                <button onclick="window.saveDisplayName()" class="auth-btn" style="width:auto;padding:0.75rem 1.5rem;margin:0;font-size:1rem;">Save</button>
+                            </div>
+                            <p id="display-name-msg" class="text-xs mt-2 hidden"></p>
+                        </div>
                         <button onclick="changeEmail()" class="github-style-btn"><i class="fa-solid fa-envelope"></i> Change Email</button>
                         <button onclick="changePassword()" class="github-style-btn"><i class="fa-solid fa-key"></i> Change Password</button>
                         <button onclick="deleteAccount()" class="github-style-btn"><i class="fa-solid fa-trash-can"></i> Delete Account</button>
@@ -346,6 +359,33 @@
                         <textarea id="cat-req-reason" rows="4" placeholder="Why should this category be added? What sites would go in it?" class="w-full" style="resize:vertical;"></textarea>
                         <button onclick="window.submitCategoryRequest()" class="auth-btn w-full mt-2">Submit Request</button>
                         <p id="cat-req-message" class="text-center text-sm mt-4 hidden"></p>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- LIVE CHAT TAB -->
+            <div id="content-chat" class="tab-content hidden">
+                <div class="max-w-3xl mx-auto" style="height:calc(100vh - 10rem);display:flex;flex-direction:column;">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-2xl font-bold logo-font tracking-tight">Live Chat</h2>
+                        <span id="chat-online-count" class="text-xs text-white/50 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span>
+                            <span id="chat-online-num">0</span> online
+                        </span>
+                    </div>
+                    <!-- Messages -->
+                    <div id="chat-messages" class="flex-1 overflow-y-auto glass rounded-3xl p-6 mb-4 space-y-3" style="min-height:0;">
+                        <p class="text-center text-white/30 text-sm">Loading messages...</p>
+                    </div>
+                    <!-- Input -->
+                    <div class="flex gap-3">
+                        <input id="chat-input" type="text" placeholder="Say something..." maxlength="300"
+                            style="flex:1;margin:0;"
+                            onkeydown="if(event.key==='Enter')window.sendChatMessage()">
+                        <button onclick="window.sendChatMessage()" class="auth-btn" style="width:auto;padding:0.9rem 1.75rem;margin:0;font-size:1rem;">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -650,8 +690,10 @@
                 }
 
                 window.isAdminUser = user.email === ADMIN_EMAIL || userDocData.isAdmin === true;
+                window.currentDisplayName = userDocData.displayName || '';
 
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
+                window.updateAccountTab(user, userDocData);
                 userInfo?.classList.remove('hidden');
                 document.getElementById('user-email').textContent = user.email;
                 authForm?.classList.add('hidden');
@@ -736,6 +778,7 @@
 
             } else {
                 window.stopPresence();
+                window.stopChat();
                 document.getElementById('search-wrapper').classList.add('hidden');
                 document.getElementById('search-wrapper').classList.remove('flex');
                 statusEl.textContent = '';
@@ -1695,6 +1738,120 @@
             } catch(e) { alert('Error: ' + e.message); }
         };
 
+
+        // ── Account tab: role badge + display name ──
+        window.updateAccountTab = (user, docData) => {
+            const isOwner = user.email === ADMIN_EMAIL;
+            const isUserAdmin = docData?.isAdmin === true || isOwner;
+            const displayName = docData?.displayName || '';
+
+            // Role badge
+            const badge = document.getElementById('account-role-badge');
+            if (badge) {
+                if (isOwner) {
+                    badge.textContent = '★ Owner';
+                    badge.style.cssText = 'background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;';
+                } else if (isUserAdmin) {
+                    badge.textContent = '⚡ Admin';
+                    badge.style.cssText = 'background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;';
+                } else {
+                    badge.textContent = '● User';
+                    badge.style.cssText = 'background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);';
+                }
+            }
+
+            // Display name
+            const nameEl = document.getElementById('account-display-name');
+            const nameInput = document.getElementById('display-name-input');
+            if (nameEl) nameEl.textContent = displayName || user.email.split('@')[0];
+            if (nameInput) nameInput.value = displayName;
+        };
+
+        window.saveDisplayName = async () => {
+            const val = document.getElementById('display-name-input').value.trim();
+            const msgEl = document.getElementById('display-name-msg');
+            if (!val) { msgEl.textContent = 'Display name cannot be empty.'; msgEl.className = 'text-xs mt-2 error'; msgEl.classList.remove('hidden'); return; }
+            if (val.length > 24) { msgEl.textContent = 'Max 24 characters.'; msgEl.className = 'text-xs mt-2 error'; msgEl.classList.remove('hidden'); return; }
+            try {
+                const user = auth.currentUser;
+                await setDoc(doc(db, "users", user.uid), { displayName: val }, { merge: true });
+                window.currentDisplayName = val;
+                document.getElementById('account-display-name').textContent = val;
+                msgEl.textContent = 'Display name saved!';
+                msgEl.className = 'text-xs mt-2 success';
+                msgEl.classList.remove('hidden');
+                setTimeout(() => msgEl.classList.add('hidden'), 3000);
+            } catch(e) { msgEl.textContent = 'Error: ' + e.message; msgEl.className = 'text-xs mt-2 error'; msgEl.classList.remove('hidden'); }
+        };
+
+        // ── Live Chat ──
+        let chatListener = null;
+        window.currentDisplayName = '';
+
+        window.initChat = () => {
+            if (chatListener) return; // already listening
+            const messagesEl = document.getElementById('chat-messages');
+            const q = query(collection(db, "chat"), orderBy("sentAt", "asc"));
+            chatListener = onSnapshot(q, (snap) => {
+                if (!messagesEl) return;
+                messagesEl.innerHTML = '';
+                if (snap.empty) {
+                    messagesEl.innerHTML = '<p class="text-center text-white/30 text-sm py-8">No messages yet. Say hi! 👋</p>';
+                    return;
+                }
+                snap.forEach(d => {
+                    const m = d.data();
+                    const isMe = m.uid === auth.currentUser?.uid;
+                    const isOwnerMsg = m.email === ADMIN_EMAIL;
+                    const isMsgAdmin = m.isAdmin === true || isOwnerMsg;
+                    const roleBadge = isOwnerMsg
+                        ? `<span style="font-size:0.65rem;padding:0.15rem 0.5rem;border-radius:99px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;font-weight:700;margin-left:0.4rem;">Owner</span>`
+                        : isMsgAdmin
+                            ? `<span style="font-size:0.65rem;padding:0.15rem 0.5rem;border-radius:99px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;font-weight:700;margin-left:0.4rem;">Admin</span>`
+                            : '';
+                    const time = m.sentAt ? new Date(m.sentAt.toDate()).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+                    const div = document.createElement('div');
+                    div.className = `flex ${isMe ? 'justify-end' : 'justify-start'}`;
+                    div.innerHTML = `
+                        <div style="max-width:75%;">
+                            <div class="flex items-center gap-2 mb-1 ${isMe ? 'justify-end' : ''}">
+                                <span class="text-xs font-semibold text-[var(--accent)]">${m.displayName || m.email?.split('@')[0] || 'Unknown'}${roleBadge}</span>
+                                <span class="text-xs text-white/30">${time}</span>
+                            </div>
+                            <div style="padding:0.6rem 1rem;border-radius:1rem;${isMe ? 'background:var(--accent);color:#000;border-bottom-right-radius:0.2rem;' : 'background:rgba(255,255,255,0.08);border-bottom-left-radius:0.2rem;'}">${m.text}</div>
+                        </div>`;
+                    messagesEl.appendChild(div);
+                });
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+            });
+        };
+
+        window.sendChatMessage = async () => {
+            const input = document.getElementById('chat-input');
+            const text = input?.value.trim();
+            if (!text) return;
+            const user = auth.currentUser;
+            if (!user) return;
+            try {
+                const userSnap = await getDoc(doc(db, "users", user.uid));
+                const userData = userSnap.exists() ? userSnap.data() : {};
+                const isOwner = user.email === ADMIN_EMAIL;
+                await addDoc(collection(db, "chat"), {
+                    text,
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: userData.displayName || user.email.split('@')[0],
+                    isAdmin: userData.isAdmin === true || isOwner,
+                    sentAt: serverTimestamp()
+                });
+                input.value = '';
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
+        window.stopChat = () => {
+            if (chatListener) { chatListener(); chatListener = null; }
+        };
+
         window.loadAllSites = window.loadAllSites;
         window.populateAllGrids = window.populateAllGrids;
         window.showGlobalAnnouncement = window.showGlobalAnnouncement;
@@ -1717,6 +1874,11 @@
         window.rejectSiteRequest = window.rejectSiteRequest;
         window.startPresence = window.startPresence;
         window.stopPresence = window.stopPresence;
+        window.updateAccountTab = window.updateAccountTab;
+        window.saveDisplayName = window.saveDisplayName;
+        window.initChat = window.initChat;
+        window.sendChatMessage = window.sendChatMessage;
+        window.stopChat = window.stopChat;
         window.submitAdminRequest = window.submitAdminRequest;
         window.cancelAdminRequest = window.cancelAdminRequest;
         window.checkExistingAdminRequest = window.checkExistingAdminRequest;
@@ -1753,6 +1915,7 @@
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(mapping.contentId)?.classList.remove('hidden');
             if (mapping.contentId === 'content-request-admin') window.checkExistingAdminRequest();
+            if (mapping.contentId === 'content-chat') window.initChat();
             if (mapping.contentId === 'content-admin') {
                 const isOwnerNow = auth.currentUser?.email === ADMIN_EMAIL;
                 const siteReqSection = document.getElementById('site-requests-section');
@@ -1995,6 +2158,14 @@
                 </div>
             `;
             window.tabMapping.push({contentId: 'content-home', title: 'Home', icon: 'fa-house'});
+            idx++;
+
+            html += `
+                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                    <i class="fa-solid fa-comments w-5"></i> <span>Live Chat</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-chat', title: 'Live Chat', icon: 'fa-comments'});
             idx++;
 
             (window.allCategories || []).forEach(cat => {
