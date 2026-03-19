@@ -428,15 +428,6 @@
                     <h3 class="text-2xl font-semibold mb-6">Appearance • Choose Theme</h3>
                     <p class="text-white/70 mb-8">Click a color to instantly change the accent, stars, glow, and sidebar highlights</p>
                     <div id="theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div>
-                    <!-- Admin only themes -->
-                    <div id="admin-themes-section" class="hidden mt-12 pt-8 border-t border-white/10">
-                        <h3 class="text-2xl font-semibold mb-2 flex items-center gap-3">
-                            <i class="fa-solid fa-crown text-yellow-400"></i> Admin Only Themes
-                        </h3>
-                        <p class="text-white/50 text-sm mb-6">Exclusive themes available only to admins and the owner.</p>
-                        <div id="admin-theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div>
-                    </div>
-
                     <div class="mt-12 pt-8 border-t border-white/10">
                         <h3 class="text-2xl font-semibold mb-6 text-red-400">Danger Zone</h3>
                         <button onclick="resetEverything()" class="bg-red-600 hover:bg-red-700 text-white font-medium py-4 px-8 rounded-xl transition-colors text-lg">
@@ -560,6 +551,17 @@
                             </div>
                             <button onclick="window.clearChat()" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-8 rounded-2xl transition-colors" style="width:auto;margin:0;font-size:1rem;">Clear Chat</button>
                         </div>
+                    </div>
+
+                    <!-- Admin Only Themes -->
+                    <div class="mb-16">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-semibold flex items-center gap-3">
+                                <i class="fa-solid fa-crown text-yellow-400"></i> Admin Only Themes
+                            </h3>
+                        </div>
+                        <p class="text-white/50 text-sm mb-6">Exclusive themes only available to admins and the owner. Selecting one applies it immediately.</p>
+                        <div id="admin-theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div>
                     </div>
 
                     <!-- Categories Management -->
@@ -2090,6 +2092,7 @@
             if (mapping.contentId === 'content-request-admin') window.checkExistingAdminRequest();
             if (mapping.contentId === 'content-chat') { window.initChat(); window.startTypingListener(); }
             if (mapping.contentId === 'content-admin') {
+                populateAdminThemeGrid();
                 const isOwnerNow = auth.currentUser?.email === ADMIN_EMAIL;
                 const siteReqSection = document.getElementById('site-requests-section');
                 const adminReqSection = document.getElementById('admin-requests-section');
@@ -2323,36 +2326,33 @@
                 cont.appendChild(el);
             });
 
-            // Admin themes section
-            const adminSection = document.getElementById('admin-themes-section');
-            const adminCont = document.getElementById('admin-theme-grid');
-            if (!adminSection || !adminCont) return;
-            if (window.isAdminUser) {
-                adminSection.classList.remove('hidden');
-                adminCont.innerHTML = '';
-                const adminThemes = [
-                    {name:"Matrix", color:"#00ff41", special:"matrix",
-                     preview:`<div style="background:#000;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:monospace;color:#00ff41;font-size:1.1rem;letter-spacing:2px;overflow:hidden;position:relative;">
-                        <span style="position:absolute;opacity:0.5;font-size:0.65rem;line-height:1.1;letter-spacing:1px;top:2px;left:4px;color:#00ff41;">01101<br>10010<br>01011</span>
-                        <span style="font-size:2rem;">⬛</span>
-                        <span style="position:absolute;opacity:0.5;font-size:0.65rem;line-height:1.1;letter-spacing:1px;bottom:2px;right:4px;color:#00ff41;">10100<br>01101</span>
-                     </div>`}
-                ];
-                adminThemes.forEach(t => {
-                    const el = document.createElement('div');
-                    el.className = 'cursor-pointer rounded-2xl overflow-hidden border-2 border-transparent hover:border-white/50 transition-all shadow-md relative';
-                    el.innerHTML = `
-                        <div class="h-24 relative">${t.preview}</div>
-                        <div class="text-center py-3 text-xs font-medium bg-black/70 flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-crown text-yellow-400" style="font-size:0.6rem;"></i> ${t.name}
-                        </div>
-                    `;
-                    el.onclick = () => setTheme(t.color, t.special);
-                    adminCont.appendChild(el);
-                });
-            } else {
-                adminSection.classList.add('hidden');
-            }
+        }
+
+        function populateAdminThemeGrid() {
+            const cont = document.getElementById('admin-theme-grid');
+            if (!cont) return;
+            cont.innerHTML = '';
+            const adminThemes = [
+                {name:"Matrix", color:"#00ff41", special:"matrix",
+                 preview:`<div style="background:#000;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:monospace;color:#00ff41;overflow:hidden;position:relative;">
+                    <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;top:2px;left:4px;color:#00ff41;">01101<br>10010<br>01011<br>11001</span>
+                    <span style="font-size:1.8rem;">💻</span>
+                    <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;bottom:2px;right:4px;color:#00ff41;">10100<br>01101<br>11010</span>
+                 </div>`}
+            ];
+            adminThemes.forEach(t => {
+                const isActive = localStorage.getItem('starlinkSpecialTheme') === t.special;
+                const el = document.createElement('div');
+                el.className = `cursor-pointer rounded-2xl overflow-hidden border-2 transition-all shadow-md ${isActive ? 'border-yellow-400' : 'border-transparent hover:border-white/50'}`;
+                el.innerHTML = `
+                    <div class="h-24 relative">${t.preview}</div>
+                    <div class="text-center py-3 text-xs font-medium bg-black/70 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-crown text-yellow-400" style="font-size:0.6rem;"></i> ${t.name}${isActive ? ' ✓' : ''}
+                    </div>
+                `;
+                el.onclick = () => { setTheme(t.color, t.special); populateAdminThemeGrid(); };
+                cont.appendChild(el);
+            });
         }
 
         function populateGrid(catKey, gridId) {
