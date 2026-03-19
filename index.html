@@ -396,11 +396,14 @@
                     <div id="chat-messages" class="flex-1 overflow-y-auto glass rounded-3xl p-6 mb-4 space-y-3" style="min-height:0;">
                         <p class="text-center text-white/30 text-sm">Loading messages...</p>
                     </div>
+                    <!-- Typing indicator -->
+                    <div id="typing-indicator" class="text-xs text-white/40 italic mb-2 h-4 px-1"></div>
                     <!-- Input -->
                     <div class="flex gap-3">
                         <input id="chat-input" type="text" placeholder="Say something..." maxlength="300"
                             style="flex:1;margin:0;"
-                            onkeydown="if(event.key==='Enter')window.sendChatMessage()">
+                            onkeydown="if(event.key==='Enter')window.sendChatMessage()"
+                            oninput="window.handleTyping()">
                         <button onclick="window.sendChatMessage()" class="auth-btn" style="width:auto;padding:0.9rem 1.75rem;margin:0;font-size:1rem;">
                             <i class="fa-solid fa-paper-plane"></i>
                         </button>
@@ -816,6 +819,7 @@
             } else {
                 window.stopPresence();
                 window.stopChat();
+                window.stopTypingListener();
                 document.getElementById('search-wrapper').classList.add('hidden');
                 document.getElementById('search-wrapper').classList.remove('flex');
                 statusEl.textContent = '';
@@ -1884,6 +1888,64 @@
             });
         };
 
+
+        // ── Typing indicator ──
+        let typingTimeout = null;
+        let typingListener = null;
+
+        window.handleTyping = () => {
+            const user = auth.currentUser;
+            if (!user) return;
+            const uid = user.uid;
+            const typingRef = doc(db, "typing", uid);
+            const displayName = window.currentDisplayName || user.email.split('@')[0];
+
+            // Write typing doc with expiry timestamp
+            setDoc(typingRef, { uid, displayName, typingAt: serverTimestamp() });
+
+            // Clear after 3s of no typing
+            if (typingTimeout) clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(async () => {
+                try { await deleteDoc(typingRef); } catch(_) {}
+            }, 3000);
+        };
+
+        window.startTypingListener = () => {
+            if (typingListener) return;
+            typingListener = onSnapshot(collection(db, "typing"), (snap) => {
+                const indicator = document.getElementById('typing-indicator');
+                if (!indicator) return;
+                const myUid = auth.currentUser?.uid;
+                const now = Date.now();
+                const others = [];
+                snap.forEach(d => {
+                    const data = d.data();
+                    if (data.uid === myUid) return; // don't show yourself
+                    // Only show if typingAt is within last 4s
+                    if (data.typingAt && (now - data.typingAt.toMillis()) < 4000) {
+                        others.push(data.displayName || 'Someone');
+                    }
+                });
+                if (!others.length) {
+                    indicator.textContent = '';
+                } else if (others.length === 1) {
+                    indicator.textContent = `${others[0]} is typing...`;
+                } else if (others.length === 2) {
+                    indicator.textContent = `${others[0]} and ${others[1]} are typing...`;
+                } else {
+                    indicator.textContent = `${others.length} people are typing...`;
+                }
+            });
+        };
+
+        window.stopTypingListener = () => {
+            if (typingListener) { typingListener(); typingListener = null; }
+            // Clean up own typing doc
+            const user = auth.currentUser;
+            if (user) { try { deleteDoc(doc(db, "typing", user.uid)); } catch(_) {} }
+            if (typingTimeout) { clearTimeout(typingTimeout); typingTimeout = null; }
+        };
+
         window.deleteChatMessage = async (msgId) => {
             try {
                 await deleteDoc(doc(db, "chat", msgId));
@@ -1907,6 +1969,9 @@
                     sentAt: serverTimestamp()
                 });
                 input.value = '';
+                // Clear typing indicator immediately on send
+                if (typingTimeout) clearTimeout(typingTimeout);
+                try { await deleteDoc(doc(db, "typing", user.uid)); } catch(_) {}
             } catch(e) { alert('Error: ' + e.message); }
         };
 
@@ -1955,6 +2020,9 @@
         window.stopChat = window.stopChat;
         window.clearChat = window.clearChat;
         window.deleteChatMessage = window.deleteChatMessage;
+        window.handleTyping = window.handleTyping;
+        window.startTypingListener = window.startTypingListener;
+        window.stopTypingListener = window.stopTypingListener;
         window.submitAdminRequest = window.submitAdminRequest;
         window.cancelAdminRequest = window.cancelAdminRequest;
         window.checkExistingAdminRequest = window.checkExistingAdminRequest;
@@ -1991,7 +2059,7 @@
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(mapping.contentId)?.classList.remove('hidden');
             if (mapping.contentId === 'content-request-admin') window.checkExistingAdminRequest();
-            if (mapping.contentId === 'content-chat') window.initChat();
+            if (mapping.contentId === 'content-chat') { window.initChat(); window.startTypingListener(); }
             if (mapping.contentId === 'content-admin') {
                 const isOwnerNow = auth.currentUser?.email === ADMIN_EMAIL;
                 const siteReqSection = document.getElementById('site-requests-section');
