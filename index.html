@@ -2769,6 +2769,7 @@ window._signingUp = true;
 
         window.openTerminal = () => {
             if (!isOwner()) return;
+            if (!window._termSessionStart) window._termSessionStart = Date.now();
             const el = document.getElementById('owner-terminal');
             el.classList.add('open');
             setTimeout(() => document.getElementById('terminal-input')?.focus(), 50);
@@ -2807,6 +2808,11 @@ window._signingUp = true;
                 print('  <span style="color:#00ff41;font-weight:bold">SITES</span>');
                 info('<span style="color:#fff">sites list</span>                        — list all categories with site counts');
                 info('<span style="color:#fff">site find &lt;name&gt;</span>                 — find a site and get its ID');
+                info('<span style="color:#fff">site edit &lt;id&gt; name &lt;value&gt;</span>     — rename a site');
+                info('<span style="color:#fff">site edit &lt;id&gt; url &lt;value&gt;</span>      — change a site URL');
+                info('<span style="color:#fff">site edit &lt;id&gt; icon &lt;emoji&gt;</span>     — change a site icon');
+                info('<span style="color:#fff">site move &lt;id&gt; &lt;newcat&gt;</span>         — move a site to a different category');
+                info('<span style="color:#fff">site top [cat]</span>                    — show most recently added sites');
                 info('<span style="color:#fff">site add &lt;cat&gt; &lt;name&gt; &lt;url&gt; [icon] [desc]</span> — add a site');
                 info('<span style="color:#fff">site del &lt;id&gt;</span>                    — delete a site by ID');
                 info('<span style="color:#fff">random [cat]</span>                      — open a random site');
@@ -2823,11 +2829,15 @@ window._signingUp = true;
                 info('<span style="color:#fff">user admin &lt;email&gt;</span>               — grant admin');
                 info('<span style="color:#fff">user unadmin &lt;email&gt;</span>             — revoke admin');
                 info('<span style="color:#fff">user del &lt;email&gt;</span>                 — delete a user record');
+                info('<span style="color:#fff">user info &lt;email&gt;</span>               — show full details on a user');
+                info('<span style="color:#fff">users admins</span>                      — list only admins');
+                info('<span style="color:#fff">users banned</span>                      — list only banned users');
                 info('<span style="color:#fff">user rename &lt;email&gt; &lt;newname&gt;</span>    — change a users username');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">ANNOUNCEMENTS</span>');
                 info('<span style="color:#fff">announce &lt;message&gt;</span>               — publish a global announcement');
                 info('<span style="color:#fff">announce clear</span>                    — clear the current announcement');
+                info('<span style="color:#fff">announce show</span>                     — show the current live announcement');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">REQUESTS</span>');
                 info('<span style="color:#fff">requests site</span>                     — list pending site requests');
@@ -2843,14 +2853,22 @@ window._signingUp = true;
                 print('  <span style="color:#00ff41;font-weight:bold">CHAT</span>');
                 info('<span style="color:#fff">chat clear</span>                        — delete all chat messages');
                 info('<span style="color:#fff">chat say &lt;message&gt;</span>               — send a chat message as yourself');
+                info('<span style="color:#fff">chat count</span>                        — show total message count');
+                info('<span style="color:#fff">chat last &lt;n&gt;</span>                    — show last N chat messages');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">THEME</span>');
                 info('<span style="color:#fff">theme matrix</span>                      — activate matrix theme');
                 info('<span style="color:#fff">theme &lt;#hex&gt;</span>                      — set accent color');
                 info('<span style="color:#fff">theme reset</span>                       — reset to default white');
+                info('<span style="color:#fff">theme list</span>                        — show all available accent colors');
+                info('<span style="color:#fff">theme current</span>                     — show current active theme');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">SYSTEM</span>');
                 info('<span style="color:#fff">stats</span>                             — show site statistics');
+                info('<span style="color:#fff">ping</span>                              — check Firebase connectivity');
+                info('<span style="color:#fff">reload</span>                            — refresh all site and category data');
+                info('<span style="color:#fff">version</span>                           — show site version info');
+                info('<span style="color:#fff">uptime</span>                            — show current session uptime');
                 info('<span style="color:#fff">whoami</span>                            — show your info');
                 info('<span style="color:#fff">online</span>                            — show online count');
                 info('<span style="color:#fff">goto &lt;tab&gt;</span>                        — navigate to a tab');
@@ -3071,6 +3089,194 @@ window._signingUp = true;
                     document.getElementById('chat-input').value = msg;
                     await window.sendChatMessage(); ok(`Sent: "${msg}"`);
                 } else err(`Unknown: ${args[0]}`);
+                return;
+            }
+
+
+            // ── SITE EDIT ──
+            if (c === 'site' && args[0] === 'edit') {
+                const id = args[1], field = args[2], value = args.slice(3).join(' ');
+                if (!id||!field||!value) return err('Usage: site edit <id> name|url|icon <value>');
+                const allowed = ['name','url','icon','desc'];
+                if (!allowed.includes(field)) return err(`Field must be: ${allowed.join(', ')}`);
+                try {
+                    const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    await setDoc(doc(window.db, "sites", id), { [field]: value }, { merge: true });
+                    await window.loadAllSites(); window.populateAllGrids(); window.reloadAdminSites();
+                    ok(`Site ${field} updated to "${value}"`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── SITE MOVE ──
+            if (c === 'site' && args[0] === 'move') {
+                const id = args[1], newcat = args[2];
+                if (!id||!newcat) return err('Usage: site move <id> <newcat>');
+                if (!(window.allCategories||[]).some(cat => cat.key===newcat)) return err(`Category "${newcat}" not found. Use cat list to see keys.`);
+                try {
+                    const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    await setDoc(doc(window.db, "sites", id), { category: newcat }, { merge: true });
+                    await window.loadAllSites(); window.populateAllGrids(); window.reloadAdminSites();
+                    ok(`Site moved to ${newcat}`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── SITE TOP ──
+            if (c === 'site' && args[0] === 'top') {
+                const catKey = args[1]?.toLowerCase();
+                let pool = [];
+                if (catKey) { pool = window.allSites?.[catKey]||[]; if (!pool.length) return err(`No sites in: ${catKey}`); }
+                else (window.allCategories||[]).forEach(cat => pool.push(...(window.allSites?.[cat.key]||[])));
+                pool.slice(0, 10).forEach((s, i) => info(`${i+1}. <span style="color:#fff">${s.name}</span> [${s.category}] id:<span style="color:#a0a0a0">${s.id?.slice(0,8)}</span>`));
+                return;
+            }
+
+            // ── USER INFO ──
+            if (c === 'user' && args[0] === 'info') {
+                const email = args[1];
+                if (!email) return err('Usage: user info <email>');
+                try {
+                    const docs = await window._termGetUsers();
+                    const match = docs.find(d => d.data().email?.toLowerCase()===email.toLowerCase());
+                    if (!match) return err(`User not found: ${email}`);
+                    const data = match.data();
+                    const role = data.email===window.ADMIN_EMAIL ? '★ Owner' : data.isAdmin ? '⚡ Admin' : data.banned ? '🚫 Banned' : '● User';
+                    const joined = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '—';
+                    info(`Email:    <span style="color:#fff">${data.email}</span>`);
+                    info(`Username: <span style="color:#fff">${data.displayName||'not set'}</span>`);
+                    info(`Role:     <span style="color:#fff">${role}</span>`);
+                    info(`Joined:   <span style="color:#fff">${joined}</span>`);
+                    info(`Banned:   <span style="color:#fff">${data.banned===true ? 'Yes' : 'No'}</span>`);
+                    info(`UID:      <span style="color:#a0a0a0">${match.id}</span>`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── USERS ADMINS / BANNED ──
+            if (c === 'users' && (args[0]==='admins'||args[0]==='banned')) {
+                try {
+                    const docs = await window._termGetUsers();
+                    const filtered = docs.filter(d => args[0]==='admins'
+                        ? (d.data().isAdmin===true && d.data().email!==window.ADMIN_EMAIL)
+                        : d.data().banned===true);
+                    if (!filtered.length) return info(`No ${args[0]} users found.`);
+                    filtered.forEach(d => {
+                        const data = d.data();
+                        info(`<span style="color:#fff">${data.displayName||'—'}</span> &lt;${data.email}&gt;`);
+                    });
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── ANNOUNCE SHOW ──
+            if (c === 'announce' && args[0] === 'show') {
+                try {
+                    const { getDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap = await getDoc(doc(window.db, "config", "announcement"));
+                    if (snap.exists() && snap.data().message?.trim()) {
+                        info(`Current announcement: <span style="color:#fff">${snap.data().message}</span>`);
+                        if (snap.data().publisherName) info(`Published by: <span style="color:#fff">${snap.data().publisherName} (${snap.data().publisherRole})</span>`);
+                    } else {
+                        info('No active announcement.');
+                    }
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── CHAT COUNT ──
+            if (c === 'chat' && args[0] === 'count') {
+                try {
+                    const { getDocs, collection } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap = await getDocs(collection(window.db, "chat"));
+                    info(`Total chat messages: <span style="color:#fff">${snap.size}</span>`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── CHAT LAST ──
+            if (c === 'chat' && args[0] === 'last') {
+                const n = parseInt(args[1]) || 5;
+                try {
+                    const { getDocs, collection, query, orderBy, limit } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap = await getDocs(query(collection(window.db, "chat"), orderBy("sentAt","desc"), limit(n)));
+                    const msgs = snap.docs.reverse();
+                    if (!msgs.length) return info('No messages yet.');
+                    msgs.forEach(d => {
+                        const m = d.data();
+                        const time = m.sentAt ? new Date(m.sentAt.toDate()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
+                        info(`<span style="color:#a0a0a0">${time}</span> <span style="color:#00ff41">${m.displayName||'?'}</span>: <span style="color:#fff">${m.text}</span>`);
+                    });
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── THEME LIST ──
+            if (c === 'theme' && args[0] === 'list') {
+                const themes = [
+                    {name:'White',color:'#ffffff'},{name:'Red',color:'#ef4444'},{name:'Blue',color:'#3b82f6'},
+                    {name:'Green',color:'#10b981'},{name:'Purple',color:'#8b5cf6'},{name:'Pink',color:'#ec4899'},
+                    {name:'Cyan',color:'#22d3ee'},{name:'Yellow',color:'#f59e0b'},{name:'Lime',color:'#84cc16'},
+                    {name:'Teal',color:'#14b8a6'},{name:'Rose',color:'#f43f5e'},{name:'Indigo',color:'#6366f1'},
+                    {name:'Orange',color:'#f97316'},{name:'Magenta',color:'#d946ef'},{name:'Sky Blue',color:'#0ea5e9'},
+                    {name:'Matrix',color:'#00ff41',special:'matrix'}
+                ];
+                themes.forEach(t => info(`<span style="color:${t.color}">■</span> <span style="color:#fff">${t.name}</span> ${t.special?'[admin only] ':''}<span style="color:#a0a0a0">${t.color}</span>`));
+                return;
+            }
+
+            // ── THEME CURRENT ──
+            if (c === 'theme' && args[0] === 'current') {
+                const color = localStorage.getItem('starlinkAccent') || '#ffffff';
+                const special = localStorage.getItem('starlinkSpecialTheme') || '';
+                info(`Accent color: <span style="color:${color}">■</span> <span style="color:#fff">${color}</span>`);
+                if (special) info(`Special theme: <span style="color:#fff">${special}</span>`);
+                return;
+            }
+
+            // ── PING ──
+            if (c === 'ping') {
+                info('Pinging Firebase...');
+                try {
+                    const start = Date.now();
+                    const { getDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    await getDoc(doc(window.db, "config", "announcement"));
+                    const ms = Date.now() - start;
+                    ok(`Firebase reachable — ${ms}ms`);
+                } catch(e) { err(`Firebase unreachable: ${e.message}`); }
+                return;
+            }
+
+            // ── RELOAD ──
+            if (c === 'reload') {
+                info('Reloading data...');
+                try {
+                    await window.loadCategories();
+                    window.createCategoryContents();
+                    await window.loadAllSites();
+                    window.populateAllGrids();
+                    window.reloadAdminSites();
+                    window.populateCategorySelect();
+                    ok('All data reloaded successfully');
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── VERSION ──
+            if (c === 'version') {
+                info('Starlink <span style="color:#fff">v1.0</span>');
+                info(`Built by: <span style="color:#fff">Gunnar Booth</span>`);
+                info(`Firebase SDK: <span style="color:#fff">12.10.0</span>`);
+                return;
+            }
+
+            // ── UPTIME ──
+            if (c === 'uptime') {
+                if (!window._termSessionStart) window._termSessionStart = Date.now();
+                const ms = Date.now() - window._termSessionStart;
+                const mins = Math.floor(ms/60000);
+                const secs = Math.floor((ms%60000)/1000);
+                info(`Session uptime: <span style="color:#fff">${mins}m ${secs}s</span>`);
                 return;
             }
 
