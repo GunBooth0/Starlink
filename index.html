@@ -2044,12 +2044,10 @@
                     const m = d.data();
                     const msgId = d.id;
                     const isMe = m.uid === auth.currentUser?.uid;
-                    const isOwnerMsg = m.email === ADMIN_EMAIL;
-                    // Always derive role live from cache, not from stored isAdmin
-                    const isMsgAdmin = isOwnerMsg || window.chatRolesCache[m.uid] === true;
-                    const roleBadge = isOwnerMsg
+                    const msgRole = m.role || (m.email === ADMIN_EMAIL ? 'Owner' : '');
+                    const roleBadge = msgRole === 'Owner'
                         ? `<span style="font-size:0.65rem;padding:0.15rem 0.5rem;border-radius:99px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;font-weight:700;margin-left:0.4rem;">Owner</span>`
-                        : isMsgAdmin
+                        : msgRole === 'Admin'
                             ? `<span style="font-size:0.65rem;padding:0.15rem 0.5rem;border-radius:99px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;font-weight:700;margin-left:0.4rem;">Admin</span>`
                             : '';
                     const time = m.sentAt ? new Date(m.sentAt.toDate()).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
@@ -2146,11 +2144,13 @@
             try {
                 const userSnap = await getDoc(doc(db, "users", user.uid));
                 const userData = userSnap.exists() ? userSnap.data() : {};
+                const chatRole = user.email === ADMIN_EMAIL ? 'Owner' : userData.isAdmin === true ? 'Admin' : 'User';
                 await addDoc(collection(db, "chat"), {
                     text,
                     uid: user.uid,
                     email: user.email,
                     displayName: userData.displayName || user.email.split('@')[0],
+                    role: chatRole,
                     sentAt: serverTimestamp()
                 });
                 input.value = '';
@@ -2329,12 +2329,18 @@
                     const isMe = m.uid === auth.currentUser?.uid;
                     const time = m.sentAt ? new Date(m.sentAt.toDate()).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
                     const deleteBtn = isMe ? `<button onclick="window.deleteDMMessage('${convoId}','${d.id}')" title="Delete" style="background:transparent;border:none;padding:0;margin:0;width:auto;cursor:pointer;color:rgba(255,255,255,0.3);font-size:0.75rem;" class="hover:text-red-400 transition-colors ml-1">✕</button>` : '';
+                    const dmMsgRole = m.role || '';
+                    const dmRoleBadge = dmMsgRole === 'Owner'
+                        ? `<span style="font-size:0.65rem;padding:0.15rem 0.5rem;border-radius:99px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;font-weight:700;margin-left:0.3rem;">Owner</span>`
+                        : dmMsgRole === 'Admin'
+                            ? `<span style="font-size:0.65rem;padding:0.15rem 0.5rem;border-radius:99px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;font-weight:700;margin-left:0.3rem;">Admin</span>`
+                            : '';
                     const div = document.createElement('div');
                     div.className = `flex ${isMe ? 'justify-end' : 'justify-start'}`;
                     div.innerHTML = `
                         <div style="max-width:75%;">
                             <div class="flex items-center gap-2 mb-1 ${isMe ? 'justify-end' : ''}">
-                                <span class="text-xs font-semibold text-[var(--accent)]">${m.displayName || '?'}</span>
+                                <span class="text-xs font-semibold text-[var(--accent)]">${m.displayName || '?'}${dmRoleBadge}</span>
                                 <span class="text-xs text-white/30">${time}</span>
                                 ${deleteBtn}
                             </div>
@@ -2376,10 +2382,12 @@
                     const userSnap = await getDoc(doc(db, "users", me.uid));
                     const userData = userSnap.exists() ? userSnap.data() : {};
                     const convoId = dmConvoId(me.uid, window.currentDMUser.uid);
+                    const dmRole = me.email === ADMIN_EMAIL ? 'Owner' : userData.isAdmin === true ? 'Admin' : 'User';
                     await addDoc(collection(db, "dms", convoId, "messages"), {
                         text,
                         uid: me.uid,
                         displayName: userData.displayName || me.email.split('@')[0],
+                        role: dmRole,
                         sentAt: serverTimestamp()
                     });
                     input.value = '';
