@@ -2475,12 +2475,20 @@
 
         window.clearChat = async () => {
             if (!window.isAdminUser) return alert('Only admins can do this.');
-            if (!confirm('Delete ALL chat messages permanently? This cannot be undone.')) return;
+            if (!confirm('Delete ALL global chat messages AND all DM conversations permanently? This cannot be undone.')) return;
             try {
-                const snap = await getDocs(collection(db, "chat"));
-                const deletes = snap.docs.map(d => deleteDoc(doc(db, "chat", d.id)));
-                await Promise.all(deletes);
-                alert('Chat cleared successfully.');
+                // Clear global chat
+                const globalSnap = await getDocs(collection(db, "chat"));
+                await Promise.all(globalSnap.docs.map(d => deleteDoc(doc(db, "chat", d.id))));
+
+                // Clear all DM conversations
+                const dmsSnap = await getDocs(collection(db, "dms"));
+                for (const convoDoc of dmsSnap.docs) {
+                    const msgsSnap = await getDocs(collection(db, "dms", convoDoc.id, "messages"));
+                    await Promise.all(msgsSnap.docs.map(d => deleteDoc(doc(db, "dms", convoDoc.id, "messages", d.id))));
+                }
+
+                alert('All chats cleared (global + all DMs).');
             } catch(e) { alert('Error: ' + e.message); }
         };
 
@@ -3462,7 +3470,6 @@
             // ── CHAT ──
             if (c === 'chat') {
                 if (args[0]==='clear') {
-                    if (!confirm('Clear all chat?')) return info('Cancelled.');
                     await window.clearChat(); ok('Chat cleared');
                 } else if (args[0]==='say') {
                     const msg = args.slice(1).join(' ');
