@@ -314,11 +314,11 @@
                             <div class="space-y-4">
                                 <div class="flex items-center gap-4 p-4 rounded-2xl bg-black/30">
                                     <span style="padding:0.25rem 0.9rem;border-radius:99px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;font-weight:700;font-size:0.8rem;white-space:nowrap;">★ Owner</span>
-                                    <p class="text-white/70 text-sm">The site creator. Full control over everything — users, content, admins, and settings.</p>
+                                    <p class="text-white/70 text-sm">The site creator. Full control over everything.</p>
                                 </div>
                                 <div class="flex items-center gap-4 p-4 rounded-2xl bg-black/30">
                                     <span style="padding:0.25rem 0.9rem;border-radius:99px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;font-weight:700;font-size:0.8rem;white-space:nowrap;">⚡ Admin</span>
-                                    <p class="text-white/70 text-sm">Trusted users granted by the owner. Can manage sites and categories in the admin panel.</p>
+                                    <p class="text-white/70 text-sm">Trusted users granted by the owner. Full access to the Admin Panel.</p>
                                 </div>
                                 <div class="flex items-center gap-4 p-4 rounded-2xl bg-black/30">
                                     <span style="padding:0.25rem 0.9rem;border-radius:99px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);font-weight:700;font-size:0.8rem;white-space:nowrap;">● User</span>
@@ -418,7 +418,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- DYNAMIC CATEGORY CONTENTS -->
             <div id="dynamic-category-contents"></div>
 
@@ -520,8 +519,6 @@
                             <p class="p-8 text-center text-white/50">Click Refresh to load requests</p>
                         </div>
                     </div>
-
-
                     <!-- Category Requests (owner only) -->
                     <div class="mb-16" id="cat-requests-section" style="display:none;">
                         <div class="flex items-center justify-between mb-6">
@@ -778,19 +775,22 @@
                     document.getElementById('search-wrapper').classList.add('flex');
                     window.switchTab(window.isAdminUser ? 1 : 0);
                     if (window.isAdminUser) {
-                        const isOwnerInit = auth.currentUser?.email === ADMIN_EMAIL;
+                        const isOwnerInit = window.isAdminUser === true;
                         const siteReqSectionInit = document.getElementById('site-requests-section');
                         const adminReqSectionInit = document.getElementById('admin-requests-section');
                         const catReqSectionInit = document.getElementById('cat-requests-section');
                         const clearChatSectionInit = document.getElementById('clear-chat-section');
+                        const ownerReqSectionInit = document.getElementById('owner-requests-section');
                         if (isOwnerInit) {
                             if (siteReqSectionInit) siteReqSectionInit.style.display = '';
                             if (adminReqSectionInit) adminReqSectionInit.style.display = '';
                             if (catReqSectionInit) catReqSectionInit.style.display = '';
                             if (clearChatSectionInit) clearChatSectionInit.style.display = '';
+                            if (ownerReqSectionInit) ownerReqSectionInit.style.display = '';
                             window.loadSiteRequests();
                             window.loadAdminRequests();
                             window.loadCategoryRequests();
+                            window.loadOwnerRequests();
                         }
                     }
                     window.initialLoadComplete = true;
@@ -1041,8 +1041,8 @@
                     const data = d.data();
                     const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '—';
                     const isBanned = data.banned === true;
-                    const isUserAdmin = data.isAdmin === true || data.email === ADMIN_EMAIL;
                     const isOwner = data.email === ADMIN_EMAIL;
+                    const isUserAdmin = data.isAdmin === true || isOwner;
 
                     const statusBadge = isBanned
                         ? `<span class="px-3 py-1 bg-red-900/60 text-red-400 rounded-xl text-xs font-semibold">Banned</span>`
@@ -1052,13 +1052,17 @@
                                 ? `<span class="px-3 py-1 bg-purple-900/60 text-purple-400 rounded-xl text-xs font-semibold">Admin</span>`
                                 : `<span class="px-3 py-1 bg-green-900/60 text-green-400 rounded-xl text-xs font-semibold">Active</span>`;
 
-                    const isCurrentUserOwner = auth.currentUser?.email === ADMIN_EMAIL;
+                    // Only the hardcoded owner can take actions
+                    // Actions are only shown for plain users — not for the owner, not for other admins
+                    const actingIsOwner = auth.currentUser?.email === ADMIN_EMAIL;
+                    const canAct = actingIsOwner && !isOwner && !isUserAdmin;
 
-                    const banBtn = (isOwner || !isCurrentUserOwner) ? '' : isBanned
+                    const banBtn = !canAct ? '' : isBanned
                         ? `<button onclick="window.setBanUser('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-green-900/60 hover:bg-green-900 text-green-400 rounded-2xl transition-colors">Unban</button>`
                         : `<button onclick="window.setBanUser('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-orange-900/60 hover:bg-orange-900 text-orange-400 rounded-2xl transition-colors">Ban</button>`;
 
-                    const adminBtn = (isOwner || !isCurrentUserOwner) ? '' : isUserAdmin
+                    // Make Admin / Revoke Admin — owner only, but can act on both users AND admins (to revoke)
+                    const adminBtn = !actingIsOwner || isOwner ? '' : isUserAdmin
                         ? `<button onclick="window.setAdminUser('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-purple-900/60 hover:bg-purple-900 text-purple-400 rounded-2xl transition-colors">Revoke Admin</button>`
                         : `<button onclick="window.setAdminUser('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">Make Admin</button>`;
 
@@ -1070,7 +1074,7 @@
                             <div class="flex gap-2 flex-wrap">
                                 ${banBtn}
                                 ${adminBtn}
-                                ${(isOwner || !isCurrentUserOwner) ? '' : `<button onclick="deleteUserFromAdmin('${d.id}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Delete</button>`}
+                                ${!canAct ? '' : `<button onclick="deleteUserFromAdmin('${d.id}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Delete</button>`}
                             </div>
                         </td>
                     </tr>`;
@@ -1083,6 +1087,13 @@
         };
 
         window.setBanUser = async (uid, ban) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            // Extra safety: never ban owner or admins
+            try {
+                const targetSnap = await getDoc(doc(db, "users", uid));
+                const targetData = targetSnap.exists() ? targetSnap.data() : {};
+                if (targetData.email === ADMIN_EMAIL || targetData.isAdmin === true) return alert('You cannot ban admins or the owner.');
+            } catch(_) {}
             const action = ban ? 'ban' : 'unban';
             if (!confirm(`Are you sure you want to ${action} this user?`)) return;
             try {
@@ -1094,6 +1105,13 @@
         };
 
         window.setAdminUser = async (uid, grant) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            // Never modify the owner's own record
+            try {
+                const targetSnap = await getDoc(doc(db, "users", uid));
+                const targetData = targetSnap.exists() ? targetSnap.data() : {};
+                if (targetData.email === ADMIN_EMAIL) return alert('You cannot change the owner's role.');
+            } catch(_) {}
             const action = grant ? 'grant admin access to' : 'revoke admin access from';
             if (!confirm(`Are you sure you want to ${action} this user?`)) return;
             try {
@@ -1111,6 +1129,13 @@
         };
 
         window.deleteUserFromAdmin = async (uid) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            // Never delete owner or other admins
+            try {
+                const targetSnap = await getDoc(doc(db, "users", uid));
+                const targetData = targetSnap.exists() ? targetSnap.data() : {};
+                if (targetData.email === ADMIN_EMAIL || targetData.isAdmin === true) return alert('You cannot delete admins or the owner.');
+            } catch(_) {}
             if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
             try {
                 await deleteDoc(doc(db, "users", uid));
@@ -1202,6 +1227,11 @@
         };
 
         window.reloadAdminCategories = () => {
+            ['admin-categories-list', 'admin-categories-list-panel'].forEach(cid => {
+                const container = document.getElementById(cid);
+                if (!container) return;
+                // same render logic below
+            });
             const container = document.getElementById('admin-categories-list');
             container.innerHTML = '';
             if (!(window.allCategories || []).length) {
@@ -1823,7 +1853,7 @@
             const badge = document.getElementById('account-role-badge');
             if (badge) {
                 if (isOwner) {
-                    badge.textContent = '★ Owner';
+                    badge.textContent = '★ Owner'; badge.style.cssText = 'background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;';
                     badge.style.cssText = 'background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;';
                 } else if (isUserAdmin) {
                     badge.textContent = '⚡ Admin';
@@ -2022,6 +2052,208 @@
             } catch(e) { alert('Error: ' + e.message); }
         };
 
+
+        window.setOwnerUser = async (uid, grant) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            const action = grant ? 'grant owner access to' : 'revoke owner access from';
+            if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+            try {
+                // If granting owner, auto-revoke admin so they can't have both
+                if (grant) {
+                    await setDoc(doc(db, "users", uid), { isOwner: true, isAdmin: false }, { merge: true });
+                } else {
+                    await setDoc(doc(db, "users", uid), { isOwner: false }, { merge: true });
+                }
+                if (window.chatRolesCache) delete window.chatRolesCache[uid];
+                window.loadAdminUsers();
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
+        window.submitOwnerRequest = async () => {
+            const reason = document.getElementById('owner-req-reason').value.trim();
+            const msgEl = document.getElementById('owner-req-message');
+            if (!reason) {
+                msgEl.textContent = 'Please explain why you want owner access.';
+                msgEl.className = 'text-center text-sm mt-4 error';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+            try {
+                const uid = auth.currentUser.uid;
+                const reqRef = doc(db, "ownerRequests", uid);
+                const existing = await getDoc(reqRef);
+                if (existing.exists()) {
+                    msgEl.textContent = 'You already have a pending request.';
+                    msgEl.className = 'text-center text-sm mt-4 error';
+                    msgEl.classList.remove('hidden');
+                    return;
+                }
+                await setDoc(reqRef, {
+                    uid,
+                    email: auth.currentUser.email,
+                    reason,
+                    requestedAt: serverTimestamp(),
+                    status: 'pending'
+                });
+                document.getElementById('owner-req-reason').value = '';
+                document.getElementById('owner-req-form').classList.add('hidden');
+                document.getElementById('owner-req-already').classList.remove('hidden');
+                msgEl.classList.add('hidden');
+            } catch(e) {
+                msgEl.textContent = 'Error: ' + e.message;
+                msgEl.className = 'text-center text-sm mt-4 error';
+                msgEl.classList.remove('hidden');
+            }
+        };
+
+        window.cancelOwnerRequest = async () => {
+            if (!confirm('Cancel your owner request?')) return;
+            try {
+                await deleteDoc(doc(db, "ownerRequests", auth.currentUser.uid));
+                document.getElementById('owner-req-form').classList.remove('hidden');
+                document.getElementById('owner-req-already').classList.add('hidden');
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
+        window.checkExistingOwnerRequest = async () => {
+            try {
+                const existing = await getDoc(doc(db, "ownerRequests", auth.currentUser.uid));
+                if (existing.exists()) {
+                    document.getElementById('owner-req-form').classList.add('hidden');
+                    document.getElementById('owner-req-already').classList.remove('hidden');
+                } else {
+                    document.getElementById('owner-req-form').classList.remove('hidden');
+                    document.getElementById('owner-req-already').classList.add('hidden');
+                }
+            } catch(_) {}
+        };
+
+        window.loadOwnerRequests = async () => {
+            if (!window.isAdminUser) return;
+            const container = document.getElementById('owner-requests-list');
+            container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
+            try {
+                const q = query(collection(db, "ownerRequests"), orderBy("requestedAt", "desc"));
+                const snap = await getDocs(q);
+                const pending = snap.docs.filter(d => d.data().status === 'pending');
+                const badge = document.getElementById('owner-req-badge');
+                if (pending.length > 0) { badge.textContent = pending.length; badge.classList.remove('hidden'); }
+                else { badge.classList.add('hidden'); }
+                if (!pending.length) { container.innerHTML = '<p class="p-8 text-center text-white/50">No pending owner requests</p>'; return; }
+                let html = '<div class="divide-y divide-white/10">';
+                pending.forEach(d => {
+                    const r = d.data();
+                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : '—';
+                    html += `<div id="owner-req-row-${d.id}" class="p-6 hover:bg-white/5 transition-all">
+                        <div class="flex justify-between items-start gap-6">
+                            <div class="flex-1 min-w-0">
+                                <div class="font-semibold text-lg mb-1">${r.email}</div>
+                                <div class="text-xs text-white/40 mb-3">${date}</div>
+                                <div class="bg-black/40 rounded-2xl p-4 text-white/80 text-sm leading-relaxed">${r.reason}</div>
+                            </div>
+                            <div class="flex gap-2 shrink-0 mt-1">
+                                <button onclick="window.approveOwnerRequest('${d.id}', '${r.uid}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-green-900/60 hover:bg-green-900 text-green-400 rounded-2xl transition-colors">Approve</button>
+                                <button onclick="window.denyOwnerRequest('${d.id}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Deny</button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch(e) { container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`; }
+        };
+
+        window.approveOwnerRequest = async (reqId, uid) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            try {
+                // Grant owner, auto-revoke admin
+                await setDoc(doc(db, "users", uid), { isOwner: true, isAdmin: false }, { merge: true });
+                await deleteDoc(doc(db, "ownerRequests", reqId));
+                const row = document.getElementById('owner-req-row-' + reqId);
+                if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
+                const remaining = document.querySelectorAll('[id^="owner-req-row-"]').length - 1;
+                const badge = document.getElementById('owner-req-badge');
+                if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('owner-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending owner requests</p>'; }
+                else { badge.textContent = remaining; }
+                window.loadAdminUsers();
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
+        window.denyOwnerRequest = async (reqId) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            if (!confirm('Deny and remove this request?')) return;
+            try {
+                await deleteDoc(doc(db, "ownerRequests", reqId));
+                const row = document.getElementById('owner-req-row-' + reqId);
+                if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
+                const remaining = document.querySelectorAll('[id^="owner-req-row-"]').length - 1;
+                const badge = document.getElementById('owner-req-badge');
+                if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('owner-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending owner requests</p>'; }
+                else { badge.textContent = remaining; }
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
+        // Admin panel (limited) wiring — mirrors owner panel functions but for -p element IDs
+        window.addOrUpdateCategoryPanel = async () => {
+            const key = document.getElementById('new-cat-key-p').value.trim().toLowerCase().replace(/\s+/g, '');
+            const label = document.getElementById('new-cat-label-p').value.trim();
+            let icon = document.getElementById('new-cat-icon-p').value.trim();
+            if (!icon.startsWith('fa-')) icon = 'fa-' + icon;
+            if (!key || !label) return alert("Key and Label required");
+            if ((window.allCategories || []).some(c => c.key === key)) return alert("Key already exists!");
+            const maxOrder = (window.allCategories || []).length ? Math.max(...(window.allCategories || []).map(c => c.order ?? 0)) + 1 : 0;
+            try {
+                await addDoc(collection(db, "categories"), { key, label, icon, order: maxOrder });
+                alert("Category added!");
+                ['new-cat-key-p','new-cat-label-p','new-cat-icon-p'].forEach(id => document.getElementById(id).value = '');
+            } catch(e) { alert("Error: " + e.message); }
+        };
+
+        window.addNewSiteFromAdminPanel = async () => {
+            const cat = document.getElementById('admin-cat-select-p').value;
+            const name = document.getElementById('new-site-name-p').value.trim();
+            const url = document.getElementById('new-site-url-p').value.trim();
+            const icon = document.getElementById('new-site-icon-p').value.trim();
+            const desc = document.getElementById('new-site-desc-p').value.trim();
+            if (!name || !url) return alert("Name and URL required");
+            try {
+                const catSites = window.allSites[cat] || [];
+                const maxOrder = catSites.length ? Math.max(...catSites.map(s => s.order ?? 0)) + 1 : 0;
+                await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc, order: maxOrder });
+                alert("Site added!");
+                ['new-site-name-p','new-site-url-p','new-site-desc-p','new-site-icon-p'].forEach(id => document.getElementById(id).value = '');
+                await window.loadAllSites();
+                window.populateAllGrids();
+            } catch(e) { alert("Error: " + e.message); }
+        };
+
+        function populateAdminThemePanelGrid() {
+            const cont = document.getElementById('admin-theme-grid-panel');
+            if (!cont) return;
+            cont.innerHTML = '';
+            const adminThemes = [
+                {name:"Matrix", color:"#00ff41", special:"matrix",
+                 preview:`<div style="background:#000;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:monospace;color:#00ff41;overflow:hidden;position:relative;">
+                    <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;top:2px;left:4px;color:#00ff41;">01101<br>10010<br>01011<br>11001</span>
+                    <span style="font-size:1.8rem;">💻</span>
+                    <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;bottom:2px;right:4px;color:#00ff41;">10100<br>01101<br>11010</span>
+                 </div>`}
+            ];
+            adminThemes.forEach(t => {
+                const isActive = localStorage.getItem('starlinkSpecialTheme') === t.special;
+                const el = document.createElement('div');
+                el.className = `cursor-pointer rounded-2xl overflow-hidden border-2 transition-all shadow-md ${isActive ? 'border-yellow-400' : 'border-transparent hover:border-white/50'}`;
+                el.innerHTML = `
+                    <div class="h-24 relative">${t.preview}</div>
+                    <div class="text-center py-3 text-xs font-medium bg-black/70 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-crown text-yellow-400" style="font-size:0.6rem;"></i> ${t.name}${isActive ? ' ✓' : ''}
+                    </div>
+                `;
+                el.onclick = () => { setTheme(t.color, t.special); populateAdminThemePanelGrid(); };
+                cont.appendChild(el);
+            });
+        }
+
         window.loadAllSites = window.loadAllSites;
         window.populateAllGrids = window.populateAllGrids;
         window.showGlobalAnnouncement = window.showGlobalAnnouncement;
@@ -2093,24 +2325,28 @@
             if (mapping.contentId === 'content-chat') { window.initChat(); window.startTypingListener(); }
             if (mapping.contentId === 'content-admin') {
                 populateAdminThemeGrid();
-                const isOwnerNow = auth.currentUser?.email === ADMIN_EMAIL;
+                const isOwnerNow = window.isAdminUser === true;
                 const siteReqSection = document.getElementById('site-requests-section');
                 const adminReqSection = document.getElementById('admin-requests-section');
                 const catReqSection = document.getElementById('cat-requests-section');
                 const clearChatSection = document.getElementById('clear-chat-section');
+                const ownerReqSection = document.getElementById('owner-requests-section');
                 if (isOwnerNow) {
                     if (siteReqSection) siteReqSection.style.display = '';
                     if (adminReqSection) adminReqSection.style.display = '';
                     if (catReqSection) catReqSection.style.display = '';
                     if (clearChatSection) clearChatSection.style.display = '';
+                    if (ownerReqSection) ownerReqSection.style.display = '';
                     window.loadSiteRequests();
                     window.loadAdminRequests();
                     window.loadCategoryRequests();
+                    window.loadOwnerRequests();
                 } else {
                     if (siteReqSection) siteReqSection.style.display = 'none';
                     if (adminReqSection) adminReqSection.style.display = 'none';
                     if (catReqSection) catReqSection.style.display = 'none';
                     if (clearChatSection) clearChatSection.style.display = 'none';
+                    if (ownerReqSection) ownerReqSection.style.display = 'none';
                 }
             }
         };
@@ -2488,11 +2724,13 @@
         };
 
         window.populateCategorySelect = () => {
-            const select = document.getElementById('admin-cat-select');
-            if (!select) return;
-            select.innerHTML = (window.allCategories || []).map(cat => 
-                `<option value="${cat.key}">${cat.label}</option>`
-            ).join('');
+            ['admin-cat-select', 'admin-cat-select-p'].forEach(id => {
+                const select = document.getElementById(id);
+                if (!select) return;
+                select.innerHTML = (window.allCategories || []).map(cat =>
+                    `<option value="${cat.key}">${cat.label}</option>`
+                ).join('');
+            });
         };
 
         function initialize() {
