@@ -2250,14 +2250,7 @@
         function loadTheme() {
             const color = localStorage.getItem('starlinkAccent') || '#ffffff';
             const special = localStorage.getItem('starlinkSpecialTheme') || '';
-            // If matrix theme is saved but user is no longer admin, reset
-            if (special === 'matrix' && !window.isAdminUser) {
-                localStorage.removeItem('starlinkSpecialTheme');
-                localStorage.setItem('starlinkAccent', '#ffffff');
-                document.documentElement.style.setProperty('--accent', '#ffffff');
-                stopMatrix();
-                return;
-            }
+            // Just restore whatever was saved — admin revoke logic handles clearing
             document.documentElement.style.setProperty('--accent', color);
             if (special === 'matrix') startMatrix();
         }
