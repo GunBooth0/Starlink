@@ -3121,17 +3121,19 @@ window._signingUp = true;
             return snap.docs.filter(d => (d.data().status||'pending')==='pending');
         };
 
-        // ── Open on / key (owner only) ──
-        document.addEventListener('keydown', e => {
-            if (e.key !== '/') return;
-            if (['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
-            if (window.currentUser?.email !== OWNER) return;
-            e.preventDefault();
-            const t = document.getElementById('owner-terminal');
-            t.style.display==='flex' ? window.closeTerminal() : window.openTerminal();
-        });
-
     })();
+
+        // ── Open on / key (owner only) — runs after page load ──
+        window.addEventListener('load', () => {
+            document.addEventListener('keydown', e => {
+                if (e.key !== '/') return;
+                if (['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
+                if (window.currentUser?.email !== window.ADMIN_EMAIL) return;
+                e.preventDefault();
+                const t = document.getElementById('owner-terminal');
+                if (t) t.style.display === 'flex' ? window.closeTerminal() : window.openTerminal();
+            });
+        });
     </script>
 </body>
 </html>
