@@ -2031,8 +2031,7 @@
             window.tabMapping.push({contentId: 'content-credits', title: 'Credits', icon: 'fa-heart'});
             idx++;
 
-            const isOwnerUser = window.currentUser?.email === ADMIN_EMAIL;
-            if (!isAdmin && !isOwnerUser) {
+            if (!isAdmin) {
                 html += `
                     <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
                         <i class="fa-solid fa-crown w-5"></i> <span>Request Admin</span>
@@ -2040,21 +2039,21 @@
                 `;
                 window.tabMapping.push({contentId: 'content-request-admin', title: 'Request Admin', icon: 'fa-crown'});
                 idx++;
+
+                html += `
+                    <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                        <i class="fa-solid fa-list w-5"></i> <span>Request a Category</span>
+                    </div>
+                `;
+                window.tabMapping.push({contentId: 'content-request-category', title: 'Request a Category', icon: 'fa-list'});
+                idx++;
+
+                html += `
+                    <div onclick="window.openRequestModal()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
+                        <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
+                    </div>
+                `;
             }
-
-            html += `
-                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-list w-5"></i> <span>Request a Category</span>
-                </div>
-            `;
-            window.tabMapping.push({contentId: 'content-request-category', title: 'Request a Category', icon: 'fa-list'});
-            idx++;
-
-            html += `
-                <div onclick="window.openRequestModal()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
-                    <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
-                </div>
-            `;
 
             navLinks.innerHTML = html;
         };
