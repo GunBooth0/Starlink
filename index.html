@@ -2178,38 +2178,40 @@
             const username = input?.value.trim();
             if (!username) return alert('Enter a username to add.');
             const me = auth.currentUser;
-            if (!me) return;
+            if (!me) return alert('Not logged in.');
             try {
-                // Look up user via public usernames collection
-                // Try exact match first, then case-insensitive
-                const usernameSnap = await getDoc(doc(db, "usernames", username.toLowerCase()));
-                if (!usernameSnap.exists()) return alert(`No user found with username "${username}". They may need to log out and back in to register.`);
+                // Step 1: look up target by username
+                let usernameSnap;
+                try {
+                    usernameSnap = await getDoc(doc(db, "usernames", username.toLowerCase()));
+                } catch(e) { return alert('Step 1 failed (usernames lookup): ' + e.message); }
+                if (!usernameSnap.exists()) return alert(`No user found with username "${username}". Have them open the Live Chat tab once to register.`);
+
                 const targetUid = usernameSnap.data().uid;
                 const targetDisplayName = usernameSnap.data().displayName;
-                // Create a fake doc-like object for compatibility
-                const targetDoc = { id: targetUid, data: () => ({ displayName: targetDisplayName }) };
-                if (targetDoc.id === me.uid) return alert("You can't add yourself.");
+                if (targetUid === me.uid) return alert("You can't add yourself.");
 
-                // Check if already friends
-                const existingFriend = await getDoc(doc(db, "friends", me.uid, "list", targetDoc.id));
-                if (existingFriend.exists()) return alert('You are already friends with this user.');
+                // Step 2: check if already friends
+                try {
+                    const existingFriend = await getDoc(doc(db, "friends", me.uid, "list", targetUid));
+                    if (existingFriend.exists()) return alert('You are already friends with this user.');
+                } catch(e) { return alert('Step 2 failed (friends check): ' + e.message); }
 
-                // Check if request already sent
-                const existingReq = await getDoc(doc(db, "friendRequests", targetDoc.id, "incoming", me.uid));
-                if (existingReq.exists()) return alert('Friend request already sent.');
+                // Step 3: get my display name
+                const myName = window.currentDisplayName || me.email.split('@')[0];
 
-                const mySnap = await getDoc(doc(db, "users", me.uid));
-                const myData = mySnap.exists() ? mySnap.data() : {};
+                // Step 4: write the friend request
+                try {
+                    await setDoc(doc(db, "friendRequests", targetUid, "incoming", me.uid), {
+                        fromUid: me.uid,
+                        fromName: myName,
+                        sentAt: serverTimestamp()
+                    });
+                } catch(e) { return alert('Step 4 failed (write request): ' + e.message); }
 
-                // Write request to target's incoming
-                await setDoc(doc(db, "friendRequests", targetDoc.id, "incoming", me.uid), {
-                    fromUid: me.uid,
-                    fromName: myData.displayName || me.email.split('@')[0],
-                    sentAt: serverTimestamp()
-                });
                 input.value = '';
-                alert(`Friend request sent to ${username}!`);
-            } catch(e) { alert('Error: ' + e.message); }
+                alert(`Friend request sent to ${targetDisplayName}!`);
+            } catch(e) { alert('Unexpected error: ' + e.message); }
         };
 
         // ── Load friends list in sidebar ──
