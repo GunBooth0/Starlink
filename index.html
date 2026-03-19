@@ -283,6 +283,7 @@
                         <h3 class="text-xl font-semibold mb-6 text-center" id="form-title">Sign In</h3>
                         <input type="email" id="email" placeholder="Email address" required autocomplete="email">
                         <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+                        <input type="text" id="signup-username" placeholder="Choose a username..." maxlength="24" class="hidden">
                         <button id="auth-btn" class="auth-btn mt-6">Sign In</button>
                         <p class="text-center mt-6 text-white/70 text-sm">
                             <span id="toggle-link" class="text-[var(--accent)] cursor-pointer hover:underline">Don't have an account? Sign Up</span>
@@ -292,17 +293,9 @@
                         <!-- Role badge -->
                         <div id="account-role-badge" class="inline-block mb-4 px-5 py-1.5 rounded-full text-sm font-bold tracking-wide"></div>
                         <!-- Display name -->
-                        <div id="account-display-name" class="text-4xl font-bold logo-font tracking-tight mb-1"></div>
+                        <div id="account-username" class="text-4xl font-bold logo-font tracking-tight mb-1"></div>
                         <p class="text-white/50 text-sm mb-8"><span id="user-email" class="text-[var(--accent)]"></span></p>
-                        <!-- Display name editor -->
-                        <div class="glass rounded-2xl p-6 mb-6 text-left">
-                            <label class="text-xs text-white/50 block mb-2 font-medium">Display Name</label>
-                            <div class="flex gap-3">
-                                <input id="display-name-input" type="text" placeholder="Set your display name..." maxlength="24" style="margin:0;flex:1;">
-                                <button onclick="window.saveDisplayName()" class="auth-btn" style="width:auto;padding:0.75rem 1.5rem;margin:0;font-size:1rem;">Save</button>
-                            </div>
-                            <p id="display-name-msg" class="text-xs mt-2 hidden"></p>
-                        </div>
+
                         <button onclick="changeEmail()" class="github-style-btn"><i class="fa-solid fa-envelope"></i> Change Email</button>
                         <button onclick="changePassword()" class="github-style-btn"><i class="fa-solid fa-key"></i> Change Password</button>
                         <button onclick="deleteAccount()" class="github-style-btn"><i class="fa-solid fa-trash-can"></i> Delete Account</button>
@@ -787,8 +780,7 @@
                         const adminReqSectionInit = document.getElementById('admin-requests-section');
                         const catReqSectionInit = document.getElementById('cat-requests-section');
                         const clearChatSectionInit = document.getElementById('clear-chat-section');
-                        const ownerReqSectionInit = document.getElementById('owner-requests-section');
-                        // All admins get site requests, category requests, clear chat
+                                // All admins get site requests, category requests, clear chat
                         if (siteReqSectionInit) siteReqSectionInit.style.display = '';
                         if (catReqSectionInit) catReqSectionInit.style.display = '';
                         if (clearChatSectionInit) clearChatSectionInit.style.display = '';
@@ -797,9 +789,7 @@
                         // Owner only extras
                         if (isOwnerInit) {
                             if (adminReqSectionInit) adminReqSectionInit.style.display = '';
-                            if (ownerReqSectionInit) ownerReqSectionInit.style.display = '';
-                            window.loadAdminRequests();
-                            if (window.loadOwnerRequests) window.loadOwnerRequests();
+                                    window.loadAdminRequests();
                         } else {
                             if (adminReqSectionInit) adminReqSectionInit.style.display = 'none';
                             if (ownerReqSectionInit) ownerReqSectionInit.style.display = 'none';
@@ -891,10 +881,13 @@
                     }
                     updateUIForAuth(cred.user);
                 } else {
+                    const signupUsername = document.getElementById('signup-username').value.trim();
+                    if (!signupUsername) { alert('Please choose a username before signing up.'); return; }
                     window._signingUp = true;
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
                     await setDoc(doc(db, "users", cred.user.uid), {
                         email,
+                        displayName: signupUsername,
                         createdAt: serverTimestamp()
                     });
                     await sendEmailVerification(cred.user);
@@ -914,6 +907,8 @@
             document.getElementById('form-title').textContent = isSignIn ? 'Sign Up' : 'Sign In';
             document.getElementById('auth-btn').textContent = isSignIn ? 'Sign Up' : 'Sign In';
             document.getElementById('toggle-link').textContent = isSignIn ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
+            const usernameField = document.getElementById('signup-username');
+            if (usernameField) usernameField.classList.toggle('hidden', !isSignIn);
         });
 
         window.deleteAccount = async () => {
@@ -1005,7 +1000,11 @@
             try {
                 const docSnap = await getDoc(doc(db, "config", "announcement"));
                 if (docSnap.exists() && docSnap.data().message?.trim()) {
-                    document.getElementById('announcement-text-display').textContent = docSnap.data().message;
+                    const d = docSnap.data();
+                    const byLine = d.publisherName
+                        ? ` — ${d.publisherName} (${d.publisherRole || 'Admin'})`
+                        : '';
+                    document.getElementById('announcement-text-display').textContent = d.message + byLine;
                     banner.classList.remove('hidden');
                 } else {
                     banner.classList.add('hidden');
@@ -1019,7 +1018,17 @@
             const msg = document.getElementById('announcement-input').value.trim();
             if (!msg) return alert("Cannot be empty");
             try {
-                await setDoc(doc(db, "config", "announcement"), { message: msg, updatedAt: serverTimestamp() });
+                const user = auth.currentUser;
+                const userSnap = await getDoc(doc(db, "users", user.uid));
+                const userData = userSnap.exists() ? userSnap.data() : {};
+                const publisherName = userData.displayName || user.email.split('@')[0];
+                const publisherRole = user.email === ADMIN_EMAIL ? 'Owner' : 'Admin';
+                await setDoc(doc(db, "config", "announcement"), {
+                    message: msg,
+                    publisherName,
+                    publisherRole,
+                    updatedAt: serverTimestamp()
+                });
                 alert("Published! Non-admin users will see a refresh prompt.");
                 document.getElementById('announcement-input').value = '';
             } catch (e) {
@@ -1045,6 +1054,7 @@
                 const snap = await getDocs(q);
                 let html = `<table class="w-full text-sm"><thead class="bg-black/60 sticky top-0"><tr class="border-b border-white/10">
                     <th class="px-6 py-4 text-left">Email</th>
+                    <th class="px-6 py-4 text-left">Username</th>
                     <th class="px-6 py-4 text-left">Joined</th>
                     <th class="px-6 py-4 text-left">Role</th>
                     <th class="px-6 py-4 text-left">Actions</th>
@@ -1062,7 +1072,7 @@
                             ? `<span class="px-3 py-1 bg-yellow-900/60 text-yellow-400 rounded-xl text-xs font-semibold">Owner</span>`
                             : isUserAdmin
                                 ? `<span class="px-3 py-1 bg-purple-900/60 text-purple-400 rounded-xl text-xs font-semibold">Admin</span>`
-                                : `<span class="px-3 py-1 bg-green-900/60 text-green-400 rounded-xl text-xs font-semibold">User</span>`;
+                                : `<span class="px-3 py-1 bg-white/10 text-white/60 rounded-xl text-xs font-semibold">User</span>`;
 
                     // Only the hardcoded owner can take actions
                     // Actions are only shown for plain users — not for the owner, not for other admins
@@ -1080,6 +1090,7 @@
 
                     html += `<tr>
                         <td class="px-6 py-4 font-medium">${data.email}</td>
+                        <td class="px-6 py-4 text-white/70">${data.displayName || '<span class="text-white/30 italic">not set</span>'}</td>
                         <td class="px-6 py-4 text-white/70">${date}</td>
                         <td class="px-6 py-4">${statusBadge}</td>
                         <td class="px-6 py-4">
@@ -1781,6 +1792,7 @@
 
         window.loadCategoryRequests = async () => {
             if (!window.isAdminUser) return;
+            const isOwnerCheck = auth.currentUser?.email === ADMIN_EMAIL;
             const container = document.getElementById('category-requests-list');
             container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
             try {
@@ -1855,7 +1867,7 @@
         };
 
 
-        // ── Account tab: role badge + display name ──
+        // ── Account tab: role badge + username ──
         window.updateAccountTab = (user, docData) => {
             const isOwner = user.email === ADMIN_EMAIL;
             const isUserAdmin = docData?.isAdmin === true || isOwner;
@@ -1877,27 +1889,8 @@
             }
 
             // Display name
-            const nameEl = document.getElementById('account-display-name');
-            const nameInput = document.getElementById('display-name-input');
+            const nameEl = document.getElementById('account-username');
             if (nameEl) nameEl.textContent = displayName || user.email.split('@')[0];
-            if (nameInput) nameInput.value = displayName;
-        };
-
-        window.saveDisplayName = async () => {
-            const val = document.getElementById('display-name-input').value.trim();
-            const msgEl = document.getElementById('display-name-msg');
-            if (!val) { msgEl.textContent = 'Display name cannot be empty.'; msgEl.className = 'text-xs mt-2 error'; msgEl.classList.remove('hidden'); return; }
-            if (val.length > 24) { msgEl.textContent = 'Max 24 characters.'; msgEl.className = 'text-xs mt-2 error'; msgEl.classList.remove('hidden'); return; }
-            try {
-                const user = auth.currentUser;
-                await setDoc(doc(db, "users", user.uid), { displayName: val }, { merge: true });
-                window.currentDisplayName = val;
-                document.getElementById('account-display-name').textContent = val;
-                msgEl.textContent = 'Display name saved!';
-                msgEl.className = 'text-xs mt-2 success';
-                msgEl.classList.remove('hidden');
-                setTimeout(() => msgEl.classList.add('hidden'), 3000);
-            } catch(e) { msgEl.textContent = 'Error: ' + e.message; msgEl.className = 'text-xs mt-2 error'; msgEl.classList.remove('hidden'); }
         };
 
         // ── Live Chat ──
@@ -2054,7 +2047,7 @@
 
 
         window.clearChat = async () => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            if (!window.isAdminUser) return alert('Only admins can do this.');
             if (!confirm('Delete ALL chat messages permanently? This cannot be undone.')) return;
             try {
                 const snap = await getDocs(collection(db, "chat"));
@@ -2078,130 +2071,6 @@
                 }
                 if (window.chatRolesCache) delete window.chatRolesCache[uid];
                 window.loadAdminUsers();
-            } catch(e) { alert('Error: ' + e.message); }
-        };
-
-        window.submitOwnerRequest = async () => {
-            const reason = document.getElementById('owner-req-reason').value.trim();
-            const msgEl = document.getElementById('owner-req-message');
-            if (!reason) {
-                msgEl.textContent = 'Please explain why you want owner access.';
-                msgEl.className = 'text-center text-sm mt-4 error';
-                msgEl.classList.remove('hidden');
-                return;
-            }
-            try {
-                const uid = auth.currentUser.uid;
-                const reqRef = doc(db, "ownerRequests", uid);
-                const existing = await getDoc(reqRef);
-                if (existing.exists()) {
-                    msgEl.textContent = 'You already have a pending request.';
-                    msgEl.className = 'text-center text-sm mt-4 error';
-                    msgEl.classList.remove('hidden');
-                    return;
-                }
-                await setDoc(reqRef, {
-                    uid,
-                    email: auth.currentUser.email,
-                    reason,
-                    requestedAt: serverTimestamp(),
-                    status: 'pending'
-                });
-                document.getElementById('owner-req-reason').value = '';
-                document.getElementById('owner-req-form').classList.add('hidden');
-                document.getElementById('owner-req-already').classList.remove('hidden');
-                msgEl.classList.add('hidden');
-            } catch(e) {
-                msgEl.textContent = 'Error: ' + e.message;
-                msgEl.className = 'text-center text-sm mt-4 error';
-                msgEl.classList.remove('hidden');
-            }
-        };
-
-        window.cancelOwnerRequest = async () => {
-            if (!confirm('Cancel your owner request?')) return;
-            try {
-                await deleteDoc(doc(db, "ownerRequests", auth.currentUser.uid));
-                document.getElementById('owner-req-form').classList.remove('hidden');
-                document.getElementById('owner-req-already').classList.add('hidden');
-            } catch(e) { alert('Error: ' + e.message); }
-        };
-
-        window.checkExistingOwnerRequest = async () => {
-            try {
-                const existing = await getDoc(doc(db, "ownerRequests", auth.currentUser.uid));
-                if (existing.exists()) {
-                    document.getElementById('owner-req-form').classList.add('hidden');
-                    document.getElementById('owner-req-already').classList.remove('hidden');
-                } else {
-                    document.getElementById('owner-req-form').classList.remove('hidden');
-                    document.getElementById('owner-req-already').classList.add('hidden');
-                }
-            } catch(_) {}
-        };
-
-        window.loadOwnerRequests = async () => {
-            if (!window.isAdminUser) return;
-            const container = document.getElementById('owner-requests-list');
-            container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
-            try {
-                const q = query(collection(db, "ownerRequests"), orderBy("requestedAt", "desc"));
-                const snap = await getDocs(q);
-                const pending = snap.docs.filter(d => d.data().status === 'pending');
-                const badge = document.getElementById('owner-req-badge');
-                if (pending.length > 0) { badge.textContent = pending.length; badge.classList.remove('hidden'); }
-                else { badge.classList.add('hidden'); }
-                if (!pending.length) { container.innerHTML = '<p class="p-8 text-center text-white/50">No pending owner requests</p>'; return; }
-                let html = '<div class="divide-y divide-white/10">';
-                pending.forEach(d => {
-                    const r = d.data();
-                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : '—';
-                    html += `<div id="owner-req-row-${d.id}" class="p-6 hover:bg-white/5 transition-all">
-                        <div class="flex justify-between items-start gap-6">
-                            <div class="flex-1 min-w-0">
-                                <div class="font-semibold text-lg mb-1">${r.email}</div>
-                                <div class="text-xs text-white/40 mb-3">${date}</div>
-                                <div class="bg-black/40 rounded-2xl p-4 text-white/80 text-sm leading-relaxed">${r.reason}</div>
-                            </div>
-                            <div class="flex gap-2 shrink-0 mt-1">
-                                <button onclick="window.approveOwnerRequest('${d.id}', '${r.uid}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-green-900/60 hover:bg-green-900 text-green-400 rounded-2xl transition-colors">Approve</button>
-                                <button onclick="window.denyOwnerRequest('${d.id}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Deny</button>
-                            </div>
-                        </div>
-                    </div>`;
-                });
-                html += '</div>';
-                container.innerHTML = html;
-            } catch(e) { container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`; }
-        };
-
-        window.approveOwnerRequest = async (reqId, uid) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
-            try {
-                // Grant owner, auto-revoke admin
-                await setDoc(doc(db, "users", uid), { isOwner: true, isAdmin: false }, { merge: true });
-                await deleteDoc(doc(db, "ownerRequests", reqId));
-                const row = document.getElementById('owner-req-row-' + reqId);
-                if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
-                const remaining = document.querySelectorAll('[id^="owner-req-row-"]').length - 1;
-                const badge = document.getElementById('owner-req-badge');
-                if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('owner-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending owner requests</p>'; }
-                else { badge.textContent = remaining; }
-                window.loadAdminUsers();
-            } catch(e) { alert('Error: ' + e.message); }
-        };
-
-        window.denyOwnerRequest = async (reqId) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
-            if (!confirm('Deny and remove this request?')) return;
-            try {
-                await deleteDoc(doc(db, "ownerRequests", reqId));
-                const row = document.getElementById('owner-req-row-' + reqId);
-                if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
-                const remaining = document.querySelectorAll('[id^="owner-req-row-"]').length - 1;
-                const badge = document.getElementById('owner-req-badge');
-                if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('owner-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending owner requests</p>'; }
-                else { badge.textContent = remaining; }
             } catch(e) { alert('Error: ' + e.message); }
         };
 
@@ -2289,7 +2158,6 @@
         window.startPresence = window.startPresence;
         window.stopPresence = window.stopPresence;
         window.updateAccountTab = window.updateAccountTab;
-        window.saveDisplayName = window.saveDisplayName;
         window.initChat = window.initChat;
         window.sendChatMessage = window.sendChatMessage;
         window.stopChat = window.stopChat;
@@ -2342,7 +2210,6 @@
                 const adminReqSection = document.getElementById('admin-requests-section');
                 const catReqSection = document.getElementById('cat-requests-section');
                 const clearChatSection = document.getElementById('clear-chat-section');
-                const ownerReqSection = document.getElementById('owner-requests-section');
                 // All admins see site/category requests and clear chat
                 if (window.isAdminUser) {
                     if (siteReqSection) siteReqSection.style.display = '';
@@ -2354,12 +2221,9 @@
                 // Owner only: admin access requests, owner requests, user management
                 if (isOwnerNow) {
                     if (adminReqSection) adminReqSection.style.display = '';
-                    if (ownerReqSection) ownerReqSection.style.display = '';
                     window.loadAdminRequests();
-                    if (window.loadOwnerRequests) window.loadOwnerRequests();
                 } else {
                     if (adminReqSection) adminReqSection.style.display = 'none';
-                    if (ownerReqSection) ownerReqSection.style.display = 'none';
                 }
             }
         };
