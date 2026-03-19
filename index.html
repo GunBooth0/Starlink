@@ -199,7 +199,7 @@
             display: flex;
         }
         #refresh-content {
-            background: rgba(30,30,40,0.9);
+            background: rgba(20,20,30,0.85);
             border: 2px solid var(--accent);
             border-radius: 1.5rem;
             padding: 3rem 2.5rem;
@@ -268,7 +268,7 @@
 
             <!-- SEARCH RESULTS -->
             <div id="content-search" class="tab-content hidden">
-                <div class="max-w-5xl mx-auto">
+                <div class="max-w-5xl mx-auto glass rounded-3xl p-8">
                     <h2 class="text-2xl font-semibold mb-6 text-white/70">Search results for: <span id="search-query-label" class="text-[var(--accent)]"></span></h2>
                     <div id="search-results-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6"></div>
                     <p id="search-no-results" class="hidden text-center text-white/40 text-xl mt-20">No sites found</p>
@@ -325,7 +325,7 @@
 
             <!-- HOME -->
             <div id="content-home" class="tab-content">
-                <div class="max-w-4xl mx-auto text-center pt-12">
+                <div class="max-w-4xl mx-auto text-center pt-12 glass rounded-3xl p-12">
                     <svg width="180" height="180" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
                         <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
                     </svg>
@@ -394,7 +394,7 @@
                         </span>
                     </div>
                     <!-- Messages -->
-                    <div id="chat-messages" class="flex-1 overflow-y-auto glass rounded-3xl p-6 mb-4 space-y-3" style="min-height:0;">
+                    <div id="chat-messages" class="flex-1 overflow-y-auto glass rounded-3xl p-6 mb-4 space-y-3" style="min-height:0;border:1px solid rgba(255,255,255,0.12);">
                         <p class="text-center text-white/30 text-sm">Loading messages...</p>
                     </div>
                     <!-- Typing indicator -->
@@ -420,7 +420,7 @@
                     <h3 class="text-2xl font-semibold mb-6">Appearance • Choose Theme</h3>
                     <p class="text-white/70 mb-8">Click a color to instantly change the accent, stars, glow, and sidebar highlights</p>
                     <div id="theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div>
-                    <div class="mt-12 pt-8 border-t border-white/10">
+                    <div class="glass rounded-3xl p-8 mt-8">
                         <h3 class="text-2xl font-semibold mb-6 text-red-400">Danger Zone</h3>
                         <button onclick="resetEverything()" class="bg-red-600 hover:bg-red-700 text-white font-medium py-4 px-8 rounded-xl transition-colors text-lg">
                             Reset Everything (theme, preferences & sign out)
@@ -432,7 +432,7 @@
 
             <!-- CREDITS -->
             <div id="content-credits" class="tab-content hidden">
-                <div class="max-w-3xl mx-auto text-center py-20">
+                <div class="max-w-3xl mx-auto text-center py-20 glass rounded-3xl p-12">
                     <svg width="120" height="120" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
                         <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
                     </svg>
@@ -460,7 +460,7 @@
                         <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
                             <i class="fa-solid fa-bullhorn"></i> Global Announcement
                         </h3>
-                        <textarea id="announcement-input" rows="3" class="w-full p-6 bg-black/60 border border-white/30 rounded-3xl text-white text-lg resize-y focus:border-[var(--accent)]" placeholder="Message visible to ALL logged-in users..."></textarea>
+                        <textarea id="announcement-input" rows="3" class="w-full p-6 bg-white/5 backdrop-blur-md border border-white/20 rounded-3xl text-white text-lg resize-y focus:border-[var(--accent)]" placeholder="Message visible to ALL logged-in users..."></textarea>
                         <div class="flex gap-4 mt-4">
                             <button onclick="saveGlobalAnnouncement()" class="auth-btn flex-1">Publish</button>
                             <button onclick="clearAnnouncement()" class="github-style-btn flex-1">Clear</button>
@@ -475,12 +475,10 @@
                             </h3>
                             <div class="flex gap-4">
                                 <button onclick="loadAdminUsers()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
-                                <a href="https://console.firebase.google.com/project/starlink-42031/authentication/users" target="_blank" rel="noopener noreferrer" class="github-style-btn text-sm px-4 py-3">
-                                    <i class="fa-solid fa-external-link-alt"></i> Firebase Authentication
-                                </a>
+
                             </div>
                         </div>
-                        <div id="users-table" class="bg-black/30 rounded-3xl p-2 max-h-[420px] overflow-auto"></div>
+                        <div id="users-table" class="glass rounded-3xl p-2 max-h-[420px] overflow-auto"></div>
                         <p class="text-xs text-white/50 mt-4 text-center">Delete removes the user from this list.<br>Full auth deletion still required in Firebase Console → Authentication</p>
                     </div>
 
@@ -493,7 +491,7 @@
                             </h3>
                             <button onclick="window.loadSiteRequests()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
                         </div>
-                        <div id="site-requests-list" class="bg-black/30 rounded-3xl p-2 max-h-[480px] overflow-auto">
+                        <div id="site-requests-list" class="glass rounded-3xl p-2 max-h-[480px] overflow-auto">
                             <p class="p-8 text-center text-white/50">Click Refresh to load requests</p>
                         </div>
                     </div>
@@ -508,7 +506,7 @@
                             </h3>
                             <button onclick="window.loadAdminRequests()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
                         </div>
-                        <div id="admin-requests-list" class="bg-black/30 rounded-3xl p-2 max-h-[480px] overflow-auto">
+                        <div id="admin-requests-list" class="glass rounded-3xl p-2 max-h-[480px] overflow-auto">
                             <p class="p-8 text-center text-white/50">Click Refresh to load requests</p>
                         </div>
                     </div>
@@ -521,7 +519,7 @@
                             </h3>
                             <button onclick="window.loadCategoryRequests()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
                         </div>
-                        <div id="category-requests-list" class="bg-black/30 rounded-3xl p-2 max-h-[480px] overflow-auto">
+                        <div id="category-requests-list" class="glass rounded-3xl p-2 max-h-[480px] overflow-auto">
                             <p class="p-8 text-center text-white/50">Click Refresh to load requests</p>
                         </div>
                     </div>
@@ -534,7 +532,7 @@
                                 <i class="fa-solid fa-comments"></i> Live Chat
                             </h3>
                         </div>
-                        <div class="glass rounded-3xl p-8 flex items-center justify-between">
+                        <div class="glass rounded-3xl p-8 flex items-center justify-between" style="border:1px solid rgba(255,100,100,0.15);">
                             <div>
                                 <p class="font-semibold text-lg mb-1">Clear All Messages</p>
                                 <p class="text-white/50 text-sm">Permanently deletes every message in the live chat for all users.</p>
@@ -551,7 +549,7 @@
                             </h3>
                         </div>
                         <p class="text-white/50 text-sm mb-6">Exclusive themes only available to admins and the owner. Selecting one applies it immediately.</p>
-                        <div id="admin-theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div>
+                        <div class="glass rounded-3xl p-6 mb-2"><div id="admin-theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div></div>
                     </div>
 
                     <!-- Categories Management -->
@@ -562,7 +560,7 @@
                             </h3>
                             <button onclick="reloadAdminCategories()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
                         </div>
-                        <div class="bg-black/40 p-8 rounded-3xl mb-10">
+                        <div class="glass p-8 rounded-3xl mb-10">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label class="text-xs text-white/50 block mb-2">Key (unique lowercase, no spaces)</label>
@@ -590,7 +588,7 @@
                             </h3>
                             <button onclick="reloadAdminSites()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
                         </div>
-                        <div class="bg-black/40 p-8 rounded-3xl mb-10" id="admin-sites-management">
+                        <div class="glass p-8 rounded-3xl mb-10" id="admin-sites-management">
                             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                                 <div>
                                     <label class="text-xs text-white/50 block mb-2">Category</label>
@@ -1264,7 +1262,7 @@
             let html = '';
             window.allCategories.forEach(cat => {
                 html += `
-                    <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group">
+                    <div class="flex justify-between items-center glass hover:bg-white/10 p-6 rounded-2xl group">
                         <div class="flex items-center gap-6">
                             <i class="fa-solid ${cat.icon} text-4xl"></i>
                             <div>
