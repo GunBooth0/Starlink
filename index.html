@@ -331,6 +331,25 @@
                 </div>
             </div>
 
+
+            <!-- REQUEST CATEGORY TAB -->
+            <div id="content-request-category" class="tab-content hidden">
+                <div class="max-w-xl mx-auto py-12">
+                    <div class="glass rounded-3xl p-10">
+                        <div class="text-center mb-8">
+                            <i class="fa-solid fa-list text-5xl mb-4" style="color:var(--accent)"></i>
+                            <h2 class="text-3xl font-bold logo-font tracking-tight mb-2">Request a Category</h2>
+                            <p class="text-white/60 text-sm">Suggest a new category to add to Starlink. The owner will review your request.</p>
+                        </div>
+                        <input id="cat-req-label" type="text" placeholder="Category name (e.g. Sports)" class="w-full">
+                        <input id="cat-req-icon" type="text" placeholder="Font Awesome icon (e.g. fa-futbol)" class="w-full">
+                        <textarea id="cat-req-reason" rows="4" placeholder="Why should this category be added? What sites would go in it?" class="w-full" style="resize:vertical;"></textarea>
+                        <button onclick="window.submitCategoryRequest()" class="auth-btn w-full mt-2">Submit Request</button>
+                        <p id="cat-req-message" class="text-center text-sm mt-4 hidden"></p>
+                    </div>
+                </div>
+            </div>
+
             <!-- DYNAMIC CATEGORY CONTENTS -->
             <div id="dynamic-category-contents"></div>
 
@@ -429,6 +448,21 @@
                             <button onclick="window.loadAdminRequests()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
                         </div>
                         <div id="admin-requests-list" class="bg-black/30 rounded-3xl p-2 max-h-[480px] overflow-auto">
+                            <p class="p-8 text-center text-white/50">Click Refresh to load requests</p>
+                        </div>
+                    </div>
+
+
+                    <!-- Category Requests (owner only) -->
+                    <div class="mb-16" id="cat-requests-section" style="display:none;">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-semibold flex items-center gap-3">
+                                <i class="fa-solid fa-list"></i> Category Requests
+                                <span id="cat-req-badge" class="hidden text-xs bg-[var(--accent)] text-black px-3 py-1 rounded-full font-bold"></span>
+                            </h3>
+                            <button onclick="window.loadCategoryRequests()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
+                        </div>
+                        <div id="category-requests-list" class="bg-black/30 rounded-3xl p-2 max-h-[480px] overflow-auto">
                             <p class="p-8 text-center text-white/50">Click Refresh to load requests</p>
                         </div>
                     </div>
@@ -640,11 +674,14 @@
                         const isOwnerInit = auth.currentUser?.email === ADMIN_EMAIL;
                         const siteReqSectionInit = document.getElementById('site-requests-section');
                         const adminReqSectionInit = document.getElementById('admin-requests-section');
+                        const catReqSectionInit = document.getElementById('cat-requests-section');
                         if (isOwnerInit) {
                             if (siteReqSectionInit) siteReqSectionInit.style.display = '';
                             if (adminReqSectionInit) adminReqSectionInit.style.display = '';
+                            if (catReqSectionInit) catReqSectionInit.style.display = '';
                             window.loadSiteRequests();
                             window.loadAdminRequests();
+                            window.loadCategoryRequests();
                         }
                     }
                     window.initialLoadComplete = true;
@@ -1542,6 +1579,122 @@
             } catch(e) { alert('Error: ' + e.message); }
         };
 
+
+        // ── Category Requests ──
+
+        window.submitCategoryRequest = async () => {
+            const label = document.getElementById('cat-req-label').value.trim();
+            const icon = document.getElementById('cat-req-icon').value.trim();
+            const reason = document.getElementById('cat-req-reason').value.trim();
+            const msgEl = document.getElementById('cat-req-message');
+            if (!label) {
+                msgEl.textContent = 'Please enter a category name.';
+                msgEl.className = 'text-center text-sm mt-4 error';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+            if (!reason) {
+                msgEl.textContent = 'Please explain why this category should be added.';
+                msgEl.className = 'text-center text-sm mt-4 error';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+            try {
+                await addDoc(collection(db, "categoryRequests"), {
+                    label,
+                    icon: icon || 'fa-folder',
+                    reason,
+                    requestedBy: auth.currentUser?.email || 'unknown',
+                    requestedAt: serverTimestamp(),
+                    status: 'pending'
+                });
+                ['cat-req-label','cat-req-icon','cat-req-reason'].forEach(id => document.getElementById(id).value = '');
+                msgEl.textContent = 'Request submitted! The owner will review it shortly.';
+                msgEl.className = 'text-center text-sm mt-4 success';
+                msgEl.classList.remove('hidden');
+                setTimeout(() => msgEl.classList.add('hidden'), 4000);
+            } catch(e) {
+                msgEl.textContent = 'Error: ' + e.message;
+                msgEl.className = 'text-center text-sm mt-4 error';
+                msgEl.classList.remove('hidden');
+            }
+        };
+
+        window.loadCategoryRequests = async () => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return;
+            const container = document.getElementById('category-requests-list');
+            container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
+            try {
+                const q = query(collection(db, "categoryRequests"), orderBy("requestedAt", "desc"));
+                const snap = await getDocs(q);
+                const pending = snap.docs.filter(d => d.data().status === 'pending');
+                const badge = document.getElementById('cat-req-badge');
+                if (pending.length > 0) { badge.textContent = pending.length; badge.classList.remove('hidden'); }
+                else { badge.classList.add('hidden'); }
+                if (!pending.length) { container.innerHTML = '<p class="p-8 text-center text-white/50">No pending category requests</p>'; return; }
+                let html = '<div class="divide-y divide-white/10">';
+                pending.forEach(d => {
+                    const r = d.data();
+                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : '—';
+                    html += `<div id="cat-req-row-${d.id}" class="p-6 hover:bg-white/5 transition-all">
+                        <div class="flex justify-between items-start gap-6">
+                            <div class="flex-1 min-w-0">
+                                <div class="font-semibold text-lg mb-1 flex items-center gap-3">
+                                    <i class="fa-solid ${r.icon} text-[var(--accent)]"></i> ${r.label}
+                                </div>
+                                <div class="text-xs text-white/40 mb-3">By ${r.requestedBy} · ${date}</div>
+                                <div class="bg-black/40 rounded-2xl p-4 text-white/80 text-sm leading-relaxed">${r.reason}</div>
+                            </div>
+                            <div class="flex gap-2 shrink-0 mt-1">
+                                <button onclick="window.approveCategoryRequest('${d.id}', '${r.label.replace(/'/g,"\'")}', '${r.icon}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-green-900/60 hover:bg-green-900 text-green-400 rounded-2xl transition-colors">Approve</button>
+                                <button onclick="window.denyCategoryRequest('${d.id}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Deny</button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch(e) {
+                container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`;
+            }
+        };
+
+        window.approveCategoryRequest = async (reqId, label, icon) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            try {
+                // Generate a key from the label
+                const key = label.toLowerCase().replace(/[^a-z0-9]/g, '');
+                if ((window.allCategories || []).some(c => c.key === key)) {
+                    alert(`A category with key "${key}" already exists. Deny this and add it manually if needed.`);
+                    return;
+                }
+                const maxOrder = (window.allCategories || []).length
+                    ? Math.max(...(window.allCategories || []).map(c => c.order ?? 0)) + 1 : 0;
+                await addDoc(collection(db, "categories"), { key, label, icon: icon || 'fa-folder', order: maxOrder });
+                await deleteDoc(doc(db, "categoryRequests", reqId));
+                const row = document.getElementById('cat-req-row-' + reqId);
+                if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
+                const remaining = document.querySelectorAll('[id^="cat-req-row-"]').length - 1;
+                const badge = document.getElementById('cat-req-badge');
+                if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('category-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending category requests</p>'; }
+                else { badge.textContent = remaining; }
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
+        window.denyCategoryRequest = async (reqId) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            if (!confirm('Deny and remove this request?')) return;
+            try {
+                await deleteDoc(doc(db, "categoryRequests", reqId));
+                const row = document.getElementById('cat-req-row-' + reqId);
+                if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
+                const remaining = document.querySelectorAll('[id^="cat-req-row-"]').length - 1;
+                const badge = document.getElementById('cat-req-badge');
+                if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('category-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending category requests</p>'; }
+                else { badge.textContent = remaining; }
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
         window.loadAllSites = window.loadAllSites;
         window.populateAllGrids = window.populateAllGrids;
         window.showGlobalAnnouncement = window.showGlobalAnnouncement;
@@ -1570,6 +1723,10 @@
         window.loadAdminRequests = window.loadAdminRequests;
         window.approveAdminRequest = window.approveAdminRequest;
         window.denyAdminRequest = window.denyAdminRequest;
+        window.submitCategoryRequest = window.submitCategoryRequest;
+        window.loadCategoryRequests = window.loadCategoryRequests;
+        window.approveCategoryRequest = window.approveCategoryRequest;
+        window.denyCategoryRequest = window.denyCategoryRequest;
     </script>
 
     <!-- Global scope functions (needed for onclick) -->
@@ -1600,14 +1757,18 @@
                 const isOwnerNow = auth.currentUser?.email === ADMIN_EMAIL;
                 const siteReqSection = document.getElementById('site-requests-section');
                 const adminReqSection = document.getElementById('admin-requests-section');
+                const catReqSection = document.getElementById('cat-requests-section');
                 if (isOwnerNow) {
                     if (siteReqSection) siteReqSection.style.display = '';
                     if (adminReqSection) adminReqSection.style.display = '';
+                    if (catReqSection) catReqSection.style.display = '';
                     window.loadSiteRequests();
                     window.loadAdminRequests();
+                    window.loadCategoryRequests();
                 } else {
                     if (siteReqSection) siteReqSection.style.display = 'none';
                     if (adminReqSection) adminReqSection.style.display = 'none';
+                    if (catReqSection) catReqSection.style.display = 'none';
                 }
             }
         };
@@ -1880,6 +2041,14 @@
                 window.tabMapping.push({contentId: 'content-request-admin', title: 'Request Admin', icon: 'fa-crown'});
                 idx++;
             }
+
+            html += `
+                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                    <i class="fa-solid fa-list w-5"></i> <span>Request a Category</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-request-category', title: 'Request a Category', icon: 'fa-list'});
+            idx++;
 
             html += `
                 <div onclick="window.openRequestModal()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
