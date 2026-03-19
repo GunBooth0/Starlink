@@ -577,6 +577,7 @@
         let categoriesListener = null;
         let userDocListener = null;
         window.initialLoadComplete = false;
+        window._signingUp = false;
 
         async function updateUIForAuth(user) {
             window.currentUser = user;
@@ -595,7 +596,8 @@
 
             if (user) {
                 // Block unverified users before any UI updates
-                if (!user.emailVerified && user.email !== ADMIN_EMAIL) {
+                // Skip during signup — sendEmailVerification hasn't run yet
+                if (!user.emailVerified && user.email !== ADMIN_EMAIL && !window._signingUp) {
                     await signOut(auth);
                     return;
                 }
@@ -729,6 +731,7 @@
                     }
                     updateUIForAuth(cred.user);
                 } else {
+                    window._signingUp = true;
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
                     await setDoc(doc(db, "users", cred.user.uid), {
                         email,
@@ -736,6 +739,7 @@
                     });
                     await sendEmailVerification(cred.user);
                     await signOut(auth);
+                    window._signingUp = false;
                     updateUIForAuth(null);
                     alert("Verification email sent! If you don't see it, check your spam folder.");
                 }
