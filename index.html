@@ -843,15 +843,15 @@
                 }, 150);
                 loadTheme(); // re-apply theme now that isAdminUser is known
                 window.currentDisplayName = userDocData.displayName || '';
-                // Write to public usernames lookup so friends can find this user
-                if (userDocData.displayName) {
-                    try {
-                        await setDoc(doc(db, "usernames", userDocData.displayName.toLowerCase()), {
-                            uid: user.uid,
-                            displayName: userDocData.displayName
-                        });
-                    } catch(_) {}
-                }
+                // Always write to public usernames lookup on every login
+                // This registers existing users who signed up before this feature
+                const _nameToRegister = userDocData.displayName || user.email.split('@')[0];
+                try {
+                    await setDoc(doc(db, "usernames", _nameToRegister.toLowerCase()), {
+                        uid: user.uid,
+                        displayName: _nameToRegister
+                    });
+                } catch(_) {}
                 // If admin was revoked and had matrix theme, clear it locally
                 if (!window.isAdminUser && localStorage.getItem('starlinkSpecialTheme') === 'matrix') {
                     localStorage.removeItem('starlinkSpecialTheme');
