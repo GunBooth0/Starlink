@@ -686,7 +686,7 @@
     <div id="owner-terminal">
         <div id="terminal-output"></div>
         <div id="terminal-inputbar">
-            <span style="color:#00ff41;font-size:0.82rem;white-space:nowrap;opacity:0.8;">owner@starlink ~$</span>
+            <span style="color:#00ff41;font-size:0.82rem;white-space:nowrap;opacity:0.8;">Gunnar Booth $</span>
             <input id="terminal-input" type="text" autocomplete="off" spellcheck="false"
                 style="flex:1;background:transparent;border:none;outline:none;color:#00ff41;font-family:monospace;font-size:0.82rem;caret-color:#00ff41;margin:0;padding:0;"
                 placeholder="type a command or 'help'..."
@@ -2765,7 +2765,7 @@ window._signingUp = true;
         function ok(t)   { print('✓  ' + t, '#10b981'); }
         function err(t)  { print('✗  ' + t, '#ef4444'); }
         function info(t) { print('   ' + t, '#a0a0a0'); }
-        function cmd(t)  { print('<span style="color:#00ff41">owner@starlink ~$</span> ' + t); }
+        function cmd(t)  { print('<span style="color:#00ff41">Gunnar Booth $</span> ' + t); }
 
         window.openTerminal = () => {
             if (!isOwner()) return;
