@@ -1067,6 +1067,8 @@
             if (!confirm(`Are you sure you want to ${action} this user?`)) return;
             try {
                 await setDoc(doc(db, "users", uid), { isAdmin: grant }, { merge: true });
+                // Bust the chat roles cache so messages re-render with the new role
+                if (window.chatRolesCache) delete window.chatRolesCache[uid];
                 window.loadAdminUsers();
             } catch (e) {
                 alert("Error: " + e.message);
@@ -1824,13 +1826,26 @@
         // ── Live Chat ──
         let chatListener = null;
         window.currentDisplayName = '';
+        // uid -> isAdmin cache, built from users collection
+        window.chatRolesCache = {};
 
         window.initChat = () => {
-            if (chatListener) return; // already listening
+            if (chatListener) return;
             const messagesEl = document.getElementById('chat-messages');
             const q = query(collection(db, "chat"), orderBy("sentAt", "asc"));
-            chatListener = onSnapshot(q, (snap) => {
+            chatListener = onSnapshot(q, async (snap) => {
                 if (!messagesEl) return;
+
+                // Build roles cache from unique uids in this snapshot
+                const uids = [...new Set(snap.docs.map(d => d.data().uid).filter(Boolean))];
+                await Promise.all(uids.map(async uid => {
+                    if (window.chatRolesCache[uid] !== undefined) return;
+                    try {
+                        const uSnap = await getDoc(doc(db, "users", uid));
+                        window.chatRolesCache[uid] = uSnap.exists() ? (uSnap.data().isAdmin === true) : false;
+                    } catch(_) { window.chatRolesCache[uid] = false; }
+                }));
+
                 messagesEl.innerHTML = '';
                 if (snap.empty) {
                     messagesEl.innerHTML = '<p class="text-center text-white/30 text-sm py-8">No messages yet. Say hi! 👋</p>';
@@ -1838,15 +1853,20 @@
                 }
                 snap.forEach(d => {
                     const m = d.data();
+                    const msgId = d.id;
                     const isMe = m.uid === auth.currentUser?.uid;
                     const isOwnerMsg = m.email === ADMIN_EMAIL;
-                    const isMsgAdmin = m.isAdmin === true || isOwnerMsg;
+                    // Always derive role live from cache, not from stored isAdmin
+                    const isMsgAdmin = isOwnerMsg || window.chatRolesCache[m.uid] === true;
                     const roleBadge = isOwnerMsg
                         ? `<span style="font-size:0.65rem;padding:0.15rem 0.5rem;border-radius:99px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;font-weight:700;margin-left:0.4rem;">Owner</span>`
                         : isMsgAdmin
                             ? `<span style="font-size:0.65rem;padding:0.15rem 0.5rem;border-radius:99px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;font-weight:700;margin-left:0.4rem;">Admin</span>`
                             : '';
                     const time = m.sentAt ? new Date(m.sentAt.toDate()).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+                    const deleteBtn = isMe
+                        ? `<button onclick="window.deleteChatMessage('${msgId}')" title="Delete" style="background:transparent;border:none;padding:0;margin:0;width:auto;cursor:pointer;color:rgba(255,255,255,0.3);font-size:0.75rem;line-height:1;" class="hover:text-red-400 transition-colors ml-1">✕</button>`
+                        : '';
                     const div = document.createElement('div');
                     div.className = `flex ${isMe ? 'justify-end' : 'justify-start'}`;
                     div.innerHTML = `
@@ -1854,6 +1874,7 @@
                             <div class="flex items-center gap-2 mb-1 ${isMe ? 'justify-end' : ''}">
                                 <span class="text-xs font-semibold text-[var(--accent)]">${m.displayName || m.email?.split('@')[0] || 'Unknown'}${roleBadge}</span>
                                 <span class="text-xs text-white/30">${time}</span>
+                                ${deleteBtn}
                             </div>
                             <div style="padding:0.6rem 1rem;border-radius:1rem;${isMe ? 'background:var(--accent);color:#000;border-bottom-right-radius:0.2rem;' : 'background:rgba(255,255,255,0.08);border-bottom-left-radius:0.2rem;'}">${m.text}</div>
                         </div>`;
@@ -1861,6 +1882,12 @@
                 });
                 messagesEl.scrollTop = messagesEl.scrollHeight;
             });
+        };
+
+        window.deleteChatMessage = async (msgId) => {
+            try {
+                await deleteDoc(doc(db, "chat", msgId));
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.sendChatMessage = async () => {
@@ -1872,13 +1899,11 @@
             try {
                 const userSnap = await getDoc(doc(db, "users", user.uid));
                 const userData = userSnap.exists() ? userSnap.data() : {};
-                const isOwner = user.email === ADMIN_EMAIL;
                 await addDoc(collection(db, "chat"), {
                     text,
                     uid: user.uid,
                     email: user.email,
                     displayName: userData.displayName || user.email.split('@')[0],
-                    isAdmin: userData.isAdmin === true || isOwner,
                     sentAt: serverTimestamp()
                 });
                 input.value = '';
@@ -1929,6 +1954,7 @@
         window.sendChatMessage = window.sendChatMessage;
         window.stopChat = window.stopChat;
         window.clearChat = window.clearChat;
+        window.deleteChatMessage = window.deleteChatMessage;
         window.submitAdminRequest = window.submitAdminRequest;
         window.cancelAdminRequest = window.cancelAdminRequest;
         window.checkExistingAdminRequest = window.checkExistingAdminRequest;
