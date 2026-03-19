@@ -2267,15 +2267,14 @@
             const me = auth.currentUser;
             if (!me) return;
             try {
-                const mySnap = await getDoc(doc(db, "users", me.uid));
-                const myData = mySnap.exists() ? mySnap.data() : {};
-                const myName = myData.displayName || me.email.split('@')[0];
-                // Add each other as friends
+                const myName = window.currentDisplayName || me.email.split('@')[0];
+                // Write YOUR side (allowed — your own list)
                 await setDoc(doc(db, "friends", me.uid, "list", fromUid), { displayName: fromName, addedAt: serverTimestamp() });
+                // Write THEIR side — rules allow this because friendId == me.uid
                 await setDoc(doc(db, "friends", fromUid, "list", me.uid), { displayName: myName, addedAt: serverTimestamp() });
-                // Remove request
+                // Remove the incoming request
                 await deleteDoc(doc(db, "friendRequests", me.uid, "incoming", fromUid));
-            } catch(e) { alert('Error: ' + e.message); }
+            } catch(e) { alert('Error accepting: ' + e.message); }
         };
 
         // ── Decline friend request ──
