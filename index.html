@@ -765,7 +765,7 @@
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, where, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+        import { getFirestore, collection, collectionGroup, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, where, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDI979T4jI-ZbGbRDFo-kNZPyG3Pc8gkXw",
@@ -879,7 +879,8 @@
                         const adminReqSectionInit = document.getElementById('admin-requests-section');
                         const catReqSectionInit = document.getElementById('cat-requests-section');
                         const clearChatSectionInit = document.getElementById('clear-chat-section');
-                                // All admins get site requests, category requests, clear chat
+                        const dmAdminSectionInit = document.getElementById('dms-admin-section');
+                        // All admins get site requests, category requests, clear chat
                         if (siteReqSectionInit) siteReqSectionInit.style.display = '';
                         if (catReqSectionInit) catReqSectionInit.style.display = '';
                         if (clearChatSectionInit) clearChatSectionInit.style.display = '';
@@ -888,9 +889,11 @@
                         // Owner only extras
                         if (isOwnerInit) {
                             if (adminReqSectionInit) adminReqSectionInit.style.display = '';
-                                    window.loadAdminRequests();
+                            if (dmAdminSectionInit) dmAdminSectionInit.style.display = '';
+                            window.loadAdminRequests();
                         } else {
                             if (adminReqSectionInit) adminReqSectionInit.style.display = 'none';
+                            if (dmAdminSectionInit) dmAdminSectionInit.style.display = 'none';
                         }
                     }
                     window.initialLoadComplete = true;
@@ -2481,14 +2484,13 @@
                 const globalSnap = await getDocs(collection(db, "chat"));
                 await Promise.all(globalSnap.docs.map(d => deleteDoc(doc(db, "chat", d.id))));
 
-                // Clear all DM conversations
-                const dmsSnap = await getDocs(collection(db, "dms"));
-                for (const convoDoc of dmsSnap.docs) {
-                    const msgsSnap = await getDocs(collection(db, "dms", convoDoc.id, "messages"));
-                    await Promise.all(msgsSnap.docs.map(d => deleteDoc(doc(db, "dms", convoDoc.id, "messages", d.id))));
-                }
+                // Clear all DM messages — query collectionGroup for all messages across all convos
+                const allDMsSnap = await getDocs(collectionGroup(db, "messages"));
+                await Promise.all(allDMsSnap.docs
+                    .filter(d => d.ref.parent.parent?.parent?.id === "dms")
+                    .map(d => deleteDoc(d.ref)));
 
-                alert('All chats cleared (global + all DMs).');
+                alert('All chats cleared.');
             } catch(e) { alert('Error: ' + e.message); }
         };
 
