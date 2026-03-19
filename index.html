@@ -1110,7 +1110,7 @@
             try {
                 const targetSnap = await getDoc(doc(db, "users", uid));
                 const targetData = targetSnap.exists() ? targetSnap.data() : {};
-                if (targetData.email === ADMIN_EMAIL) return alert('You cannot change the owner's role.');
+                if (targetData.email === ADMIN_EMAIL) return alert("You cannot change the owner's role.");
             } catch(_) {}
             const action = grant ? 'grant admin access to' : 'revoke admin access from';
             if (!confirm(`Are you sure you want to ${action} this user?`)) return;
