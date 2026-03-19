@@ -284,7 +284,7 @@
                         <input type="email" id="email" placeholder="Email address" required autocomplete="email">
                         <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
                         <input type="text" id="signup-username" placeholder="Choose a username..." maxlength="24" class="hidden">
-                        <button id="auth-btn" class="auth-btn mt-6">Sign In</button>
+<button id="auth-btn" class="auth-btn mt-6">Sign In</button>
                         <p class="text-center mt-6 text-white/70 text-sm">
                             <span id="toggle-link" class="text-[var(--accent)] cursor-pointer hover:underline">Don't have an account? Sign Up</span>
                         </p>
@@ -644,6 +644,30 @@
         </div>
     </div>
 
+    <!-- OWNER TERMINAL -->
+    <div id="owner-terminal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);backdrop-filter:blur(8px);z-index:99999;align-items:center;justify-content:center;">
+        <div style="width:min(700px,95vw);background:#0a0a0a;border:1px solid rgba(255,255,255,0.15);border-radius:1rem;box-shadow:0 0 60px rgba(0,255,65,0.15);font-family:monospace;overflow:hidden;">
+            <!-- Title bar -->
+            <div style="background:#111;border-bottom:1px solid rgba(255,255,255,0.1);padding:0.75rem 1.25rem;display:flex;align-items:center;gap:0.75rem;">
+                <div style="width:12px;height:12px;border-radius:50%;background:#ef4444;cursor:pointer;" onclick="window.closeTerminal()"></div>
+                <div style="width:12px;height:12px;border-radius:50%;background:#f59e0b;"></div>
+                <div style="width:12px;height:12px;border-radius:50%;background:#10b981;"></div>
+                <span style="color:rgba(255,255,255,0.4);font-size:0.8rem;margin-left:0.5rem;">starlink — owner terminal</span>
+                <span style="margin-left:auto;color:rgba(255,255,255,0.25);font-size:0.75rem;">Press / or ESC to close</span>
+            </div>
+            <!-- Output -->
+            <div id="terminal-output" style="height:360px;overflow-y:auto;padding:1.25rem;color:#e0e0e0;font-size:0.85rem;line-height:1.6;"></div>
+            <!-- Input -->
+            <div style="border-top:1px solid rgba(255,255,255,0.08);padding:0.75rem 1.25rem;display:flex;align-items:center;gap:0.75rem;">
+                <span style="color:#00ff41;font-size:0.85rem;white-space:nowrap;">owner@starlink:~$</span>
+                <input id="terminal-input" type="text" autocomplete="off" spellcheck="false"
+                    style="flex:1;background:transparent;border:none;outline:none;color:#00ff41;font-family:monospace;font-size:0.85rem;caret-color:#00ff41;margin:0;padding:0;"
+                    placeholder="type a command or 'help'..."
+                    onkeydown="window.handleTerminalKey(event)">
+            </div>
+        </div>
+    </div>
+
     <!-- REFRESH MODAL -->
     <div id="refresh-modal">
         <div id="refresh-content">
@@ -888,7 +912,7 @@
                 } else {
                     const signupUsername = document.getElementById('signup-username').value.trim();
                     if (!signupUsername) { alert('Please choose a username before signing up.'); return; }
-                    window._signingUp = true;
+window._signingUp = true;
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
                     await setDoc(doc(db, "users", cred.user.uid), {
                         email,
@@ -2373,7 +2397,6 @@
             if (canvas) { canvas.style.display = 'none'; const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
             if (starBg) starBg.style.display = 'block';
         }
-
         function setTheme(color, special) {
             // special = 'matrix' for the matrix theme
             localStorage.setItem('starlinkAccent', color);
@@ -2692,6 +2715,423 @@
             deferredPrompt = null;
             if (installBtn) installBtn.classList.add('hidden');
         };
+    </script>
+
+    <!-- Owner Terminal Logic -->
+    <script>
+    (function() {
+        const OWNER = 'gunnarbooth@gmail.com';
+        let cmdHistory = [];
+        let histIdx = -1;
+
+        function isOwner() { return window.currentUser?.email === OWNER; }
+
+        function print(text, color) {
+            const out = document.getElementById('terminal-output');
+            if (!out) return;
+            const line = document.createElement('div');
+            line.style.color = color || '#e0e0e0';
+            line.innerHTML = text;
+            out.appendChild(line);
+            out.scrollTop = out.scrollHeight;
+        }
+        function ok(t)   { print('✓  ' + t, '#10b981'); }
+        function err(t)  { print('✗  ' + t, '#ef4444'); }
+        function info(t) { print('   ' + t, '#a0a0a0'); }
+        function cmd(t)  { print('<span style="color:#00ff41">owner@starlink ~$</span> ' + t); }
+
+        window.openTerminal = () => {
+            if (!isOwner()) return;
+            const el = document.getElementById('owner-terminal');
+            el.style.display = 'flex';
+            setTimeout(() => document.getElementById('terminal-input')?.focus(), 50);
+            if (!document.getElementById('terminal-output').children.length) {
+                print('╔══════════════════════════════════════════╗', '#00ff41');
+                print('║   Starlink Owner Terminal  v1.0          ║', '#00ff41');
+                print('╚══════════════════════════════════════════╝', '#00ff41');
+                print('');
+                info('Type <span style="color:#fff">help</span> to see all commands.');
+                print('');
+            }
+        };
+
+        window.closeTerminal = () => {
+            document.getElementById('owner-terminal').style.display = 'none';
+        };
+
+        window.handleTerminalKey = async (e) => {
+            const input = document.getElementById('terminal-input');
+            if (e.key === 'Escape') { window.closeTerminal(); return; }
+            if (e.key === 'ArrowUp') { e.preventDefault(); if (histIdx < cmdHistory.length - 1) { histIdx++; input.value = cmdHistory[histIdx]; } return; }
+            if (e.key === 'ArrowDown') { e.preventDefault(); if (histIdx > 0) { histIdx--; input.value = cmdHistory[histIdx]; } else { histIdx = -1; input.value = ''; } return; }
+            if (e.key !== 'Enter') return;
+            const raw = input.value.trim();
+            if (!raw) return;
+            cmdHistory.unshift(raw);
+            histIdx = -1;
+            input.value = '';
+            cmd(raw);
+            await runCommand(raw);
+            print('');
+        };
+
+        async function runCommand(raw) {
+            if (!isOwner()) return err('Access denied.');
+            const parts = raw.trim().split(/\s+/);
+            const c = parts[0].toLowerCase();
+            const args = parts.slice(1);
+
+            // ── HELP ──
+            if (c === 'help') {
+                print('  <span style="color:#00ff41;font-weight:bold">SITES</span>');
+                info('<span style="color:#fff">sites list</span>                        — list all categories with site counts');
+                info('<span style="color:#fff">site find &lt;name&gt;</span>                 — find a site and get its ID');
+                info('<span style="color:#fff">site add &lt;cat&gt; &lt;name&gt; &lt;url&gt; [icon] [desc]</span> — add a site');
+                info('<span style="color:#fff">site del &lt;id&gt;</span>                    — delete a site by ID');
+                info('<span style="color:#fff">random [cat]</span>                      — open a random site');
+                print('');
+                print('  <span style="color:#00ff41;font-weight:bold">CATEGORIES</span>');
+                info('<span style="color:#fff">cat list</span>                          — list all categories');
+                info('<span style="color:#fff">cat add &lt;key&gt; &lt;label&gt; &lt;icon&gt;</span>      — add a category');
+                info('<span style="color:#fff">cat del &lt;key&gt;</span>                    — delete a category');
+                print('');
+                print('  <span style="color:#00ff41;font-weight:bold">USERS</span>');
+                info('<span style="color:#fff">users list</span>                        — list all users with roles');
+                info('<span style="color:#fff">user ban &lt;email&gt;</span>                 — ban a user');
+                info('<span style="color:#fff">user unban &lt;email&gt;</span>               — unban a user');
+                info('<span style="color:#fff">user admin &lt;email&gt;</span>               — grant admin');
+                info('<span style="color:#fff">user unadmin &lt;email&gt;</span>             — revoke admin');
+                info('<span style="color:#fff">user del &lt;email&gt;</span>                 — delete a user record');
+                info('<span style="color:#fff">user rename &lt;email&gt; &lt;newname&gt;</span>    — change a user's username');
+                print('');
+                print('  <span style="color:#00ff41;font-weight:bold">ANNOUNCEMENTS</span>');
+                info('<span style="color:#fff">announce &lt;message&gt;</span>               — publish a global announcement');
+                info('<span style="color:#fff">announce clear</span>                    — clear the current announcement');
+                print('');
+                print('  <span style="color:#00ff41;font-weight:bold">REQUESTS</span>');
+                info('<span style="color:#fff">requests site</span>                     — list pending site requests');
+                info('<span style="color:#fff">requests admin</span>                    — list pending admin requests');
+                info('<span style="color:#fff">requests category</span>                 — list pending category requests');
+                info('<span style="color:#fff">approve site &lt;id&gt;</span>                — approve a site request');
+                info('<span style="color:#fff">reject site &lt;id&gt;</span>                 — reject a site request');
+                info('<span style="color:#fff">approve admin &lt;id&gt;</span>               — approve an admin request');
+                info('<span style="color:#fff">deny admin &lt;id&gt;</span>                  — deny an admin request');
+                info('<span style="color:#fff">approve cat &lt;id&gt;</span>                 — approve a category request');
+                info('<span style="color:#fff">deny cat &lt;id&gt;</span>                    — deny a category request');
+                print('');
+                print('  <span style="color:#00ff41;font-weight:bold">CHAT</span>');
+                info('<span style="color:#fff">chat clear</span>                        — delete all chat messages');
+                info('<span style="color:#fff">chat say &lt;message&gt;</span>               — send a chat message as yourself');
+                print('');
+                print('  <span style="color:#00ff41;font-weight:bold">THEME</span>');
+                info('<span style="color:#fff">theme matrix</span>                      — activate matrix theme');
+                info('<span style="color:#fff">theme &lt;#hex&gt;</span>                      — set accent color');
+                info('<span style="color:#fff">theme reset</span>                       — reset to default white');
+                print('');
+                print('  <span style="color:#00ff41;font-weight:bold">SYSTEM</span>');
+                info('<span style="color:#fff">stats</span>                             — show site statistics');
+                info('<span style="color:#fff">whoami</span>                            — show your info');
+                info('<span style="color:#fff">online</span>                            — show online count');
+                info('<span style="color:#fff">goto &lt;tab&gt;</span>                        — navigate to a tab');
+                info('<span style="color:#fff">search &lt;query&gt;</span>                    — search sites');
+                info('<span style="color:#fff">clear</span>                             — clear terminal');
+                info('<span style="color:#fff">exit</span>                              — close terminal');
+                return;
+            }
+
+            if (c === 'exit')  { window.closeTerminal(); return; }
+            if (c === 'clear') { document.getElementById('terminal-output').innerHTML = ''; return; }
+
+            // ── WHOAMI ──
+            if (c === 'whoami') {
+                info(`Username: <span style="color:#fff">${window.currentDisplayName || window.currentUser?.email?.split('@')[0]}</span>`);
+                info(`Email:    <span style="color:#fff">${window.currentUser?.email}</span>`);
+                info(`Role:     <span style="color:#f59e0b">★ Owner</span>`);
+                return;
+            }
+
+            // ── ONLINE ──
+            if (c === 'online') {
+                info(`Online: <span style="color:#10b981">${document.getElementById('online-count')?.textContent || '?'} user(s)</span>`);
+                return;
+            }
+
+            // ── STATS ──
+            if (c === 'stats') {
+                let total = 0;
+                (window.allCategories || []).forEach(cat => total += (window.allSites?.[cat.key] || []).length);
+                info(`Categories: <span style="color:#fff">${(window.allCategories||[]).length}</span>`);
+                info(`Total sites: <span style="color:#fff">${total}</span>`);
+                info(`Online: <span style="color:#10b981">${document.getElementById('online-count')?.textContent || '?'}</span>`);
+                return;
+            }
+
+            // ── GOTO ──
+            if (c === 'goto') {
+                const dest = args[0]?.toLowerCase();
+                const map = { home:'content-home', admin:'content-admin', chat:'content-chat', settings:'content-settings', account:'content-account', credits:'content-credits' };
+                const tabIdx = (window.tabMapping||[]).findIndex(t => t.contentId === (map[dest] || `content-${dest}`));
+                if (tabIdx >= 0) { window.switchTab(tabIdx); window.closeTerminal(); ok(`Navigated to ${dest}`); }
+                else err(`Unknown tab: ${dest}`);
+                return;
+            }
+
+            // ── SEARCH ──
+            if (c === 'search') {
+                const q = args.join(' ');
+                if (!q) return err('Usage: search <query>');
+                document.getElementById('search-input').value = q;
+                window.handleSearch(q);
+                window.closeTerminal();
+                ok(`Searching for "${q}"`);
+                return;
+            }
+
+            // ── RANDOM ──
+            if (c === 'random') {
+                const catKey = args[0]?.toLowerCase();
+                let pool = [];
+                if (catKey) { pool = window.allSites?.[catKey] || []; if (!pool.length) return err(`No sites in: ${catKey}`); }
+                else (window.allCategories||[]).forEach(cat => pool.push(...(window.allSites?.[cat.key]||[])));
+                if (!pool.length) return err('No sites available.');
+                const site = pool[Math.floor(Math.random() * pool.length)];
+                window.open(site.url, '_blank');
+                ok(`Opening: ${site.name}`);
+                return;
+            }
+
+            // ── SITES LIST ──
+            if (c === 'sites' && args[0] === 'list') {
+                (window.allCategories||[]).forEach(cat => {
+                    const count = (window.allSites?.[cat.key]||[]).length;
+                    info(`<span style="color:#fff">${cat.key}</span> (${cat.label}) — ${count} sites`);
+                });
+                return;
+            }
+
+            // ── SITE FIND ──
+            if (c === 'site' && args[0] === 'find') {
+                const name = args.slice(1).join(' ').toLowerCase();
+                if (!name) return err('Usage: site find <name>');
+                let found = [];
+                (window.allCategories||[]).forEach(cat => (window.allSites?.[cat.key]||[]).forEach(s => { if (s.name.toLowerCase().includes(name)) found.push(s); }));
+                if (!found.length) return err(`No sites matching "${name}"`);
+                found.forEach(s => info(`<span style="color:#fff">${s.name}</span> [${s.category}] id:<span style="color:#a0a0a0">${s.id}</span>`));
+                return;
+            }
+
+            // ── SITE ADD ──
+            if (c === 'site' && args[0] === 'add') {
+                const cat = args[1], name = args[2], url = args[3], icon = args[4]||'', desc = args.slice(5).join(' ')||'';
+                if (!cat||!name||!url) return err('Usage: site add <cat> <name> <url> [icon] [desc]');
+                try {
+                    const { addDoc, collection } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const catSites = window.allSites?.[cat]||[];
+                    const maxOrder = catSites.length ? Math.max(...catSites.map(s => s.order??0))+1 : 0;
+                    await addDoc(collection(window.db, "sites"), { category:cat, name, url, icon, desc, order:maxOrder });
+                    await window.loadAllSites(); window.populateAllGrids(); window.reloadAdminSites();
+                    ok(`Site "${name}" added to ${cat}`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── SITE DEL ──
+            if (c === 'site' && args[0] === 'del') {
+                const id = args[1];
+                if (!id) return err('Usage: site del <id>');
+                if (!confirm(`Delete site ${id}?`)) return info('Cancelled.');
+                try { await window.deleteSite(id); ok('Site deleted'); }
+                catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── CAT LIST ──
+            if (c === 'cat' && args[0] === 'list') {
+                (window.allCategories||[]).forEach(cat => info(`<span style="color:#fff">${cat.key}</span> — ${cat.label} [${cat.icon}]`));
+                return;
+            }
+
+            // ── CAT ADD ──
+            if (c === 'cat' && args[0] === 'add') {
+                let key = args[1], label = args[2], icon = args[3]||'fa-folder';
+                if (!key||!label) return err('Usage: cat add <key> <label> <icon>');
+                if (!icon.startsWith('fa-')) icon = 'fa-'+icon;
+                if ((window.allCategories||[]).some(cat => cat.key===key)) return err(`Key "${key}" already exists`);
+                try {
+                    const { addDoc, collection } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const maxOrder = (window.allCategories||[]).length ? Math.max(...(window.allCategories||[]).map(c=>c.order??0))+1 : 0;
+                    await addDoc(collection(window.db, "categories"), { key, label, icon, order:maxOrder });
+                    ok(`Category "${label}" added`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── CAT DEL ──
+            if (c === 'cat' && args[0] === 'del') {
+                const key = args[1];
+                if (!key) return err('Usage: cat del <key>');
+                const cat = (window.allCategories||[]).find(c => c.key===key);
+                if (!cat) return err(`Category "${key}" not found`);
+                if (!confirm(`Delete category "${key}"?`)) return info('Cancelled.');
+                try { await window.deleteCategory(cat.id, key); ok(`Category "${key}" deleted`); }
+                catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── USERS LIST ──
+            if (c === 'users' && args[0] === 'list') {
+                info('Loading...');
+                try {
+                    const docs = await window._termGetUsers();
+                    if (!docs.length) return info('No users found.');
+                    docs.forEach(d => {
+                        const data = d.data();
+                        const role = data.email===OWNER ? '<span style="color:#f59e0b">★ Owner</span>'
+                            : data.isAdmin ? '<span style="color:#8b5cf6">⚡ Admin</span>'
+                            : data.banned ? '<span style="color:#ef4444">🚫 Banned</span>'
+                            : '<span style="color:#a0a0a0">● User</span>';
+                        info(`${role} <span style="color:#fff">${data.displayName||'—'}</span> &lt;${data.email}&gt;`);
+                    });
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── USER ACTIONS ──
+            if (c === 'user') {
+                const action = args[0], email = args[1];
+                if (!action||!email) return err('Usage: user <action> <email>');
+                try {
+                    const uid = await window._termGetUid(email);
+                    if (!uid) return err(`User not found: ${email}`);
+                    if      (action==='ban')     { await window.setBanUser(uid, true);   ok(`${email} banned`); }
+                    else if (action==='unban')   { await window.setBanUser(uid, false);  ok(`${email} unbanned`); }
+                    else if (action==='admin')   { await window.setAdminUser(uid, true); ok(`${email} granted admin`); }
+                    else if (action==='unadmin') { await window.setAdminUser(uid, false);ok(`${email} admin revoked`); }
+                    else if (action==='del')     {
+                        if (!confirm(`Delete user ${email}?`)) return info('Cancelled.');
+                        await window.deleteUserFromAdmin(uid); ok(`${email} deleted`);
+                    }
+                    else if (action==='rename')  {
+                        const newName = args.slice(2).join(' ');
+                        if (!newName) return err('Usage: user rename <email> <newname>');
+                        const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                        await setDoc(doc(window.db, "users", uid), { displayName: newName }, { merge: true });
+                        ok(`${email} renamed to "${newName}"`);
+                    }
+                    else err(`Unknown action: ${action}`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── ANNOUNCE ──
+            if (c === 'announce') {
+                if (args[0]==='clear') {
+                    if (!confirm('Clear announcement?')) return info('Cancelled.');
+                    await window.clearAnnouncement(); ok('Announcement cleared');
+                } else {
+                    const msg = args.join(' ');
+                    if (!msg) return err('Usage: announce <message>');
+                    document.getElementById('announcement-input').value = msg;
+                    await window.saveGlobalAnnouncement();
+                    document.getElementById('announcement-input').value = '';
+                    ok(`Published: "${msg}"`);
+                }
+                return;
+            }
+
+            // ── CHAT ──
+            if (c === 'chat') {
+                if (args[0]==='clear') {
+                    if (!confirm('Clear all chat?')) return info('Cancelled.');
+                    await window.clearChat(); ok('Chat cleared');
+                } else if (args[0]==='say') {
+                    const msg = args.slice(1).join(' ');
+                    if (!msg) return err('Usage: chat say <message>');
+                    document.getElementById('chat-input').value = msg;
+                    await window.sendChatMessage(); ok(`Sent: "${msg}"`);
+                } else err(`Unknown: ${args[0]}`);
+                return;
+            }
+
+            // ── THEME ──
+            if (c === 'theme') {
+                if      (args[0]==='matrix') { setTheme('#00ff41','matrix'); ok('Matrix theme activated'); }
+                else if (args[0]==='reset')  { setTheme('#ffffff','');       ok('Theme reset to default'); }
+                else if (args[0]?.startsWith('#')) { setTheme(args[0],'');  ok(`Accent set to ${args[0]}`); }
+                else err('Usage: theme <#hex> | matrix | reset');
+                return;
+            }
+
+            // ── REQUESTS LIST ──
+            if (c === 'requests') {
+                try {
+                    const docs = await window._termGetRequests(args[0]);
+                    if (!docs) return err('Usage: requests site | admin | category');
+                    if (!docs.length) return info(`No pending ${args[0]} requests`);
+                    docs.forEach(d => {
+                        const r = d.data();
+                        const shortId = d.id.slice(0,8);
+                        if (args[0]==='site')     info(`[${shortId}] <span style="color:#fff">${r.name}</span> — ${r.url} (by ${r.requestedBy})`);
+                        else if (args[0]==='admin')    info(`[${shortId}] <span style="color:#fff">${r.email}</span> — "${(r.reason||'').slice(0,60)}"`);
+                        else if (args[0]==='category') info(`[${shortId}] <span style="color:#fff">${r.label}</span> [${r.icon}] (by ${r.requestedBy})`);
+                    });
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── APPROVE / REJECT / DENY ──
+            if (c==='approve'||c==='reject'||c==='deny') {
+                const type=args[0], id=args[1];
+                if (!type||!id) return err(`Usage: ${c} <site|admin|cat> <id>`);
+                try {
+                    const docs = await window._termGetRequests(type==='cat'?'category':type);
+                    if (!docs) return err(`Unknown type: ${type}`);
+                    const match = docs.find(d => d.id.startsWith(id)||d.id===id);
+                    if (!match) return err(`Request not found: ${id}`);
+                    const r = match.data();
+                    if (type==='site' && c==='approve') { await window.approveSiteRequest(match.id, r.name||'', r.url||'', r.category||'', r.icon||'', r.desc||''); ok(`Site "${r.name}" approved`); }
+                    else if (type==='site') { await window.rejectSiteRequest(match.id); ok('Site request rejected'); }
+                    else if (type==='admin' && c==='approve') { await window.approveAdminRequest(match.id, r.uid); ok(`Admin granted to ${r.email}`); }
+                    else if (type==='admin') { await window.denyAdminRequest(match.id); ok('Admin request denied'); }
+                    else if ((type==='cat'||type==='category') && c==='approve') { await window.approveCategoryRequest(match.id, r.label, r.icon); ok(`Category "${r.label}" approved`); }
+                    else { await window.denyCategoryRequest(match.id); ok('Category request denied'); }
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            err(`Unknown command: "${c}" — type <span style="color:#fff">help</span>`);
+        }
+
+        // ── Helpers ──
+        window._termGetUsers = async () => {
+            const { getDocs, collection, query, orderBy } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+            return (await getDocs(query(collection(window.db,"users"), orderBy("createdAt","desc")))).docs;
+        };
+        window._termGetUid = async (email) => {
+            const docs = await window._termGetUsers();
+            const m = docs.find(d => d.data().email?.toLowerCase()===email.toLowerCase());
+            return m ? m.id : null;
+        };
+        window._termGetRequests = async (type) => {
+            const { getDocs, collection, query, orderBy } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+            const colMap = { site:'siteRequests', admin:'adminRequests', category:'categoryRequests' };
+            const col = colMap[type];
+            if (!col) return null;
+            const snap = await getDocs(query(collection(window.db, col), orderBy("requestedAt","desc")));
+            return snap.docs.filter(d => (d.data().status||'pending')==='pending');
+        };
+
+        // ── Open on / key (owner only) ──
+        document.addEventListener('keydown', e => {
+            if (e.key !== '/') return;
+            if (['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
+            if (window.currentUser?.email !== OWNER) return;
+            e.preventDefault();
+            const t = document.getElementById('owner-terminal');
+            t.style.display==='flex' ? window.closeTerminal() : window.openTerminal();
+        });
+
+    })();
     </script>
 </body>
 </html>
