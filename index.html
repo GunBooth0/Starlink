@@ -594,12 +594,6 @@
             if (userDocListener) userDocListener();
 
             if (user) {
-                // Block unverified users at the source — handles the onAuthStateChanged race
-                if (!user.emailVerified && user.email !== ADMIN_EMAIL) {
-                    await signOut(auth);
-                    return;
-                }
-
                 // Check banned + isAdmin from Firestore before showing UI
                 let userDocData = {};
                 try {
@@ -723,8 +717,8 @@
                 if (document.getElementById('form-title').textContent === 'Sign In') {
                     const cred = await signInWithEmailAndPassword(auth, email, password);
                     if (!cred.user.emailVerified) {
+                        alert("Please verify your email first.");
                         await signOut(auth);
-                        alert("Please verify your email first. If you don't see it, check your spam folder.");
                         return;
                     }
                     updateUIForAuth(cred.user);
@@ -735,7 +729,7 @@
                         createdAt: serverTimestamp()
                     });
                     await sendEmailVerification(cred.user);
-                    alert("Verification email sent! If you don't see it, check your spam folder.");
+                    alert("Verification email sent! Check inbox.");
                     await signOut(auth);
                     updateUIForAuth(null);
                 }
