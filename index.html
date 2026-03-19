@@ -844,17 +844,7 @@
                 loadTheme(); // re-apply theme now that isAdminUser is known
                 window.currentDisplayName = userDocData.displayName || '';
                 // Always write to public usernames lookup on every login
-                const _nameToRegister = userDocData.displayName || user.email.split('@')[0];
-                try {
-                    const _existingName = await getDoc(doc(db, "usernames", _nameToRegister.toLowerCase()));
-                    // Only write if not taken by someone else
-                    if (!_existingName.exists() || _existingName.data().uid === user.uid) {
-                        await setDoc(doc(db, "usernames", _nameToRegister.toLowerCase()), {
-                            uid: user.uid,
-                            displayName: _nameToRegister
-                        });
-                    }
-                } catch(_) {}
+                window.registerUsername(user.uid, userDocData.displayName || user.email.split('@')[0]);
                 // If admin was revoked and had matrix theme, clear it locally
                 if (!window.isAdminUser && localStorage.getItem('starlinkSpecialTheme') === 'matrix') {
                     localStorage.removeItem('starlinkSpecialTheme');
@@ -2464,6 +2454,22 @@
             } catch(e) { container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`; }
         };
 
+
+        window.registerUsername = async (uid, displayName) => {
+            if (!uid || !displayName) return;
+            try {
+                const existing = await getDoc(doc(db, "usernames", displayName.toLowerCase()));
+                if (!existing.exists() || existing.data().uid === uid) {
+                    await setDoc(doc(db, "usernames", displayName.toLowerCase()), {
+                        uid,
+                        displayName
+                    });
+                }
+            } catch(e) {
+                // Silently fail — will retry next login
+            }
+        };
+
         window.stopChat = () => {
             if (chatListener) { chatListener(); chatListener = null; }
         };
@@ -2609,6 +2615,7 @@
         window.openGlobalChat = window.openGlobalChat;
         window.deleteDMMessage = window.deleteDMMessage;
         window.stopDMListeners = window.stopDMListeners;
+        window.registerUsername = window.registerUsername;
         window.loadFriendsList = window.loadFriendsList;
         window.loadAdminDMs = window.loadAdminDMs;
         window.viewAdminDM = window.viewAdminDM;
@@ -2653,7 +2660,7 @@
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(mapping.contentId)?.classList.remove('hidden');
             if (mapping.contentId === 'content-request-admin') window.checkExistingAdminRequest();
-            if (mapping.contentId === 'content-chat') { window.openGlobalChat(); window.startTypingListener(); window.loadFriendsList(); }
+            if (mapping.contentId === 'content-chat') { window.openGlobalChat(); window.startTypingListener(); window.loadFriendsList(); if (window.currentUser && window.currentDisplayName) window.registerUsername(window.currentUser.uid, window.currentDisplayName); }
             if (mapping.contentId === 'content-admin') {
                 populateAdminThemeGrid();
                 const isOwnerNow = window.firebaseAuth?.auth?.currentUser?.email === ADMIN_EMAIL;
