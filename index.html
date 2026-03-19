@@ -645,26 +645,53 @@
     </div>
 
     <!-- OWNER TERMINAL -->
-    <div id="owner-terminal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);backdrop-filter:blur(8px);z-index:99999;align-items:center;justify-content:center;">
-        <div style="width:min(700px,95vw);background:#0a0a0a;border:1px solid rgba(255,255,255,0.15);border-radius:1rem;box-shadow:0 0 60px rgba(0,255,65,0.15);font-family:monospace;overflow:hidden;">
-            <!-- Title bar -->
-            <div style="background:#111;border-bottom:1px solid rgba(255,255,255,0.1);padding:0.75rem 1.25rem;display:flex;align-items:center;gap:0.75rem;">
-                <div style="width:12px;height:12px;border-radius:50%;background:#ef4444;cursor:pointer;" onclick="window.closeTerminal()"></div>
-                <div style="width:12px;height:12px;border-radius:50%;background:#f59e0b;"></div>
-                <div style="width:12px;height:12px;border-radius:50%;background:#10b981;"></div>
-                <span style="color:rgba(255,255,255,0.4);font-size:0.8rem;margin-left:0.5rem;">starlink — owner terminal</span>
-                <span style="margin-left:auto;color:rgba(255,255,255,0.25);font-size:0.75rem;">Press / or ESC to close</span>
-            </div>
-            <!-- Output -->
-            <div id="terminal-output" style="height:360px;overflow-y:auto;padding:1.25rem;color:#e0e0e0;font-size:0.85rem;line-height:1.6;"></div>
-            <!-- Input -->
-            <div style="border-top:1px solid rgba(255,255,255,0.08);padding:0.75rem 1.25rem;display:flex;align-items:center;gap:0.75rem;">
-                <span style="color:#00ff41;font-size:0.85rem;white-space:nowrap;">owner@starlink:~$</span>
-                <input id="terminal-input" type="text" autocomplete="off" spellcheck="false"
-                    style="flex:1;background:transparent;border:none;outline:none;color:#00ff41;font-family:monospace;font-size:0.85rem;caret-color:#00ff41;margin:0;padding:0;"
-                    placeholder="type a command or 'help'..."
-                    onkeydown="window.handleTerminalKey(event)">
-            </div>
+    <!-- OWNER TERMINAL — bottom bar style -->
+    <style>
+        #owner-terminal {
+            position: fixed;
+            bottom: 0;
+            left: 288px; /* sidebar width */
+            right: 0;
+            z-index: 99999;
+            font-family: monospace;
+            transform: translateY(100%);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+        #owner-terminal.open {
+            transform: translateY(0);
+            pointer-events: all;
+        }
+        #terminal-output {
+            max-height: 280px;
+            overflow-y: auto;
+            padding: 1rem 1.5rem 0.5rem;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(0,255,65,0.2);
+        }
+        #terminal-output:empty { display: none; }
+        #terminal-inputbar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 1.5rem;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(0,255,65,0.35);
+        }
+    </style>
+    <div id="owner-terminal">
+        <div id="terminal-output"></div>
+        <div id="terminal-inputbar">
+            <span style="color:#00ff41;font-size:0.82rem;white-space:nowrap;opacity:0.8;">owner@starlink ~$</span>
+            <input id="terminal-input" type="text" autocomplete="off" spellcheck="false"
+                style="flex:1;background:transparent;border:none;outline:none;color:#00ff41;font-family:monospace;font-size:0.82rem;caret-color:#00ff41;margin:0;padding:0;"
+                placeholder="type a command or 'help'..."
+                onkeydown="window.handleTerminalKey(event)">
+            <span style="color:rgba(255,255,255,0.25);font-size:0.7rem;">ESC to close</span>
         </div>
     </div>
 
@@ -2743,20 +2770,14 @@ window._signingUp = true;
         window.openTerminal = () => {
             if (!isOwner()) return;
             const el = document.getElementById('owner-terminal');
-            el.style.display = 'flex';
+            el.classList.add('open');
             setTimeout(() => document.getElementById('terminal-input')?.focus(), 50);
-            if (!document.getElementById('terminal-output').children.length) {
-                print('╔══════════════════════════════════════════╗', '#00ff41');
-                print('║   Starlink Owner Terminal  v1.0          ║', '#00ff41');
-                print('╚══════════════════════════════════════════╝', '#00ff41');
-                print('');
-                info('Type <span style="color:#fff">help</span> to see all commands.');
-                print('');
-            }
         };
 
         window.closeTerminal = () => {
-            document.getElementById('owner-terminal').style.display = 'none';
+            const el = document.getElementById('owner-terminal');
+            el.classList.remove('open');
+            document.getElementById('terminal-input').value = '';
         };
 
         window.handleTerminalKey = async (e) => {
@@ -3132,7 +3153,7 @@ window._signingUp = true;
             e.preventDefault();
             var t = document.getElementById('owner-terminal');
             if (!t) return;
-            if (t.style.display === 'flex') { window.closeTerminal(); } else { window.openTerminal(); }
+            if (t.classList.contains('open')) { window.closeTerminal(); } else { window.openTerminal(); }
         });
     </script>
 </body>
