@@ -788,16 +788,21 @@
                         const catReqSectionInit = document.getElementById('cat-requests-section');
                         const clearChatSectionInit = document.getElementById('clear-chat-section');
                         const ownerReqSectionInit = document.getElementById('owner-requests-section');
+                        // All admins get site requests, category requests, clear chat
+                        if (siteReqSectionInit) siteReqSectionInit.style.display = '';
+                        if (catReqSectionInit) catReqSectionInit.style.display = '';
+                        if (clearChatSectionInit) clearChatSectionInit.style.display = '';
+                        window.loadSiteRequests();
+                        window.loadCategoryRequests();
+                        // Owner only extras
                         if (isOwnerInit) {
-                            if (siteReqSectionInit) siteReqSectionInit.style.display = '';
                             if (adminReqSectionInit) adminReqSectionInit.style.display = '';
-                            if (catReqSectionInit) catReqSectionInit.style.display = '';
-                            if (clearChatSectionInit) clearChatSectionInit.style.display = '';
                             if (ownerReqSectionInit) ownerReqSectionInit.style.display = '';
-                            window.loadSiteRequests();
                             window.loadAdminRequests();
-                            window.loadCategoryRequests();
-                            window.loadOwnerRequests();
+                            if (window.loadOwnerRequests) window.loadOwnerRequests();
+                        } else {
+                            if (adminReqSectionInit) adminReqSectionInit.style.display = 'none';
+                            if (ownerReqSectionInit) ownerReqSectionInit.style.display = 'none';
                         }
                     }
                     window.initialLoadComplete = true;
@@ -1041,7 +1046,7 @@
                 let html = `<table class="w-full text-sm"><thead class="bg-black/60 sticky top-0"><tr class="border-b border-white/10">
                     <th class="px-6 py-4 text-left">Email</th>
                     <th class="px-6 py-4 text-left">Joined</th>
-                    <th class="px-6 py-4 text-left">Status</th>
+                    <th class="px-6 py-4 text-left">Role</th>
                     <th class="px-6 py-4 text-left">Actions</th>
                 </tr></thead><tbody class="divide-y divide-white/10">`;
                 snap.forEach(d => {
@@ -1057,7 +1062,7 @@
                             ? `<span class="px-3 py-1 bg-yellow-900/60 text-yellow-400 rounded-xl text-xs font-semibold">Owner</span>`
                             : isUserAdmin
                                 ? `<span class="px-3 py-1 bg-purple-900/60 text-purple-400 rounded-xl text-xs font-semibold">Admin</span>`
-                                : `<span class="px-3 py-1 bg-green-900/60 text-green-400 rounded-xl text-xs font-semibold">Active</span>`;
+                                : `<span class="px-3 py-1 bg-green-900/60 text-green-400 rounded-xl text-xs font-semibold">User</span>`;
 
                     // Only the hardcoded owner can take actions
                     // Actions are only shown for plain users — not for the owner, not for other admins
@@ -1775,7 +1780,7 @@
         };
 
         window.loadCategoryRequests = async () => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return;
+            if (!window.isAdminUser) return;
             const container = document.getElementById('category-requests-list');
             container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
             try {
@@ -2338,21 +2343,22 @@
                 const catReqSection = document.getElementById('cat-requests-section');
                 const clearChatSection = document.getElementById('clear-chat-section');
                 const ownerReqSection = document.getElementById('owner-requests-section');
-                if (isOwnerNow) {
+                // All admins see site/category requests and clear chat
+                if (window.isAdminUser) {
                     if (siteReqSection) siteReqSection.style.display = '';
-                    if (adminReqSection) adminReqSection.style.display = '';
                     if (catReqSection) catReqSection.style.display = '';
                     if (clearChatSection) clearChatSection.style.display = '';
-                    if (ownerReqSection) ownerReqSection.style.display = '';
                     window.loadSiteRequests();
-                    window.loadAdminRequests();
                     window.loadCategoryRequests();
-                    window.loadOwnerRequests();
+                }
+                // Owner only: admin access requests, owner requests, user management
+                if (isOwnerNow) {
+                    if (adminReqSection) adminReqSection.style.display = '';
+                    if (ownerReqSection) ownerReqSection.style.display = '';
+                    window.loadAdminRequests();
+                    if (window.loadOwnerRequests) window.loadOwnerRequests();
                 } else {
-                    if (siteReqSection) siteReqSection.style.display = 'none';
                     if (adminReqSection) adminReqSection.style.display = 'none';
-                    if (catReqSection) catReqSection.style.display = 'none';
-                    if (clearChatSection) clearChatSection.style.display = 'none';
                     if (ownerReqSection) ownerReqSection.style.display = 'none';
                 }
             }
