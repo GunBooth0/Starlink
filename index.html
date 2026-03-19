@@ -843,6 +843,15 @@
                 }, 150);
                 loadTheme(); // re-apply theme now that isAdminUser is known
                 window.currentDisplayName = userDocData.displayName || '';
+                // Write to public usernames lookup so friends can find this user
+                if (userDocData.displayName) {
+                    try {
+                        await setDoc(doc(db, "usernames", userDocData.displayName.toLowerCase()), {
+                            uid: user.uid,
+                            displayName: userDocData.displayName
+                        });
+                    } catch(_) {}
+                }
                 // If admin was revoked and had matrix theme, clear it locally
                 if (!window.isAdminUser && localStorage.getItem('starlinkSpecialTheme') === 'matrix') {
                     localStorage.removeItem('starlinkSpecialTheme');
@@ -2173,10 +2182,13 @@ window._signingUp = true;
             const me = auth.currentUser;
             if (!me) return;
             try {
-                // Find user by displayName
-                const snap = await getDocs(query(collection(db, "users"), where("displayName", "==", username)));
-                if (snap.empty) return alert(`No user found with username "${username}"`);
-                const targetDoc = snap.docs[0];
+                // Look up user via public usernames collection
+                const usernameSnap = await getDoc(doc(db, "usernames", username.toLowerCase()));
+                if (!usernameSnap.exists()) return alert(`No user found with username "${username}"`);
+                const targetUid = usernameSnap.data().uid;
+                const targetDisplayName = usernameSnap.data().displayName;
+                // Create a fake doc-like object for compatibility
+                const targetDoc = { id: targetUid, data: () => ({ displayName: targetDisplayName }) };
                 if (targetDoc.id === me.uid) return alert("You can't add yourself.");
 
                 // Check if already friends
