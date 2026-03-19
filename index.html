@@ -1233,28 +1233,57 @@
         // ── Presence tracking ──
         let presenceRef = null;
         let presenceListener = null;
+        let heartbeatInterval = null;
+        const HEARTBEAT_MS = 20000;  // update every 20s
+        const STALE_MS     = 45000;  // consider stale after 45s
+
+        function updateOnlineCounter(snap) {
+            const now = Date.now();
+            // Only count docs whose lastSeen is within STALE_MS
+            let count = 0;
+            snap.forEach(d => {
+                const ls = d.data().lastSeen;
+                if (ls && (now - ls.toMillis()) < STALE_MS) count++;
+            });
+            const el  = document.getElementById('online-counter');
+            const num = document.getElementById('online-count');
+            if (el && num) {
+                num.textContent = count;
+                el.classList.remove('hidden');
+                el.classList.add('flex');
+            }
+        }
 
         window.startPresence = async (uid) => {
             presenceRef = doc(db, "presence", uid);
-            await setDoc(presenceRef, { uid, online: true, lastSeen: serverTimestamp() });
+
+            // Write initial presence
+            await setDoc(presenceRef, { uid, lastSeen: serverTimestamp() });
+
+            // Heartbeat — keep lastSeen fresh so we're not counted as stale
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
+            heartbeatInterval = setInterval(async () => {
+                try { await setDoc(presenceRef, { uid, lastSeen: serverTimestamp() }); }
+                catch(_) {}
+            }, HEARTBEAT_MS);
+
+            // Clean up on tab close / navigate away
             window.addEventListener('beforeunload', () => {
-                navigator.sendBeacon && deleteDoc(presenceRef);
-                deleteDoc(presenceRef);
+                try { deleteDoc(presenceRef); } catch(_) {}
             });
-            if (presenceListener) presenceListener();
-            presenceListener = onSnapshot(collection(db, "presence"), (snap) => {
-                const count = snap.size;
-                const el = document.getElementById('online-counter');
-                const num = document.getElementById('online-count');
-                if (el && num) {
-                    num.textContent = count;
-                    el.classList.remove('hidden');
-                    el.classList.add('flex');
+            document.addEventListener('visibilitychange', async () => {
+                if (document.visibilityState === 'hidden') {
+                    try { await setDoc(presenceRef, { uid, lastSeen: serverTimestamp() }); } catch(_) {}
                 }
             });
+
+            // Listen and filter out stale docs
+            if (presenceListener) presenceListener();
+            presenceListener = onSnapshot(collection(db, "presence"), updateOnlineCounter);
         };
 
         window.stopPresence = async () => {
+            if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
             if (presenceRef) { try { await deleteDoc(presenceRef); } catch(_) {} presenceRef = null; }
             if (presenceListener) { presenceListener(); presenceListener = null; }
             const el = document.getElementById('online-counter');
