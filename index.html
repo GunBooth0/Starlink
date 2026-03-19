@@ -1380,19 +1380,10 @@
                 return;
             }
             try {
-                // Check for existing pending request
-                const existing = await getDocs(query(collection(db, "adminRequests"),
-                    where("uid", "==", auth.currentUser.uid),
-                    where("status", "==", "pending")
-                ));
-                if (!existing.empty) {
-                    msgEl.textContent = 'You already have a pending request.';
-                    msgEl.className = 'text-center text-sm mt-4 error';
-                    msgEl.classList.remove('hidden');
-                    return;
-                }
-                await addDoc(collection(db, "adminRequests"), {
-                    uid: auth.currentUser.uid,
+                const uid = auth.currentUser.uid;
+                // Write directly using UID as doc ID — no read needed
+                await setDoc(doc(db, "adminRequests", uid), {
+                    uid,
                     email: auth.currentUser.email,
                     reason,
                     requestedAt: serverTimestamp(),
@@ -1412,30 +1403,28 @@
         window.cancelAdminRequest = async () => {
             if (!confirm('Cancel your admin request?')) return;
             try {
-                const snap = await getDocs(query(collection(db, "adminRequests"),
-                    where("uid", "==", auth.currentUser.uid),
-                    where("status", "==", "pending")
-                ));
-                for (const d of snap.docs) await deleteDoc(doc(db, "adminRequests", d.id));
+                await deleteDoc(doc(db, "adminRequests", auth.currentUser.uid));
                 document.getElementById('admin-req-form').classList.remove('hidden');
                 document.getElementById('admin-req-already').classList.add('hidden');
             } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.checkExistingAdminRequest = async () => {
+            // Silently check — no error shown if it fails
             try {
-                const snap = await getDocs(query(collection(db, "adminRequests"),
-                    where("uid", "==", auth.currentUser.uid),
-                    where("status", "==", "pending")
-                ));
-                if (!snap.empty) {
+                const existing = await getDoc(doc(db, "adminRequests", auth.currentUser.uid));
+                if (existing.exists()) {
                     document.getElementById('admin-req-form').classList.add('hidden');
                     document.getElementById('admin-req-already').classList.remove('hidden');
                 } else {
                     document.getElementById('admin-req-form').classList.remove('hidden');
                     document.getElementById('admin-req-already').classList.add('hidden');
                 }
-            } catch(_) {}
+            } catch(_) {
+                // If read fails just show the form
+                document.getElementById('admin-req-form').classList.remove('hidden');
+                document.getElementById('admin-req-already').classList.add('hidden');
+            }
         };
 
         window.loadAdminRequests = async () => {
