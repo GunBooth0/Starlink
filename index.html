@@ -830,24 +830,24 @@
 
                 // Watch this user's own doc for ban or admin changes made by the owner
                 userDocListener = onSnapshot(doc(db, "users", user.uid), async (snap) => {
-                    if (!window.initialLoadComplete) return;
-                    // Doc deleted — user was removed by owner
+                    // Doc deleted — sign out immediately regardless of initialLoadComplete
                     if (!snap.exists()) {
                         await signOut(auth);
                         alert("Your account has been removed by the owner.");
                         return;
                     }
                     const data = snap.data();
-                    // Banned — sign out immediately
-                    if (data.banned === true) {
-                        await signOut(auth);
-                        alert("Your account has been banned. Please contact the administrator.");
+                    // Banned — show refresh modal; ban check on reload will sign them out
+                    if (data.banned === true && window.initialLoadComplete) {
+                        document.getElementById('refresh-modal').classList.add('show');
                         return;
                     }
-                    // Admin status changed — show refresh modal
-                    const newIsAdmin = data.isAdmin === true || user.email === ADMIN_EMAIL;
-                    if (newIsAdmin !== window.isAdminUser) {
-                        document.getElementById('refresh-modal').classList.add('show');
+                    // Admin revoked or granted — show refresh modal
+                    if (window.initialLoadComplete) {
+                        const newIsAdmin = data.isAdmin === true || user.email === ADMIN_EMAIL;
+                        if (newIsAdmin !== window.isAdminUser) {
+                            document.getElementById('refresh-modal').classList.add('show');
+                        }
                     }
                 });
 
@@ -1094,13 +1094,17 @@
                         ? `<button onclick="window.setAdminUser('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-purple-900/60 hover:bg-purple-900 text-purple-400 rounded-2xl transition-colors">Revoke Admin</button>`
                         : `<button onclick="window.setAdminUser('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">Make Admin</button>`;
 
+                    const usernameEditBtn = !actingIsOwner ? '' :
+                        `<button onclick="window.editUserUsername('${d.id}', '${(data.displayName||'').replace(/'/g,"\\'")}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 text-white/70 rounded-2xl transition-colors">Edit Username</button>`;
+
                     html += `<tr>
                         <td class="px-6 py-4 font-medium">${data.email}</td>
-                        <td class="px-6 py-4 text-white/70">${data.displayName || '<span class="text-white/30 italic">not set</span>'}</td>
+                        <td class="px-6 py-4 text-white/70" id="uname-cell-${d.id}">${data.displayName || '<span class="text-white/30 italic">not set</span>'}</td>
                         <td class="px-6 py-4 text-white/70">${date}</td>
                         <td class="px-6 py-4">${statusBadge}</td>
                         <td class="px-6 py-4">
                             <div class="flex gap-2 flex-wrap">
+                                ${usernameEditBtn}
                                 ${banBtn}
                                 ${adminBtn}
                                 ${!canAct ? '' : `<button onclick="deleteUserFromAdmin('${d.id}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Delete</button>`}
@@ -2141,6 +2145,22 @@
             });
         }
 
+
+        window.editUserUsername = async (uid, currentName) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            const newName = prompt('Enter new username for this user:', currentName);
+            if (newName === null) return; // cancelled
+            const trimmed = newName.trim();
+            if (!trimmed) return alert('Username cannot be empty.');
+            if (trimmed.length > 24) return alert('Max 24 characters.');
+            try {
+                await setDoc(doc(db, "users", uid), { displayName: trimmed }, { merge: true });
+                // Update cell immediately without full reload
+                const cell = document.getElementById('uname-cell-' + uid);
+                if (cell) cell.textContent = trimmed;
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
         window.loadAllSites = window.loadAllSites;
         window.populateAllGrids = window.populateAllGrids;
         window.showGlobalAnnouncement = window.showGlobalAnnouncement;
@@ -2148,6 +2168,7 @@
         window.clearAnnouncement = window.clearAnnouncement;
         window.loadAdminUsers = window.loadAdminUsers;
         window.deleteUserFromAdmin = window.deleteUserFromAdmin;
+        window.editUserUsername = window.editUserUsername;
         window.setBanUser = window.setBanUser;
         window.setAdminUser = window.setAdminUser;
         window.addNewSiteFromAdmin = window.addNewSiteFromAdmin;
