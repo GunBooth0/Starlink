@@ -4053,6 +4053,7 @@
             // ── ONLINE ──
             if (c === 'online') {
                 try {
+                    const { getDocs, collection, getDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
                     const snap = await getDocs(collection(window.db, "presence"));
                     const now = Date.now();
                     const online = snap.docs.filter(d => {
