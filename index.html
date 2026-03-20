@@ -798,6 +798,7 @@
         window._signingUp = false;
 
         async function updateUIForAuth(user) {
+            if (window._signingUp) return; // ignore during signup/verify flow
             window.currentUser = user;
             const statusEl = document.getElementById('user-status');
             const navLinks = document.getElementById('nav-links');
@@ -986,7 +987,9 @@
                 if (document.getElementById('form-title').textContent === 'Sign In') {
                     const cred = await signInWithEmailAndPassword(auth, email, password);
                     if (!cred.user.emailVerified) {
+                        window._signingUp = true; // block updateUIForAuth during signout
                         await signOut(auth);
+                        window._signingUp = false;
                         alert("Please verify your email first. If you don't see it, check your spam folder.");
                         return;
                     }
