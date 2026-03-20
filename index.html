@@ -933,8 +933,9 @@
 
                 // Watch this user's own doc for ban or admin changes made by the owner
                 userDocListener = onSnapshot(doc(db, "users", user.uid), async (snap) => {
-                    // Doc deleted — sign out immediately regardless of initialLoadComplete
+                    // Doc deleted — only react if we were already fully loaded (not a new signup)
                     if (!snap.exists()) {
+                        if (!window.initialLoadComplete) return; // still setting up, ignore
                         await signOut(auth);
                         alert("Your account has been removed by the owner.");
                         return;
@@ -2427,21 +2428,29 @@
             const container = document.getElementById('dms-admin-list');
             container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
             try {
-                // Get all DM conversations by listing dms collection
-                const snap = await getDocs(collection(db, "dms"));
-                if (snap.empty) { container.innerHTML = '<p class="p-8 text-center text-white/50">No DM conversations yet</p>'; return; }
+                // Use collectionGroup since dms/{convoId} docs don't exist, only subcollections do
+                const allMsgs = await getDocs(collectionGroup(db, "messages"));
+                // Group by convoId
+                const convos = {};
+                allMsgs.docs.forEach(d => {
+                    const convoId = d.ref.parent.parent?.id;
+                    if (!convoId) return;
+                    if (!convos[convoId]) convos[convoId] = [];
+                    convos[convoId].push(d);
+                });
+                const convoIds = Object.keys(convos);
+                if (!convoIds.length) { container.innerHTML = '<p class="p-8 text-center text-white/50">No DM conversations yet</p>'; return; }
                 let html = '<div class="divide-y divide-white/10">';
-                for (const convoDoc of snap.docs) {
-                    const [uid1, uid2] = convoDoc.id.split('_');
-                    // Get last message
-                    const msgsSnap = await getDocs(query(collection(db, "dms", convoDoc.id, "messages"), orderBy("sentAt", "desc")));
-                    if (msgsSnap.empty) continue;
-                    const last = msgsSnap.docs[0].data();
-                    const count = msgsSnap.size;
+                for (const convoId of convoIds) {
+                    const msgs = convos[convoId].sort((a, b) => (a.data().sentAt?.seconds||0) - (b.data().sentAt?.seconds||0));
+                    const last = msgs[msgs.length - 1].data();
+                    const count = msgs.length;
                     const time = last.sentAt ? new Date(last.sentAt.toDate()).toLocaleDateString() : '—';
-                    html += `<div class="p-4 hover:bg-white/5 cursor-pointer" onclick="window.viewAdminDM('${convoDoc.id}')">
+                    // Try to show usernames from message data
+                    const names = [...new Set(msgs.map(m => m.data().displayName).filter(Boolean))].join(' & ');
+                    html += `<div class="p-4 hover:bg-white/5 cursor-pointer" onclick="window.viewAdminDM('${convoId}')">
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-xs text-white/40 font-mono">${convoDoc.id.slice(0,20)}...</span>
+                            <span class="text-sm text-white/80 font-medium">${names || convoId.slice(0,20)}</span>
                             <span class="text-xs text-white/30">${time} · ${count} msgs</span>
                         </div>
                         <div class="text-sm text-white/70 truncate"><span class="text-white/40">${last.displayName}:</span> ${last.text}</div>
