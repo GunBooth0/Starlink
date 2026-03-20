@@ -3235,12 +3235,18 @@
                 info('<span style="color:#fff">site url &lt;id&gt;</span>                    — open a site directly from the terminal');
                 info('<span style="color:#fff">site add &lt;cat&gt; &lt;name&gt; &lt;url&gt; [icon] [desc]</span> — add a site');
                 info('<span style="color:#fff">site del &lt;id&gt;</span>                    — delete a site by ID');
+                info('<span style="color:#fff">site dupe &lt;id&gt;</span>                  — duplicate a site entry');
+                info('<span style="color:#fff">site top &lt;n&gt;</span>                    — show N most recently added sites');
+                info('<span style="color:#fff">site noicon</span>                       — list all sites missing an icon');
+                info('<span style="color:#fff">site nodesc</span>                       — list all sites missing a description');
                 info('<span style="color:#fff">site edit &lt;id&gt; name|url|icon|desc &lt;value&gt;</span> — edit a site field');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">CATEGORIES</span>');
                 info('<span style="color:#fff">cat list</span>                          — list all categories');
                 info('<span style="color:#fff">cat add &lt;key&gt; &lt;label&gt; &lt;icon&gt;</span>      — add a category');
                 info('<span style="color:#fff">cat del &lt;key&gt;</span>                    — delete a category');
+                info('<span style="color:#fff">cat rename &lt;key&gt; &lt;newlabel&gt;</span>      — rename a category display label');
+                info('<span style="color:#fff">cat icon &lt;key&gt; &lt;icon&gt;</span>            — change a category icon');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">USERS</span>');
                 info('<span style="color:#fff">users list</span>                        — list all registered users');
@@ -3254,6 +3260,10 @@
                 info('<span style="color:#fff">users admins</span>                      — list only admin users');
                 info('<span style="color:#fff">users banned</span>                      — list only banned users');
                 info('<span style="color:#fff">user count</span>                        — show total number of registered users');
+                info('<span style="color:#fff">user newest</span>                       — show the most recently registered user');
+                info('<span style="color:#fff">user oldest</span>                       — show the first ever registered user');
+                info('<span style="color:#fff">users count admins</span>                — how many admins you have');
+                info('<span style="color:#fff">users count banned</span>                — how many banned users you have');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">ANNOUNCEMENTS</span>');
                 info('<span style="color:#fff">announce &lt;message&gt;</span>               — publish a global announcement');
@@ -3277,11 +3287,15 @@
                 info('<span style="color:#fff">dm clear &lt;user1&gt; &lt;user2&gt;</span>         — delete messages between two users');
                 info('<span style="color:#fff">dm count</span>                          — total DM messages across all conversations');
                 info('<span style="color:#fff">dm purge &lt;email&gt;</span>                 — delete all DMs involving a specific user');
+                info('<span style="color:#fff">friends list &lt;email&gt;</span>             — list all friends of a user');
+                info('<span style="color:#fff">friends clear &lt;email&gt;</span>            — remove all friends of a user');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">CHAT</span>');
                 info('<span style="color:#fff">chat clear</span>                        — delete all global chat messages and DMs');
                 info('<span style="color:#fff">chat count</span>                        — show total message count in global chat');
                 info('<span style="color:#fff">chat last &lt;n&gt;</span>                    — show last N global chat messages');
+                info('<span style="color:#fff">chat del &lt;msgid&gt;</span>                 — delete one specific global chat message');
+                info('<span style="color:#fff">chat purge &lt;email&gt;</span>               — delete all global chat messages from a user');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">THEME</span>');
                 info('<span style="color:#fff">theme matrix</span>                      — activate matrix theme');
@@ -3297,6 +3311,10 @@
                 info('<span style="color:#fff">ping</span>                              — test Firebase connection and response time');
                 info('<span style="color:#fff">uptime</span>                            — show current session uptime');
                 info('<span style="color:#fff">version</span>                           — show Starlink version info');
+                info('<span style="color:#fff">history</span>                           — show your last 20 entered commands');
+                info('<span style="color:#fff">reload</span>                            — refresh all site and category data');
+                info('<span style="color:#fff">goto &lt;tab&gt;</span>                        — navigate to any tab');
+                info('<span style="color:#fff">search &lt;query&gt;</span>                    — search sites from the terminal');
                 info('<span style="color:#fff">clear</span>                             — clear terminal output');
                 info('<span style="color:#fff">exit</span>                              — close terminal');
                 return;
@@ -3803,6 +3821,224 @@
                 info(`Starlink <span style="color:#fff">v1.0</span>`);
                 info(`Built by: <span style="color:#fff">Gunnar Booth</span>`);
                 info(`Firebase SDK: <span style="color:#fff">12.10.0</span>`);
+                return;
+            }
+
+
+            // ── SITE DUPE ──
+            if (c === 'site' && args[0] === 'dupe') {
+                const id = args[1];
+                if (!id) return err('Usage: site dupe <id>');
+                let found = null;
+                (window.allCategories||[]).forEach(cat => (window.allSites?.[cat.key]||[]).forEach(s => { if (s.id===id) found=s; }));
+                if (!found) return err(`Site not found: ${id}`);
+                try {
+                    const { addDoc, collection } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const catSites = window.allSites?.[found.category]||[];
+                    const maxOrder = catSites.length ? Math.max(...catSites.map(s=>s.order??0))+1 : 0;
+                    await addDoc(collection(window.db,"sites"), { category:found.category, name:found.name+' (copy)', url:found.url, icon:found.icon||'', desc:found.desc||'', order:maxOrder });
+                    await window.loadAllSites(); window.populateAllGrids(); window.reloadAdminSites();
+                    ok(`Duplicated "${found.name}"`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── SITE TOP ──
+            if (c === 'site' && args[0] === 'top') {
+                const n = parseInt(args[1]) || 10;
+                let all = [];
+                (window.allCategories||[]).forEach(cat => (window.allSites?.[cat.key]||[]).forEach(s => all.push(s)));
+                all.slice(0, n).forEach((s,i) => info(`${i+1}. <span style="color:#fff">${s.name}</span> [${s.category}] id:<span style="color:#a0a0a0">${s.id}</span>`));
+                return;
+            }
+
+            // ── SITE NOICON ──
+            if (c === 'site' && args[0] === 'noicon') {
+                let found = [];
+                (window.allCategories||[]).forEach(cat => (window.allSites?.[cat.key]||[]).forEach(s => { if (!s.icon) found.push(s); }));
+                if (!found.length) return ok('All sites have icons!');
+                found.forEach(s => info(`<span style="color:#fff">${s.name}</span> [${s.category}] id:<span style="color:#a0a0a0">${s.id}</span>`));
+                info(`Total: ${found.length}`);
+                return;
+            }
+
+            // ── SITE NODESC ──
+            if (c === 'site' && args[0] === 'nodesc') {
+                let found = [];
+                (window.allCategories||[]).forEach(cat => (window.allSites?.[cat.key]||[]).forEach(s => { if (!s.desc) found.push(s); }));
+                if (!found.length) return ok('All sites have descriptions!');
+                found.forEach(s => info(`<span style="color:#fff">${s.name}</span> [${s.category}] id:<span style="color:#a0a0a0">${s.id}</span>`));
+                info(`Total: ${found.length}`);
+                return;
+            }
+
+            // ── CAT RENAME ──
+            if (c === 'cat' && args[0] === 'rename') {
+                const key=args[1], newlabel=args.slice(2).join(' ');
+                if (!key||!newlabel) return err('Usage: cat rename <key> <newlabel>');
+                const cat=(window.allCategories||[]).find(c=>c.key===key);
+                if (!cat) return err(`Category "${key}" not found`);
+                try {
+                    const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    await setDoc(doc(window.db,"categories",cat.id), { label:newlabel }, { merge:true });
+                    ok(`Category "${key}" renamed to "${newlabel}"`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── CAT ICON ──
+            if (c === 'cat' && args[0] === 'icon') {
+                let key=args[1], icon=args[2];
+                if (!key||!icon) return err('Usage: cat icon <key> <icon>');
+                if (!icon.startsWith('fa-')) icon='fa-'+icon;
+                const cat=(window.allCategories||[]).find(c=>c.key===key);
+                if (!cat) return err(`Category "${key}" not found`);
+                try {
+                    const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    await setDoc(doc(window.db,"categories",cat.id), { icon }, { merge:true });
+                    ok(`Category "${key}" icon set to ${icon}`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── USER NEWEST ──
+            if (c === 'user' && args[0] === 'newest') {
+                try {
+                    const docs=await window._termGetUsers();
+                    if (!docs.length) return info('No users found.');
+                    const d=docs[0].data();
+                    const joined=d.createdAt?new Date(d.createdAt.toDate()).toLocaleDateString():'—';
+                    info(`<span style="color:#fff">${d.displayName||'—'}</span> &lt;${d.email}&gt; joined ${joined}`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── USER OLDEST ──
+            if (c === 'user' && args[0] === 'oldest') {
+                try {
+                    const docs=await window._termGetUsers();
+                    if (!docs.length) return info('No users found.');
+                    const d=docs[docs.length-1].data();
+                    const joined=d.createdAt?new Date(d.createdAt.toDate()).toLocaleDateString():'—';
+                    info(`<span style="color:#fff">${d.displayName||'—'}</span> &lt;${d.email}&gt; joined ${joined}`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── USERS COUNT ADMINS / BANNED ──
+            if (c === 'users' && args[0] === 'count') {
+                try {
+                    const docs=await window._termGetUsers();
+                    if (args[1]==='admins') {
+                        const n=docs.filter(d=>d.data().isAdmin===true&&d.data().email!==OWNER).length;
+                        info(`Admin users: <span style="color:#fff">${n}</span>`);
+                    } else if (args[1]==='banned') {
+                        const n=docs.filter(d=>d.data().banned===true).length;
+                        info(`Banned users: <span style="color:#fff">${n}</span>`);
+                    } else err('Usage: users count admins | banned');
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── CHAT DEL ──
+            if (c === 'chat' && args[0] === 'del') {
+                const msgid=args[1];
+                if (!msgid) return err('Usage: chat del <msgid>');
+                try {
+                    const { deleteDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    await deleteDoc(doc(window.db,"chat",msgid));
+                    ok(`Message ${msgid} deleted`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── CHAT PURGE ──
+            if (c === 'chat' && args[0] === 'purge') {
+                const email=args[1];
+                if (!email) return err('Usage: chat purge <email>');
+                if (!confirm(`Delete all global chat messages from ${email}?`)) return info('Cancelled.');
+                try {
+                    const uid=await window._termGetUid(email);
+                    if (!uid) return err(`User not found: ${email}`);
+                    const { getDocs, collection, query, where, deleteDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap=await getDocs(query(collection(window.db,"chat"),where("uid","==",uid)));
+                    await Promise.all(snap.docs.map(d=>deleteDoc(doc(window.db,"chat",d.id))));
+                    ok(`Deleted ${snap.size} messages from ${email}`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── FRIENDS LIST ──
+            if (c === 'friends' && args[0] === 'list') {
+                const email=args[1];
+                if (!email) return err('Usage: friends list <email>');
+                try {
+                    const uid=await window._termGetUid(email);
+                    if (!uid) return err(`User not found: ${email}`);
+                    const { getDocs, collection } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap=await getDocs(collection(window.db,"friends",uid,"list"));
+                    if (snap.empty) return info(`${email} has no friends`);
+                    snap.forEach(d=>info(`<span style="color:#fff">${d.data().displayName}</span>`));
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── FRIENDS CLEAR ──
+            if (c === 'friends' && args[0] === 'clear') {
+                const email=args[1];
+                if (!email) return err('Usage: friends clear <email>');
+                if (!confirm(`Remove all friends of ${email}?`)) return info('Cancelled.');
+                try {
+                    const uid=await window._termGetUid(email);
+                    if (!uid) return err(`User not found: ${email}`);
+                    const { getDocs, collection } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap=await getDocs(collection(window.db,"friends",uid,"list"));
+                    await Promise.all(snap.docs.map(d=>deleteDoc(d.ref)));
+                    ok(`All friends removed for ${email}`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── HISTORY ──
+            if (c === 'history') {
+                if (!cmdHistory.length) return info('No command history yet.');
+                cmdHistory.slice(0,20).forEach((cmd,i)=>info(`<span style="color:#a0a0a0">${i+1}.</span> <span style="color:#fff">${cmd}</span>`));
+                return;
+            }
+
+            // ── RELOAD ──
+            if (c === 'reload') {
+                info('Reloading data...');
+                try {
+                    await window.loadCategories();
+                    window.createCategoryContents();
+                    await window.loadAllSites();
+                    window.populateAllGrids();
+                    window.reloadAdminSites();
+                    window.populateCategorySelect();
+                    ok('All data reloaded');
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── GOTO ──
+            if (c === 'goto') {
+                const dest=args[0]?.toLowerCase();
+                const map={home:'content-home',admin:'content-admin',chat:'content-chat',settings:'content-settings',account:'content-account',credits:'content-credits'};
+                const tabIdx=(window.tabMapping||[]).findIndex(t=>t.contentId===(map[dest]||`content-${dest}`));
+                if (tabIdx>=0) { window.switchTab(tabIdx); window.closeTerminal(); ok(`Navigated to ${dest}`); }
+                else err(`Unknown tab: ${dest}. Try: home, admin, chat, settings, account, credits`);
+                return;
+            }
+
+            // ── SEARCH ──
+            if (c === 'search') {
+                const q=args.join(' ');
+                if (!q) return err('Usage: search <query>');
+                const inp=document.getElementById('search-input');
+                if (inp) { inp.value=q; window.handleSearch(q); }
+                window.closeTerminal();
+                ok(`Searching for "${q}"`);
                 return;
             }
 
