@@ -993,13 +993,22 @@
                 } else {
                     const signupUsername = document.getElementById('signup-username').value.trim();
                     if (!signupUsername) { alert('Please choose a username before signing up.'); return; }
-                    // Check username uniqueness before creating account
-                    try {
-                        const _takenSnap = await getDoc(doc(db, "usernames", signupUsername.toLowerCase()));
-                        if (_takenSnap.exists()) { alert(`Username "${signupUsername}" is already taken. Please choose a different one.`); return; }
-                    } catch(_) {}
                     window._signingUp = true;
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
+                    // Now authenticated — check username uniqueness
+                    const _takenSnap = await getDoc(doc(db, "usernames", signupUsername.toLowerCase()));
+                    if (_takenSnap.exists() && _takenSnap.data().uid !== cred.user.uid) {
+                        // Username taken — delete the just-created account and bail
+                        await deleteUser(cred.user);
+                        window._signingUp = false;
+                        alert(`Username "${signupUsername}" is already taken. Please choose a different one.`);
+                        return;
+                    }
+                    // Reserve the username immediately
+                    await setDoc(doc(db, "usernames", signupUsername.toLowerCase()), {
+                        uid: cred.user.uid,
+                        displayName: signupUsername
+                    });
                     await setDoc(doc(db, "users", cred.user.uid), {
                         email,
                         displayName: signupUsername,
