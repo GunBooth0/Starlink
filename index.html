@@ -3239,6 +3239,8 @@
                 info('<span style="color:#fff">site top &lt;n&gt;</span>                    — show N most recently added sites');
                 info('<span style="color:#fff">site noicon</span>                       — list all sites missing an icon');
                 info('<span style="color:#fff">site nodesc</span>                       — list all sites missing a description');
+                info('<span style="color:#fff">site dupes</span>                        — scan for duplicate URLs across all categories');
+                info('<span style="color:#fff">site count</span>                        — total number of sites across all categories');
                 info('<span style="color:#fff">site edit &lt;id&gt; name|url|icon|desc &lt;value&gt;</span> — edit a site field');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">CATEGORIES</span>');
@@ -3247,6 +3249,7 @@
                 info('<span style="color:#fff">cat del &lt;key&gt;</span>                    — delete a category');
                 info('<span style="color:#fff">cat rename &lt;key&gt; &lt;newlabel&gt;</span>      — rename a category display label');
                 info('<span style="color:#fff">cat icon &lt;key&gt; &lt;icon&gt;</span>            — change a category icon');
+                info('<span style="color:#fff">cat count</span>                         — total number of categories');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">USERS</span>');
                 info('<span style="color:#fff">users list</span>                        — list all registered users');
@@ -3264,6 +3267,7 @@
                 info('<span style="color:#fff">user oldest</span>                       — show the first ever registered user');
                 info('<span style="color:#fff">users count admins</span>                — how many admins you have');
                 info('<span style="color:#fff">users count banned</span>                — how many banned users you have');
+                info('<span style="color:#fff">user note &lt;email&gt; &lt;note&gt;</span>          — attach a private note to a user');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">ANNOUNCEMENTS</span>');
                 info('<span style="color:#fff">announce &lt;message&gt;</span>               — publish a global announcement');
@@ -3280,6 +3284,9 @@
                 info('<span style="color:#fff">deny admin &lt;id&gt;</span>                  — deny an admin request');
                 info('<span style="color:#fff">approve cat &lt;id&gt;</span>                 — approve a category request');
                 info('<span style="color:#fff">deny cat &lt;id&gt;</span>                    — deny a category request');
+                info('<span style="color:#fff">requests count</span>                    — show pending count for each request type');
+                info('<span style="color:#fff">approve all site</span>                  — approve every pending site request at once');
+                info('<span style="color:#fff">deny all site</span>                     — deny every pending site request at once');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">DIRECT MESSAGES</span>');
                 info('<span style="color:#fff">dm list</span>                           — list all DM conversations');
@@ -3296,6 +3303,8 @@
                 info('<span style="color:#fff">chat last &lt;n&gt;</span>                    — show last N global chat messages');
                 info('<span style="color:#fff">chat del &lt;msgid&gt;</span>                 — delete one specific global chat message');
                 info('<span style="color:#fff">chat purge &lt;email&gt;</span>               — delete all global chat messages from a user');
+                info('<span style="color:#fff">chat find &lt;keyword&gt;</span>              — search global chat messages for a keyword');
+                info('<span style="color:#fff">chat top &lt;n&gt;</span>                     — show N most active chatters by message count');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">THEME</span>');
                 info('<span style="color:#fff">theme matrix</span>                      — activate matrix theme');
@@ -3315,6 +3324,8 @@
                 info('<span style="color:#fff">reload</span>                            — refresh all site and category data');
                 info('<span style="color:#fff">goto &lt;tab&gt;</span>                        — navigate to any tab');
                 info('<span style="color:#fff">search &lt;query&gt;</span>                    — search sites from the terminal');
+                info('<span style="color:#fff">random</span>                            — open a random site from any category');
+                info('<span style="color:#fff">tab list</span>                          — show all available tabs for goto');
                 info('<span style="color:#fff">clear</span>                             — clear terminal output');
                 info('<span style="color:#fff">exit</span>                              — close terminal');
                 return;
@@ -4039,6 +4050,135 @@
                 if (inp) { inp.value=q; window.handleSearch(q); }
                 window.closeTerminal();
                 ok(`Searching for "${q}"`);
+                return;
+            }
+
+
+            // ── SITE DUPES ──
+            if (c === 'site' && args[0] === 'dupes') {
+                const seen = {}, dupes = [];
+                (window.allCategories||[]).forEach(cat => (window.allSites?.[cat.key]||[]).forEach(s => {
+                    if (seen[s.url]) dupes.push({site:s, firstSeen:seen[s.url]});
+                    else seen[s.url] = s;
+                }));
+                if (!dupes.length) return ok('No duplicate URLs found!');
+                dupes.forEach(d => info(`<span style="color:#fff">${d.site.name}</span> duplicates <span style="color:#fff">${d.firstSeen.name}</span> — ${d.site.url}`));
+                info(`Total duplicates: ${dupes.length}`);
+                return;
+            }
+
+            // ── SITE COUNT ──
+            if (c === 'site' && args[0] === 'count') {
+                let total = 0;
+                (window.allCategories||[]).forEach(cat => total += (window.allSites?.[cat.key]||[]).length);
+                info(`Total sites: <span style="color:#fff">${total}</span>`);
+                return;
+            }
+
+            // ── CAT COUNT ──
+            if (c === 'cat' && args[0] === 'count') {
+                info(`Total categories: <span style="color:#fff">${(window.allCategories||[]).length}</span>`);
+                return;
+            }
+
+            // ── USER NOTE ──
+            if (c === 'user' && args[0] === 'note') {
+                const email=args[1], note=args.slice(2).join(' ');
+                if (!email) return err('Usage: user note <email> <note>');
+                try {
+                    const uid=await window._termGetUid(email);
+                    if (!uid) return err(`User not found: ${email}`);
+                    const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    await setDoc(doc(window.db,"users",uid), { ownerNote: note }, { merge:true });
+                    ok(`Note saved for ${email}`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── CHAT FIND ──
+            if (c === 'chat' && args[0] === 'find') {
+                const keyword=args.slice(1).join(' ').toLowerCase();
+                if (!keyword) return err('Usage: chat find <keyword>');
+                try {
+                    const { getDocs, collection, query, orderBy } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap=await getDocs(query(collection(window.db,"chat"),orderBy("sentAt","asc")));
+                    const matches=snap.docs.filter(d=>d.data().text?.toLowerCase().includes(keyword));
+                    if (!matches.length) return info(`No messages found containing "${keyword}"`);
+                    matches.forEach(d=>{
+                        const m=d.data();
+                        const time=m.sentAt?new Date(m.sentAt.toDate()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'';
+                        const highlighted=m.text.replace(new RegExp(keyword,'gi'),k=>`<span style="color:#f59e0b">${k}</span>`);
+                        info(`<span style="color:#a0a0a0">${time}</span> <span style="color:#00ff41">${m.displayName||'?'}</span>: ${highlighted}`);
+                    });
+                    info(`Found ${matches.length} message(s)`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── CHAT TOP ──
+            if (c === 'chat' && args[0] === 'top') {
+                const n=parseInt(args[1])||5;
+                try {
+                    const { getDocs, collection } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap=await getDocs(collection(window.db,"chat"));
+                    const counts={};
+                    snap.docs.forEach(d=>{
+                        const name=d.data().displayName||'Unknown';
+                        counts[name]=(counts[name]||0)+1;
+                    });
+                    const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,n);
+                    if (!sorted.length) return info('No chat messages yet.');
+                    sorted.forEach(([name,count],i)=>info(`${i+1}. <span style="color:#fff">${name}</span> — ${count} messages`));
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── REQUESTS COUNT ──
+            if (c === 'requests' && args[0] === 'count') {
+                try {
+                    const site=await window._termGetRequests('site');
+                    const admin=await window._termGetRequests('admin');
+                    const cat=await window._termGetRequests('category');
+                    info(`Site requests:     <span style="color:#fff">${site?.length||0} pending</span>`);
+                    info(`Admin requests:    <span style="color:#fff">${admin?.length||0} pending</span>`);
+                    info(`Category requests: <span style="color:#fff">${cat?.length||0} pending</span>`);
+                    const total=(site?.length||0)+(admin?.length||0)+(cat?.length||0);
+                    info(`Total: <span style="color:#fff">${total}</span>`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── APPROVE ALL SITE / DENY ALL SITE ──
+            if ((c === 'approve' || c === 'deny') && args[0] === 'all' && args[1] === 'site') {
+                try {
+                    const docs=await window._termGetRequests('site');
+                    if (!docs||!docs.length) return info('No pending site requests.');
+                    if (!confirm(`${c==='approve'?'Approve':'Deny'} all ${docs.length} pending site requests?`)) return info('Cancelled.');
+                    for (const d of docs) {
+                        const r=d.data();
+                        if (c==='approve') await window.approveSiteRequest(d.id,r.name||'',r.url||'',r.category||'',r.icon||'',r.desc||'');
+                        else await window.rejectSiteRequest(d.id);
+                    }
+                    ok(`${c==='approve'?'Approved':'Denied'} ${docs.length} site request(s)`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── RANDOM ──
+            if (c === 'random') {
+                let pool=[];
+                (window.allCategories||[]).forEach(cat=>pool.push(...(window.allSites?.[cat.key]||[])));
+                if (!pool.length) return err('No sites available.');
+                const site=pool[Math.floor(Math.random()*pool.length)];
+                window.open(site.url,'_blank');
+                ok(`Opening: <span style="color:#fff">${site.name}</span> [${site.category}]`);
+                return;
+            }
+
+            // ── TAB LIST ──
+            if (c === 'tab' && args[0] === 'list') {
+                info('Available tabs for goto:');
+                (window.tabMapping||[]).forEach(t=>info(`  <span style="color:#fff">${t.title}</span> → goto ${t.contentId.replace('content-','')}`));
                 return;
             }
 
