@@ -933,9 +933,9 @@
 
                 // Watch this user's own doc for ban or admin changes made by the owner
                 userDocListener = onSnapshot(doc(db, "users", user.uid), async (snap) => {
-                    // Doc deleted — only react if we were already fully loaded (not a new signup)
+                    // Doc deleted — ignore during signup or before load completes
                     if (!snap.exists()) {
-                        if (!window.initialLoadComplete) return; // still setting up, ignore
+                        if (window._signingUp || !window.initialLoadComplete) return;
                         await signOut(auth);
                         alert("Your account has been removed by the owner.");
                         return;
