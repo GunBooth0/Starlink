@@ -1278,12 +1278,13 @@
             if (!confirm(`Are you sure you want to ${action} this user?`)) return;
             try {
                 await setDoc(doc(db, "users", uid), { isAdmin: grant }, { merge: true });
-                // If revoking, also reset their special theme in Firestore
                 if (!grant) {
                     await setDoc(doc(db, "users", uid), { specialTheme: '' }, { merge: true });
                 }
-                // Bust the chat roles cache so messages re-render with the new role
                 if (window.chatRolesCache) delete window.chatRolesCache[uid];
+                // Cascade role to past chat messages and DMs
+                const newRole = grant ? 'Admin' : 'User';
+                await window.cascadeRoleUpdate(uid, newRole);
                 window.loadAdminUsers();
             } catch (e) {
                 alert("Error: " + e.message);
@@ -2612,16 +2613,69 @@
         window.editUserUsername = async (uid, currentName) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             const newName = prompt('Enter new username for this user:', currentName);
-            if (newName === null) return; // cancelled
+            if (newName === null) return;
             const trimmed = newName.trim();
             if (!trimmed) return alert('Username cannot be empty.');
             if (trimmed.length > 24) return alert('Max 24 characters.');
             try {
                 await setDoc(doc(db, "users", uid), { displayName: trimmed }, { merge: true });
-                // Update cell immediately without full reload
+                // Update cell immediately
                 const cell = document.getElementById('uname-cell-' + uid);
                 if (cell) cell.textContent = trimmed;
+                // Cascade to friends lists, chat history, DMs
+                await window.cascadeUsernameUpdate(uid, currentName, trimmed);
             } catch(e) { alert('Error: ' + e.message); }
+        };
+
+
+        // ── Cascade username update across friends lists, chat, and DMs ──
+        window.cascadeUsernameUpdate = async (uid, oldName, newName) => {
+            if (!newName || newName === oldName) return;
+            try {
+                // 1. Update usernames collection
+                await setDoc(doc(db, "usernames", newName.toLowerCase()), { uid, displayName: newName });
+                // Delete old username entry if it existed
+                if (oldName) {
+                    try { await deleteDoc(doc(db, "usernames", oldName.toLowerCase())); } catch(_) {}
+                }
+
+                // 2. Update friends lists — find all users who have this person as a friend
+                const allUsersSnap = await getDocs(collection(db, "users"));
+                for (const userDoc of allUsersSnap.docs) {
+                    if (userDoc.id === uid) continue;
+                    try {
+                        const friendRef = doc(db, "friends", userDoc.id, "list", uid);
+                        const friendSnap = await getDoc(friendRef);
+                        if (friendSnap.exists()) {
+                            await setDoc(friendRef, { displayName: newName }, { merge: true });
+                        }
+                    } catch(_) {}
+                }
+
+                // 3. Update past global chat messages
+                const chatSnap = await getDocs(query(collection(db, "chat"), where("uid", "==", uid)));
+                await Promise.all(chatSnap.docs.map(d => setDoc(doc(db, "chat", d.id), { displayName: newName }, { merge: true })));
+
+                // 4. Update past DM messages using collectionGroup
+                const dmSnap = await getDocs(collectionGroup(db, "messages"));
+                const dmUpdates = dmSnap.docs.filter(d => d.data().uid === uid);
+                await Promise.all(dmUpdates.map(d => setDoc(d.ref, { displayName: newName }, { merge: true })));
+
+            } catch(e) { console.error('Cascade username error:', e.message); }
+        };
+
+        // ── Cascade role update across chat and DMs ──
+        window.cascadeRoleUpdate = async (uid, newRole) => {
+            try {
+                // Update global chat messages
+                const chatSnap = await getDocs(query(collection(db, "chat"), where("uid", "==", uid)));
+                await Promise.all(chatSnap.docs.map(d => setDoc(doc(db, "chat", d.id), { role: newRole }, { merge: true })));
+
+                // Update DM messages
+                const dmSnap = await getDocs(collectionGroup(db, "messages"));
+                const dmUpdates = dmSnap.docs.filter(d => d.data().uid === uid);
+                await Promise.all(dmUpdates.map(d => setDoc(d.ref, { role: newRole }, { merge: true })));
+            } catch(e) { console.error('Cascade role error:', e.message); }
         };
 
         window.loadAllSites = window.loadAllSites;
@@ -3472,9 +3526,12 @@
                     else if (action==='rename') {
                         const newName=args.slice(2).join(' ');
                         if (!newName) return err('Usage: user rename <email> <newname>');
-                        const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                        const { setDoc, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                        const oldSnap = await getDoc(doc(window.db,"users",uid));
+                        const oldName = oldSnap.exists() ? oldSnap.data().displayName : '';
                         await setDoc(doc(window.db,"users",uid), { displayName:newName }, { merge:true });
-                        ok(`${email} renamed to "${newName}"`);
+                        await window.cascadeUsernameUpdate(uid, oldName, newName);
+                        ok(`${email} renamed to "${newName}" — history updated`);
                     }
                     else err(`Unknown action: ${action}`);
                 } catch(e) { err(e.message); }
