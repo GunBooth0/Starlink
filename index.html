@@ -3272,8 +3272,15 @@
                 info('<span style="color:#fff">approve cat &lt;id&gt;</span>                 — approve a category request');
                 info('<span style="color:#fff">deny cat &lt;id&gt;</span>                    — deny a category request');
                 print('');
+                print('  <span style="color:#00ff41;font-weight:bold">FRIENDS & DMs</span>');
+                info('<span style="color:#fff">friends list &lt;email&gt;</span>             — list all friends of a user');
+                info('<span style="color:#fff">friends clear &lt;email&gt;</span>            — remove all friends of a user');
+                info('<span style="color:#fff">dm list</span>                           — list all DM conversations');
+                info('<span style="color:#fff">dm read &lt;username1&gt; &lt;username2&gt;</span>  — read DM conversation between two users');
+                info('<span style="color:#fff">dm clear &lt;username1&gt; &lt;username2&gt;</span> — delete all messages in a DM conversation');
+                print('');
                 print('  <span style="color:#00ff41;font-weight:bold">CHAT</span>');
-                info('<span style="color:#fff">chat clear</span>                        — delete all chat messages');
+                info('<span style="color:#fff">chat clear</span>                        — delete all chat messages and DMs');
                 info('<span style="color:#fff">chat say &lt;message&gt;</span>               — send a chat message as yourself');
                 info('<span style="color:#fff">chat count</span>                        — show total message count');
                 info('<span style="color:#fff">chat last &lt;n&gt;</span>                    — show last N chat messages');
@@ -3743,6 +3750,102 @@
                     else if (type==='admin') { await window.denyAdminRequest(match.id); ok('Admin request denied'); }
                     else if ((type==='cat'||type==='category') && c==='approve') { await window.approveCategoryRequest(match.id, r.label, r.icon); ok(`Category "${r.label}" approved`); }
                     else { await window.denyCategoryRequest(match.id); ok('Category request denied'); }
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+
+            // ── FRIENDS LIST ──
+            if (c === 'friends' && args[0] === 'list') {
+                const email = args[1];
+                if (!email) return err('Usage: friends list <email>');
+                try {
+                    const uid = await window._termGetUid(email);
+                    if (!uid) return err(`User not found: ${email}`);
+                    const snap = await getDocs(collection(window.db, "friends", uid, "list"));
+                    if (snap.empty) return info(`${email} has no friends`);
+                    snap.forEach(d => info(`<span style="color:#fff">${d.data().displayName}</span>`));
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── FRIENDS CLEAR ──
+            if (c === 'friends' && args[0] === 'clear') {
+                const email = args[1];
+                if (!email) return err('Usage: friends clear <email>');
+                if (!confirm(`Remove all friends of ${email}?`)) return info('Cancelled.');
+                try {
+                    const uid = await window._termGetUid(email);
+                    if (!uid) return err(`User not found: ${email}`);
+                    const snap = await getDocs(collection(window.db, "friends", uid, "list"));
+                    await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+                    ok(`All friends removed for ${email}`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── DM LIST ──
+            if (c === 'dm' && args[0] === 'list') {
+                info('Loading DM conversations...');
+                try {
+                    const { collectionGroup } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const allMsgs = await getDocs(collectionGroup(window.db, "messages"));
+                    const convos = {};
+                    allMsgs.docs.forEach(d => {
+                        const convoId = d.ref.parent.parent?.id;
+                        if (!convoId) return;
+                        if (!convos[convoId]) convos[convoId] = [];
+                        convos[convoId].push(d.data());
+                    });
+                    const ids = Object.keys(convos);
+                    if (!ids.length) return info('No DM conversations found');
+                    ids.forEach(id => {
+                        const names = [...new Set(convos[id].map(m => m.displayName).filter(Boolean))].join(' & ');
+                        info(`<span style="color:#fff">${names}</span> — ${convos[id].length} messages`);
+                    });
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── DM READ ──
+            if (c === 'dm' && args[0] === 'read') {
+                const u1 = args[1], u2 = args[2];
+                if (!u1 || !u2) return err('Usage: dm read <username1> <username2>');
+                try {
+                    const { getDoc: gd, doc: dc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap1 = await gd(dc(window.db, "usernames", u1.toLowerCase()));
+                    const snap2 = await gd(dc(window.db, "usernames", u2.toLowerCase()));
+                    if (!snap1.exists()) return err(`User not found: ${u1}`);
+                    if (!snap2.exists()) return err(`User not found: ${u2}`);
+                    const uid1 = snap1.data().uid, uid2 = snap2.data().uid;
+                    const convoId = [uid1, uid2].sort().join('_');
+                    const msgs = await getDocs(query(collection(window.db, "dms", convoId, "messages"), orderBy("sentAt", "asc")));
+                    if (msgs.empty) return info(`No messages between ${u1} and ${u2}`);
+                    msgs.forEach(d => {
+                        const m = d.data();
+                        const time = m.sentAt ? new Date(m.sentAt.toDate()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
+                        info(`<span style="color:#a0a0a0">${time}</span> <span style="color:#00ff41">${m.displayName}</span>: <span style="color:#fff">${m.text}</span>`);
+                    });
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── DM CLEAR ──
+            if (c === 'dm' && args[0] === 'clear') {
+                const u1 = args[1], u2 = args[2];
+                if (!u1 || !u2) return err('Usage: dm clear <username1> <username2>');
+                if (!confirm(`Delete all messages between ${u1} and ${u2}?`)) return info('Cancelled.');
+                try {
+                    const { getDoc: gd, doc: dc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap1 = await gd(dc(window.db, "usernames", u1.toLowerCase()));
+                    const snap2 = await gd(dc(window.db, "usernames", u2.toLowerCase()));
+                    if (!snap1.exists()) return err(`User not found: ${u1}`);
+                    if (!snap2.exists()) return err(`User not found: ${u2}`);
+                    const uid1 = snap1.data().uid, uid2 = snap2.data().uid;
+                    const convoId = [uid1, uid2].sort().join('_');
+                    const msgs = await getDocs(collection(window.db, "dms", convoId, "messages"));
+                    await Promise.all(msgs.docs.map(d => deleteDoc(d.ref)));
+                    ok(`DM conversation cleared between ${u1} and ${u2}`);
                 } catch(e) { err(e.message); }
                 return;
             }
