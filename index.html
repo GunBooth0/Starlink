@@ -493,6 +493,21 @@
                         <span>to open the owner terminal</span>
                     </div>
 
+
+                    <!-- Online Users -->
+                    <div class="mb-16" id="online-users-section">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-semibold flex items-center gap-3">
+                                <i class="fa-solid fa-circle text-green-400" style="font-size:0.7rem;"></i> Online Users
+                                <span id="panel-online-count" class="text-sm text-white/50 font-normal"></span>
+                            </h3>
+                            <button onclick="window.loadOnlineUsers()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
+                        </div>
+                        <div id="online-users-list" class="glass rounded-3xl p-4">
+                            <p class="text-center text-white/40 text-sm py-4">Click Refresh to see who is online</p>
+                        </div>
+                    </div>
+
                     <!-- Announcement -->
                     <div class="mb-16">
                         <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
@@ -1635,14 +1650,20 @@
 
         window.startPresence = async (uid) => {
             presenceRef = doc(db, "presence", uid);
+            const _presenceName = window.currentDisplayName || window.currentUser?.email?.split('@')[0] || '';
+            const _presenceRole = window.currentUser?.email === ADMIN_EMAIL ? 'Owner' : window.isAdminUser ? 'Admin' : 'User';
 
-            // Write initial presence
-            await setDoc(presenceRef, { uid, lastSeen: serverTimestamp() });
+            // Write initial presence with display name and role
+            await setDoc(presenceRef, { uid, lastSeen: serverTimestamp(), displayName: _presenceName, role: _presenceRole });
 
             // Heartbeat — keep lastSeen fresh so we're not counted as stale
             if (heartbeatInterval) clearInterval(heartbeatInterval);
             heartbeatInterval = setInterval(async () => {
-                try { await setDoc(presenceRef, { uid, lastSeen: serverTimestamp() }); }
+                try {
+                    const _name = window.currentDisplayName || window.currentUser?.email?.split('@')[0] || '';
+                    const _role = window.currentUser?.email === ADMIN_EMAIL ? 'Owner' : window.isAdminUser ? 'Admin' : 'User';
+                    await setDoc(presenceRef, { uid, lastSeen: serverTimestamp(), displayName: _name, role: _role });
+                }
                 catch(_) {}
             }, HEARTBEAT_MS);
 
@@ -2778,6 +2799,41 @@
             } catch(e) { alert('Error: ' + e.message); }
         };
 
+
+        window.loadOnlineUsers = async () => {
+            const container = document.getElementById('online-users-list');
+            const countEl = document.getElementById('panel-online-count');
+            if (!container) return;
+            try {
+                const snap = await getDocs(collection(db, "presence"));
+                const now = Date.now();
+                const online = snap.docs.filter(d => {
+                    const ls = d.data().lastSeen;
+                    return ls && (now - ls.toMillis()) < 45000;
+                });
+                if (countEl) countEl.textContent = `${online.length} online`;
+                if (!online.length) {
+                    container.innerHTML = '<p class="text-center text-white/40 text-sm py-4">Nobody online right now</p>';
+                    return;
+                }
+                container.innerHTML = '<div class="flex flex-wrap gap-3 p-2">' +
+                    online.map(d => {
+                        const data = d.data();
+                        const name = data.displayName || data.uid.slice(0,8);
+                        const role = data.role || 'User';
+                        const roleColor = role === 'Owner' ? '#f59e0b' : role === 'Admin' ? '#8b5cf6' : 'rgba(255,255,255,0.5)';
+                        const roleBadge = role !== 'User' ? `<span style="font-size:0.6rem;background:${roleColor};color:#000;padding:0.1rem 0.4rem;border-radius:99px;font-weight:700;margin-left:0.3rem;">${role}</span>` : '';
+                        return `<div style="display:flex;align-items:center;gap:0.5rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:0.75rem;padding:0.5rem 0.85rem;">
+                            <span class="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" style="box-shadow:0 0 6px #4ade80;"></span>
+                            <span style="font-size:0.85rem;color:rgba(255,255,255,0.85);">${name}</span>${roleBadge}
+                        </div>`;
+                    }).join('') +
+                '</div>';
+            } catch(e) {
+                container.innerHTML = `<p class="text-center text-red-400 text-sm py-4">Error: ${e.message}</p>`;
+            }
+        };
+
         window.loadAllSites = window.loadAllSites;
         window.populateAllGrids = window.populateAllGrids;
         window.showGlobalAnnouncement = window.showGlobalAnnouncement;
@@ -2817,6 +2873,7 @@
         window.loadFriendsList = window.loadFriendsList;
         window.loadAdminDMs = window.loadAdminDMs;
         window.loadSignupRequests = window.loadSignupRequests;
+        window.loadOnlineUsers = window.loadOnlineUsers;
         window.approveSignup = window.approveSignup;
         window.denySignup = window.denySignup;
         window.viewAdminDM = window.viewAdminDM;
@@ -2864,6 +2921,7 @@
             if (mapping.contentId === 'content-chat') { window.openGlobalChat(); window.startTypingListener(); window.loadFriendsList(); if (window.currentUser && window.currentDisplayName) window.registerUsername(window.currentUser.uid, window.currentDisplayName); }
             if (mapping.contentId === 'content-admin') {
                 populateAdminThemeGrid();
+                window.loadOnlineUsers();
                 const isOwnerNow = window.firebaseAuth?.auth?.currentUser?.email === ADMIN_EMAIL;
                 const siteReqSection = document.getElementById('site-requests-section');
                 const adminReqSection = document.getElementById('admin-requests-section');
@@ -3981,7 +4039,22 @@
 
             // ── ONLINE ──
             if (c === 'online') {
-                info(`Online now: <span style="color:#10b981">${document.getElementById('online-count')?.textContent||'?'} user(s)</span>`);
+                try {
+                    const snap = await getDocs(collection(window.db, "presence"));
+                    const now = Date.now();
+                    const online = snap.docs.filter(d => {
+                        const ls = d.data().lastSeen;
+                        return ls && (now - ls.toMillis()) < 45000;
+                    });
+                    info(`Online now: <span style="color:#10b981">${online.length} user(s)</span>`);
+                    online.forEach(d => {
+                        const data = d.data();
+                        const name = data.displayName || data.uid.slice(0,8);
+                        const role = data.role || 'User';
+                        const roleColor = role === 'Owner' ? '#f59e0b' : role === 'Admin' ? '#8b5cf6' : '#a0a0a0';
+                        info(`  <span style="color:#4ade80">●</span> <span style="color:#fff">${name}</span> <span style="color:${roleColor}">[${role}]</span>`);
+                    });
+                } catch(e) { err(e.message); }
                 return;
             }
 
