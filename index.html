@@ -3241,6 +3241,9 @@
                 info('<span style="color:#fff">site nodesc</span>                       — list all sites missing a description');
                 info('<span style="color:#fff">site dupes</span>                        — scan for duplicate URLs across all categories');
                 info('<span style="color:#fff">site count</span>                        — total number of sites across all categories');
+                info('<span style="color:#fff">site info &lt;id&gt;</span>                   — show all details for one site');
+                info('<span style="color:#fff">site rename &lt;id&gt; &lt;newname&gt;</span>       — quickly rename a site');
+                info('<span style="color:#fff">site moveall &lt;fromcat&gt; &lt;tocat&gt;</span>   — move every site from one category to another');
                 info('<span style="color:#fff">site edit &lt;id&gt; name|url|icon|desc &lt;value&gt;</span> — edit a site field');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">CATEGORIES</span>');
@@ -3268,6 +3271,8 @@
                 info('<span style="color:#fff">users count admins</span>                — how many admins you have');
                 info('<span style="color:#fff">users count banned</span>                — how many banned users you have');
                 info('<span style="color:#fff">user note &lt;email&gt; &lt;note&gt;</span>          — attach a private note to a user');
+                info('<span style="color:#fff">user readnote &lt;email&gt;</span>            — read back the note you left on a user');
+                info('<span style="color:#fff">user unban all</span>                    — unban every banned user at once');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">ANNOUNCEMENTS</span>');
                 info('<span style="color:#fff">announce &lt;message&gt;</span>               — publish a global announcement');
@@ -3287,6 +3292,8 @@
                 info('<span style="color:#fff">requests count</span>                    — show pending count for each request type');
                 info('<span style="color:#fff">approve all site</span>                  — approve every pending site request at once');
                 info('<span style="color:#fff">deny all site</span>                     — deny every pending site request at once');
+                info('<span style="color:#fff">deny all admin</span>                    — deny all pending admin requests at once');
+                info('<span style="color:#fff">deny all cat</span>                      — deny all pending category requests at once');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">DIRECT MESSAGES</span>');
                 info('<span style="color:#fff">dm list</span>                           — list all DM conversations');
@@ -3305,6 +3312,7 @@
                 info('<span style="color:#fff">chat purge &lt;email&gt;</span>               — delete all global chat messages from a user');
                 info('<span style="color:#fff">chat find &lt;keyword&gt;</span>              — search global chat messages for a keyword');
                 info('<span style="color:#fff">chat top &lt;n&gt;</span>                     — show N most active chatters by message count');
+                info('<span style="color:#fff">chat stats</span>                        — show chat statistics');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">THEME</span>');
                 info('<span style="color:#fff">theme matrix</span>                      — activate matrix theme');
@@ -3326,6 +3334,8 @@
                 info('<span style="color:#fff">search &lt;query&gt;</span>                    — search sites from the terminal');
                 info('<span style="color:#fff">random</span>                            — open a random site from any category');
                 info('<span style="color:#fff">tab list</span>                          — show all available tabs for goto');
+                info('<span style="color:#fff">now</span>                               — show current date and time');
+                info('<span style="color:#fff">about</span>                             — show a brief description of Starlink');
                 info('<span style="color:#fff">clear</span>                             — clear terminal output');
                 info('<span style="color:#fff">exit</span>                              — close terminal');
                 return;
@@ -4179,6 +4189,143 @@
             if (c === 'tab' && args[0] === 'list') {
                 info('Available tabs for goto:');
                 (window.tabMapping||[]).forEach(t=>info(`  <span style="color:#fff">${t.title}</span> → goto ${t.contentId.replace('content-','')}`));
+                return;
+            }
+
+
+            // ── SITE INFO ──
+            if (c === 'site' && args[0] === 'info') {
+                const id=args[1];
+                if (!id) return err('Usage: site info <id>');
+                let found=null;
+                (window.allCategories||[]).forEach(cat=>(window.allSites?.[cat.key]||[]).forEach(s=>{if(s.id===id)found=s;}));
+                if (!found) return err(`Site not found: ${id}`);
+                info(`Name:     <span style="color:#fff">${found.name}</span>`);
+                info(`URL:      <span style="color:#fff">${found.url}</span>`);
+                info(`Category: <span style="color:#fff">${found.category}</span>`);
+                info(`Icon:     <span style="color:#fff">${found.icon||'none'}</span>`);
+                info(`Desc:     <span style="color:#fff">${found.desc||'none'}</span>`);
+                info(`ID:       <span style="color:#a0a0a0">${found.id}</span>`);
+                return;
+            }
+
+            // ── SITE RENAME ──
+            if (c === 'site' && args[0] === 'rename') {
+                const id=args[1], newname=args.slice(2).join(' ');
+                if (!id||!newname) return err('Usage: site rename <id> <newname>');
+                try {
+                    const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    await setDoc(doc(window.db,"sites",id),{name:newname},{merge:true});
+                    await window.loadAllSites(); window.populateAllGrids(); window.reloadAdminSites();
+                    ok(`Site renamed to "${newname}"`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── SITE MOVEALL ──
+            if (c === 'site' && args[0] === 'moveall') {
+                const fromcat=args[1], tocat=args[2];
+                if (!fromcat||!tocat) return err('Usage: site moveall <fromcat> <tocat>');
+                if (!(window.allCategories||[]).some(cat=>cat.key===tocat)) return err(`Category "${tocat}" not found`);
+                const sites=window.allSites?.[fromcat]||[];
+                if (!sites.length) return info(`No sites in "${fromcat}"`);
+                if (!confirm(`Move all ${sites.length} sites from "${fromcat}" to "${tocat}"?`)) return info('Cancelled.');
+                try {
+                    const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    await Promise.all(sites.map(s=>setDoc(doc(window.db,"sites",s.id),{category:tocat},{merge:true})));
+                    await window.loadAllSites(); window.populateAllGrids(); window.reloadAdminSites();
+                    ok(`Moved ${sites.length} sites from "${fromcat}" to "${tocat}"`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── USER READNOTE ──
+            if (c === 'user' && args[0] === 'readnote') {
+                const email=args[1];
+                if (!email) return err('Usage: user readnote <email>');
+                try {
+                    const uid=await window._termGetUid(email);
+                    if (!uid) return err(`User not found: ${email}`);
+                    const { getDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap=await getDoc(doc(window.db,"users",uid));
+                    const note=snap.data()?.ownerNote;
+                    if (!note) return info(`No note set for ${email}`);
+                    info(`Note: <span style="color:#fff">${note}</span>`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── USER UNBAN ALL ──
+            if (c === 'user' && args[0] === 'unban' && args[1] === 'all') {
+                try {
+                    const docs=await window._termGetUsers();
+                    const banned=docs.filter(d=>d.data().banned===true);
+                    if (!banned.length) return info('No banned users.');
+                    if (!confirm(`Unban all ${banned.length} banned users?`)) return info('Cancelled.');
+                    const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    await Promise.all(banned.map(d=>setDoc(doc(window.db,"users",d.id),{banned:false},{merge:true})));
+                    ok(`Unbanned ${banned.length} user(s)`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── CHAT STATS ──
+            if (c === 'chat' && args[0] === 'stats') {
+                try {
+                    const { getDocs, collection } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap=await getDocs(collection(window.db,"chat"));
+                    const now=Date.now();
+                    const todayStart=new Date(); todayStart.setHours(0,0,0,0);
+                    let today=0;
+                    const hourCounts={};
+                    snap.docs.forEach(d=>{
+                        const m=d.data();
+                        if (m.sentAt) {
+                            const t=m.sentAt.toDate();
+                            if (t>=todayStart) today++;
+                            const h=t.getHours();
+                            hourCounts[h]=(hourCounts[h]||0)+1;
+                        }
+                    });
+                    const peakHour=Object.entries(hourCounts).sort((a,b)=>b[1]-a[1])[0];
+                    info(`Total messages: <span style="color:#fff">${snap.size}</span>`);
+                    info(`Messages today: <span style="color:#fff">${today}</span>`);
+                    if (peakHour) info(`Most active hour: <span style="color:#fff">${peakHour[0]}:00 (${peakHour[1]} messages)</span>`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── DENY ALL ADMIN / CAT ──
+            if (c === 'deny' && args[0] === 'all' && (args[1]==='admin'||args[1]==='cat')) {
+                const type=args[1]==='cat'?'category':args[1];
+                try {
+                    const docs=await window._termGetRequests(type);
+                    if (!docs||!docs.length) return info(`No pending ${args[1]} requests.`);
+                    if (!confirm(`Deny all ${docs.length} pending ${args[1]} requests?`)) return info('Cancelled.');
+                    for (const d of docs) {
+                        if (type==='admin') await window.denyAdminRequest(d.id);
+                        else await window.denyCategoryRequest(d.id);
+                    }
+                    ok(`Denied ${docs.length} ${args[1]} request(s)`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── NOW ──
+            if (c === 'now') {
+                const now=new Date();
+                info(`Date: <span style="color:#fff">${now.toLocaleDateString()}</span>`);
+                info(`Time: <span style="color:#fff">${now.toLocaleTimeString()}</span>`);
+                return;
+            }
+
+            // ── ABOUT ──
+            if (c === 'about') {
+                print('  <span style="color:#00ff41">★ Starlink</span>', '#00ff41');
+                info('A personal gateway to unblocked games, AI tools, streaming, music, proxies, and more.');
+                info(`Built by: <span style="color:#fff">Gunnar Booth</span>`);
+                info(`Hosted on: <span style="color:#fff">GitHub Pages</span>`);
+                info(`Backend: <span style="color:#fff">Firebase (Firestore + Auth)</span>`);
                 return;
             }
 
