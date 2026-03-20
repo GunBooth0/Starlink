@@ -2816,10 +2816,23 @@
                     container.innerHTML = '<p class="text-center text-white/40 text-sm py-4">Nobody online right now</p>';
                     return;
                 }
+                // For any user missing a displayName, look it up from their user doc
+                const enriched = await Promise.all(online.map(async d => {
+                    const data = d.data();
+                    if (data.displayName) return data;
+                    // Fallback: look up from users collection
+                    try {
+                        const userSnap = await getDoc(doc(db, "users", d.id));
+                        if (userSnap.exists()) {
+                            const u = userSnap.data();
+                            return { ...data, displayName: u.displayName || u.email?.split('@')[0] || d.id.slice(0,8), role: u.isAdmin ? (u.email === ADMIN_EMAIL ? 'Owner' : 'Admin') : 'User' };
+                        }
+                    } catch(_) {}
+                    return { ...data, displayName: d.id.slice(0,8) };
+                }));
                 container.innerHTML = '<div class="flex flex-wrap gap-3 p-2">' +
-                    online.map(d => {
-                        const data = d.data();
-                        const name = data.displayName || data.uid.slice(0,8);
+                    enriched.map(data => {
+                        const name = data.displayName || data.uid?.slice(0,8) || '?';
                         const role = data.role || 'User';
                         const roleColor = role === 'Owner' ? '#f59e0b' : role === 'Admin' ? '#8b5cf6' : 'rgba(255,255,255,0.5)';
                         const roleBadge = role !== 'User' ? `<span style="font-size:0.6rem;background:${roleColor};color:#000;padding:0.1rem 0.4rem;border-radius:99px;font-weight:700;margin-left:0.3rem;">${role}</span>` : '';
@@ -4047,13 +4060,23 @@
                         return ls && (now - ls.toMillis()) < 45000;
                     });
                     info(`Online now: <span style="color:#10b981">${online.length} user(s)</span>`);
-                    online.forEach(d => {
+                    for (const d of online) {
                         const data = d.data();
-                        const name = data.displayName || data.uid.slice(0,8);
-                        const role = data.role || 'User';
+                        let name = data.displayName;
+                        let role = data.role || 'User';
+                        if (!name) {
+                            try {
+                                const uSnap = await getDoc(doc(window.db, "users", d.id));
+                                if (uSnap.exists()) {
+                                    const u = uSnap.data();
+                                    name = u.displayName || u.email?.split('@')[0] || d.id.slice(0,8);
+                                    role = u.isAdmin ? 'Admin' : 'User';
+                                } else { name = d.id.slice(0,8); }
+                            } catch(_) { name = d.id.slice(0,8); }
+                        }
                         const roleColor = role === 'Owner' ? '#f59e0b' : role === 'Admin' ? '#8b5cf6' : '#a0a0a0';
                         info(`  <span style="color:#4ade80">●</span> <span style="color:#fff">${name}</span> <span style="color:${roleColor}">[${role}]</span>`);
-                    });
+                    }
                 } catch(e) { err(e.message); }
                 return;
             }
