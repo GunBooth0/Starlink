@@ -768,7 +768,7 @@
         // ────────────────────────────────────────────────
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
         import { getFirestore, collection, collectionGroup, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, where, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -818,12 +818,7 @@
             if (userDocListener) userDocListener();
 
             if (user) {
-                // Block unverified users before any UI updates
-                // Skip during signup — sendEmailVerification hasn't run yet
-                if (!user.emailVerified && user.email !== ADMIN_EMAIL && !window._signingUp) {
-                    await signOut(auth);
-                    return;
-                }
+
 
                 // Check banned + isAdmin from Firestore before showing UI
                 let userDocData = {};
@@ -993,13 +988,6 @@
             try {
                 if (document.getElementById('form-title').textContent === 'Sign In') {
                     const cred = await signInWithEmailAndPassword(auth, email, password);
-                    if (!cred.user.emailVerified) {
-                        window._signingUp = true; // block updateUIForAuth during signout
-                        await signOut(auth);
-                        window._signingUp = false;
-                        alert("Please verify your email first. If you don't see it, check your spam folder.");
-                        return;
-                    }
                     updateUIForAuth(cred.user);
                 } else {
                     const signupUsername = document.getElementById('signup-username').value.trim();
@@ -1025,11 +1013,8 @@
                         displayName: signupUsername,
                         createdAt: serverTimestamp()
                     });
-                    await sendEmailVerification(cred.user);
-                    await signOut(auth);
                     window._signingUp = false;
-                    updateUIForAuth(null);
-                    alert("Verification email sent! If you don't see it, check your spam folder.");
+                    updateUIForAuth(cred.user);
                 }
             } catch (e) {
                 alert(e.message);
