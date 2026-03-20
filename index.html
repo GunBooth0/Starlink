@@ -535,6 +535,21 @@
                     </div>
 
 
+
+                    <!-- Signup Requests (owner only) -->
+                    <div class="mb-16" id="signup-requests-section" style="display:none;">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-semibold flex items-center gap-3">
+                                <i class="fa-solid fa-user-plus"></i> Signup Requests
+                                <span id="signup-req-badge" class="hidden text-xs bg-[var(--accent)] text-black px-3 py-1 rounded-full font-bold"></span>
+                            </h3>
+                            <button onclick="window.loadSignupRequests()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
+                        </div>
+                        <div id="signup-requests-list" class="glass rounded-3xl p-2 max-h-[480px] overflow-auto">
+                            <p class="p-8 text-center text-white/50">Click Refresh to load pending signups</p>
+                        </div>
+                    </div>
+
                     <!-- Admin Access Requests (owner only) -->
                     <div class="mb-16" id="admin-requests-section" style="display:none;">
                         <div class="flex items-center justify-between mb-6">
@@ -768,7 +783,7 @@
         // ────────────────────────────────────────────────
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
         import { getFirestore, collection, collectionGroup, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, where, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -818,13 +833,6 @@
             if (userDocListener) userDocListener();
 
             if (user) {
-                // Block unverified users before any UI updates
-                // Skip during signup — sendEmailVerification hasn't run yet
-                if (!user.emailVerified && user.email !== ADMIN_EMAIL && !window._signingUp) {
-                    await signOut(auth);
-                    return;
-                }
-
                 // Check banned + isAdmin from Firestore before showing UI
                 let userDocData = {};
                 try {
@@ -835,6 +843,15 @@
                 if (userDocData.banned === true) {
                     await signOut(auth);
                     alert("Your account has been banned. Please contact the administrator.");
+                    return;
+                }
+
+                // Block pending users (awaiting owner approval)
+                if (userDocData.status === 'pending' && user.email !== ADMIN_EMAIL) {
+                    window._signingUp = true;
+                    await signOut(auth);
+                    window._signingUp = false;
+                    alert("Your account is pending approval by the owner. You will be able to log in once approved.");
                     return;
                 }
 
@@ -886,6 +903,7 @@
                         const adminReqSectionInit = document.getElementById('admin-requests-section');
                         const catReqSectionInit = document.getElementById('cat-requests-section');
                         const dmAdminSectionInit = document.getElementById('dms-admin-section');
+                        const signupReqSectionInit = document.getElementById('signup-requests-section');
                         // All admins get site requests, category requests, clear chat
                         if (siteReqSectionInit) siteReqSectionInit.style.display = '';
                         if (catReqSectionInit) catReqSectionInit.style.display = '';
@@ -896,11 +914,13 @@
                         if (isOwnerInit) {
                             if (adminReqSectionInit) adminReqSectionInit.style.display = '';
                             if (dmAdminSectionInit) dmAdminSectionInit.style.display = '';
+                            if (signupReqSectionInit) signupReqSectionInit.style.display = '';
                             if (clearChatSectionInit) clearChatSectionInit.style.display = '';
                             window.loadAdminRequests();
                         } else {
                             if (adminReqSectionInit) adminReqSectionInit.style.display = 'none';
                             if (dmAdminSectionInit) dmAdminSectionInit.style.display = 'none';
+                            if (signupReqSectionInit) signupReqSectionInit.style.display = 'none';
                             if (clearChatSectionInit) clearChatSectionInit.style.display = 'none';
                         }
                     }
@@ -993,43 +1013,45 @@
             try {
                 if (document.getElementById('form-title').textContent === 'Sign In') {
                     const cred = await signInWithEmailAndPassword(auth, email, password);
-                    if (!cred.user.emailVerified) {
-                        window._signingUp = true; // block updateUIForAuth during signout
-                        await signOut(auth);
-                        window._signingUp = false;
-                        alert("Please verify your email first. If you don't see it, check your spam folder.");
-                        return;
-                    }
                     updateUIForAuth(cred.user);
                 } else {
                     const signupUsername = document.getElementById('signup-username').value.trim();
                     if (!signupUsername) { alert('Please choose a username before signing up.'); return; }
                     window._signingUp = true;
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
-                    // Now authenticated — check username uniqueness
+                    // Check username uniqueness
                     const _takenSnap = await getDoc(doc(db, "usernames", signupUsername.toLowerCase()));
                     if (_takenSnap.exists() && _takenSnap.data().uid !== cred.user.uid) {
-                        // Username taken — delete the just-created account and bail
                         await deleteUser(cred.user);
                         window._signingUp = false;
                         alert(`Username "${signupUsername}" is already taken. Please choose a different one.`);
                         return;
                     }
-                    // Reserve the username immediately
+                    // Reserve username
                     await setDoc(doc(db, "usernames", signupUsername.toLowerCase()), {
                         uid: cred.user.uid,
                         displayName: signupUsername
                     });
+                    // Create user doc with pending status
                     await setDoc(doc(db, "users", cred.user.uid), {
                         email,
                         displayName: signupUsername,
-                        createdAt: serverTimestamp()
+                        createdAt: serverTimestamp(),
+                        status: 'pending'
                     });
-                    await sendEmailVerification(cred.user);
+                    // Also write to signupRequests collection for owner review
+                    await setDoc(doc(db, "signupRequests", cred.user.uid), {
+                        uid: cred.user.uid,
+                        email,
+                        displayName: signupUsername,
+                        requestedAt: serverTimestamp(),
+                        status: 'pending'
+                    });
+                    window._signingUp = true;
                     await signOut(auth);
                     window._signingUp = false;
                     updateUIForAuth(null);
-                    alert("Verification email sent! If you don't see it, check your spam folder.");
+                    alert("Account created! Your signup is pending approval by the owner. You will be notified when approved.");
                 }
             } catch (e) {
                 alert(e.message);
@@ -2678,6 +2700,84 @@
             } catch(e) { console.error('Cascade role error:', e.message); }
         };
 
+
+        window.loadSignupRequests = async () => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return;
+            const container = document.getElementById('signup-requests-list');
+            if (!container) return;
+            container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
+            try {
+                const q = query(collection(db, "signupRequests"), orderBy("requestedAt", "desc"));
+                const snap = await getDocs(q);
+                const pending = snap.docs.filter(d => d.data().status === 'pending');
+                const badge = document.getElementById('signup-req-badge');
+                if (pending.length > 0) { badge.textContent = pending.length; badge.classList.remove('hidden'); }
+                else { badge.classList.add('hidden'); }
+                if (!pending.length) {
+                    container.innerHTML = '<p class="p-8 text-center text-white/50">No pending signup requests</p>';
+                    return;
+                }
+                let html = '<div class="divide-y divide-white/10">';
+                pending.forEach(d => {
+                    const r = d.data();
+                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : '—';
+                    html += `<div id="signup-req-row-${d.id}" class="p-6 hover:bg-white/5 transition-all">
+                        <div class="flex justify-between items-center gap-6">
+                            <div>
+                                <div class="font-semibold text-lg mb-1">${r.displayName}</div>
+                                <div class="text-sm text-white/50">${r.email}</div>
+                                <div class="text-xs text-white/30 mt-1">${date}</div>
+                            </div>
+                            <div class="flex gap-2 shrink-0">
+                                <button onclick="window.approveSignup('${d.id}','${r.uid}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-green-900/60 hover:bg-green-900 text-green-400 rounded-2xl transition-colors">Approve</button>
+                                <button onclick="window.denySignup('${d.id}','${r.uid}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Deny</button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch(e) { container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`; }
+        };
+
+        window.approveSignup = async (reqId, uid) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            try {
+                // Remove pending status from user doc
+                await setDoc(doc(db, "users", uid), { status: 'approved' }, { merge: true });
+                // Remove from signupRequests
+                await deleteDoc(doc(db, "signupRequests", reqId));
+                const row = document.getElementById('signup-req-row-' + reqId);
+                if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
+                const remaining = document.querySelectorAll('[id^="signup-req-row-"]').length - 1;
+                const badge = document.getElementById('signup-req-badge');
+                if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('signup-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending signup requests</p>'; }
+                else badge.textContent = remaining;
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
+        window.denySignup = async (reqId, uid) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            if (!confirm('Deny and delete this signup?')) return;
+            try {
+                // Delete user doc and signup request
+                await deleteDoc(doc(db, "users", uid));
+                await deleteDoc(doc(db, "signupRequests", reqId));
+                // Also delete username reservation
+                const userSnap = await getDoc(doc(db, "users", uid));
+                if (userSnap.exists()) {
+                    const name = userSnap.data().displayName;
+                    if (name) await deleteDoc(doc(db, "usernames", name.toLowerCase()));
+                }
+                const row = document.getElementById('signup-req-row-' + reqId);
+                if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
+                const remaining = document.querySelectorAll('[id^="signup-req-row-"]').length - 1;
+                const badge = document.getElementById('signup-req-badge');
+                if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('signup-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending signup requests</p>'; }
+                else badge.textContent = remaining;
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
         window.loadAllSites = window.loadAllSites;
         window.populateAllGrids = window.populateAllGrids;
         window.showGlobalAnnouncement = window.showGlobalAnnouncement;
@@ -2716,6 +2816,9 @@
         window.registerUsername = window.registerUsername;
         window.loadFriendsList = window.loadFriendsList;
         window.loadAdminDMs = window.loadAdminDMs;
+        window.loadSignupRequests = window.loadSignupRequests;
+        window.approveSignup = window.approveSignup;
+        window.denySignup = window.denySignup;
         window.viewAdminDM = window.viewAdminDM;
         window.clearChat = window.clearChat;
         window.deleteChatMessage = window.deleteChatMessage;
@@ -2777,11 +2880,13 @@
                 if (isOwnerNow) {
                     if (adminReqSection) adminReqSection.style.display = '';
                     if (dmAdminSection) dmAdminSection.style.display = '';
+                    if (signupReqSection) signupReqSection.style.display = '';
                     if (clearChatSection) clearChatSection.style.display = '';
                     window.loadAdminRequests();
                 } else {
                     if (adminReqSection) adminReqSection.style.display = 'none';
                     if (dmAdminSection) dmAdminSection.style.display = 'none';
+                    if (signupReqSection) signupReqSection.style.display = 'none';
                     if (clearChatSection) clearChatSection.style.display = 'none';
                 }
             }
@@ -3343,6 +3448,13 @@
                 info('<span style="color:#fff">deny admin &lt;id&gt;</span>                  — deny an admin request');
                 info('<span style="color:#fff">approve cat &lt;id&gt;</span>                 — approve a category request');
                 info('<span style="color:#fff">deny cat &lt;id&gt;</span>                    — deny a category request');
+                print('');
+                print('  <span style="color:#00ff41;font-weight:bold">SIGNUP REQUESTS</span>');
+                info('<span style="color:#fff">signups list</span>                      — list all pending signup requests');
+                info('<span style="color:#fff">signups count</span>                     — show number of pending signups');
+                info('<span style="color:#fff">signup approve &lt;email&gt;</span>           — approve a pending signup');
+                info('<span style="color:#fff">signup deny &lt;email&gt;</span>              — deny and delete a pending signup');
+                info('<span style="color:#fff">signup approve all</span>                — approve all pending signups at once');
                 info('<span style="color:#fff">requests count</span>                    — show pending count for each request type');
                 info('<span style="color:#fff">approve all site</span>                  — approve every pending site request at once');
                 info('<span style="color:#fff">deny all site</span>                     — deny every pending site request at once');
@@ -4383,6 +4495,84 @@
                 info(`Built by: <span style="color:#fff">Gunnar Booth</span>`);
                 info(`Hosted on: <span style="color:#fff">GitHub Pages</span>`);
                 info(`Backend: <span style="color:#fff">Firebase (Firestore + Auth)</span>`);
+                return;
+            }
+
+
+            // ── SIGNUPS LIST ──
+            if (c === 'signups' && args[0] === 'list') {
+                info('Loading pending signups...');
+                try {
+                    const { getDocs, collection, query, orderBy } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap = await getDocs(query(collection(window.db, "signupRequests"), orderBy("requestedAt", "desc")));
+                    const pending = snap.docs.filter(d => d.data().status === 'pending');
+                    if (!pending.length) return info('No pending signup requests.');
+                    pending.forEach(d => {
+                        const r = d.data();
+                        const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : '—';
+                        info(`<span style="color:#fff">${r.displayName}</span> &lt;${r.email}&gt; — ${date}`);
+                    });
+                    info(`Total: <span style="color:#fff">${pending.length}</span>`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── SIGNUPS COUNT ──
+            if (c === 'signups' && args[0] === 'count') {
+                try {
+                    const { getDocs, collection, query, orderBy } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap = await getDocs(query(collection(window.db, "signupRequests"), orderBy("requestedAt", "desc")));
+                    const pending = snap.docs.filter(d => d.data().status === 'pending');
+                    info(`Pending signups: <span style="color:#fff">${pending.length}</span>`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── SIGNUP APPROVE / DENY ──
+            if (c === 'signup') {
+                const action = args[0], email = args[1];
+
+                // Approve all
+                if (action === 'approve' && email === 'all') {
+                    try {
+                        const { getDocs, collection, query, orderBy, setDoc, doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                        const snap = await getDocs(query(collection(window.db, "signupRequests"), orderBy("requestedAt", "desc")));
+                        const pending = snap.docs.filter(d => d.data().status === 'pending');
+                        if (!pending.length) return info('No pending signups.');
+                        if (!confirm(`Approve all ${pending.length} pending signups?`)) return info('Cancelled.');
+                        for (const d of pending) {
+                            const r = d.data();
+                            await setDoc(doc(window.db, "users", r.uid), { status: 'approved' }, { merge: true });
+                            await deleteDoc(doc(window.db, "signupRequests", d.id));
+                        }
+                        ok(`Approved ${pending.length} signup(s)`);
+                    } catch(e) { err(e.message); }
+                    return;
+                }
+
+                if (!action || !email) return err('Usage: signup approve|deny <email>');
+
+                try {
+                    const { getDocs, collection, query, orderBy, setDoc, doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap = await getDocs(query(collection(window.db, "signupRequests"), orderBy("requestedAt", "desc")));
+                    const match = snap.docs.find(d => d.data().email?.toLowerCase() === email.toLowerCase() && d.data().status === 'pending');
+                    if (!match) return err(`No pending signup found for: ${email}`);
+                    const r = match.data();
+
+                    if (action === 'approve') {
+                        await setDoc(doc(window.db, "users", r.uid), { status: 'approved' }, { merge: true });
+                        await deleteDoc(doc(window.db, "signupRequests", match.id));
+                        ok(`${email} approved — they can now log in`);
+                    } else if (action === 'deny') {
+                        if (!confirm(`Deny and delete signup for ${email}?`)) return info('Cancelled.');
+                        await deleteDoc(doc(window.db, "users", r.uid));
+                        await deleteDoc(doc(window.db, "signupRequests", match.id));
+                        if (r.displayName) {
+                            try { await deleteDoc(doc(window.db, "usernames", r.displayName.toLowerCase())); } catch(_) {}
+                        }
+                        ok(`${email} denied and removed`);
+                    } else err(`Unknown action: ${action}. Use approve or deny`);
+                } catch(e) { err(e.message); }
                 return;
             }
 
