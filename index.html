@@ -484,9 +484,13 @@
             <!-- ADMIN PANEL -->
             <div id="content-admin" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-6xl mx-auto">
-                    <div class="flex items-center justify-between mb-10">
+                    <div class="flex items-center justify-between mb-4">
                         <h2 class="text-4xl font-bold logo-font tracking-tighter" id="main-panel-title">Admin Panel</h2>
                         <div class="text-xs bg-white/10 px-4 py-2 rounded-2xl font-mono" id="panel-badge-label">Admin only</div>
+                    </div>
+                    <div id="terminal-hint" class="hidden mb-8 flex items-center gap-2 text-white/40 text-xs">
+                        <kbd style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:0.35rem;padding:0.15rem 0.5rem;font-family:monospace;color:rgba(255,255,255,0.6);">/</kbd>
+                        <span>to open the owner terminal</span>
                     </div>
 
                     <!-- Announcement -->
@@ -841,6 +845,8 @@
                     const pb = document.getElementById('panel-badge-label');
                     if (pt) pt.textContent = user.email === ADMIN_EMAIL ? 'Owner Panel' : 'Admin Panel';
                     if (pb) pb.textContent = user.email === ADMIN_EMAIL ? 'Owner only' : 'Admin only';
+                    const termHint = document.getElementById('terminal-hint');
+                    if (termHint) termHint.classList.toggle('hidden', user.email !== ADMIN_EMAIL);
                 }, 150);
                 loadTheme(); // re-apply theme now that isAdminUser is known
                 window.currentDisplayName = userDocData.displayName || '';
