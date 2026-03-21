@@ -2765,6 +2765,12 @@
                     <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;bottom:2px;right:4px;color:#00ff41;">10100<br>01101<br>11010</span>
                  </div>`},
 
+                {name:"Inverse", color:"#000000", special:"inverse",
+                 preview:`<div style="background:#ffffff;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;top:4px;left:4px;width:8px;height:8px;border-radius:50%;background:#000;opacity:0.4;"></div>
+                    <div style="position:absolute;bottom:6px;right:6px;width:5px;height:5px;border-radius:50%;background:#000;opacity:0.3;"></div>
+                    <span style="font-size:1.6rem;">🌓</span>
+                 </div>`},
                 {name:"Blood Moon", color:"#cc0000", special:"bloodmoon",
                  preview:`<div style="background:#0a0000;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
                     <div style="position:absolute;top:8px;right:10px;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff3333,#880000);box-shadow:0 0 12px #cc0000,0 0 24px #660000;"></div>
@@ -3451,14 +3457,33 @@
             if (canvas) { canvas.style.display = 'none'; const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
             if (starBg) starBg.style.display = 'block';
         }
+        function startInverse() {
+            const canvas = document.getElementById('matrix-bg');
+            if (canvas) { canvas.style.display='none'; canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height); }
+            let s = document.getElementById('inverse-style');
+            if (!s) { s = document.createElement('style'); s.id = 'inverse-style'; document.head.appendChild(s); }
+            s.textContent = `
+                html, body { filter: invert(1) hue-rotate(180deg) !important; }
+                img, video, canvas, .star-svg, #star-bg, #matrix-bg { filter: invert(1) hue-rotate(180deg) !important; }
+            `;
+        }
+
+        function stopInverse() {
+            const s = document.getElementById('inverse-style');
+            if (s) s.remove();
+        }
+
         function setTheme(color, special) {
             localStorage.setItem('starlinkAccent', color);
             localStorage.setItem('starlinkSpecialTheme', special || '');
             document.documentElement.style.setProperty('--accent', color);
             stopMatrix();
             stopBloodMoon();
+            stopInverse();
             if (special === 'matrix') startMatrix();
             else if (special === 'bloodmoon') startBloodMoon();
+            else if (special === 'inverse') startInverse();
+            else if (special === 'inverse') startInverse();
             
         }
 
@@ -3468,6 +3493,7 @@
             document.documentElement.style.setProperty('--accent', color);
             if (special === 'matrix') startMatrix();
             else if (special === 'bloodmoon') startBloodMoon();
+            else if (special === 'inverse') startInverse();
             
         }
 
@@ -3547,6 +3573,12 @@
                     <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;top:2px;left:4px;color:#00ff41;">01101<br>10010<br>01011<br>11001</span>
                     <span style="font-size:1.8rem;">💻</span>
                     <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;bottom:2px;right:4px;color:#00ff41;">10100<br>01101<br>11010</span>
+                 </div>`},
+                {name:"Inverse", color:"#000000", special:"inverse",
+                 preview:`<div style="background:#ffffff;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;top:4px;left:4px;width:8px;height:8px;border-radius:50%;background:#000;opacity:0.4;"></div>
+                    <div style="position:absolute;bottom:6px;right:6px;width:5px;height:5px;border-radius:50%;background:#000;opacity:0.3;"></div>
+                    <span style="font-size:1.6rem;">🌓</span>
                  </div>`},
                 {name:"Blood Moon", color:"#cc0000", special:"bloodmoon",
                  preview:`<div style="background:#0a0000;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
