@@ -383,6 +383,36 @@
             </div>
 
 
+
+            <!-- REQUEST VERIFICATION TAB -->
+            <div id="content-request-verify" class="tab-content hidden">
+                <div class="max-w-xl mx-auto py-12">
+                    <div class="glass rounded-3xl p-10">
+                        <div class="text-center mb-8">
+                            <i class="fa-solid fa-circle-check text-5xl mb-4" style="color:#3b82f6"></i>
+                            <h2 class="text-3xl font-bold logo-font tracking-tight mb-2">Request Verification</h2>
+                            <p class="text-white/60 text-sm">Request a verified badge ✓ shown next to your name everywhere on Starlink. The owner reviews all requests.</p>
+                        </div>
+                        <div id="verify-req-already" class="hidden text-center py-6">
+                            <i class="fa-solid fa-clock text-4xl text-blue-400 mb-4"></i>
+                            <p class="text-xl font-semibold text-blue-400 mb-2">Request Pending</p>
+                            <p class="text-white/60 text-sm">Your verification request is being reviewed by the owner.</p>
+                            <button onclick="window.cancelVerifyRequest()" class="github-style-btn mt-6" style="width:auto;padding:0.75rem 2rem;">Cancel Request</button>
+                        </div>
+                        <div id="verify-req-verified" class="hidden text-center py-6">
+                            <i class="fa-solid fa-circle-check text-4xl text-blue-400 mb-4"></i>
+                            <p class="text-xl font-semibold text-blue-400 mb-2">Already Verified ✓</p>
+                            <p class="text-white/60 text-sm">You already have a verified badge on your account.</p>
+                        </div>
+                        <div id="verify-req-form">
+                            <textarea id="verify-req-reason" rows="5" placeholder="Why do you want a verified badge? What makes you notable on Starlink?" class="w-full" style="resize:vertical;"></textarea>
+                            <button onclick="window.submitVerifyRequest()" class="auth-btn w-full mt-2">Submit Request</button>
+                        </div>
+                        <p id="verify-req-message" class="text-center text-sm mt-4 hidden"></p>
+                    </div>
+                </div>
+            </div>
+
             <!-- LIVE CHAT TAB -->
             <div id="content-chat" class="tab-content hidden">
                 <div style="display:flex;gap:1.5rem;height:calc(100vh - 10rem);">
@@ -550,6 +580,21 @@
                     </div>
 
 
+
+
+                    <!-- Verification Requests (owner only) -->
+                    <div class="mb-16" id="verify-requests-section" style="display:none;">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-semibold flex items-center gap-3">
+                                <i class="fa-solid fa-circle-check text-blue-400"></i> Verification Requests
+                                <span id="verify-req-badge" class="hidden text-xs bg-blue-500 text-white px-3 py-1 rounded-full font-bold"></span>
+                            </h3>
+                            <button onclick="window.loadVerifyRequests()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
+                        </div>
+                        <div id="verify-requests-list" class="glass rounded-3xl p-2 max-h-[480px] overflow-auto">
+                            <p class="p-8 text-center text-white/50">Click Refresh to load verification requests</p>
+                        </div>
+                    </div>
 
                     <!-- Signup Requests (owner only) -->
                     <div class="mb-16" id="signup-requests-section" style="display:none;">
@@ -949,6 +994,8 @@
                             if (adminReqSectionInit) adminReqSectionInit.style.display = 'none';
                             if (dmAdminSectionInit) dmAdminSectionInit.style.display = 'none';
                             if (signupReqSectionInit) signupReqSectionInit.style.display = 'none';
+                            const _vrsi = document.getElementById('verify-requests-section');
+                            if (_vrsi) _vrsi.style.display = 'none';
                             if (clearChatSectionInit) clearChatSectionInit.style.display = 'none';
                         }
                     }
@@ -1250,6 +1297,7 @@
                     const isBanned = data.banned === true;
                     const isOwner = data.email === ADMIN_EMAIL;
                     const isUserAdmin = data.isAdmin === true || isOwner;
+                    const isVerified = data.verified === true;
 
                     const statusBadge = isBanned
                         ? `<span class="px-3 py-1 bg-red-900/60 text-red-400 rounded-xl text-xs font-semibold">Banned</span>`
@@ -1273,16 +1321,21 @@
                         ? `<button onclick="window.setAdminUser('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-purple-900/60 hover:bg-purple-900 text-purple-400 rounded-2xl transition-colors">Revoke Admin</button>`
                         : `<button onclick="window.setAdminUser('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">Make Admin</button>`;
 
+                    const verifyBtn = !actingIsOwner ? '' : isVerified
+                        ? `<button onclick="window.setVerified('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">Revoke Verify</button>`
+                        : `<button onclick="window.setVerified('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-300 rounded-2xl transition-colors">Grant Verify ✓</button>`;
+
                     const usernameEditBtn = !actingIsOwner ? '' :
                         `<button onclick="window.editUserUsername('${d.id}', '${(data.displayName||'').replace(/'/g,"\\'")}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 text-white/70 rounded-2xl transition-colors">Edit Username</button>`;
 
                     html += `<tr>
                         <td class="px-6 py-4 font-medium">${data.email}</td>
-                        <td class="px-6 py-4 text-white/70" id="uname-cell-${d.id}">${data.displayName || '<span class="text-white/30 italic">not set</span>'}</td>
+                        <td class="px-6 py-4 text-white/70" id="uname-cell-${d.id}">${data.displayName || '<span class="text-white/30 italic">not set</span>'}${isVerified ? '<span title="Verified" style="color:#3b82f6;font-size:0.8rem;margin-left:0.35rem;">✓</span>' : ''}</td>
                         <td class="px-6 py-4 text-white/70">${date}</td>
                         <td class="px-6 py-4">${statusBadge}</td>
                         <td class="px-6 py-4">
                             <div class="flex gap-2 flex-wrap">
+                                ${verifyBtn}
                                 ${usernameEditBtn}
                                 ${banBtn}
                                 ${adminBtn}
@@ -2127,6 +2180,7 @@
                     const msgId = d.id;
                     const isMe = m.uid === auth.currentUser?.uid;
                     const msgRole = m.role || (m.email === ADMIN_EMAIL ? 'Owner' : '');
+                    const msgVerified = m.verified ? '<span title="Verified" style="color:#3b82f6;font-size:0.75rem;margin-left:0.25rem;">✓</span>' : '';
                     const roleBadge = msgRole === 'Owner'
                         ? `<span style="font-size:0.65rem;padding:0.15rem 0.5rem;border-radius:99px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;font-weight:700;margin-left:0.4rem;">Owner</span>`
                         : msgRole === 'Admin'
@@ -2141,7 +2195,7 @@
                     div.innerHTML = `
                         <div style="max-width:75%;">
                             <div class="flex items-center gap-2 mb-1 ${isMe ? 'justify-end' : ''}">
-                                <span class="text-xs font-semibold text-[var(--accent)]">${m.displayName || m.email?.split('@')[0] || 'Unknown'}${roleBadge}</span>
+                                <span class="text-xs font-semibold text-[var(--accent)]">${m.displayName || m.email?.split('@')[0] || 'Unknown'}${roleBadge}${msgVerified}</span>
                                 <span class="text-xs text-white/30">${time}</span>
                                 ${deleteBtn}
                             </div>
@@ -2227,12 +2281,14 @@
                 const userSnap = await getDoc(doc(db, "users", user.uid));
                 const userData = userSnap.exists() ? userSnap.data() : {};
                 const chatRole = user.email === ADMIN_EMAIL ? 'Owner' : userData.isAdmin === true ? 'Admin' : 'User';
+                const chatVerified = userData.verified === true;
                 await addDoc(collection(db, "chat"), {
                     text,
                     uid: user.uid,
                     email: user.email,
                     displayName: userData.displayName || user.email.split('@')[0],
                     role: chatRole,
+                    verified: chatVerified,
                     sentAt: serverTimestamp()
                 });
                 input.value = '';
@@ -2412,6 +2468,7 @@
                     const time = m.sentAt ? new Date(m.sentAt.toDate()).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
                     const deleteBtn = isMe ? `<button onclick="window.deleteDMMessage('${convoId}','${d.id}')" title="Delete" style="background:transparent;border:none;padding:0;margin:0;width:auto;cursor:pointer;color:rgba(255,255,255,0.3);font-size:0.75rem;" class="hover:text-red-400 transition-colors ml-1">✕</button>` : '';
                     const dmMsgRole = m.role || '';
+                    const dmVerified = m.verified ? '<span title="Verified" style="color:#3b82f6;font-size:0.75rem;margin-left:0.25rem;">✓</span>' : '';
                     const dmRoleBadge = dmMsgRole === 'Owner'
                         ? `<span style="font-size:0.65rem;padding:0.15rem 0.5rem;border-radius:99px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;font-weight:700;margin-left:0.3rem;">Owner</span>`
                         : dmMsgRole === 'Admin'
@@ -2422,7 +2479,7 @@
                     div.innerHTML = `
                         <div style="max-width:75%;">
                             <div class="flex items-center gap-2 mb-1 ${isMe ? 'justify-end' : ''}">
-                                <span class="text-xs font-semibold text-[var(--accent)]">${m.displayName || '?'}${dmRoleBadge}</span>
+                                <span class="text-xs font-semibold text-[var(--accent)]">${m.displayName || '?'}${dmRoleBadge}${dmVerified}</span>
                                 <span class="text-xs text-white/30">${time}</span>
                                 ${deleteBtn}
                             </div>
@@ -2858,9 +2915,10 @@
                     enriched.map(({ name, role }) => {
                         const roleColor = role === 'Owner' ? '#f59e0b' : role === 'Admin' ? '#8b5cf6' : 'rgba(255,255,255,0.5)';
                         const roleBadge = role !== 'User' ? `<span style="font-size:0.6rem;background:${roleColor};color:#000;padding:0.1rem 0.4rem;border-radius:99px;font-weight:700;margin-left:0.3rem;">${role}</span>` : '';
+                        const verifiedBadge = u.verified ? '<span title="Verified" style="color:#3b82f6;font-size:0.8rem;margin-left:0.2rem;">✓</span>' : '';
                         return `<div style="display:flex;align-items:center;gap:0.5rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:0.75rem;padding:0.5rem 0.85rem;">
                             <span class="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" style="box-shadow:0 0 6px #4ade80;"></span>
-                            <span style="font-size:0.85rem;color:rgba(255,255,255,0.85);">${name}</span>${roleBadge}
+                            <span style="font-size:0.85rem;color:rgba(255,255,255,0.85);">${name}</span>${roleBadge}${verifiedBadge}
                         </div>`;
                     }).join('') +
                 '</div>';
@@ -2897,6 +2955,137 @@
                 window.reloadAdminCategories();
                 window.reloadAdminSites();
                 alert('Orders reset successfully!');
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
+
+        // ── Verified badge ──
+        window.setVerified = async (uid, grant) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            try {
+                await setDoc(doc(db, "users", uid), { verified: grant }, { merge: true });
+                // Update past chat messages
+                const chatSnap = await getDocs(query(collection(db, "chat"), where("uid", "==", uid)));
+                await Promise.all(chatSnap.docs.map(d => setDoc(doc(db, "chat", d.id), { verified: grant }, { merge: true })));
+                // Update past DMs
+                const dmSnap = await getDocs(collectionGroup(db, "messages"));
+                await Promise.all(dmSnap.docs.filter(d => d.data().uid === uid).map(d => setDoc(d.ref, { verified: grant }, { merge: true })));
+                window.loadAdminUsers();
+                ok && ok(`Verified badge ${grant ? 'granted' : 'revoked'}`);
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
+        window.submitVerifyRequest = async () => {
+            const reason = document.getElementById('verify-req-reason').value.trim();
+            const msgEl = document.getElementById('verify-req-message');
+            if (!reason) { msgEl.textContent = 'Please explain why you want a verified badge.'; msgEl.className = 'text-center text-sm mt-4 text-red-400'; msgEl.classList.remove('hidden'); return; }
+            try {
+                const uid = auth.currentUser.uid;
+                const userSnap = await getDoc(doc(db, "users", uid));
+                if (userSnap.exists() && userSnap.data().verified) {
+                    document.getElementById('verify-req-form').classList.add('hidden');
+                    document.getElementById('verify-req-verified').classList.remove('hidden');
+                    return;
+                }
+                await setDoc(doc(db, "verifyRequests", uid), {
+                    uid, email: auth.currentUser.email,
+                    displayName: window.currentDisplayName || auth.currentUser.email.split('@')[0],
+                    reason, requestedAt: serverTimestamp(), status: 'pending'
+                });
+                document.getElementById('verify-req-reason').value = '';
+                document.getElementById('verify-req-form').classList.add('hidden');
+                document.getElementById('verify-req-already').classList.remove('hidden');
+                msgEl.classList.add('hidden');
+            } catch(e) { msgEl.textContent = 'Error: ' + e.message; msgEl.className = 'text-center text-sm mt-4 text-red-400'; msgEl.classList.remove('hidden'); }
+        };
+
+        window.cancelVerifyRequest = async () => {
+            if (!confirm('Cancel your verification request?')) return;
+            try {
+                await deleteDoc(doc(db, "verifyRequests", auth.currentUser.uid));
+                document.getElementById('verify-req-form').classList.remove('hidden');
+                document.getElementById('verify-req-already').classList.add('hidden');
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
+        window.checkExistingVerifyRequest = async () => {
+            try {
+                const uid = auth.currentUser.uid;
+                const userSnap = await getDoc(doc(db, "users", uid));
+                if (userSnap.exists() && userSnap.data().verified) {
+                    document.getElementById('verify-req-form').classList.add('hidden');
+                    document.getElementById('verify-req-already').classList.add('hidden');
+                    document.getElementById('verify-req-verified').classList.remove('hidden');
+                    return;
+                }
+                const reqSnap = await getDoc(doc(db, "verifyRequests", uid));
+                if (reqSnap.exists()) {
+                    document.getElementById('verify-req-form').classList.add('hidden');
+                    document.getElementById('verify-req-already').classList.remove('hidden');
+                    document.getElementById('verify-req-verified').classList.add('hidden');
+                } else {
+                    document.getElementById('verify-req-form').classList.remove('hidden');
+                    document.getElementById('verify-req-already').classList.add('hidden');
+                    document.getElementById('verify-req-verified').classList.add('hidden');
+                }
+            } catch(_) {}
+        };
+
+        window.loadVerifyRequests = async () => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return;
+            const container = document.getElementById('verify-requests-list');
+            if (!container) return;
+            container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
+            try {
+                const q = query(collection(db, "verifyRequests"), orderBy("requestedAt", "desc"));
+                const snap = await getDocs(q);
+                const pending = snap.docs.filter(d => d.data().status === 'pending');
+                const badge = document.getElementById('verify-req-badge');
+                if (pending.length) { badge.textContent = pending.length; badge.classList.remove('hidden'); }
+                else badge.classList.add('hidden');
+                if (!pending.length) { container.innerHTML = '<p class="p-8 text-center text-white/50">No pending verification requests</p>'; return; }
+                let html = '<div class="divide-y divide-white/10">';
+                pending.forEach(d => {
+                    const r = d.data();
+                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : '—';
+                    html += `<div id="vreq-row-${d.id}" class="p-6 hover:bg-white/5 transition-all">
+                        <div class="flex justify-between items-start gap-6">
+                            <div class="flex-1 min-w-0">
+                                <div class="font-semibold text-lg mb-1">${r.displayName} <span style="color:#a0a0a0;font-size:0.8rem;">&lt;${r.email}&gt;</span></div>
+                                <div class="text-xs text-white/30 mb-3">${date}</div>
+                                <div class="bg-black/40 rounded-2xl p-4 text-white/80 text-sm">${r.reason}</div>
+                            </div>
+                            <div class="flex gap-2 shrink-0">
+                                <button onclick="window.approveVerify('${d.id}','${r.uid}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-300 rounded-2xl">Grant ✓</button>
+                                <button onclick="window.denyVerify('${d.id}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl">Deny</button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch(e) { container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`; }
+        };
+
+        window.approveVerify = async (reqId, uid) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            try {
+                await window.setVerified(uid, true);
+                await deleteDoc(doc(db, "verifyRequests", reqId));
+                const row = document.getElementById('vreq-row-' + reqId);
+                if (row) { row.style.opacity = '0'; row.style.transition = 'opacity 0.3s'; setTimeout(() => row.remove(), 300); }
+                window.loadVerifyRequests();
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
+        window.denyVerify = async (reqId) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            if (!confirm('Deny this verification request?')) return;
+            try {
+                await deleteDoc(doc(db, "verifyRequests", reqId));
+                const row = document.getElementById('vreq-row-' + reqId);
+                if (row) { row.style.opacity = '0'; row.style.transition = 'opacity 0.3s'; setTimeout(() => row.remove(), 300); }
+                window.loadVerifyRequests();
             } catch(e) { alert('Error: ' + e.message); }
         };
 
@@ -2940,6 +3129,13 @@
         window.loadFriendsList = window.loadFriendsList;
         window.loadAdminDMs = window.loadAdminDMs;
         window.loadSignupRequests = window.loadSignupRequests;
+        window.setVerified = window.setVerified;
+        window.submitVerifyRequest = window.submitVerifyRequest;
+        window.cancelVerifyRequest = window.cancelVerifyRequest;
+        window.checkExistingVerifyRequest = window.checkExistingVerifyRequest;
+        window.loadVerifyRequests = window.loadVerifyRequests;
+        window.approveVerify = window.approveVerify;
+        window.denyVerify = window.denyVerify;
         window.loadOnlineUsers = window.loadOnlineUsers;
         window.approveSignup = window.approveSignup;
         window.denySignup = window.denySignup;
@@ -2985,6 +3181,7 @@
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(mapping.contentId)?.classList.remove('hidden');
             if (mapping.contentId === 'content-request-admin') window.checkExistingAdminRequest();
+            if (mapping.contentId === 'content-request-verify') window.checkExistingVerifyRequest();
             if (mapping.contentId === 'content-chat') { window.openGlobalChat(); window.startTypingListener(); window.loadFriendsList(); if (window.currentUser && window.currentDisplayName) window.registerUsername(window.currentUser.uid, window.currentDisplayName); }
             if (mapping.contentId === 'content-admin') {
                 populateAdminThemeGrid();
@@ -3004,6 +3201,7 @@
                 const clearChatSection = document.getElementById('clear-chat-section');
                 const dmAdminSection = document.getElementById('dms-admin-section');
                 const signupReqSection = document.getElementById('signup-requests-section');
+                const verifyReqSection = document.getElementById('verify-requests-section');
                 if (isOwnerNow) {
                     if (adminReqSection) adminReqSection.style.display = '';
                     if (dmAdminSection) dmAdminSection.style.display = '';
@@ -3014,6 +3212,7 @@
                     if (adminReqSection) adminReqSection.style.display = 'none';
                     if (dmAdminSection) dmAdminSection.style.display = 'none';
                     if (signupReqSection) signupReqSection.style.display = 'none';
+                    if (verifyReqSection) verifyReqSection.style.display = 'none';
                     if (clearChatSection) clearChatSection.style.display = 'none';
                 }
             }
@@ -3390,6 +3589,17 @@
                 `;
             }
 
+            // Request Verification — show for all non-owner logged in users
+            if (window.currentUser?.email !== ADMIN_EMAIL) {
+                html += `
+                    <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                        <i class="fa-solid fa-circle-check w-5" style="color:#3b82f6"></i> <span>Request Verification</span>
+                    </div>
+                `;
+                window.tabMapping.push({contentId: 'content-request-verify', title: 'Request Verification', icon: 'fa-circle-check'});
+                idx++;
+            }
+
             navLinks.innerHTML = html;
         };
 
@@ -3559,6 +3769,13 @@
                 info('<span style="color:#fff">users count banned</span>                — how many banned users you have');
                 info('<span style="color:#fff">user note &lt;email&gt; &lt;note&gt;</span>          — attach a private note to a user');
                 info('<span style="color:#fff">user readnote &lt;email&gt;</span>            — read back the note you left on a user');
+                info('<span style="color:#fff">user verify &lt;email&gt;</span>              — grant verified badge to a user');
+                info('<span style="color:#fff">user unverify &lt;email&gt;</span>            — revoke verified badge from a user');
+                print('');
+                print('  <span style="color:#00ff41;font-weight:bold">VERIFY REQUESTS</span>');
+                info('<span style="color:#fff">verify list</span>                       — list all pending verification requests');
+                info('<span style="color:#fff">verify approve &lt;email&gt;</span>          — approve a verification request');
+                info('<span style="color:#fff">verify deny &lt;email&gt;</span>             — deny a verification request');
                 info('<span style="color:#fff">user unban all</span>                    — unban every banned user at once');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">ANNOUNCEMENTS</span>');
@@ -4738,6 +4955,57 @@
                 info('Resetting orders...');
                 try { await window.resetOrders(); ok('Orders reset successfully'); }
                 catch(e) { err(e.message); }
+                return;
+            }
+
+
+            // ── USER VERIFY / UNVERIFY ──
+            if (c === 'user' && (args[0] === 'verify' || args[0] === 'unverify')) {
+                const email = args[1];
+                if (!email) return err(`Usage: user ${args[0]} <email>`);
+                try {
+                    const uid = await window._termGetUid(email);
+                    if (!uid) return err(`User not found: ${email}`);
+                    await window.setVerified(uid, args[0] === 'verify');
+                    ok(`${email} ${args[0] === 'verify' ? 'verified ✓' : 'unverified'}`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── VERIFY LIST ──
+            if (c === 'verify' && args[0] === 'list') {
+                info('Loading verification requests...');
+                try {
+                    const fb = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap = await fb.getDocs(fb.query(fb.collection(window.db, "verifyRequests"), fb.orderBy("requestedAt", "desc")));
+                    const pending = snap.docs.filter(d => d.data().status === 'pending');
+                    if (!pending.length) return info('No pending verification requests.');
+                    pending.forEach(d => {
+                        const r = d.data();
+                        info(`<span style="color:#fff">${r.displayName}</span> &lt;${r.email}&gt; — "${(r.reason||'').slice(0,60)}"`);
+                    });
+                    info(`Total: ${pending.length}`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            // ── VERIFY APPROVE / DENY ──
+            if (c === 'verify' && (args[0] === 'approve' || args[0] === 'deny')) {
+                const email = args[1];
+                if (!email) return err(`Usage: verify ${args[0]} <email>`);
+                try {
+                    const fb = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const snap = await fb.getDocs(fb.query(fb.collection(window.db, "verifyRequests"), fb.orderBy("requestedAt", "desc")));
+                    const match = snap.docs.find(d => d.data().email?.toLowerCase() === email.toLowerCase() && d.data().status === 'pending');
+                    if (!match) return err(`No pending verify request for: ${email}`);
+                    if (args[0] === 'approve') {
+                        await window.approveVerify(match.id, match.data().uid);
+                        ok(`${email} granted verified badge ✓`);
+                    } else {
+                        await window.denyVerify(match.id);
+                        ok(`${email} verification request denied`);
+                    }
+                } catch(e) { err(e.message); }
                 return;
             }
 
