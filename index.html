@@ -3464,21 +3464,47 @@
             let frame = 0;
             if (window._cyberInterval) clearInterval(window._cyberInterval);
             window._cyberInterval = setInterval(() => {
-                ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                // Fade to black slowly
+                ctx.fillStyle = 'rgba(0,0,0,0.08)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                for (let y = 0; y < canvas.height; y += 4) {
-                    if (Math.random() > 0.97) {
-                        const glitchW = Math.random() * canvas.width * 0.4;
-                        const glitchX = Math.random() * (canvas.width - glitchW);
-                        ctx.fillStyle = `rgba(250,204,21,${Math.random() * 0.15})`;
-                        ctx.fillRect(glitchX, y, glitchW, 1);
-                    }
+
+                // Many bright horizontal glitch bars
+                const numGlitches = Math.floor(Math.random() * 8) + 3;
+                for (let i = 0; i < numGlitches; i++) {
+                    const y = Math.random() * canvas.height;
+                    const w = Math.random() * canvas.width * 0.7 + 50;
+                    const x = Math.random() * (canvas.width - w);
+                    const brightness = Math.random() * 0.5 + 0.2;
+                    ctx.fillStyle = `rgba(250,204,21,${brightness})`;
+                    const h = Math.random() > 0.7 ? Math.floor(Math.random() * 4) + 2 : 1;
+                    ctx.fillRect(x, y, w, h);
                 }
-                const scanY = (frame * 3) % canvas.height;
-                ctx.fillStyle = 'rgba(250,204,21,0.04)';
-                ctx.fillRect(0, scanY, canvas.width, 2);
+
+                // Occasional full-width bright flash lines
+                if (Math.random() > 0.85) {
+                    const y = Math.random() * canvas.height;
+                    ctx.fillStyle = `rgba(250,204,21,${Math.random() * 0.4 + 0.2})`;
+                    ctx.fillRect(0, y, canvas.width, 1);
+                }
+
+                // Bright moving scanline
+                const scanY = (frame * 4) % canvas.height;
+                ctx.fillStyle = 'rgba(250,204,21,0.18)';
+                ctx.fillRect(0, scanY, canvas.width, 3);
+                // Glow above scanline
+                ctx.fillStyle = 'rgba(250,204,21,0.06)';
+                ctx.fillRect(0, scanY - 4, canvas.width, 4);
+
+                // Random pixel noise clusters
+                for (let i = 0; i < 20; i++) {
+                    const px = Math.random() * canvas.width;
+                    const py = Math.random() * canvas.height;
+                    ctx.fillStyle = `rgba(250,204,21,${Math.random() * 0.8 + 0.2})`;
+                    ctx.fillRect(px, py, 2, 2);
+                }
+
                 frame++;
-            }, 40);
+            }, 35);
             window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
         }
 
