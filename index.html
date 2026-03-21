@@ -876,6 +876,7 @@
 
         window.currentUser = null;
         window.isAdminUser = false;
+        window.isVerifiedUser = false;
         const ADMIN_EMAIL = "gunnarbooth@gmail.com";
         window.ADMIN_EMAIL = ADMIN_EMAIL;
         window.editingCategoryId = null;
@@ -927,6 +928,11 @@
                 }
 
                 window.isAdminUser = user.email === ADMIN_EMAIL || userDocData.isAdmin === true;
+                window.isVerifiedUser = userDocData.verified === true || user.email === ADMIN_EMAIL;
+                // Auto-grant owner verified badge if not already set
+                if (user.email === ADMIN_EMAIL && !userDocData.verified) {
+                    try { await setDoc(doc(db, "users", user.uid), { verified: true }, { merge: true }); } catch(_) {}
+                }
                 // Update panel title based on whether this is the real owner
                 setTimeout(() => {
                     const pt = document.getElementById('main-panel-title');
@@ -988,8 +994,12 @@
                             if (adminReqSectionInit) adminReqSectionInit.style.display = '';
                             if (dmAdminSectionInit) dmAdminSectionInit.style.display = '';
                             if (signupReqSectionInit) signupReqSectionInit.style.display = '';
+                            const verifyReqSectionInit2 = document.getElementById('verify-requests-section');
+                            if (verifyReqSectionInit2) verifyReqSectionInit2.style.display = '';
                             if (clearChatSectionInit) clearChatSectionInit.style.display = '';
                             window.loadAdminRequests();
+                            window.loadSignupRequests();
+                            window.loadVerifyRequests();
                         } else {
                             if (adminReqSectionInit) adminReqSectionInit.style.display = 'none';
                             if (dmAdminSectionInit) dmAdminSectionInit.style.display = 'none';
@@ -1053,6 +1063,12 @@
                     if (window.initialLoadComplete) {
                         const newIsAdmin = data.isAdmin === true || user.email === ADMIN_EMAIL;
                         if (newIsAdmin !== window.isAdminUser) {
+                            document.getElementById('refresh-modal').classList.add('show');
+                        }
+                        // Verified badge changed — show refresh modal and rebuild nav
+                        const newVerified = data.verified === true || user.email === ADMIN_EMAIL;
+                        if (newVerified !== window.isVerifiedUser) {
+                            window.isVerifiedUser = newVerified;
                             document.getElementById('refresh-modal').classList.add('show');
                         }
                     }
@@ -2976,7 +2992,7 @@
                 const dmSnap = await getDocs(collectionGroup(db, "messages"));
                 await Promise.all(dmSnap.docs.filter(d => d.data().uid === uid).map(d => setDoc(d.ref, { verified: grant }, { merge: true })));
                 window.loadAdminUsers();
-                ok && ok(`Verified badge ${grant ? 'granted' : 'revoked'}`);
+                alert(`Verified badge ${grant ? 'granted ✓' : 'revoked'}. The user will see a refresh prompt.`);
             } catch(e) { alert('Error: ' + e.message); }
         };
 
@@ -3211,8 +3227,10 @@
                     if (adminReqSection) adminReqSection.style.display = '';
                     if (dmAdminSection) dmAdminSection.style.display = '';
                     if (signupReqSection) signupReqSection.style.display = '';
+                    if (verifyReqSection) verifyReqSection.style.display = '';
                     if (clearChatSection) clearChatSection.style.display = '';
                     window.loadAdminRequests();
+                    window.loadVerifyRequests();
                 } else {
                     if (adminReqSection) adminReqSection.style.display = 'none';
                     if (dmAdminSection) dmAdminSection.style.display = 'none';
@@ -3594,8 +3612,8 @@
                 `;
             }
 
-            // Request Verification — show for all non-owner logged in users
-            if (window.currentUser?.email !== ADMIN_EMAIL) {
+            // Request Verification — show only if not owner and not already verified
+            if (window.currentUser?.email !== ADMIN_EMAIL && !window.isVerifiedUser) {
                 html += `
                     <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
                         <i class="fa-solid fa-circle-check w-5" style="color:#3b82f6"></i> <span>Request Verification</span>
