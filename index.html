@@ -3411,14 +3411,6 @@
             if (starBg) starBg.style.display = 'block';
         }
 
-
-            const topbar = document.querySelector('.h-16.border-b');
-            if (topbar) { topbar.style.background = ''; topbar.style.borderColor = ''; }
-            document.querySelectorAll('.nav-link').forEach(el => el.style.color = '');
-            document.querySelectorAll('.glass').forEach(el => { el.style.background = ''; el.style.borderColor = ''; });
-            document.documentElement.style.setProperty('--gh-active', '0');
-        }
-
         let bloodMoonInterval = null;
         function startBloodMoon() {
             const canvas = document.getElementById('matrix-bg');
