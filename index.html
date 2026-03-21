@@ -2762,6 +2762,20 @@
                     <span style="font-size:1.8rem;">💻</span>
                     <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;bottom:2px;right:4px;color:#00ff41;">10100<br>01101<br>11010</span>
                  </div>`},
+                {name:"Golden Hour", color:"#f5a623", special:"goldenhour",
+                 preview:`<div style="background:linear-gradient(135deg,#0a0800,#1a1000);width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 60% 30%,rgba(245,166,35,0.18),transparent 70%);"></div>
+                    <div style="position:absolute;top:6px;right:8px;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe08a,#f5a623);box-shadow:0 0 10px #f5a623,0 0 20px rgba(245,166,35,0.5);"></div>
+                    <span style="font-size:1.6rem;z-index:1;">✦</span>
+                    <div style="position:absolute;bottom:4px;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,rgba(245,166,35,0.4),transparent);"></div>
+                 </div>`},
+                {name:"Golden Hour", color:"#f5a623", special:"goldenhour",
+                 preview:`<div style="background:linear-gradient(135deg,#0a0800,#1a1000);width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 60% 30%,rgba(245,166,35,0.18),transparent 70%);"></div>
+                    <div style="position:absolute;top:6px;right:8px;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe08a,#f5a623);box-shadow:0 0 10px #f5a623,0 0 20px rgba(245,166,35,0.5);"></div>
+                    <span style="font-size:1.6rem;z-index:1;">✦</span>
+                    <div style="position:absolute;bottom:4px;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,rgba(245,166,35,0.4),transparent);"></div>
+                 </div>`},
                 {name:"Blood Moon", color:"#cc0000", special:"bloodmoon",
                  preview:`<div style="background:#0a0000;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
                     <div style="position:absolute;top:8px;right:10px;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff3333,#880000);box-shadow:0 0 12px #cc0000,0 0 24px #660000;"></div>
@@ -3402,6 +3416,22 @@
             if (starBg) starBg.style.display = 'block';
         }
 
+        // Golden Hour — gold accent + warm glow overlay on star background
+        function startGoldenHour() {
+            const starBg = document.getElementById('star-bg');
+            const canvas = document.getElementById('matrix-bg');
+            if (canvas) { canvas.style.display = 'none'; const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
+            if (starBg) {
+                starBg.style.background = 'radial-gradient(ellipse at 70% 20%, rgba(245,166,35,0.08) 0%, transparent 60%)';
+            }
+            document.documentElement.style.setProperty('--accent', '#f5a623');
+        }
+
+        function stopGoldenHour() {
+            const starBg = document.getElementById('star-bg');
+            if (starBg) starBg.style.background = '';
+        }
+
         let bloodMoonInterval = null;
         function startBloodMoon() {
             const canvas = document.getElementById('matrix-bg');
@@ -3446,8 +3476,11 @@
             document.documentElement.style.setProperty('--accent', color);
             stopMatrix();
             stopBloodMoon();
+            stopGoldenHour();
             if (special === 'matrix') startMatrix();
             else if (special === 'bloodmoon') startBloodMoon();
+            else if (special === 'goldenhour') startGoldenHour();
+            else if (special === 'goldenhour') startGoldenHour();
         }
 
         function loadTheme() {
@@ -3456,6 +3489,7 @@
             document.documentElement.style.setProperty('--accent', color);
             if (special === 'matrix') startMatrix();
             else if (special === 'bloodmoon') startBloodMoon();
+            else if (special === 'goldenhour') startGoldenHour();
         }
 
         function createStar(x, y) {
@@ -4133,7 +4167,8 @@
             // ── THEME ──
             if (c === 'theme') {
                 if      (args[0]==='matrix')    { setTheme('#00ff41','matrix');    ok('Matrix theme activated'); }
-                else if (args[0]==='bloodmoon') { setTheme('#cc0000','bloodmoon'); ok('Blood Moon theme activated'); }
+                else if (args[0]==='bloodmoon')  { setTheme('#cc0000','bloodmoon');  ok('Blood Moon theme activated'); }
+                else if (args[0]==='goldenhour') { setTheme('#f5a623','goldenhour'); ok('Golden Hour theme activated'); }
                 else if (args[0]==='reset')  { setTheme('#ffffff','');       ok('Theme reset to default'); }
                 else if (args[0]?.startsWith('#')) { setTheme(args[0],'');  ok(`Accent set to ${args[0]}`); }
                 else err('Usage: theme <#hex> | matrix | reset');
