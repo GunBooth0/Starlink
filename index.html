@@ -958,11 +958,13 @@
                 window.currentDisplayName = userDocData.displayName || '';
                 // Always write to public usernames lookup on every login
                 window.registerUsername(user.uid, userDocData.displayName || user.email.split('@')[0]);
-                // If admin was revoked and had matrix theme, clear it locally
-                if (!window.isAdminUser && localStorage.getItem('starlinkSpecialTheme') === 'matrix') {
+                // If admin was revoked and had an admin-only theme, clear it locally
+                const _special = localStorage.getItem('starlinkSpecialTheme');
+                if (!window.isAdminUser && (_special === 'matrix' || _special === 'bloodmoon')) {
                     localStorage.removeItem('starlinkSpecialTheme');
                     localStorage.setItem('starlinkAccent', '#ffffff');
                     stopMatrix();
+                    stopBloodMoon();
                     document.documentElement.style.setProperty('--accent', '#ffffff');
                 }
 
