@@ -3732,6 +3732,9 @@
         const OWNER = 'gunnarbooth@gmail.com';
         let cmdHistory = [];
         let histIdx = -1;
+        let _aliases = JSON.parse(localStorage.getItem('termAliases') || '{}');
+        let _macros  = JSON.parse(localStorage.getItem('termMacros')  || '{}');
+        let _savedThemes = JSON.parse(localStorage.getItem('termThemes') || '{}');
 
         function isOwner() { return window.currentUser?.email === OWNER; }
         function print(text, color) {
@@ -3769,7 +3772,10 @@
             if (!raw) return;
             cmdHistory.unshift(raw); histIdx = -1; input.value = '';
             cmd(raw);
-            await runCommand(raw);
+            // Expand alias if first word matches
+            const _firstWord = raw.trim().split(/\s+/)[0];
+            const _expanded = _aliases[_firstWord] ? raw.replace(_firstWord, _aliases[_firstWord]) : raw;
+            await runCommand(_expanded);
             print('');
         };
 
@@ -3894,6 +3900,19 @@
                 info('<span style="color:#fff">stats</span>      online  whoami  ping  uptime  version  now  about');
                 info('<span style="color:#fff">reload</span>     history  goto &lt;tab&gt;  tab list  search &lt;q&gt;  random');
                 info('<span style="color:#fff">clear</span>      exit');
+                print('');
+                print('  <span style="color:#00ff41;font-weight:bold">TERMINAL META</span>');
+                info('<span style="color:#fff">alias &lt;name&gt; &lt;command&gt;</span>    — create a shortcut for any command');
+                info('<span style="color:#fff">aliases</span>                   — list all saved aliases');
+                info('<span style="color:#fff">unalias &lt;name&gt;</span>           — delete a saved alias');
+                info('<span style="color:#fff">macro save &lt;name&gt; &lt;cmds&gt;</span>  — save a semicolon-separated sequence of commands');
+                info('<span style="color:#fff">macro run &lt;name&gt;</span>          — run a saved macro');
+                info('<span style="color:#fff">macro list</span>                 — list all saved macros');
+                info('<span style="color:#fff">macro del &lt;name&gt;</span>          — delete a saved macro');
+                info('<span style="color:#fff">theme save &lt;name&gt;</span>         — save current theme as a named preset');
+                info('<span style="color:#fff">theme load &lt;name&gt;</span>         — apply a saved theme preset');
+                info('<span style="color:#fff">theme presets</span>              — list all saved theme presets');
+                info('<span style="color:#fff">export log</span>                 — download this terminal session as a text file');
                 return;
             }
 
@@ -5051,6 +5070,122 @@
                         ok(`${email} verification request denied`);
                     }
                 } catch(e) { err(e.message); }
+                return;
+            }
+
+
+            // ── ALIAS ──
+            if (c === 'alias') {
+                const name = args[0], cmd2 = args.slice(1).join(' ');
+                if (!name || !cmd2) return err('Usage: alias <name> <command>');
+                _aliases[name] = cmd2;
+                localStorage.setItem('termAliases', JSON.stringify(_aliases));
+                ok(`Alias saved: <span style="color:#fff">${name}</span> → ${cmd2}`);
+                return;
+            }
+
+            // ── ALIASES ──
+            if (c === 'aliases') {
+                const keys = Object.keys(_aliases);
+                if (!keys.length) return info('No aliases saved. Use: alias <name> <command>');
+                keys.forEach(k => info(`<span style="color:#fff">${k}</span> → ${_aliases[k]}`));
+                return;
+            }
+
+            // ── UNALIAS ──
+            if (c === 'unalias') {
+                const name = args[0];
+                if (!name) return err('Usage: unalias <name>');
+                if (!_aliases[name]) return err(`Alias not found: ${name}`);
+                delete _aliases[name];
+                localStorage.setItem('termAliases', JSON.stringify(_aliases));
+                ok(`Alias removed: ${name}`);
+                return;
+            }
+
+            // ── MACRO ──
+            if (c === 'macro') {
+                if (args[0] === 'save') {
+                    const name = args[1], cmds = args.slice(2).join(' ');
+                    if (!name || !cmds) return err('Usage: macro save <name> <cmd1>;<cmd2>;...');
+                    _macros[name] = cmds;
+                    localStorage.setItem('termMacros', JSON.stringify(_macros));
+                    ok(`Macro saved: <span style="color:#fff">${name}</span>`);
+                    info(`Commands: ${cmds}`);
+                } else if (args[0] === 'run') {
+                    const name = args[1];
+                    if (!name) return err('Usage: macro run <name>');
+                    if (!_macros[name]) return err(`Macro not found: ${name}`);
+                    const steps = _macros[name].split(';').map(s => s.trim()).filter(Boolean);
+                    info(`Running macro: <span style="color:#fff">${name}</span> (${steps.length} commands)`);
+                    for (const step of steps) {
+                        cmd(step);
+                        await runCommand(step);
+                        print('');
+                    }
+                } else if (args[0] === 'list') {
+                    const keys = Object.keys(_macros);
+                    if (!keys.length) return info('No macros saved.');
+                    keys.forEach(k => {
+                        info(`<span style="color:#fff">${k}</span>: ${_macros[k]}`);
+                    });
+                } else if (args[0] === 'del') {
+                    const name = args[1];
+                    if (!name) return err('Usage: macro del <name>');
+                    if (!_macros[name]) return err(`Macro not found: ${name}`);
+                    delete _macros[name];
+                    localStorage.setItem('termMacros', JSON.stringify(_macros));
+                    ok(`Macro deleted: ${name}`);
+                } else {
+                    err('Usage: macro save|run|list|del <name>');
+                }
+                return;
+            }
+
+            // ── THEME SAVE / LOAD / PRESETS ──
+            if (c === 'theme' && args[0] === 'save') {
+                const name = args[1];
+                if (!name) return err('Usage: theme save <name>');
+                const color = localStorage.getItem('starlinkAccent') || '#ffffff';
+                const special = localStorage.getItem('starlinkSpecialTheme') || '';
+                _savedThemes[name] = { color, special };
+                localStorage.setItem('termThemes', JSON.stringify(_savedThemes));
+                ok(`Theme saved as "<span style="color:${color}">${name}</span>" (${color}${special ? ' + ' + special : ''})`);
+                return;
+            }
+
+            if (c === 'theme' && args[0] === 'load') {
+                const name = args[1];
+                if (!name) return err('Usage: theme load <name>');
+                if (!_savedThemes[name]) return err(`Theme preset not found: ${name}. Use: theme presets`);
+                const { color, special } = _savedThemes[name];
+                setTheme(color, special || '');
+                if (special === 'matrix') startMatrix();
+                ok(`Theme loaded: <span style="color:${color}">${name}</span>`);
+                return;
+            }
+
+            if (c === 'theme' && args[0] === 'presets') {
+                const keys = Object.keys(_savedThemes);
+                if (!keys.length) return info('No saved theme presets. Use: theme save <name>');
+                keys.forEach(k => {
+                    const { color, special } = _savedThemes[k];
+                    info(`<span style="color:${color}">■</span> <span style="color:#fff">${k}</span> — ${color}${special ? ' [' + special + ']' : ''}`);
+                });
+                return;
+            }
+
+            // ── EXPORT LOG ──
+            if (c === 'export' && args[0] === 'log') {
+                const out = document.getElementById('terminal-output');
+                if (!out) return err('No output to export');
+                const lines = [...out.querySelectorAll('div')].map(d => d.innerText).join('\n');
+                const blob = new Blob([lines], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = `starlink-terminal-${new Date().toISOString().slice(0,10)}.txt`;
+                a.click(); URL.revokeObjectURL(url);
+                ok('Terminal session exported');
                 return;
             }
 
