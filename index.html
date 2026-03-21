@@ -1337,14 +1337,22 @@
         window.deleteUserFromAdmin = async (uid) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             // Never delete owner or other admins
+            let targetData = {};
             try {
                 const targetSnap = await getDoc(doc(db, "users", uid));
-                const targetData = targetSnap.exists() ? targetSnap.data() : {};
+                targetData = targetSnap.exists() ? targetSnap.data() : {};
                 if (targetData.email === ADMIN_EMAIL || targetData.isAdmin === true) return alert('You cannot delete admins or the owner.');
             } catch(_) {}
             if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
             try {
+                // Delete user doc
                 await deleteDoc(doc(db, "users", uid));
+                // Delete username reservation so it can be reused
+                if (targetData.displayName) {
+                    try { await deleteDoc(doc(db, "usernames", targetData.displayName.toLowerCase())); } catch(_) {}
+                }
+                // Delete signup request if pending
+                try { await deleteDoc(doc(db, "signupRequests", uid)); } catch(_) {}
                 alert("User removed from list.");
                 window.loadAdminUsers();
             } catch (e) {
