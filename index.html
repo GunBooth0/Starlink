@@ -293,7 +293,7 @@
                         <!-- Role badge -->
                         <div id="account-role-badge" class="inline-block mb-4 px-5 py-1.5 rounded-full text-sm font-bold tracking-wide"></div>
                         <!-- Display name -->
-                        <div id="account-username" class="text-4xl font-bold logo-font tracking-tight mb-1"></div>
+                        <div class="flex items-center justify-center gap-2"><div id="account-username" class="text-4xl font-bold logo-font tracking-tight mb-1"></div><span id="account-verified-badge" class="hidden" style="color:#3b82f6;font-size:1.8rem;" title="Verified">✓</span></div>
                         <p class="text-white/50 text-sm mb-8"><span id="user-email" class="text-[var(--accent)]"></span></p>
 
                         <button onclick="changeEmail()" class="github-style-btn"><i class="fa-solid fa-envelope"></i> Change Email</button>
@@ -317,6 +317,15 @@
                                     <span style="padding:0.25rem 0.9rem;border-radius:99px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);font-weight:700;font-size:0.8rem;white-space:nowrap;">● User</span>
                                     <p class="text-white/70 text-sm">Regular members. Can browse all content, use the chat, and submit requests.</p>
                                 </div>
+                            </div>
+                        </div>
+                        </div>
+                        <!-- Verification Badge -->
+                        <div id="account-verify-section" class="glass rounded-2xl p-6 mt-6 text-left hidden">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-circle-check" style="color:#3b82f6"></i> Verification Badge</h3>
+                            <div class="flex items-center gap-4 p-4 rounded-2xl bg-black/30">
+                                <span style="font-size:1.5rem;color:#3b82f6;">✓</span>
+                                <p class="text-white/70 text-sm">You have been granted a verified badge by the owner. This badge appears next to your name in chat, DMs, and the online users list to show you are a trusted and notable member of Starlink.</p>
                             </div>
                         </div>
                     </div>
@@ -1337,7 +1346,8 @@
                         ? `<button onclick="window.setAdminUser('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-purple-900/60 hover:bg-purple-900 text-purple-400 rounded-2xl transition-colors">Revoke Admin</button>`
                         : `<button onclick="window.setAdminUser('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">Make Admin</button>`;
 
-                    const verifyBtn = !actingIsOwner ? '' : isVerified
+                    const isOwnerRow = data.email === ADMIN_EMAIL;
+                    const verifyBtn = !actingIsOwner || isOwnerRow ? '' : isVerified
                         ? `<button onclick="window.setVerified('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">Revoke Verify</button>`
                         : `<button onclick="window.setVerified('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-300 rounded-2xl transition-colors">Grant Verify ✓</button>`;
 
@@ -2141,13 +2151,14 @@
         window.updateAccountTab = (user, docData) => {
             const isOwner = user.email === ADMIN_EMAIL;
             const isUserAdmin = docData?.isAdmin === true || isOwner;
+            const isVerified = docData?.verified === true || isOwner;
             const displayName = docData?.displayName || '';
 
             // Role badge
             const badge = document.getElementById('account-role-badge');
             if (badge) {
                 if (isOwner) {
-                    badge.textContent = '★ Owner'; badge.style.cssText = 'background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;';
+                    badge.textContent = '★ Owner';
                     badge.style.cssText = 'background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;';
                 } else if (isUserAdmin) {
                     badge.textContent = '⚡ Admin';
@@ -2161,6 +2172,20 @@
             // Display name
             const nameEl = document.getElementById('account-username');
             if (nameEl) nameEl.textContent = displayName || user.email.split('@')[0];
+
+            // Verified badge next to name
+            const verifiedBadgeEl = document.getElementById('account-verified-badge');
+            if (verifiedBadgeEl) {
+                if (isVerified) verifiedBadgeEl.classList.remove('hidden');
+                else verifiedBadgeEl.classList.add('hidden');
+            }
+
+            // Verification badge section
+            const verifySection = document.getElementById('account-verify-section');
+            if (verifySection) {
+                if (isVerified) verifySection.classList.remove('hidden');
+                else verifySection.classList.add('hidden');
+            }
         };
 
         // ── Live Chat ──
