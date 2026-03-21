@@ -1022,8 +1022,6 @@
                         }
                     }
                     window.initialLoadComplete = true;
-                    // Re-apply Golden Hour now all elements exist
-                    if (localStorage.getItem('starlinkSpecialTheme') === 'goldenhour' && window._ghApply) setTimeout(window._ghApply, 100);
                 }, 100);
 
                 sitesListener = onSnapshot(collection(db, "sites"), async () => {
@@ -2766,12 +2764,7 @@
                     <span style="font-size:1.8rem;">💻</span>
                     <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;bottom:2px;right:4px;color:#00ff41;">10100<br>01101<br>11010</span>
                  </div>`},
-                {name:"Golden Hour", color:"#f5a623", special:"goldenhour",
-                 preview:`<div style="background:linear-gradient(135deg,#fffaf0,#fff8e7);width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
-                    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 60% 20%,rgba(245,166,35,0.3),transparent 70%);"></div>
-                    <div style="position:absolute;top:6px;right:8px;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe08a,#f5a623);box-shadow:0 0 10px #f5a623,0 0 20px rgba(245,166,35,0.5);"></div>
-                    <span style="font-size:1.6rem;z-index:1;color:#b8860b;">✦</span>
-                 </div>`},
+
                 {name:"Blood Moon", color:"#cc0000", special:"bloodmoon",
                  preview:`<div style="background:#0a0000;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
                     <div style="position:absolute;top:8px;right:10px;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff3333,#880000);box-shadow:0 0 12px #cc0000,0 0 24px #660000;"></div>
@@ -3412,35 +3405,7 @@
             if (starBg) starBg.style.display = 'block';
         }
 
-        // Golden Hour — white background, gold accent, black text
-        function startGoldenHour() {
-            const canvas = document.getElementById('matrix-bg');
-            if (canvas) { canvas.style.display = 'none'; const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
-            document.body.style.background = '#fffaf0';
-            document.body.style.color = '#111111';
-            const starBg = document.getElementById('star-bg');
-            if (starBg) starBg.style.background = 'radial-gradient(ellipse at 60% 10%, rgba(245,166,35,0.15) 0%, transparent 60%)';
-            document.documentElement.style.setProperty('--accent', '#f5a623');
-            // Sidebar
-            const sidebar = document.querySelector('.w-72.bg-black');
-            if (sidebar) { sidebar.style.background = '#ffffff'; sidebar.style.borderColor = 'rgba(0,0,0,0.1)'; sidebar.style.color = '#111111'; }
-            // Top bar
-            const topbar = document.querySelector('.h-16.border-b');
-            if (topbar) { topbar.style.background = 'rgba(255,250,240,0.95)'; topbar.style.borderColor = 'rgba(0,0,0,0.1)'; }
-            // Nav links text
-            document.querySelectorAll('.nav-link').forEach(el => el.style.color = '#111111');
-            // Glass cards
-            document.querySelectorAll('.glass').forEach(el => { el.style.background = 'rgba(0,0,0,0.04)'; el.style.borderColor = 'rgba(0,0,0,0.12)'; });
-            document.documentElement.style.setProperty('--gh-active', '1');
-        }
 
-        function stopGoldenHour() {
-            document.body.style.background = '#000000';
-            document.body.style.color = '#ffffff';
-            const starBg = document.getElementById('star-bg');
-            if (starBg) starBg.style.background = '';
-            const sidebar = document.querySelector('.w-72.bg-black');
-            if (sidebar) { sidebar.style.background = ''; sidebar.style.borderColor = ''; sidebar.style.color = ''; }
             const topbar = document.querySelector('.h-16.border-b');
             if (topbar) { topbar.style.background = ''; topbar.style.borderColor = ''; }
             document.querySelectorAll('.nav-link').forEach(el => el.style.color = '');
@@ -3492,10 +3457,8 @@
             document.documentElement.style.setProperty('--accent', color);
             stopMatrix();
             stopBloodMoon();
-            stopGoldenHour();
             if (special === 'matrix') startMatrix();
             else if (special === 'bloodmoon') startBloodMoon();
-            else if (special === 'goldenhour') startGoldenHour();
             
         }
 
@@ -3505,7 +3468,6 @@
             document.documentElement.style.setProperty('--accent', color);
             if (special === 'matrix') startMatrix();
             else if (special === 'bloodmoon') startBloodMoon();
-            else if (special === 'goldenhour') startGoldenHour();
             
         }
 
@@ -3585,12 +3547,6 @@
                     <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;top:2px;left:4px;color:#00ff41;">01101<br>10010<br>01011<br>11001</span>
                     <span style="font-size:1.8rem;">💻</span>
                     <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;bottom:2px;right:4px;color:#00ff41;">10100<br>01101<br>11010</span>
-                 </div>`},
-                {name:"Golden Hour", color:"#f5a623", special:"goldenhour",
-                 preview:`<div style="background:linear-gradient(135deg,#fffaf0,#fff8e7);width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
-                    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 60% 20%,rgba(245,166,35,0.3),transparent 70%);"></div>
-                    <div style="position:absolute;top:6px;right:8px;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe08a,#f5a623);box-shadow:0 0 10px #f5a623,0 0 20px rgba(245,166,35,0.5);"></div>
-                    <span style="font-size:1.6rem;z-index:1;color:#b8860b;">\u2726</span>
                  </div>`},
                 {name:"Blood Moon", color:"#cc0000", special:"bloodmoon",
                  preview:`<div style="background:#0a0000;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
@@ -4191,7 +4147,6 @@
             if (c === 'theme') {
                 if      (args[0]==='matrix')    { setTheme('#00ff41','matrix');    ok('Matrix theme activated'); }
                 else if (args[0]==='bloodmoon')  { setTheme('#cc0000','bloodmoon');  ok('Blood Moon theme activated'); }
-                else if (args[0]==='goldenhour') { setTheme('#f5a623','goldenhour'); ok('Golden Hour theme activated'); }
                 else if (args[0]==='reset')  { setTheme('#ffffff','');       ok('Theme reset to default'); }
                 else if (args[0]?.startsWith('#')) { setTheme(args[0],'');  ok(`Accent set to ${args[0]}`); }
                 else err('Usage: theme <#hex> | matrix | reset');
