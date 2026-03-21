@@ -634,6 +634,17 @@
                         <div class="glass rounded-3xl p-6 mb-2"><div id="admin-theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div></div>
                     </div>
 
+                    <!-- Reset Orders -->
+                    <div class="mb-8">
+                        <div class="glass rounded-3xl p-6 flex items-center justify-between" style="border:1px solid rgba(255,165,0,0.2);">
+                            <div>
+                                <p class="font-semibold mb-1">Reset Category & Site Orders</p>
+                                <p class="text-white/50 text-sm">Fixes arrow reordering bugs by resetting all orders to clean sequential numbers.</p>
+                            </div>
+                            <button onclick="window.resetOrders()" class="github-style-btn text-sm px-6 py-3" style="width:auto;margin:0;white-space:nowrap;">Reset Orders</button>
+                        </div>
+                    </div>
+
                     <!-- Categories Management -->
                     <div class="mb-16">
                         <div class="flex items-center justify-between mb-6">
@@ -1401,35 +1412,35 @@
         };
 
         window.moveCategoryUp = async (docId) => {
-            const idx = (window.allCategories || []).findIndex(c => c.id === docId);
+            // Always work from freshly sorted array
+            const cats = [...(window.allCategories || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+            const idx = cats.findIndex(c => c.id === docId);
             if (idx <= 0) return;
-            const thisCat = window.allCategories[idx];
-            const prevCat = window.allCategories[idx - 1];
-            const temp = thisCat.order;
-            thisCat.order = prevCat.order;
-            prevCat.order = temp;
+            // Normalize orders before swapping to guarantee clean sequential values
+            cats.forEach((c, i) => c.order = i);
+            [cats[idx].order, cats[idx - 1].order] = [cats[idx - 1].order, cats[idx].order];
             try {
-                await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
-                await setDoc(doc(db, "categories", prevCat.id), { order: prevCat.order }, { merge: true });
-            } catch (e) {
-                alert("Reorder error: " + e.message);
-            }
+                await setDoc(doc(db, "categories", cats[idx].id), { order: cats[idx].order }, { merge: true });
+                await setDoc(doc(db, "categories", cats[idx - 1].id), { order: cats[idx - 1].order }, { merge: true });
+                await window.loadCategories();
+                window.buildNav();
+                window.reloadAdminCategories();
+            } catch (e) { alert("Reorder error: " + e.message); }
         };
 
         window.moveCategoryDown = async (docId) => {
-            const idx = (window.allCategories || []).findIndex(c => c.id === docId);
-            if (idx >= (window.allCategories || []).length - 1) return;
-            const thisCat = window.allCategories[idx];
-            const nextCat = window.allCategories[idx + 1];
-            const temp = thisCat.order;
-            thisCat.order = nextCat.order;
-            nextCat.order = temp;
+            const cats = [...(window.allCategories || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+            const idx = cats.findIndex(c => c.id === docId);
+            if (idx < 0 || idx >= cats.length - 1) return;
+            cats.forEach((c, i) => c.order = i);
+            [cats[idx].order, cats[idx + 1].order] = [cats[idx + 1].order, cats[idx].order];
             try {
-                await setDoc(doc(db, "categories", thisCat.id), { order: thisCat.order }, { merge: true });
-                await setDoc(doc(db, "categories", nextCat.id), { order: nextCat.order }, { merge: true });
-            } catch (e) {
-                alert("Reorder error: " + e.message);
-            }
+                await setDoc(doc(db, "categories", cats[idx].id), { order: cats[idx].order }, { merge: true });
+                await setDoc(doc(db, "categories", cats[idx + 1].id), { order: cats[idx + 1].order }, { merge: true });
+                await window.loadCategories();
+                window.buildNav();
+                window.reloadAdminCategories();
+            } catch (e) { alert("Reorder error: " + e.message); }
         };
 
         window.editCategory = (docId, key, label, icon) => {
@@ -1602,36 +1613,32 @@
         }
 
         window.moveSiteUp = async (siteId, catKey) => {
-            const sites = window.allSites[catKey] || [];
-            // Normalize first so order values are guaranteed sequential
-            sites.forEach((s, i) => s.order = i);
+            // Sort first so we work with correct positions
+            const sites = [...(window.allSites[catKey] || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
             const idx = sites.findIndex(s => s.id === siteId);
             if (idx <= 0) return;
-            const a = sites[idx], b = sites[idx - 1];
-            // Swap positions
-            [a.order, b.order] = [b.order, a.order];
+            // Normalize then swap
+            sites.forEach((s, i) => s.order = i);
+            [sites[idx].order, sites[idx - 1].order] = [sites[idx - 1].order, sites[idx].order];
             try {
-                await setDoc(doc(db, "sites", a.id), { order: a.order }, { merge: true });
-                await setDoc(doc(db, "sites", b.id), { order: b.order }, { merge: true });
-                sites.sort((x, y) => x.order - y.order);
+                await setDoc(doc(db, "sites", sites[idx].id), { order: sites[idx].order }, { merge: true });
+                await setDoc(doc(db, "sites", sites[idx - 1].id), { order: sites[idx - 1].order }, { merge: true });
+                await window.loadAllSites();
                 window.populateAllGrids();
                 window.reloadAdminSites();
             } catch (e) { alert("Error: " + e.message); }
         };
 
         window.moveSiteDown = async (siteId, catKey) => {
-            const sites = window.allSites[catKey] || [];
-            // Normalize first so order values are guaranteed sequential
-            sites.forEach((s, i) => s.order = i);
+            const sites = [...(window.allSites[catKey] || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
             const idx = sites.findIndex(s => s.id === siteId);
             if (idx < 0 || idx >= sites.length - 1) return;
-            const a = sites[idx], b = sites[idx + 1];
-            // Swap positions
-            [a.order, b.order] = [b.order, a.order];
+            sites.forEach((s, i) => s.order = i);
+            [sites[idx].order, sites[idx + 1].order] = [sites[idx + 1].order, sites[idx].order];
             try {
-                await setDoc(doc(db, "sites", a.id), { order: a.order }, { merge: true });
-                await setDoc(doc(db, "sites", b.id), { order: b.order }, { merge: true });
-                sites.sort((x, y) => x.order - y.order);
+                await setDoc(doc(db, "sites", sites[idx].id), { order: sites[idx].order }, { merge: true });
+                await setDoc(doc(db, "sites", sites[idx + 1].id), { order: sites[idx + 1].order }, { merge: true });
+                await window.loadAllSites();
                 window.populateAllGrids();
                 window.reloadAdminSites();
             } catch (e) { alert("Error: " + e.message); }
@@ -2861,6 +2868,37 @@
             }
         };
 
+
+        window.resetOrders = async () => {
+            if (!confirm('Reset all category and site orders to clean sequential numbers? This fixes any ordering bugs.')) return;
+            try {
+                // Reset category orders
+                const catSnap = await getDocs(query(collection(db, "categories"), orderBy("order", "asc")));
+                const cats = catSnap.docs;
+                await Promise.all(cats.map((d, i) => setDoc(doc(db, "categories", d.id), { order: i }, { merge: true })));
+
+                // Reset site orders per category
+                const siteSnap = await getDocs(collection(db, "sites"));
+                const byCat = {};
+                siteSnap.docs.forEach(d => {
+                    const cat = d.data().category || 'uncategorized';
+                    if (!byCat[cat]) byCat[cat] = [];
+                    byCat[cat].push(d);
+                });
+                for (const cat of Object.keys(byCat)) {
+                    await Promise.all(byCat[cat].map((d, i) => setDoc(doc(db, "sites", d.id), { order: i }, { merge: true })));
+                }
+
+                await window.loadCategories();
+                await window.loadAllSites();
+                window.buildNav();
+                window.populateAllGrids();
+                window.reloadAdminCategories();
+                window.reloadAdminSites();
+                alert('Orders reset successfully!');
+            } catch(e) { alert('Error: ' + e.message); }
+        };
+
         window.loadAllSites = window.loadAllSites;
         window.populateAllGrids = window.populateAllGrids;
         window.showGlobalAnnouncement = window.showGlobalAnnouncement;
@@ -2874,6 +2912,7 @@
         window.addNewSiteFromAdmin = window.addNewSiteFromAdmin;
         window.deleteSite = window.deleteSite;
         window.moveSiteUp = window.moveSiteUp;
+        window.resetOrders = window.resetOrders;
         window.moveSiteDown = window.moveSiteDown;
         window.reloadAdminSites = window.reloadAdminSites;
         window.loadCategories = window.loadCategories;
@@ -3498,6 +3537,7 @@
                 info('<span style="color:#fff">cat rename &lt;key&gt; &lt;newlabel&gt;</span>      — rename a category display label');
                 info('<span style="color:#fff">cat icon &lt;key&gt; &lt;icon&gt;</span>            — change a category icon');
                 info('<span style="color:#fff">cat count</span>                         — total number of categories');
+                info('<span style="color:#fff">reset orders</span>                      — fix reordering bugs by resetting all orders');
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">USERS</span>');
                 info('<span style="color:#fff">users list</span>                        — list all registered users');
@@ -4686,6 +4726,16 @@
                         ok(`${email} denied and removed`);
                     } else err(`Unknown action: ${action}. Use approve or deny`);
                 } catch(e) { err(e.message); }
+                return;
+            }
+
+
+            // ── RESET ORDERS ──
+            if (c === 'reset' && args[0] === 'orders') {
+                if (!confirm('Reset all category and site orders?')) return info('Cancelled.');
+                info('Resetting orders...');
+                try { await window.resetOrders(); ok('Orders reset successfully'); }
+                catch(e) { err(e.message); }
                 return;
             }
 
