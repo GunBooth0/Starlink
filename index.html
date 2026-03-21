@@ -2761,6 +2761,12 @@
                     <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;top:2px;left:4px;color:#00ff41;">01101<br>10010<br>01011<br>11001</span>
                     <span style="font-size:1.8rem;">💻</span>
                     <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;bottom:2px;right:4px;color:#00ff41;">10100<br>01101<br>11010</span>
+                 </div>`},
+                {name:"Blood Moon", color:"#cc0000", special:"bloodmoon",
+                 preview:`<div style="background:#0a0000;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;top:8px;right:10px;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff3333,#880000);box-shadow:0 0 12px #cc0000,0 0 24px #660000;"></div>
+                    <span style="position:absolute;opacity:0.5;font-size:0.55rem;line-height:1.6;top:0;left:0;width:100%;height:100%;display:flex;flex-wrap:wrap;overflow:hidden;color:#cc0000;">&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;</span>
+                    <span style="font-size:1.6rem;z-index:1;">🌕</span>
                  </div>`}
             ];
             adminThemes.forEach(t => {
@@ -3395,24 +3401,61 @@
             if (canvas) { canvas.style.display = 'none'; const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
             if (starBg) starBg.style.display = 'block';
         }
+
+        let bloodMoonInterval = null;
+        function startBloodMoon() {
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (!canvas) return;
+            canvas.style.display = 'block';
+            starBg.style.display = 'none';
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const ctx = canvas.getContext('2d');
+            const cols = Math.floor(canvas.width / 16);
+            const drops = Array(cols).fill(1);
+            if (bloodMoonInterval) clearInterval(bloodMoonInterval);
+            bloodMoonInterval = setInterval(() => {
+                ctx.fillStyle = 'rgba(8,0,0,0.06)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '15px monospace';
+                drops.forEach((y, i) => {
+                    // Red rain — mix of kanji and latin for a darker feel
+                    const chars = 'ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ†‡☠⚔⛧血月死';
+                    const char = chars[Math.floor(Math.random() * chars.length)];
+                    const brightness = Math.random() > 0.92 ? '#ff2222' : '#8b0000';
+                    ctx.fillStyle = brightness;
+                    ctx.fillText(char, i * 16, y * 16);
+                    if (y * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                    drops[i]++;
+                });
+            }, 55);
+            window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+        }
+
+        function stopBloodMoon() {
+            if (bloodMoonInterval) { clearInterval(bloodMoonInterval); bloodMoonInterval = null; }
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (canvas) { canvas.style.display = 'none'; const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
+            if (starBg) starBg.style.display = 'block';
+        }
         function setTheme(color, special) {
-            // special = 'matrix' for the matrix theme
             localStorage.setItem('starlinkAccent', color);
             localStorage.setItem('starlinkSpecialTheme', special || '');
             document.documentElement.style.setProperty('--accent', color);
-            if (special === 'matrix') {
-                startMatrix();
-            } else {
-                stopMatrix();
-            }
+            stopMatrix();
+            stopBloodMoon();
+            if (special === 'matrix') startMatrix();
+            else if (special === 'bloodmoon') startBloodMoon();
         }
 
         function loadTheme() {
             const color = localStorage.getItem('starlinkAccent') || '#ffffff';
             const special = localStorage.getItem('starlinkSpecialTheme') || '';
-            // Just restore whatever was saved — admin revoke logic handles clearing
             document.documentElement.style.setProperty('--accent', color);
             if (special === 'matrix') startMatrix();
+            else if (special === 'bloodmoon') startBloodMoon();
         }
 
         function createStar(x, y) {
@@ -3491,6 +3534,12 @@
                     <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;top:2px;left:4px;color:#00ff41;">01101<br>10010<br>01011<br>11001</span>
                     <span style="font-size:1.8rem;">💻</span>
                     <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;bottom:2px;right:4px;color:#00ff41;">10100<br>01101<br>11010</span>
+                 </div>`},
+                {name:"Blood Moon", color:"#cc0000", special:"bloodmoon",
+                 preview:`<div style="background:#0a0000;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;top:8px;right:10px;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff3333,#880000);box-shadow:0 0 12px #cc0000,0 0 24px #660000;"></div>
+                    <span style="position:absolute;opacity:0.5;font-size:0.55rem;line-height:1.6;top:0;left:0;width:100%;height:100%;display:flex;flex-wrap:wrap;overflow:hidden;color:#cc0000;">&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;&#x3007;</span>
+                    <span style="font-size:1.6rem;z-index:1;">🌕</span>
                  </div>`}
             ];
             adminThemes.forEach(t => {
@@ -4083,7 +4132,8 @@
 
             // ── THEME ──
             if (c === 'theme') {
-                if      (args[0]==='matrix') { setTheme('#00ff41','matrix'); ok('Matrix theme activated'); }
+                if      (args[0]==='matrix')    { setTheme('#00ff41','matrix');    ok('Matrix theme activated'); }
+                else if (args[0]==='bloodmoon') { setTheme('#cc0000','bloodmoon'); ok('Blood Moon theme activated'); }
                 else if (args[0]==='reset')  { setTheme('#ffffff','');       ok('Theme reset to default'); }
                 else if (args[0]?.startsWith('#')) { setTheme(args[0],'');  ok(`Accent set to ${args[0]}`); }
                 else err('Usage: theme <#hex> | matrix | reset');
