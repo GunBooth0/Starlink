@@ -321,12 +321,13 @@
                         </div>
                         </div>
                         <!-- Verification Badge -->
-                        <div id="account-verify-section" class="glass rounded-2xl p-6 mt-6 text-left hidden">
+                        <div id="account-verify-section" class="glass rounded-2xl p-6 mt-6 text-left">
                             <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-circle-check" style="color:#3b82f6"></i> Verification Badge</h3>
-                            <div class="flex items-center gap-4 p-4 rounded-2xl bg-black/30">
-                                <span style="font-size:1.5rem;color:#3b82f6;">✓</span>
-                                <p class="text-white/70 text-sm">You have been granted a verified badge by the owner. This badge appears next to your name in chat, DMs, and the online users list to show you are a trusted and notable member of Starlink.</p>
+                            <div class="flex items-start gap-4 p-4 rounded-2xl bg-black/30 mb-3">
+                                <span style="font-size:1.5rem;color:#3b82f6;flex-shrink:0;">✓</span>
+                                <p class="text-white/70 text-sm">A verification badge is a blue checkmark granted by the owner to trusted and notable members of Starlink. It appears next to your name in global chat, DMs, and the online users list. It is not something you can earn automatically — it is manually awarded by the owner.</p>
                             </div>
+                            <div id="account-verify-status" class="text-sm text-center py-2 rounded-2xl hidden"></div>
                         </div>
                     </div>
                 </div>
@@ -2180,11 +2181,20 @@
                 else verifiedBadgeEl.classList.add('hidden');
             }
 
-            // Verification badge section
+            // Verification badge section — always visible, status changes
             const verifySection = document.getElementById('account-verify-section');
-            if (verifySection) {
-                if (isVerified) verifySection.classList.remove('hidden');
-                else verifySection.classList.add('hidden');
+            if (verifySection) verifySection.classList.remove('hidden');
+            const verifyStatus = document.getElementById('account-verify-status');
+            if (verifyStatus) {
+                if (isVerified) {
+                    verifyStatus.textContent = '✓ You have this badge';
+                    verifyStatus.style.cssText = 'background:rgba(59,130,246,0.15);color:#3b82f6;font-weight:600;';
+                    verifyStatus.classList.remove('hidden');
+                } else {
+                    verifyStatus.textContent = 'You do not currently have this badge';
+                    verifyStatus.style.cssText = 'background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.4);';
+                    verifyStatus.classList.remove('hidden');
+                }
             }
         };
 
