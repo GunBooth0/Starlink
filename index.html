@@ -2763,18 +2763,10 @@
                     <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;bottom:2px;right:4px;color:#00ff41;">10100<br>01101<br>11010</span>
                  </div>`},
                 {name:"Golden Hour", color:"#f5a623", special:"goldenhour",
-                 preview:`<div style="background:linear-gradient(135deg,#0a0800,#1a1000);width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
-                    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 60% 30%,rgba(245,166,35,0.18),transparent 70%);"></div>
+                 preview:`<div style="background:linear-gradient(135deg,#fffaf0,#fff8e7);width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 60% 20%,rgba(245,166,35,0.3),transparent 70%);"></div>
                     <div style="position:absolute;top:6px;right:8px;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe08a,#f5a623);box-shadow:0 0 10px #f5a623,0 0 20px rgba(245,166,35,0.5);"></div>
-                    <span style="font-size:1.6rem;z-index:1;">✦</span>
-                    <div style="position:absolute;bottom:4px;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,rgba(245,166,35,0.4),transparent);"></div>
-                 </div>`},
-                {name:"Golden Hour", color:"#f5a623", special:"goldenhour",
-                 preview:`<div style="background:linear-gradient(135deg,#0a0800,#1a1000);width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
-                    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 60% 30%,rgba(245,166,35,0.18),transparent 70%);"></div>
-                    <div style="position:absolute;top:6px;right:8px;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe08a,#f5a623);box-shadow:0 0 10px #f5a623,0 0 20px rgba(245,166,35,0.5);"></div>
-                    <span style="font-size:1.6rem;z-index:1;">✦</span>
-                    <div style="position:absolute;bottom:4px;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,rgba(245,166,35,0.4),transparent);"></div>
+                    <span style="font-size:1.6rem;z-index:1;color:#b8860b;">✦</span>
                  </div>`},
                 {name:"Blood Moon", color:"#cc0000", special:"bloodmoon",
                  preview:`<div style="background:#0a0000;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
@@ -3416,18 +3408,23 @@
             if (starBg) starBg.style.display = 'block';
         }
 
-        // Golden Hour — gold accent + warm glow overlay on star background
+        // Golden Hour — white background, gold accent
         function startGoldenHour() {
-            const starBg = document.getElementById('star-bg');
             const canvas = document.getElementById('matrix-bg');
             if (canvas) { canvas.style.display = 'none'; const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
-            if (starBg) {
-                starBg.style.background = 'radial-gradient(ellipse at 70% 20%, rgba(245,166,35,0.08) 0%, transparent 60%)';
-            }
+            // Change body background to warm white
+            document.body.style.background = '#fffaf0';
+            document.body.style.color = '#1a1a1a';
+            // Star background gets a warm golden glow
+            const starBg = document.getElementById('star-bg');
+            if (starBg) starBg.style.background = 'radial-gradient(ellipse at 60% 10%, rgba(245,166,35,0.25) 0%, transparent 60%)';
             document.documentElement.style.setProperty('--accent', '#f5a623');
         }
 
         function stopGoldenHour() {
+            // Restore original dark background
+            document.body.style.background = '#000000';
+            document.body.style.color = '#ffffff';
             const starBg = document.getElementById('star-bg');
             if (starBg) starBg.style.background = '';
         }
@@ -3480,7 +3477,7 @@
             if (special === 'matrix') startMatrix();
             else if (special === 'bloodmoon') startBloodMoon();
             else if (special === 'goldenhour') startGoldenHour();
-            else if (special === 'goldenhour') startGoldenHour();
+            
         }
 
         function loadTheme() {
@@ -3490,6 +3487,7 @@
             if (special === 'matrix') startMatrix();
             else if (special === 'bloodmoon') startBloodMoon();
             else if (special === 'goldenhour') startGoldenHour();
+            
         }
 
         function createStar(x, y) {
@@ -3568,6 +3566,12 @@
                     <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;top:2px;left:4px;color:#00ff41;">01101<br>10010<br>01011<br>11001</span>
                     <span style="font-size:1.8rem;">💻</span>
                     <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;bottom:2px;right:4px;color:#00ff41;">10100<br>01101<br>11010</span>
+                 </div>`},
+                {name:"Golden Hour", color:"#f5a623", special:"goldenhour",
+                 preview:`<div style="background:linear-gradient(135deg,#fffaf0,#fff8e7);width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 60% 20%,rgba(245,166,35,0.3),transparent 70%);"></div>
+                    <div style="position:absolute;top:6px;right:8px;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe08a,#f5a623);box-shadow:0 0 10px #f5a623,0 0 20px rgba(245,166,35,0.5);"></div>
+                    <span style="font-size:1.6rem;z-index:1;color:#b8860b;">\u2726</span>
                  </div>`},
                 {name:"Blood Moon", color:"#cc0000", special:"bloodmoon",
                  preview:`<div style="background:#0a0000;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
