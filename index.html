@@ -4053,10 +4053,13 @@
             // ── ONLINE ──
             if (c === 'online') {
                 try {
-                    const { getDocs, collection, getDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
-                    const snap = await getDocs(collection(window.db, "presence"));
+                    // Use _termGetUsers helper which already handles its own imports
+                    const allDocs = await window._termGetUsers();
+                    // Get presence via fetch using existing window.db
+                    const fb = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                    const presSnap = await fb.getDocs(fb.collection(window.db, "presence"));
                     const now = Date.now();
-                    const online = snap.docs.filter(d => {
+                    const online = presSnap.docs.filter(d => {
                         const ls = d.data().lastSeen;
                         return ls && (now - ls.toMillis()) < 45000;
                     });
@@ -4066,14 +4069,12 @@
                         let name = data.displayName;
                         let role = data.role || 'User';
                         if (!name) {
-                            try {
-                                const uSnap = await getDoc(doc(window.db, "users", d.id));
-                                if (uSnap.exists()) {
-                                    const u = uSnap.data();
-                                    name = u.displayName || u.email?.split('@')[0] || d.id.slice(0,8);
-                                    role = u.isAdmin ? 'Admin' : 'User';
-                                } else { name = d.id.slice(0,8); }
-                            } catch(_) { name = d.id.slice(0,8); }
+                            const match = allDocs.find(u => u.id === d.id);
+                            if (match) {
+                                const u = match.data();
+                                name = u.displayName || u.email?.split('@')[0] || d.id.slice(0,8);
+                                role = u.email === OWNER ? 'Owner' : u.isAdmin ? 'Admin' : 'User';
+                            } else { name = d.id.slice(0,8); }
                         }
                         const roleColor = role === 'Owner' ? '#f59e0b' : role === 'Admin' ? '#8b5cf6' : '#a0a0a0';
                         info(`  <span style="color:#4ade80">●</span> <span style="color:#fff">${name}</span> <span style="color:${roleColor}">[${role}]</span>`);
