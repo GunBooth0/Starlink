@@ -2823,9 +2823,9 @@
             const countEl = document.getElementById('panel-online-count');
             if (!container) return;
             try {
-                const snap = await getDocs(collection(db, "presence"));
+                const presSnap = await getDocs(collection(db, "presence"));
                 const now = Date.now();
-                const online = snap.docs.filter(d => {
+                const online = presSnap.docs.filter(d => {
                     const ls = d.data().lastSeen;
                     return ls && (now - ls.toMillis()) < 45000;
                 });
@@ -2834,24 +2834,28 @@
                     container.innerHTML = '<p class="text-center text-white/40 text-sm py-4">Nobody online right now</p>';
                     return;
                 }
-                // For any user missing a displayName, look it up from their user doc
+                // Always look up name+role from users collection — never trust presence doc
                 const enriched = await Promise.all(online.map(async d => {
-                    const data = d.data();
-                    if (data.displayName) return data;
-                    // Fallback: look up from users collection
+                    const uid = d.id;
+                    let name = '?', role = 'User';
                     try {
-                        const userSnap = await getDoc(doc(db, "users", d.id));
+                        const userSnap = await getDoc(doc(db, "users", uid));
                         if (userSnap.exists()) {
                             const u = userSnap.data();
-                            return { ...data, displayName: u.displayName || u.email?.split('@')[0] || d.id.slice(0,8), role: u.isAdmin ? (u.email === ADMIN_EMAIL ? 'Owner' : 'Admin') : 'User' };
+                            name = u.displayName || u.email?.split('@')[0] || uid.slice(0,8);
+                            role = u.email === ADMIN_EMAIL ? 'Owner' : u.isAdmin === true ? 'Admin' : 'User';
+                        } else {
+                            // Fallback to presence doc if user doc missing
+                            name = d.data().displayName || uid.slice(0,8);
+                            role = d.data().role || 'User';
                         }
-                    } catch(_) {}
-                    return { ...data, displayName: d.id.slice(0,8) };
+                    } catch(_) {
+                        name = d.data().displayName || uid.slice(0,8);
+                    }
+                    return { uid, name, role };
                 }));
                 container.innerHTML = '<div class="flex flex-wrap gap-3 p-2">' +
-                    enriched.map(data => {
-                        const name = data.displayName || data.uid?.slice(0,8) || '?';
-                        const role = data.role || 'User';
+                    enriched.map(({ name, role }) => {
                         const roleColor = role === 'Owner' ? '#f59e0b' : role === 'Admin' ? '#8b5cf6' : 'rgba(255,255,255,0.5)';
                         const roleBadge = role !== 'User' ? `<span style="font-size:0.6rem;background:${roleColor};color:#000;padding:0.1rem 0.4rem;border-radius:99px;font-weight:700;margin-left:0.3rem;">${role}</span>` : '';
                         return `<div style="display:flex;align-items:center;gap:0.5rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:0.75rem;padding:0.5rem 0.85rem;">
@@ -2999,6 +3003,7 @@
                 // Owner only: admin access requests, owner requests, user management
                 const clearChatSection = document.getElementById('clear-chat-section');
                 const dmAdminSection = document.getElementById('dms-admin-section');
+                const signupReqSection = document.getElementById('signup-requests-section');
                 if (isOwnerNow) {
                     if (adminReqSection) adminReqSection.style.display = '';
                     if (dmAdminSection) dmAdminSection.style.display = '';
