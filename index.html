@@ -1051,10 +1051,15 @@
                 // Listen for owner broadcast refresh
                 let _lastBroadcast = null;
                 onSnapshot(doc(db, "config", "broadcastRefresh"), (snap) => {
-                    if (!snap.exists() || !window.initialLoadComplete) return;
-                    const t = snap.data().triggeredAt?.toMillis();
-                    if (_lastBroadcast === null) { _lastBroadcast = t; return; } // ignore on first load
-                    if (t && t !== _lastBroadcast) {
+                    if (!snap.exists()) return;
+                    const t = snap.data().triggeredAt?.toMillis() || null;
+                    // Always store timestamp on first fire — never show modal on initial load
+                    if (_lastBroadcast === null) {
+                        _lastBroadcast = t;
+                        return;
+                    }
+                    // Only show modal if timestamp actually changed and page is loaded
+                    if (t && t !== _lastBroadcast && window.initialLoadComplete) {
                         _lastBroadcast = t;
                         document.getElementById('refresh-modal').classList.add('show');
                     }
