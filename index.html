@@ -109,7 +109,11 @@
         .main-content {
             overflow-y: auto;
             height: 100vh;
-            padding-top: 4rem;
+            padding-top: 4rem; /* matches fixed top bar h-16 */
+        }
+        .main-content > div {
+            padding: 2rem 2.5rem;
+            min-height: calc(100vh - 4rem);
         }
         input[type="email"], input[type="password"], input[type="text"], textarea, select {
             background: rgba(255,255,255,0.08);
@@ -235,7 +239,7 @@
 
     <!-- MAIN CONTENT -->
     <div class="flex-1 ml-72 main-content">
-        <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50 top-0">
+        <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-50 top-0" style="left:288px;">
             <div class="h-full px-10 flex items-center gap-4">
                 <i id="current-tab-icon" class="text-3xl fa-solid fa-lock"></i>
                 <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Sign In Required</div>
@@ -255,7 +259,7 @@
             </div>
         </div>
 
-        <div class="pt-24 pb-20 px-10 tail-container">
+        <div class="pt-8 pb-20 px-10 tail-container">
 
             <!-- GLOBAL ANNOUNCEMENT -->
             <div id="global-announcement" class="hidden max-w-4xl mx-auto mb-8 p-6 glass rounded-3xl border-l-4 border-[var(--accent)]">
