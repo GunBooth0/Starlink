@@ -4259,9 +4259,7 @@
 
             // ── THEME ──
             if (c === 'theme') {
-                if      (args[0]==='matrix')    { setTheme('#00ff41','matrix');    ok('Matrix theme activated'); }
-                else if (args[0]==='bloodmoon')  { setTheme('#cc0000','bloodmoon');  ok('Blood Moon theme activated'); }
-                else if (args[0]==='reset')  { setTheme('#ffffff','');       ok('Theme reset to default'); }
+                if      (args[0]==='reset')  { setTheme('#ffffff','');       ok('Theme reset to default'); }
                 else if (args[0]?.startsWith('#')) { setTheme(args[0],'');  ok(`Accent set to ${args[0]}`); }
                 else err('Usage: theme <#hex> | matrix | reset');
                 return;
