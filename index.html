@@ -871,6 +871,12 @@
                 }
 
                 window.isAdminUser = user.email === ADMIN_EMAIL || userDocData.isAdmin === true;
+                // Pre-write presence with correct role now that isAdminUser is known
+                if (presenceRef) {
+                    const _role = user.email === ADMIN_EMAIL ? 'Owner' : window.isAdminUser ? 'Admin' : 'User';
+                    const _name = userDocData.displayName || user.email.split('@')[0];
+                    try { setDoc(presenceRef, { uid: user.uid, lastSeen: serverTimestamp(), displayName: _name, role: _role }); } catch(_) {}
+                }
                 // Update panel title based on whether this is the real owner
                 setTimeout(() => {
                     const pt = document.getElementById('main-panel-title');
@@ -1653,7 +1659,7 @@
             const _presenceName = window.currentDisplayName || window.currentUser?.email?.split('@')[0] || '';
             const _presenceRole = window.currentUser?.email === ADMIN_EMAIL ? 'Owner' : window.isAdminUser ? 'Admin' : 'User';
 
-            // Write initial presence with display name and role
+            // Write presence — isAdminUser is guaranteed set before startPresence is called
             await setDoc(presenceRef, { uid, lastSeen: serverTimestamp(), displayName: _presenceName, role: _presenceRole });
 
             // Heartbeat — keep lastSeen fresh so we're not counted as stale
@@ -2948,6 +2954,7 @@
                 }
                 // Owner only: admin access requests, owner requests, user management
                 const clearChatSection = document.getElementById('clear-chat-section');
+                const dmAdminSection = document.getElementById('dms-admin-section');
                 if (isOwnerNow) {
                     if (adminReqSection) adminReqSection.style.display = '';
                     if (dmAdminSection) dmAdminSection.style.display = '';
