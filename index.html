@@ -882,12 +882,6 @@
                 }
 
                 window.isAdminUser = user.email === ADMIN_EMAIL || userDocData.isAdmin === true;
-                // Pre-write presence with correct role now that isAdminUser is known
-                if (presenceRef) {
-                    const _role = user.email === ADMIN_EMAIL ? 'Owner' : window.isAdminUser ? 'Admin' : 'User';
-                    const _name = userDocData.displayName || user.email.split('@')[0];
-                    try { setDoc(presenceRef, { uid: user.uid, lastSeen: serverTimestamp(), displayName: _name, role: _role }); } catch(_) {}
-                }
                 // Update panel title based on whether this is the real owner
                 setTimeout(() => {
                     const pt = document.getElementById('main-panel-title');
@@ -925,7 +919,9 @@
                     window.populateCategorySelect();
                     await window.showGlobalAnnouncement();
                     window.buildNav();
-                    window.startPresence(user.uid);
+                    const _pRole = user.email === ADMIN_EMAIL ? 'Owner' : window.isAdminUser ? 'Admin' : 'User';
+                    const _pName = window.currentDisplayName || user.email.split('@')[0];
+                    window.startPresence(user.uid, _pName, _pRole);
                     document.getElementById('search-wrapper').classList.remove('hidden');
                     document.getElementById('search-wrapper').classList.add('flex');
                     window.switchTab(window.isAdminUser ? 1 : 0);
@@ -1669,21 +1665,22 @@
             }
         }
 
-        window.startPresence = async (uid) => {
+        window.startPresence = async (uid, forceName, forceRole) => {
             presenceRef = doc(db, "presence", uid);
-            const _presenceName = window.currentDisplayName || window.currentUser?.email?.split('@')[0] || '';
-            const _presenceRole = window.currentUser?.email === ADMIN_EMAIL ? 'Owner' : window.isAdminUser ? 'Admin' : 'User';
+            const _presenceName = forceName || window.currentDisplayName || window.currentUser?.email?.split('@')[0] || '';
+            const _presenceRole = forceRole || (window.currentUser?.email === ADMIN_EMAIL ? 'Owner' : window.isAdminUser ? 'Admin' : 'User');
 
-            // Write presence — isAdminUser is guaranteed set before startPresence is called
+            // Write presence with guaranteed correct name and role
             await setDoc(presenceRef, { uid, lastSeen: serverTimestamp(), displayName: _presenceName, role: _presenceRole });
 
             // Heartbeat — keep lastSeen fresh so we're not counted as stale
             if (heartbeatInterval) clearInterval(heartbeatInterval);
+            // Store name/role for heartbeat reuse
+            const _storedName = _presenceName;
+            const _storedRole = _presenceRole;
             heartbeatInterval = setInterval(async () => {
                 try {
-                    const _name = window.currentDisplayName || window.currentUser?.email?.split('@')[0] || '';
-                    const _role = window.currentUser?.email === ADMIN_EMAIL ? 'Owner' : window.isAdminUser ? 'Admin' : 'User';
-                    await setDoc(presenceRef, { uid, lastSeen: serverTimestamp(), displayName: _name, role: _role });
+                    await setDoc(presenceRef, { uid, lastSeen: serverTimestamp(), displayName: _storedName, role: _storedRole });
                 }
                 catch(_) {}
             }, HEARTBEAT_MS);
