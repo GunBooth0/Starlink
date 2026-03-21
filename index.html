@@ -76,6 +76,26 @@
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255,255,255,0.15);
         }
+        body.golden-hour,
+        body.golden-hour .nav-link,
+        body.golden-hour #nav-links,
+        body.golden-hour #current-tab,
+        body.golden-hour #user-status,
+        body.golden-hour #online-counter,
+        body.golden-hour h1, body.golden-hour h2, body.golden-hour h3,
+        body.golden-hour p, body.golden-hour span:not([style*="color"]),
+        body.golden-hour td, body.golden-hour th,
+        body.golden-hour label, body.golden-hour div:not([style*="color"]) {
+            color: #1a1a1a !important;
+        }
+        body.golden-hour .text-white\/50, body.golden-hour .text-white\/60, body.golden-hour .text-white\/70 {
+            color: rgba(0,0,0,0.5) !important;
+        }
+        body.golden-hour .border-white\/10 { border-color: rgba(0,0,0,0.1) !important; }
+        body.golden-hour .bg-black { background: #ffffff !important; }
+        body.golden-hour .bg-black\/80 { background: rgba(255,255,255,0.95) !important; }
+        body.golden-hour .bg-black\/30 { background: rgba(0,0,0,0.05) !important; }
+
         .tail-container {
             max-width: 1280px;
             margin-left: auto;
@@ -3408,25 +3428,40 @@
             if (starBg) starBg.style.display = 'block';
         }
 
-        // Golden Hour — white background, gold accent
+        // Golden Hour — white background, gold accent, black text
         function startGoldenHour() {
             const canvas = document.getElementById('matrix-bg');
             if (canvas) { canvas.style.display = 'none'; const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
-            // Change body background to warm white
             document.body.style.background = '#fffaf0';
-            document.body.style.color = '#1a1a1a';
-            // Star background gets a warm golden glow
+            document.body.style.color = '#111111';
             const starBg = document.getElementById('star-bg');
-            if (starBg) starBg.style.background = 'radial-gradient(ellipse at 60% 10%, rgba(245,166,35,0.25) 0%, transparent 60%)';
+            if (starBg) starBg.style.background = 'radial-gradient(ellipse at 60% 10%, rgba(245,166,35,0.15) 0%, transparent 60%)';
             document.documentElement.style.setProperty('--accent', '#f5a623');
+            // Sidebar
+            const sidebar = document.querySelector('.w-72.bg-black');
+            if (sidebar) { sidebar.style.background = '#ffffff'; sidebar.style.borderColor = 'rgba(0,0,0,0.1)'; sidebar.style.color = '#111111'; }
+            // Top bar
+            const topbar = document.querySelector('.h-16.border-b');
+            if (topbar) { topbar.style.background = 'rgba(255,250,240,0.95)'; topbar.style.borderColor = 'rgba(0,0,0,0.1)'; }
+            // Nav links text
+            document.querySelectorAll('.nav-link').forEach(el => el.style.color = '#111111');
+            // Glass cards
+            document.querySelectorAll('.glass').forEach(el => { el.style.background = 'rgba(0,0,0,0.04)'; el.style.borderColor = 'rgba(0,0,0,0.12)'; });
+            document.documentElement.style.setProperty('--gh-active', '1');
         }
 
         function stopGoldenHour() {
-            // Restore original dark background
             document.body.style.background = '#000000';
             document.body.style.color = '#ffffff';
             const starBg = document.getElementById('star-bg');
             if (starBg) starBg.style.background = '';
+            const sidebar = document.querySelector('.w-72.bg-black');
+            if (sidebar) { sidebar.style.background = ''; sidebar.style.borderColor = ''; sidebar.style.color = ''; }
+            const topbar = document.querySelector('.h-16.border-b');
+            if (topbar) { topbar.style.background = ''; topbar.style.borderColor = ''; }
+            document.querySelectorAll('.nav-link').forEach(el => el.style.color = '');
+            document.querySelectorAll('.glass').forEach(el => { el.style.background = ''; el.style.borderColor = ''; });
+            document.documentElement.style.setProperty('--gh-active', '0');
         }
 
         let bloodMoonInterval = null;
