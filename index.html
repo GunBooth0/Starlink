@@ -2774,13 +2774,6 @@
                     <span style="font-size:1.6rem;z-index:1;">⚡</span>
                     <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,#facc15,transparent);opacity:0.7;"></div>
                  </div>`},
-                {name:"Cyber", color:"#facc15", special:"cyber",
-                 preview:`<div style="background:#0a0a00;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
-                    <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(250,204,21,0.03) 3px,rgba(250,204,21,0.03) 4px);pointer-events:none;"></div>
-                    <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 8px,rgba(250,204,21,0.02) 8px,rgba(250,204,21,0.02) 9px);pointer-events:none;"></div>
-                    <span style="font-size:1.6rem;z-index:1;">⚡</span>
-                    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,#facc15,transparent);opacity:0.7;"></div>
-                 </div>`},
                 {name:"Blood Moon", color:"#cc0000", special:"bloodmoon",
                  preview:`<div style="background:#0a0000;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
                     <div style="position:absolute;top:8px;right:10px;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff3333,#880000);box-shadow:0 0 12px #cc0000,0 0 24px #660000;"></div>
@@ -3459,6 +3452,44 @@
             if (canvas) { canvas.style.display = 'none'; const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
             if (starBg) starBg.style.display = 'block';
         }
+        function startCyber() {
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (!canvas) return;
+            canvas.style.display = 'block';
+            if (starBg) starBg.style.display = 'none';
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const ctx = canvas.getContext('2d');
+            let frame = 0;
+            if (window._cyberInterval) clearInterval(window._cyberInterval);
+            window._cyberInterval = setInterval(() => {
+                ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                for (let y = 0; y < canvas.height; y += 4) {
+                    if (Math.random() > 0.97) {
+                        const glitchW = Math.random() * canvas.width * 0.4;
+                        const glitchX = Math.random() * (canvas.width - glitchW);
+                        ctx.fillStyle = `rgba(250,204,21,${Math.random() * 0.15})`;
+                        ctx.fillRect(glitchX, y, glitchW, 1);
+                    }
+                }
+                const scanY = (frame * 3) % canvas.height;
+                ctx.fillStyle = 'rgba(250,204,21,0.04)';
+                ctx.fillRect(0, scanY, canvas.width, 2);
+                frame++;
+            }, 40);
+            window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+        }
+
+        function stopCyber() {
+            if (window._cyberInterval) { clearInterval(window._cyberInterval); window._cyberInterval = null; }
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
+            if (starBg) starBg.style.display = 'block';
+        }
+
         function setTheme(color, special) {
             localStorage.setItem('starlinkAccent', color);
             localStorage.setItem('starlinkSpecialTheme', special || '');
@@ -3469,8 +3500,6 @@
             if (special === 'matrix') startMatrix();
             else if (special === 'bloodmoon') startBloodMoon();
             else if (special === 'cyber') startCyber();
-            else if (special === 'cyber') startCyber();
-            
         }
 
         function loadTheme() {
@@ -3480,7 +3509,6 @@
             if (special === 'matrix') startMatrix();
             else if (special === 'bloodmoon') startBloodMoon();
             else if (special === 'cyber') startCyber();
-            
         }
 
         function createStar(x, y) {
@@ -3559,6 +3587,13 @@
                     <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;top:2px;left:4px;color:#00ff41;">01101<br>10010<br>01011<br>11001</span>
                     <span style="font-size:1.8rem;">💻</span>
                     <span style="position:absolute;opacity:0.6;font-size:0.6rem;line-height:1.15;letter-spacing:1px;bottom:2px;right:4px;color:#00ff41;">10100<br>01101<br>11010</span>
+                 </div>`},
+                {name:"Cyber", color:"#facc15", special:"cyber",
+                 preview:`<div style="background:#0a0a00;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(250,204,21,0.03) 3px,rgba(250,204,21,0.03) 4px);pointer-events:none;"></div>
+                    <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 8px,rgba(250,204,21,0.02) 8px,rgba(250,204,21,0.02) 9px);pointer-events:none;"></div>
+                    <span style="font-size:1.6rem;z-index:1;">⚡</span>
+                    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,#facc15,transparent);opacity:0.7;"></div>
                  </div>`},
                 {name:"Blood Moon", color:"#cc0000", special:"bloodmoon",
                  preview:`<div style="background:#0a0000;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
