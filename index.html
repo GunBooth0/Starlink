@@ -1022,6 +1022,8 @@
                         }
                     }
                     window.initialLoadComplete = true;
+                    // Re-apply Golden Hour now all elements exist
+                    if (localStorage.getItem('starlinkSpecialTheme') === 'goldenhour' && window._ghApply) setTimeout(window._ghApply, 100);
                 }, 100);
 
                 sitesListener = onSnapshot(collection(db, "sites"), async () => {
