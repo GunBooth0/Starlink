@@ -1125,6 +1125,18 @@
                             window.isVerifiedUser = newVerified;
                             document.getElementById('refresh-modal').classList.add('show');
                         }
+                        // Display name changed — silently update everywhere, no refresh needed
+                        const newName = data.displayName || user.email.split('@')[0];
+                        if (newName !== window.currentDisplayName) {
+                            window.currentDisplayName = newName;
+                            // Update account tab name display
+                            window.updateAccountTab(user, data);
+                            // Update header status
+                            const statusEl = document.getElementById('user-status');
+                            if (statusEl) statusEl.textContent = `Logged in as ${newName}`;
+                            // Update presence so online list reflects new name
+                            window.registerUsername(user.uid, newName);
+                        }
                     }
                 });
 
