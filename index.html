@@ -676,7 +676,7 @@
                         <div class="glass rounded-3xl p-8 flex items-center justify-between" style="border:1px solid rgba(99,102,241,0.2);">
                             <div>
                                 <p class="font-semibold text-lg mb-1"><i class="fa-solid fa-rotate mr-2 text-indigo-400"></i>Push Refresh to All Users</p>
-                                <p class="text-white/50 text-sm">Forces the refresh prompt on every online user's screen. Use after pushing a site update.</p>
+                                <p class="text-white/50 text-sm">Forces a full page reload on every online user's screen. Use only when a change requires a hard reload.</p>
                             </div>
                             <button onclick="window.broadcastRefresh()" class="text-white font-semibold py-3 px-8 rounded-2xl transition-colors" style="width:auto;margin:0;font-size:1rem;background:#6366f1;">Push Refresh</button>
                         </div>
@@ -1339,7 +1339,7 @@
                     publisherRole,
                     updatedAt: serverTimestamp()
                 });
-                alert("Published! Non-admin users will see a refresh prompt.");
+                alert("Announcement published!");
                 document.getElementById('announcement-input').value = '';
             } catch (e) {
                 alert("Error: " + e.message);
@@ -1350,7 +1350,7 @@
             if (!confirm("Clear announcement?")) return;
             try {
                 await deleteDoc(doc(db, "config", "announcement"));
-                alert("Announcement cleared! Non-admin users will see a refresh prompt.");
+                alert("Announcement cleared!");
             } catch (e) {
                 alert("Error: " + e.message);
             }
@@ -1626,7 +1626,7 @@
                 const catSites = window.allSites[cat] || [];
                 const maxOrder = catSites.length ? Math.max(...catSites.map(s => s.order ?? 0)) + 1 : 0;
                 await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc, order: maxOrder });
-                alert("Site added! Non-admin users will see a refresh prompt.");
+                alert("Site added!");
                 ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                 await window.loadAllSites();
                 window.populateAllGrids();
