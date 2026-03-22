@@ -1127,16 +1127,15 @@
                         }
                         // Display name changed — silently update everywhere, no refresh needed
                         const newName = data.displayName || user.email.split('@')[0];
-                        if (newName !== window.currentDisplayName) {
-                            window.currentDisplayName = newName;
-                            // Update account tab name display
-                            window.updateAccountTab(user, data);
-                            // Update header status
-                            const statusEl = document.getElementById('user-status');
-                            if (statusEl) statusEl.textContent = `Logged in as ${newName}`;
-                            // Update presence so online list reflects new name
-                            window.registerUsername(user.uid, newName);
-                        }
+                        window.currentDisplayName = newName;
+                        // Always directly update the account tab username element
+                        const nameEl = document.getElementById('account-username');
+                        if (nameEl) nameEl.textContent = newName;
+                        // Update header status
+                        const statusEl = document.getElementById('user-status');
+                        if (statusEl) statusEl.textContent = `Logged in as ${newName}`;
+                        // Update presence so online list reflects new name
+                        window.registerUsername(user.uid, newName);
                     }
                 });
 
