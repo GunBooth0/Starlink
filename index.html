@@ -971,7 +971,7 @@
                 window.registerUsername(user.uid, userDocData.displayName || user.email.split('@')[0]);
                 // If admin was revoked and had an admin-only theme, clear it locally
                 const _special = localStorage.getItem('starlinkSpecialTheme');
-                if (!window.isAdminUser && (_special === 'matrix' || _special === 'bloodmoon' || _special === 'cyber' || _special === 'nebula' || _special === 'arcade' || _special === 'diamond' || _special === 'thunderstorm' || _special === 'fireflies' || _special === 'supernova' || _special === 'solarflare')) {
+                if (!window.isAdminUser && (_special === 'matrix' || _special === 'bloodmoon' || _special === 'cyber' || _special === 'nebula' || _special === 'arcade' || _special === 'diamond' || _special === 'thunderstorm' || _special === 'fireflies' || _special === 'supernova' || _special === 'solarflare' || _special === 'citylights' || _special === 'lava')) {
                     localStorage.removeItem('starlinkSpecialTheme');
                     localStorage.setItem('starlinkAccent', '#ffffff');
                     stopMatrix();
@@ -984,6 +984,8 @@
                     stopFireflies();
                     stopSupernova();
                     stopSolarFlare();
+                    stopCityLights();
+                    stopLava();
                     document.documentElement.style.setProperty('--accent', '#ffffff');
                 }
 
@@ -2872,6 +2874,30 @@
                     <div style="position:absolute;bottom:18px;left:calc(50% + 20px);width:4px;height:30px;background:linear-gradient(to top,rgba(255,140,10,0.8),transparent);border-radius:4px;transform:rotate(25deg);transform-origin:bottom;"></div>
                     <div style="position:absolute;bottom:18px;left:calc(50% - 24px);width:5px;height:38px;background:linear-gradient(to top,rgba(255,120,0,0.7),transparent);border-radius:4px;transform:rotate(-18deg);transform-origin:bottom;"></div>
                     <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(255,100,0,0.18) 0%,transparent 60%);"></div>
+                 </div>`},
+                {name:"City Lights", color:"#fde68a", special:"citylights",
+                 preview:`<div style="background:#010208;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:flex-end;justify-content:center;">
+                    <div style="position:absolute;top:8px;right:18px;width:10px;height:10px;border-radius:50%;background:rgba(255,248,210,0.85);box-shadow:0 0 8px rgba(255,248,180,0.5);"></div>
+                    <div style="position:absolute;inset:0;background:linear-gradient(to bottom,#010208,#05051a 60%,#080814);"></div>
+                    <div style="position:absolute;bottom:0;left:0;right:0;height:70%;display:flex;align-items:flex-end;gap:1px;">
+                        <div style="width:14px;height:55%;background:#060608;position:relative;"><div style="position:absolute;top:4px;left:2px;width:4px;height:4px;background:rgba(255,220,120,0.9);box-shadow:0 0 3px rgba(255,200,80,0.5);"></div><div style="position:absolute;top:12px;left:2px;width:4px;height:4px;background:rgba(255,180,80,0.5);"></div></div>
+                        <div style="width:10px;height:38%;background:#060608;"></div>
+                        <div style="width:18px;height:65%;background:#06060a;position:relative;"><div style="position:absolute;top:6px;left:2px;width:4px;height:4px;background:rgba(200,220,255,0.8);"></div><div style="position:absolute;top:6px;left:8px;width:4px;height:4px;background:rgba(255,200,100,0.7);"></div><div style="position:absolute;top:14px;left:2px;width:4px;height:4px;background:rgba(255,220,100,0.6);"></div></div>
+                        <div style="width:12px;height:45%;background:#050508;position:relative;"><div style="position:absolute;top:5px;left:2px;width:4px;height:4px;background:rgba(255,240,180,0.85);box-shadow:0 0 3px rgba(255,220,100,0.4);"></div></div>
+                        <div style="width:20px;height:80%;background:#070709;position:relative;"><div style="position:absolute;top:4px;left:2px;width:4px;height:4px;background:rgba(180,220,255,0.7);"></div><div style="position:absolute;top:4px;left:8px;width:4px;height:4px;background:rgba(255,200,80,0.8);"></div><div style="position:absolute;top:12px;left:2px;width:4px;height:4px;background:rgba(255,220,120,0.6);"></div><div style="position:absolute;top:12px;left:8px;width:4px;height:4px;background:rgba(200,240,255,0.5);"></div></div>
+                        <div style="width:10px;height:30%;background:#050508;"></div>
+                        <div style="width:16px;height:58%;background:#060609;position:relative;"><div style="position:absolute;top:6px;left:2px;width:4px;height:4px;background:rgba(255,200,100,0.75);"></div></div>
+                        <div style="flex:1;height:20%;background:#040406;"></div>
+                    </div>
+                    <span style="font-size:1.3rem;z-index:1;position:absolute;bottom:6px;right:8px;">🌃</span>
+                 </div>`},
+                {name:"Lava", color:"#f97316", special:"lava",
+                 preview:`<div style="background:#040100;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 40% 60%,rgba(255,80,0,0.45) 0%,rgba(180,30,0,0.2) 45%,transparent 70%),radial-gradient(ellipse at 75% 35%,rgba(255,120,10,0.35) 0%,rgba(150,20,0,0.15) 40%,transparent 65%),radial-gradient(ellipse at 20% 30%,rgba(200,50,0,0.3) 0%,transparent 55%);"></div>
+                    <div style="position:absolute;top:25%;left:15%;width:3px;height:20px;background:linear-gradient(to bottom,transparent,rgba(255,160,20,0.8),transparent);transform:rotate(20deg);filter:blur(0.5px);"></div>
+                    <div style="position:absolute;top:55%;left:60%;width:2px;height:15px;background:linear-gradient(to bottom,transparent,rgba(255,120,0,0.7),transparent);transform:rotate(-10deg);filter:blur(0.5px);"></div>
+                    <div style="position:absolute;top:35%;left:75%;width:3px;height:25px;background:linear-gradient(to bottom,transparent,rgba(255,180,30,0.6),transparent);transform:rotate(35deg);filter:blur(0.5px);"></div>
+                    <span style="font-size:1.6rem;z-index:1;filter:drop-shadow(0 0 8px #f97316);">🌋</span>
                  </div>`}
             ];
             adminThemes.forEach(t => {
@@ -4411,6 +4437,246 @@
             if (starBg) starBg.style.display = 'block';
         }
 
+        function startCityLights() {
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (!canvas) return;
+            canvas.style.display = 'block';
+            if (starBg) starBg.style.display = 'none';
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const ctx = canvas.getContext('2d');
+
+            // Build city skyline buildings
+            const buildings = [];
+            let bx = 0;
+            while (bx < canvas.width + 80) {
+                const w = Math.random() * 55 + 20;
+                const h = Math.random() * (canvas.height * 0.55) + canvas.height * 0.1;
+                buildings.push({ x: bx, w, h, floors: Math.floor(h / 14), cols: Math.max(1, Math.floor(w / 14)) });
+                bx += w + Math.random() * 4;
+            }
+
+            // Windows — each has a twinkle timer
+            const windows = [];
+            buildings.forEach(b => {
+                for (let row = 0; row < b.floors; row++) {
+                    for (let col = 0; col < b.cols; col++) {
+                        if (Math.random() > 0.28) {
+                            windows.push({
+                                x: b.x + col * 14 + 3,
+                                y: canvas.height - b.h + row * 14 + 3,
+                                on: Math.random() > 0.35,
+                                timer: Math.random() * 300,
+                                interval: Math.random() * 400 + 80,
+                                r: Math.random() * 20 + 10, // warm tint hue
+                            });
+                        }
+                    }
+                }
+            });
+
+            // Stars above skyline
+            const stars = Array.from({ length: 120 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height * 0.5,
+                r: Math.random() * 1.2 + 0.3,
+                twinkle: Math.random() * Math.PI * 2,
+                speed: Math.random() * 0.02 + 0.005,
+            }));
+
+            // Moon
+            const moonX = canvas.width * 0.8, moonY = canvas.height * 0.15;
+
+            if (window._cityLightsAnim) cancelAnimationFrame(window._cityLightsAnim);
+
+            function drawFrame() {
+                // Night sky gradient
+                const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height * 0.75);
+                skyGrad.addColorStop(0, '#010208');
+                skyGrad.addColorStop(1, '#0a0a18');
+                ctx.fillStyle = skyGrad;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Moon glow
+                const moonGlow = ctx.createRadialGradient(moonX, moonY, 0, moonX, moonY, 55);
+                moonGlow.addColorStop(0, 'rgba(255,248,220,0.12)');
+                moonGlow.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.beginPath(); ctx.arc(moonX, moonY, 55, 0, Math.PI * 2);
+                ctx.fillStyle = moonGlow; ctx.fill();
+                ctx.beginPath(); ctx.arc(moonX, moonY, 14, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,248,210,0.88)'; ctx.fill();
+
+                // Stars
+                stars.forEach(s => {
+                    s.twinkle += s.speed;
+                    const alpha = 0.3 + Math.sin(s.twinkle) * 0.45;
+                    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(220,230,255,${alpha})`; ctx.fill();
+                });
+
+                // Buildings silhouette
+                ctx.fillStyle = '#050508';
+                buildings.forEach(b => {
+                    ctx.fillRect(b.x, canvas.height - b.h, b.w, b.h);
+                });
+
+                // Windows
+                windows.forEach(w => {
+                    w.timer++;
+                    if (w.timer > w.interval) { w.on = !w.on; w.timer = 0; w.interval = Math.random() * 400 + 80; }
+                    if (!w.on) return;
+                    ctx.fillStyle = `hsla(${w.r + 30}, 80%, 75%, 0.85)`;
+                    ctx.fillRect(w.x, w.y, 8, 9);
+                    // Subtle glow
+                    const wg = ctx.createRadialGradient(w.x + 4, w.y + 4, 0, w.x + 4, w.y + 4, 10);
+                    wg.addColorStop(0, `hsla(${w.r + 30},80%,70%,0.18)`);
+                    wg.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.fillStyle = wg;
+                    ctx.fillRect(w.x - 6, w.y - 6, 20, 20);
+                });
+
+                // Ground / road reflection
+                const roadGrad = ctx.createLinearGradient(0, canvas.height - 28, 0, canvas.height);
+                roadGrad.addColorStop(0, 'rgba(10,10,20,0.9)');
+                roadGrad.addColorStop(1, '#000');
+                ctx.fillStyle = roadGrad;
+                ctx.fillRect(0, canvas.height - 28, canvas.width, 28);
+
+                window._cityLightsAnim = requestAnimationFrame(drawFrame);
+            }
+            drawFrame();
+            window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+        }
+
+        function stopCityLights() {
+            if (window._cityLightsAnim) { cancelAnimationFrame(window._cityLightsAnim); window._cityLightsAnim = null; }
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
+            if (starBg) starBg.style.display = 'block';
+        }
+
+        function startLava() {
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (!canvas) return;
+            canvas.style.display = 'block';
+            if (starBg) starBg.style.display = 'none';
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const ctx = canvas.getContext('2d');
+
+            // Lava blobs — slow drifting circles that merge visually
+            const blobs = Array.from({ length: 14 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                r: Math.random() * 130 + 60,
+                vx: (Math.random() - 0.5) * 0.35,
+                vy: (Math.random() - 0.5) * 0.28,
+                hue: Math.random() * 30 + 5, // deep reds/oranges
+                pulse: Math.random() * Math.PI * 2,
+                pulseSpeed: Math.random() * 0.012 + 0.004,
+            }));
+
+            // Hot cracks / veins
+            const cracks = Array.from({ length: 18 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                len: Math.random() * 120 + 40,
+                angle: Math.random() * Math.PI * 2,
+                alpha: Math.random() * 0.5 + 0.1,
+                alphaDir: (Math.random() > 0.5 ? 1 : -1) * 0.005,
+                hue: Math.random() * 25 + 15,
+            }));
+
+            // Ember particles rising
+            const embers = Array.from({ length: 55 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                r: Math.random() * 2.5 + 0.5,
+                vy: -(Math.random() * 0.8 + 0.3),
+                vx: (Math.random() - 0.5) * 0.4,
+                life: Math.random(),
+                hue: Math.random() * 40 + 10,
+            }));
+
+            if (window._lavaAnim) cancelAnimationFrame(window._lavaAnim);
+
+            function drawFrame() {
+                ctx.fillStyle = 'rgba(4,1,0,0.88)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw lava blobs
+                blobs.forEach(b => {
+                    b.pulse += b.pulseSpeed;
+                    b.x += b.vx; b.y += b.vy;
+                    if (b.x < -b.r) b.x = canvas.width + b.r;
+                    if (b.x > canvas.width + b.r) b.x = -b.r;
+                    if (b.y < -b.r) b.y = canvas.height + b.r;
+                    if (b.y > canvas.height + b.r) b.y = -b.r;
+                    const pr = b.r + Math.sin(b.pulse) * 12;
+                    const grad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, pr);
+                    grad.addColorStop(0,   `hsla(${b.hue + 20},100%,72%,0.92)`);
+                    grad.addColorStop(0.3, `hsla(${b.hue + 10},100%,55%,0.75)`);
+                    grad.addColorStop(0.65,`hsla(${b.hue},90%,35%,0.45)`);
+                    grad.addColorStop(1,   `hsla(${b.hue},80%,15%,0)`);
+                    ctx.beginPath();
+                    ctx.arc(b.x, b.y, pr, 0, Math.PI * 2);
+                    ctx.fillStyle = grad;
+                    ctx.fill();
+                });
+
+                // Hot glowing cracks
+                cracks.forEach(c => {
+                    c.alpha += c.alphaDir;
+                    if (c.alpha > 0.65 || c.alpha < 0.05) c.alphaDir *= -1;
+                    c.hue += 0.1;
+                    const ex = c.x + Math.cos(c.angle) * c.len;
+                    const ey = c.y + Math.sin(c.angle) * c.len;
+                    const cg = ctx.createLinearGradient(c.x, c.y, ex, ey);
+                    cg.addColorStop(0, `hsla(${c.hue},100%,65%,0)`);
+                    cg.addColorStop(0.5, `hsla(${c.hue},100%,70%,${c.alpha})`);
+                    cg.addColorStop(1, `hsla(${c.hue},100%,65%,0)`);
+                    ctx.beginPath();
+                    ctx.moveTo(c.x, c.y); ctx.lineTo(ex, ey);
+                    ctx.strokeStyle = cg;
+                    ctx.lineWidth = 1.5;
+                    ctx.shadowColor = `hsla(${c.hue},100%,60%,0.5)`;
+                    ctx.shadowBlur = 6;
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                });
+
+                // Rising embers
+                embers.forEach(e => {
+                    e.y += e.vy; e.x += e.vx;
+                    e.life -= 0.004;
+                    if (e.life <= 0 || e.y < 0) {
+                        e.y = canvas.height + 10;
+                        e.x = Math.random() * canvas.width;
+                        e.life = Math.random() * 0.7 + 0.3;
+                    }
+                    ctx.beginPath();
+                    ctx.arc(e.x, e.y, e.r * e.life, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsla(${e.hue},100%,70%,${e.life * 0.8})`;
+                    ctx.fill();
+                });
+
+                window._lavaAnim = requestAnimationFrame(drawFrame);
+            }
+            drawFrame();
+            window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+        }
+
+        function stopLava() {
+            if (window._lavaAnim) { cancelAnimationFrame(window._lavaAnim); window._lavaAnim = null; }
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
+            if (starBg) starBg.style.display = 'block';
+        }
+
         function setTheme(color, special) {
             localStorage.setItem('starlinkAccent', color);
             localStorage.setItem('starlinkSpecialTheme', special || '');
@@ -4425,6 +4691,8 @@
             stopFireflies();
             stopSupernova();
             stopSolarFlare();
+            stopCityLights();
+            stopLava();
             if (special === 'matrix') startMatrix();
             else if (special === 'bloodmoon') startBloodMoon();
             else if (special === 'cyber') startCyber();
@@ -4435,6 +4703,8 @@
             else if (special === 'fireflies') startFireflies();
             else if (special === 'supernova') startSupernova();
             else if (special === 'solarflare') startSolarFlare();
+            else if (special === 'citylights') startCityLights();
+            else if (special === 'lava') startLava();
         }
 
         function loadTheme() {
@@ -4451,6 +4721,8 @@
             else if (special === 'fireflies') startFireflies();
             else if (special === 'supernova') startSupernova();
             else if (special === 'solarflare') startSolarFlare();
+            else if (special === 'citylights') startCityLights();
+            else if (special === 'lava') startLava();
         }
 
         function createStar(x, y) {
@@ -4600,6 +4872,30 @@
                     <div style="position:absolute;bottom:18px;left:calc(50% + 20px);width:4px;height:30px;background:linear-gradient(to top,rgba(255,140,10,0.8),transparent);border-radius:4px;transform:rotate(25deg);transform-origin:bottom;"></div>
                     <div style="position:absolute;bottom:18px;left:calc(50% - 24px);width:5px;height:38px;background:linear-gradient(to top,rgba(255,120,0,0.7),transparent);border-radius:4px;transform:rotate(-18deg);transform-origin:bottom;"></div>
                     <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(255,100,0,0.18) 0%,transparent 60%);"></div>
+                 </div>`},
+                {name:"City Lights", color:"#fde68a", special:"citylights",
+                 preview:`<div style="background:#010208;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:flex-end;justify-content:center;">
+                    <div style="position:absolute;top:8px;right:18px;width:10px;height:10px;border-radius:50%;background:rgba(255,248,210,0.85);box-shadow:0 0 8px rgba(255,248,180,0.5);"></div>
+                    <div style="position:absolute;inset:0;background:linear-gradient(to bottom,#010208,#05051a 60%,#080814);"></div>
+                    <div style="position:absolute;bottom:0;left:0;right:0;height:70%;display:flex;align-items:flex-end;gap:1px;">
+                        <div style="width:14px;height:55%;background:#060608;position:relative;"><div style="position:absolute;top:4px;left:2px;width:4px;height:4px;background:rgba(255,220,120,0.9);box-shadow:0 0 3px rgba(255,200,80,0.5);"></div><div style="position:absolute;top:12px;left:2px;width:4px;height:4px;background:rgba(255,180,80,0.5);"></div></div>
+                        <div style="width:10px;height:38%;background:#060608;"></div>
+                        <div style="width:18px;height:65%;background:#06060a;position:relative;"><div style="position:absolute;top:6px;left:2px;width:4px;height:4px;background:rgba(200,220,255,0.8);"></div><div style="position:absolute;top:6px;left:8px;width:4px;height:4px;background:rgba(255,200,100,0.7);"></div><div style="position:absolute;top:14px;left:2px;width:4px;height:4px;background:rgba(255,220,100,0.6);"></div></div>
+                        <div style="width:12px;height:45%;background:#050508;position:relative;"><div style="position:absolute;top:5px;left:2px;width:4px;height:4px;background:rgba(255,240,180,0.85);box-shadow:0 0 3px rgba(255,220,100,0.4);"></div></div>
+                        <div style="width:20px;height:80%;background:#070709;position:relative;"><div style="position:absolute;top:4px;left:2px;width:4px;height:4px;background:rgba(180,220,255,0.7);"></div><div style="position:absolute;top:4px;left:8px;width:4px;height:4px;background:rgba(255,200,80,0.8);"></div><div style="position:absolute;top:12px;left:2px;width:4px;height:4px;background:rgba(255,220,120,0.6);"></div><div style="position:absolute;top:12px;left:8px;width:4px;height:4px;background:rgba(200,240,255,0.5);"></div></div>
+                        <div style="width:10px;height:30%;background:#050508;"></div>
+                        <div style="width:16px;height:58%;background:#060609;position:relative;"><div style="position:absolute;top:6px;left:2px;width:4px;height:4px;background:rgba(255,200,100,0.75);"></div></div>
+                        <div style="flex:1;height:20%;background:#040406;"></div>
+                    </div>
+                    <span style="font-size:1.3rem;z-index:1;position:absolute;bottom:6px;right:8px;">🌃</span>
+                 </div>`},
+                {name:"Lava", color:"#f97316", special:"lava",
+                 preview:`<div style="background:#040100;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 40% 60%,rgba(255,80,0,0.45) 0%,rgba(180,30,0,0.2) 45%,transparent 70%),radial-gradient(ellipse at 75% 35%,rgba(255,120,10,0.35) 0%,rgba(150,20,0,0.15) 40%,transparent 65%),radial-gradient(ellipse at 20% 30%,rgba(200,50,0,0.3) 0%,transparent 55%);"></div>
+                    <div style="position:absolute;top:25%;left:15%;width:3px;height:20px;background:linear-gradient(to bottom,transparent,rgba(255,160,20,0.8),transparent);transform:rotate(20deg);filter:blur(0.5px);"></div>
+                    <div style="position:absolute;top:55%;left:60%;width:2px;height:15px;background:linear-gradient(to bottom,transparent,rgba(255,120,0,0.7),transparent);transform:rotate(-10deg);filter:blur(0.5px);"></div>
+                    <div style="position:absolute;top:35%;left:75%;width:3px;height:25px;background:linear-gradient(to bottom,transparent,rgba(255,180,30,0.6),transparent);transform:rotate(35deg);filter:blur(0.5px);"></div>
+                    <span style="font-size:1.6rem;z-index:1;filter:drop-shadow(0 0 8px #f97316);">🌋</span>
                  </div>`}
             ];
             adminThemes.forEach(t => {
