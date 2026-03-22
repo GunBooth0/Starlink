@@ -5296,7 +5296,6 @@
                 print('');
                 print('  <span style="color:#00ff41;font-weight:bold">THEME</span>');
                 info('<span style="color:#fff">theme &lt;#hex&gt;</span>             — set accent color');
-                info('<span style="color:#fff">theme matrix</span>             — activate matrix theme');
                 info('<span style="color:#fff">theme reset</span>              — reset to default white');
                 info('<span style="color:#fff">theme list</span>               — show all available colors');
                 info('<span style="color:#fff">theme current</span>            — show active theme');
@@ -5491,7 +5490,7 @@
             if (c === 'theme') {
                 if      (args[0]==='reset')  { setTheme('#ffffff','');       ok('Theme reset to default'); }
                 else if (args[0]?.startsWith('#')) { setTheme(args[0],'');  ok(`Accent set to ${args[0]}`); }
-                else err('Usage: theme <#hex> | matrix | reset');
+                else err('Usage: theme <#hex> | reset');
                 return;
             }
 
