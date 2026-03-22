@@ -1142,6 +1142,8 @@
                         const newVerified = data.verified === true || user.email === ADMIN_EMAIL;
                         if (newVerified !== window.isVerifiedUser) {
                             window.isVerifiedUser = newVerified;
+                            // Rebuild nav so Request Verification tab appears/disappears instantly
+                            window.buildNav();
                             // Show/hide verified badge on account tab
                             const verifiedBadgeEl = document.getElementById('account-verified-badge');
                             if (verifiedBadgeEl) {
