@@ -1059,9 +1059,8 @@
                     window.populateAllGrids();
                     if (window.isAdminUser && !document.getElementById('content-admin').classList.contains('hidden')) {
                         window.reloadAdminSites();
-                    } else if (window.initialLoadComplete) {
-                        document.getElementById('refresh-modal').classList.add('show');
                     }
+                    // Silent update for all users — no refresh modal needed
                 });
 
                 // Listen for owner broadcast refresh
@@ -1082,11 +1081,8 @@
                 });
 
                 announcementListener = onSnapshot(doc(db, "config", "announcement"), () => {
-                    if (!window.isAdminUser && window.initialLoadComplete) {
-                        document.getElementById('refresh-modal').classList.add('show');
-                    } else {
-                        window.showGlobalAnnouncement();
-                    }
+                    // Silently update announcement for everyone — no refresh modal needed
+                    window.showGlobalAnnouncement();
                 });
 
                 categoriesListener = onSnapshot(collection(db, "categories"), async () => {
@@ -1098,9 +1094,8 @@
                     window.populateCategorySelect();
                     if (window.isAdminUser && !document.getElementById('content-admin').classList.contains('hidden')) {
                         window.reloadAdminCategories();
-                    } else {
-                        document.getElementById('refresh-modal').classList.add('show');
                     }
+                    // Silent update for all users — no refresh modal needed
                 });
 
                 // Watch this user's own doc for ban or admin changes made by the owner
