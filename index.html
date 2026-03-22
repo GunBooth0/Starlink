@@ -3205,12 +3205,7 @@
                 await Promise.all(dmSnap.docs.filter(d => d.data().uid === uid).map(d => setDoc(d.ref, { verified: grant }, { merge: true })));
                 window.loadAdminUsers();
                 if (!silent) {
-                    // Show a brief non-blocking toast
-                    const toast = document.createElement('div');
-                    toast.textContent = grant ? 'Verified badge granted ✓' : 'Verified badge revoked';
-                    toast.style.cssText = 'position:fixed;bottom:2rem;right:2rem;z-index:99999;background:rgba(30,30,40,0.95);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:0.75rem 1.5rem;border-radius:1rem;font-size:0.95rem;box-shadow:0 4px 24px rgba(0,0,0,0.4);transition:opacity 0.4s ease;';
-                    document.body.appendChild(toast);
-                    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 2500);
+                    alert(grant ? 'Verified badge granted ✓' : 'Verified badge revoked.');
                 }
             } catch(e) { alert('Error: ' + e.message); }
         };
