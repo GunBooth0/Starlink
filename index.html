@@ -1113,17 +1113,49 @@
                         document.getElementById('refresh-modal').classList.add('show');
                         return;
                     }
-                    // Admin revoked or granted — show refresh modal
+                    // Admin revoked or granted — silently update nav and permissions
                     if (window.initialLoadComplete) {
                         const newIsAdmin = data.isAdmin === true || user.email === ADMIN_EMAIL;
                         if (newIsAdmin !== window.isAdminUser) {
-                            document.getElementById('refresh-modal').classList.add('show');
+                            window.isAdminUser = newIsAdmin;
+                            // Rebuild nav to add/remove admin tab
+                            window.buildNav();
+                            // If admin was revoked, strip any admin-only themes
+                            if (!newIsAdmin) {
+                                const _special = localStorage.getItem('starlinkSpecialTheme');
+                                if (_special && _special !== '') {
+                                    localStorage.removeItem('starlinkSpecialTheme');
+                                    localStorage.setItem('starlinkAccent', '#ffffff');
+                                    document.documentElement.style.setProperty('--accent', '#ffffff');
+                                }
+                            }
+                            // Update presence role
+                            const newRole = user.email === ADMIN_EMAIL ? 'Owner' : newIsAdmin ? 'Admin' : 'User';
+                            window.startPresence(user.uid, window.currentDisplayName, newRole);
+                            // Update account tab role badge
+                            window.updateAccountTab(user, data);
                         }
-                        // Verified badge changed — show refresh modal and rebuild nav
+                        // Verified badge changed — silently update badge, no refresh needed
                         const newVerified = data.verified === true || user.email === ADMIN_EMAIL;
                         if (newVerified !== window.isVerifiedUser) {
                             window.isVerifiedUser = newVerified;
-                            document.getElementById('refresh-modal').classList.add('show');
+                            // Show/hide verified badge on account tab
+                            const verifiedBadgeEl = document.getElementById('account-verified-badge');
+                            if (verifiedBadgeEl) {
+                                if (newVerified) verifiedBadgeEl.classList.remove('hidden');
+                                else verifiedBadgeEl.classList.add('hidden');
+                            }
+                            // Update verify status text on account tab
+                            const verifyStatus = document.getElementById('account-verify-status');
+                            if (verifyStatus) {
+                                if (newVerified) {
+                                    verifyStatus.textContent = '✓ You have this badge';
+                                    verifyStatus.style.cssText = 'background:rgba(59,130,246,0.15);color:#3b82f6;font-weight:600;';
+                                } else {
+                                    verifyStatus.textContent = 'You do not currently have this badge';
+                                    verifyStatus.style.cssText = 'background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.4);';
+                                }
+                            }
                         }
                         // Display name changed — silently update everywhere, no refresh needed
                         const newName = data.displayName || user.email.split('@')[0];
