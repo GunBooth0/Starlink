@@ -42,15 +42,32 @@
             0%, 100% { filter: drop-shadow(0 0 20px var(--accent)); }
             50% { filter: drop-shadow(0 0 45px var(--accent)); }
         }
+        /* Liquid nav blob */
+        #nav-blob {
+            position: absolute;
+            left: 0.75rem;
+            right: 0.75rem;
+            border-radius: 1rem;
+            background: rgba(255,255,255,0.08);
+            pointer-events: none;
+            z-index: 0;
+            transition: top 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.2s ease;
+            opacity: 0;
+        }
+        #nav-links {
+            position: relative;
+        }
         .nav-link {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            color: #ffffff;
+            position: relative;
+            z-index: 1;
         }
      
         .nav-link:hover,
         .nav-link.active-tab {
             color: var(--accent) !important;
-            background: rgba(255,255,255,0.08);
+            background: transparent;
         }
         .nav-link i {
             color: inherit;
@@ -238,7 +255,9 @@
                 <p class="text-xs text-white/70 tracking-wide -mt-1">By: Gunnar Booth</p>
             </div>
         </div>
-        <div class="flex-1 px-6 py-8 overflow-y-auto" id="nav-links"></div>
+        <div class="flex-1 px-6 py-8 overflow-y-auto" id="nav-links">
+            <div id="nav-blob"></div>
+        </div>
     </div>
 
     <!-- MAIN CONTENT -->
@@ -3384,7 +3403,10 @@
         window.switchTab = function(index) {
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
             const activeEl = document.getElementById(`tab-${index}`);
-            if (activeEl) activeEl.classList.add('active-tab');
+            if (activeEl) {
+                activeEl.classList.add('active-tab');
+                requestAnimationFrame(() => moveNavBlob(activeEl));
+            }
 
             if (!window.currentUser) {
                 document.getElementById('current-tab').textContent = 'Sign In Required';
@@ -4960,6 +4982,54 @@
                 container.appendChild(div);
             });
         };
+
+        // ── Liquid nav blob ──
+        function moveNavBlob(targetEl) {
+            const blob = document.getElementById('nav-blob');
+            const container = document.getElementById('nav-links');
+            if (!blob || !targetEl || !container) return;
+            const containerRect = container.getBoundingClientRect();
+            const targetRect = targetEl.getBoundingClientRect();
+            const scrollTop = container.scrollTop;
+            const top = targetRect.top - containerRect.top + scrollTop;
+            blob.style.top = `${top}px`;
+            blob.style.height = `${targetRect.height}px`;
+            blob.style.opacity = '1';
+        }
+
+        // Move blob on hover too
+        document.addEventListener('mouseover', e => {
+            const link = e.target.closest('.nav-link');
+            if (!link) return;
+            // Only show hover blob if this isn't the active tab (active already has it)
+            if (!link.classList.contains('active-tab')) {
+                const blob = document.getElementById('nav-blob');
+                if (!blob) return;
+                const container = document.getElementById('nav-links');
+                const containerRect = container.getBoundingClientRect();
+                const linkRect = link.getBoundingClientRect();
+                const scrollTop = container.scrollTop;
+                blob.style.top = `${linkRect.top - containerRect.top + scrollTop}px`;
+                blob.style.height = `${linkRect.height}px`;
+                blob.style.opacity = '1';
+                blob.style.background = 'rgba(255,255,255,0.05)';
+            }
+        });
+
+        document.addEventListener('mouseout', e => {
+            const link = e.target.closest('.nav-link');
+            if (!link || link.classList.contains('active-tab')) return;
+            // Return blob to active tab position
+            const activeLink = document.querySelector('.nav-link.active-tab');
+            if (activeLink) {
+                moveNavBlob(activeLink);
+                const blob = document.getElementById('nav-blob');
+                if (blob) blob.style.background = 'rgba(255,255,255,0.08)';
+            } else {
+                const blob = document.getElementById('nav-blob');
+                if (blob) blob.style.opacity = '0';
+            }
+        });
 
         window.buildNav = () => {
             const navLinks = document.getElementById('nav-links');
