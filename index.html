@@ -971,7 +971,7 @@
                 window.registerUsername(user.uid, userDocData.displayName || user.email.split('@')[0]);
                 // If admin was revoked and had an admin-only theme, clear it locally
                 const _special = localStorage.getItem('starlinkSpecialTheme');
-                if (!window.isAdminUser && (_special === 'matrix' || _special === 'bloodmoon' || _special === 'cyber' || _special === 'nebula' || _special === 'arcade' || _special === 'diamond')) {
+                if (!window.isAdminUser && (_special === 'matrix' || _special === 'bloodmoon' || _special === 'cyber' || _special === 'nebula' || _special === 'arcade' || _special === 'diamond' || _special === 'thunderstorm' || _special === 'fireflies' || _special === 'supernova' || _special === 'solarflare')) {
                     localStorage.removeItem('starlinkSpecialTheme');
                     localStorage.setItem('starlinkAccent', '#ffffff');
                     stopMatrix();
@@ -980,6 +980,10 @@
                     stopNebula();
                     stopArcade();
                     stopDiamond();
+                    stopThunderstorm();
+                    stopFireflies();
+                    stopSupernova();
+                    stopSolarFlare();
                     document.documentElement.style.setProperty('--accent', '#ffffff');
                 }
 
@@ -2838,6 +2842,36 @@
                     <div style="position:absolute;top:35%;left:65%;width:1px;height:18px;background:linear-gradient(to bottom,transparent,rgba(180,240,220,0.8),transparent);transform:rotate(-20deg);"></div>
                     <div style="position:absolute;top:60%;left:45%;width:1px;height:22px;background:linear-gradient(to bottom,transparent,rgba(210,200,255,0.85),transparent);transform:rotate(55deg);"></div>
                     <span style="font-size:1.6rem;z-index:1;filter:drop-shadow(0 0 8px #e0f2fe);">💎</span>
+                 </div>`},
+                {name:"Thunderstorm", color:"#94a3b8", special:"thunderstorm",
+                 preview:`<div style="background:#04060e;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;inset:0;background:linear-gradient(to bottom,#060a14,#0a0e1a);"></div>
+                    <div style="position:absolute;top:0;left:38%;width:1px;height:55%;background:linear-gradient(to bottom,rgba(200,220,255,0.9),rgba(180,210,255,0.3),transparent);clip-path:polygon(0 0,100% 0,60% 50%,100% 50%,0% 100%,40% 50%,0 50%);filter:blur(0.5px);"></div>
+                    <div style="position:absolute;inset:0;background:repeating-linear-gradient(175deg,transparent,transparent 2px,rgba(160,200,255,0.04) 2px,rgba(160,200,255,0.04) 3px);"></div>
+                    <span style="font-size:1.6rem;z-index:1;filter:drop-shadow(0 0 6px #94a3b8);">⛈️</span>
+                 </div>`},
+                {name:"Fireflies", color:"#a3e635", special:"fireflies",
+                 preview:`<div style="background:#01050 3;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;bottom:0;left:0;right:0;height:35%;background:#000;clip-path:polygon(0 40%,8% 0%,16% 35%,25% 5%,33% 30%,42% 0%,50% 28%,58% 8%,67% 35%,75% 5%,83% 30%,92% 0%,100% 25%,100% 100%,0 100%);"></div>
+                    <div style="position:absolute;width:5px;height:5px;border-radius:50%;background:radial-gradient(circle,rgba(180,255,100,0.95),rgba(120,220,50,0.3),transparent);top:30%;left:20%;filter:blur(1px);"></div>
+                    <div style="position:absolute;width:4px;height:4px;border-radius:50%;background:radial-gradient(circle,rgba(200,255,120,0.8),transparent);top:55%;left:65%;filter:blur(1px);"></div>
+                    <div style="position:absolute;width:6px;height:6px;border-radius:50%;background:radial-gradient(circle,rgba(160,255,80,0.9),rgba(100,200,40,0.2),transparent);top:40%;left:45%;filter:blur(1px);"></div>
+                    <div style="position:absolute;width:3px;height:3px;border-radius:50%;background:radial-gradient(circle,rgba(220,255,150,0.7),transparent);top:25%;left:75%;filter:blur(0.5px);"></div>
+                    <span style="font-size:1.6rem;z-index:1;">✨</span>
+                 </div>`},
+                {name:"Supernova", color:"#fbbf24", special:"supernova",
+                 preview:`<div style="background:#02000 8;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(255,200,80,0.35) 0%,rgba(255,100,10,0.2) 30%,rgba(180,20,0,0.08) 60%,transparent 80%);"></div>
+                    <div style="position:absolute;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,180,50,0.5);top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 12px rgba(255,160,30,0.4);"></div>
+                    <div style="position:absolute;width:65px;height:65px;border-radius:50%;border:1px solid rgba(255,140,20,0.25);top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+                    <span style="font-size:1.6rem;z-index:1;filter:drop-shadow(0 0 10px #fbbf24);">💥</span>
+                 </div>`},
+                {name:"Solar Flare", color:"#f97316", special:"solarflare",
+                 preview:`<div style="background:#050200;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);width:60px;height:60px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#fff 0%,#ffdc50 25%,#ff8c00 55%,rgba(200,50,0,0) 80%);box-shadow:0 0 30px rgba(255,140,0,0.6),0 0 60px rgba(255,80,0,0.3);"></div>
+                    <div style="position:absolute;bottom:18px;left:calc(50% + 20px);width:4px;height:30px;background:linear-gradient(to top,rgba(255,140,10,0.8),transparent);border-radius:4px;transform:rotate(25deg);transform-origin:bottom;"></div>
+                    <div style="position:absolute;bottom:18px;left:calc(50% - 24px);width:5px;height:38px;background:linear-gradient(to top,rgba(255,120,0,0.7),transparent);border-radius:4px;transform:rotate(-18deg);transform-origin:bottom;"></div>
+                    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(255,100,0,0.18) 0%,transparent 60%);"></div>
                  </div>`}
             ];
             adminThemes.forEach(t => {
@@ -3930,6 +3964,453 @@
             if (starBg) starBg.style.display = 'block';
         }
 
+        function startThunderstorm() {
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (!canvas) return;
+            canvas.style.display = 'block';
+            if (starBg) starBg.style.display = 'none';
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const ctx = canvas.getContext('2d');
+
+            // Rain drops
+            const drops = Array.from({length: 220}, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                len: Math.random() * 18 + 8,
+                speed: Math.random() * 10 + 12,
+                alpha: Math.random() * 0.35 + 0.1,
+            }));
+
+            // Lightning state
+            let lightningTimer = 0;
+            let lightningFlash = 0;
+            let lightningBolts = [];
+
+            function generateBolt(x, y, angle, depth) {
+                if (depth <= 0) return;
+                const len = Math.random() * 80 + 40;
+                const nx = x + Math.sin(angle) * len;
+                const ny = y + Math.cos(angle) * len;
+                lightningBolts.push({x1: x, y1: y, x2: nx, y2: ny, depth});
+                if (Math.random() > 0.4) generateBolt(nx, ny, angle + (Math.random() - 0.5) * 0.9, depth - 1);
+                if (Math.random() > 0.65) generateBolt(nx, ny, angle + (Math.random() - 0.5) * 1.4, depth - 2);
+            }
+
+            if (window._stormAnim) cancelAnimationFrame(window._stormAnim);
+
+            function drawFrame() {
+                // Dark stormy sky
+                ctx.fillStyle = lightningFlash > 0
+                    ? `rgba(180,200,230,${Math.min(lightningFlash * 0.12, 0.18)})`
+                    : 'rgba(4,6,14,0.72)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Rain
+                ctx.strokeStyle = 'rgba(160,200,255,0.28)';
+                ctx.lineWidth = 1;
+                drops.forEach(d => {
+                    d.y += d.speed;
+                    d.x += 1.5;
+                    if (d.y > canvas.height) { d.y = -d.len; d.x = Math.random() * canvas.width; }
+                    if (d.x > canvas.width) d.x = 0;
+                    ctx.beginPath();
+                    ctx.moveTo(d.x, d.y);
+                    ctx.lineTo(d.x - 2, d.y - d.len);
+                    ctx.stroke();
+                });
+
+                // Lightning flash overlay
+                if (lightningFlash > 0) {
+                    ctx.fillStyle = `rgba(210,230,255,${lightningFlash * 0.08})`;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // Draw bolts
+                    lightningBolts.forEach(b => {
+                        ctx.strokeStyle = `rgba(220,240,255,${Math.min(lightningFlash * 0.6, 0.9)})`;
+                        ctx.lineWidth = b.depth * 0.8;
+                        ctx.shadowColor = 'rgba(180,210,255,0.9)';
+                        ctx.shadowBlur = 12;
+                        ctx.beginPath();
+                        ctx.moveTo(b.x1, b.y1);
+                        ctx.lineTo(b.x2, b.y2);
+                        ctx.stroke();
+                        ctx.shadowBlur = 0;
+                    });
+                    lightningFlash -= 0.06;
+                    if (lightningFlash < 0) lightningFlash = 0;
+                }
+
+                // Trigger new lightning
+                lightningTimer--;
+                if (lightningTimer <= 0) {
+                    lightningBolts = [];
+                    const boltX = Math.random() * canvas.width;
+                    generateBolt(boltX, 0, 0, 5);
+                    lightningFlash = 1.0;
+                    lightningTimer = Math.random() * 180 + 60;
+                }
+
+                window._stormAnim = requestAnimationFrame(drawFrame);
+            }
+            drawFrame();
+            window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+        }
+
+        function stopThunderstorm() {
+            if (window._stormAnim) { cancelAnimationFrame(window._stormAnim); window._stormAnim = null; }
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
+            if (starBg) starBg.style.display = 'block';
+        }
+
+        function startFireflies() {
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (!canvas) return;
+            canvas.style.display = 'block';
+            if (starBg) starBg.style.display = 'none';
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const ctx = canvas.getContext('2d');
+
+            const flies = Array.from({length: 55}, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.6,
+                vy: (Math.random() - 0.5) * 0.5,
+                life: Math.random() * Math.PI * 2,
+                lifeSpeed: Math.random() * 0.025 + 0.008,
+                r: Math.random() * 2.5 + 1.2,
+                hue: Math.random() * 30 + 75, // warm yellow-greens
+                wanderAngle: Math.random() * Math.PI * 2,
+                wanderSpeed: (Math.random() - 0.5) * 0.04,
+            }));
+
+            if (window._firefliesAnim) cancelAnimationFrame(window._firefliesAnim);
+
+            function drawFrame() {
+                ctx.fillStyle = 'rgba(1,5,3,0.78)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Faint dark tree silhouette at bottom
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                ctx.beginPath();
+                ctx.rect(0, canvas.height * 0.82, canvas.width, canvas.height * 0.18);
+                ctx.fill();
+                // Simple tree tops
+                for (let i = 0; i < 12; i++) {
+                    const tx = (canvas.width / 11) * i;
+                    const th = Math.sin(i * 1.7) * 40 + 80;
+                    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                    ctx.beginPath();
+                    ctx.moveTo(tx, canvas.height);
+                    ctx.lineTo(tx + 30, canvas.height - th);
+                    ctx.lineTo(tx + 60, canvas.height);
+                    ctx.fill();
+                }
+
+                flies.forEach(f => {
+                    // Organic wander movement
+                    f.wanderAngle += f.wanderSpeed;
+                    f.vx += Math.cos(f.wanderAngle) * 0.02;
+                    f.vy += Math.sin(f.wanderAngle) * 0.02;
+                    // Dampen velocity
+                    f.vx *= 0.97;
+                    f.vy *= 0.97;
+                    f.x += f.vx;
+                    f.y += f.vy;
+                    // Wrap
+                    if (f.x < 0) f.x = canvas.width;
+                    if (f.x > canvas.width) f.x = 0;
+                    if (f.y < 0) f.y = canvas.height * 0.8;
+                    if (f.y > canvas.height * 0.85) f.y = 20;
+
+                    f.life += f.lifeSpeed;
+                    const brightness = (Math.sin(f.life) + 1) / 2;
+                    if (brightness < 0.08) return; // off phase
+
+                    const glow = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 8);
+                    glow.addColorStop(0, `hsla(${f.hue},100%,75%,${brightness * 0.9})`);
+                    glow.addColorStop(0.3, `hsla(${f.hue},90%,60%,${brightness * 0.4})`);
+                    glow.addColorStop(1, `hsla(${f.hue},80%,50%,0)`);
+                    ctx.beginPath();
+                    ctx.arc(f.x, f.y, f.r * 8, 0, Math.PI * 2);
+                    ctx.fillStyle = glow;
+                    ctx.fill();
+
+                    // Bright core
+                    ctx.beginPath();
+                    ctx.arc(f.x, f.y, f.r * brightness, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsla(${f.hue},100%,90%,${brightness})`;
+                    ctx.fill();
+                });
+
+                window._firefliesAnim = requestAnimationFrame(drawFrame);
+            }
+            drawFrame();
+            window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+        }
+
+        function stopFireflies() {
+            if (window._firefliesAnim) { cancelAnimationFrame(window._firefliesAnim); window._firefliesAnim = null; }
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
+            if (starBg) starBg.style.display = 'block';
+        }
+
+        function startSupernova() {
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (!canvas) return;
+            canvas.style.display = 'block';
+            if (starBg) starBg.style.display = 'none';
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const ctx = canvas.getContext('2d');
+
+            let phase = 0; // 0=buildup, 1=explosion, 2=fade, 3=cooldown
+            let phaseTimer = 0;
+            let blastR = 0;
+            const cx = canvas.width / 2, cy = canvas.height / 2;
+
+            // Background stars
+            const stars = Array.from({length: 180}, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                r: Math.random() * 1.5 + 0.3,
+                alpha: Math.random() * 0.7 + 0.2,
+            }));
+
+            // Debris particles ejected on explosion
+            let debris = [];
+
+            function triggerExplosion() {
+                phase = 1; blastR = 0; phaseTimer = 0;
+                debris = Array.from({length: 120}, () => {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 6 + 1.5;
+                    return {
+                        x: cx, y: cy,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        life: 1.0,
+                        decay: Math.random() * 0.012 + 0.005,
+                        r: Math.random() * 2.5 + 0.8,
+                        hue: Math.random() * 50 + 20, // gold/orange/white
+                    };
+                });
+            }
+
+            if (window._supernovaAnim) cancelAnimationFrame(window._supernovaAnim);
+            triggerExplosion();
+
+            function drawFrame() {
+                ctx.fillStyle = 'rgba(2,0,8,0.88)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Background stars
+                stars.forEach(s => {
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255,240,200,${s.alpha})`;
+                    ctx.fill();
+                });
+
+                phaseTimer++;
+
+                if (phase === 1) {
+                    // Expanding blast wave rings
+                    blastR += 4.5;
+                    for (let ring = 0; ring < 3; ring++) {
+                        const rr = blastR - ring * 18;
+                        if (rr <= 0) continue;
+                        const alpha = Math.max(0, 1 - rr / (canvas.width * 0.7)) * (1 - ring * 0.28);
+                        const grad = ctx.createRadialGradient(cx, cy, Math.max(0, rr - 30), cx, cy, rr);
+                        grad.addColorStop(0, `rgba(255,255,220,0)`);
+                        grad.addColorStop(0.7, `rgba(255,180,60,${alpha * 0.5})`);
+                        grad.addColorStop(0.9, `rgba(255,240,160,${alpha})`);
+                        grad.addColorStop(1, `rgba(255,255,255,0)`);
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, rr, 0, Math.PI * 2);
+                        ctx.fillStyle = grad;
+                        ctx.fill();
+                    }
+
+                    // Bright core flash
+                    const coreAlpha = Math.max(0, 1 - blastR / 300);
+                    if (coreAlpha > 0) {
+                        const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 120 * coreAlpha);
+                        coreGrad.addColorStop(0, `rgba(255,255,255,${coreAlpha})`);
+                        coreGrad.addColorStop(0.4, `rgba(255,220,100,${coreAlpha * 0.8})`);
+                        coreGrad.addColorStop(1, 'rgba(255,100,0,0)');
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, 120 * coreAlpha, 0, Math.PI * 2);
+                        ctx.fillStyle = coreGrad;
+                        ctx.fill();
+                    }
+
+                    if (blastR > canvas.width * 0.85) { phase = 2; phaseTimer = 0; }
+                }
+
+                // Debris particles always drawn during/after explosion
+                debris.forEach(d => {
+                    d.x += d.vx; d.y += d.vy;
+                    d.vx *= 0.995; d.vy *= 0.995;
+                    d.life -= d.decay;
+                    if (d.life <= 0) return;
+                    const grad = ctx.createRadialGradient(d.x, d.y, 0, d.x, d.y, d.r * 3);
+                    grad.addColorStop(0, `hsla(${d.hue},100%,90%,${d.life})`);
+                    grad.addColorStop(1, `hsla(${d.hue},100%,60%,0)`);
+                    ctx.beginPath();
+                    ctx.arc(d.x, d.y, d.r * 3, 0, Math.PI * 2);
+                    ctx.fillStyle = grad;
+                    ctx.fill();
+                });
+
+                if (phase === 2 && phaseTimer > 140) { phase = 3; phaseTimer = 0; }
+                if (phase === 3 && phaseTimer > 90) triggerExplosion();
+
+                window._supernovaAnim = requestAnimationFrame(drawFrame);
+            }
+            drawFrame();
+            window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+        }
+
+        function stopSupernova() {
+            if (window._supernovaAnim) { cancelAnimationFrame(window._supernovaAnim); window._supernovaAnim = null; }
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
+            if (starBg) starBg.style.display = 'block';
+        }
+
+        function startSolarFlare() {
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (!canvas) return;
+            canvas.style.display = 'block';
+            if (starBg) starBg.style.display = 'none';
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const ctx = canvas.getContext('2d');
+
+            const cx = canvas.width / 2, cy = canvas.height * 0.72;
+
+            // Pulse rings expanding from sun core
+            let rings = [];
+            let ringTimer = 0;
+
+            // Solar prominence arcs
+            const prominences = Array.from({length: 6}, (_, i) => ({
+                angle: (Math.PI / 5) * i - Math.PI * 0.5,
+                len: Math.random() * 80 + 60,
+                width: Math.random() * 18 + 8,
+                speed: (Math.random() - 0.5) * 0.008,
+                alpha: Math.random() * 0.5 + 0.3,
+                alphaDir: (Math.random() > 0.5 ? 1 : -1) * 0.004,
+            }));
+
+            // Particle stream
+            const particles = Array.from({length: 80}, () => ({
+                angle: Math.random() * Math.PI * 2,
+                dist: Math.random() * 60 + 40,
+                speed: Math.random() * 0.02 + 0.005,
+                r: Math.random() * 2 + 0.5,
+                alpha: Math.random() * 0.7 + 0.2,
+                hue: Math.random() * 40 + 25,
+            }));
+
+            if (window._solarFlareAnim) cancelAnimationFrame(window._solarFlareAnim);
+
+            function drawFrame() {
+                ctx.fillStyle = 'rgba(5,2,0,0.82)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Ambient deep orange glow from below
+                const ambientGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, canvas.width * 0.7);
+                ambientGrad.addColorStop(0, 'rgba(255,120,10,0.22)');
+                ambientGrad.addColorStop(0.4, 'rgba(200,60,0,0.08)');
+                ambientGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.beginPath();
+                ctx.arc(cx, cy, canvas.width * 0.7, 0, Math.PI * 2);
+                ctx.fillStyle = ambientGrad;
+                ctx.fill();
+
+                // Expanding pulse rings
+                ringTimer++;
+                if (ringTimer > 45) { rings.push({ r: 55, alpha: 0.7 }); ringTimer = 0; }
+                rings = rings.filter(ring => ring.alpha > 0.01);
+                rings.forEach(ring => {
+                    ring.r += 2.8;
+                    ring.alpha -= 0.006;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, ring.r, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(255,160,30,${ring.alpha})`;
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+                });
+
+                // Solar prominences — curved arcs shooting out
+                prominences.forEach(p => {
+                    p.angle += p.speed;
+                    p.alpha += p.alphaDir;
+                    if (p.alpha > 0.85 || p.alpha < 0.15) p.alphaDir *= -1;
+                    const ex = cx + Math.cos(p.angle) * (55 + p.len);
+                    const ey = cy + Math.sin(p.angle) * (55 + p.len);
+                    const cpx = cx + Math.cos(p.angle + 0.5) * (55 + p.len * 0.6);
+                    const cpy = cy + Math.sin(p.angle + 0.5) * (55 + p.len * 0.6);
+                    ctx.beginPath();
+                    ctx.moveTo(cx + Math.cos(p.angle) * 52, cy + Math.sin(p.angle) * 52);
+                    ctx.quadraticCurveTo(cpx, cpy, ex, ey);
+                    ctx.strokeStyle = `rgba(255,180,40,${p.alpha})`;
+                    ctx.lineWidth = p.width * p.alpha;
+                    ctx.lineCap = 'round';
+                    ctx.shadowColor = 'rgba(255,140,0,0.6)';
+                    ctx.shadowBlur = 16;
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                });
+
+                // Orbiting corona particles
+                particles.forEach(p => {
+                    p.angle += p.speed;
+                    const px = cx + Math.cos(p.angle) * p.dist;
+                    const py = cy + Math.sin(p.angle) * p.dist;
+                    ctx.beginPath();
+                    ctx.arc(px, py, p.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsla(${p.hue},100%,75%,${p.alpha})`;
+                    ctx.fill();
+                });
+
+                // Sun core
+                const sunGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 55);
+                sunGrad.addColorStop(0, 'rgba(255,255,220,1)');
+                sunGrad.addColorStop(0.3, 'rgba(255,220,80,0.95)');
+                sunGrad.addColorStop(0.7, 'rgba(255,120,10,0.8)');
+                sunGrad.addColorStop(1, 'rgba(200,50,0,0)');
+                ctx.beginPath();
+                ctx.arc(cx, cy, 55, 0, Math.PI * 2);
+                ctx.fillStyle = sunGrad;
+                ctx.fill();
+
+                window._solarFlareAnim = requestAnimationFrame(drawFrame);
+            }
+            drawFrame();
+            window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+        }
+
+        function stopSolarFlare() {
+            if (window._solarFlareAnim) { cancelAnimationFrame(window._solarFlareAnim); window._solarFlareAnim = null; }
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
+            if (starBg) starBg.style.display = 'block';
+        }
+
         function setTheme(color, special) {
             localStorage.setItem('starlinkAccent', color);
             localStorage.setItem('starlinkSpecialTheme', special || '');
@@ -3940,12 +4421,20 @@
             stopNebula();
             stopArcade();
             stopDiamond();
+            stopThunderstorm();
+            stopFireflies();
+            stopSupernova();
+            stopSolarFlare();
             if (special === 'matrix') startMatrix();
             else if (special === 'bloodmoon') startBloodMoon();
             else if (special === 'cyber') startCyber();
             else if (special === 'nebula') startNebula();
             else if (special === 'arcade') startArcade();
             else if (special === 'diamond') startDiamond();
+            else if (special === 'thunderstorm') startThunderstorm();
+            else if (special === 'fireflies') startFireflies();
+            else if (special === 'supernova') startSupernova();
+            else if (special === 'solarflare') startSolarFlare();
         }
 
         function loadTheme() {
@@ -3958,6 +4447,10 @@
             else if (special === 'nebula') startNebula();
             else if (special === 'arcade') startArcade();
             else if (special === 'diamond') startDiamond();
+            else if (special === 'thunderstorm') startThunderstorm();
+            else if (special === 'fireflies') startFireflies();
+            else if (special === 'supernova') startSupernova();
+            else if (special === 'solarflare') startSolarFlare();
         }
 
         function createStar(x, y) {
@@ -4077,6 +4570,36 @@
                     <div style="position:absolute;top:35%;left:65%;width:1px;height:18px;background:linear-gradient(to bottom,transparent,rgba(180,240,220,0.8),transparent);transform:rotate(-20deg);"></div>
                     <div style="position:absolute;top:60%;left:45%;width:1px;height:22px;background:linear-gradient(to bottom,transparent,rgba(210,200,255,0.85),transparent);transform:rotate(55deg);"></div>
                     <span style="font-size:1.6rem;z-index:1;filter:drop-shadow(0 0 8px #e0f2fe);">💎</span>
+                 </div>`},
+                {name:"Thunderstorm", color:"#94a3b8", special:"thunderstorm",
+                 preview:`<div style="background:#04060e;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;inset:0;background:linear-gradient(to bottom,#060a14,#0a0e1a);"></div>
+                    <div style="position:absolute;top:0;left:38%;width:1px;height:55%;background:linear-gradient(to bottom,rgba(200,220,255,0.9),rgba(180,210,255,0.3),transparent);clip-path:polygon(0 0,100% 0,60% 50%,100% 50%,0% 100%,40% 50%,0 50%);filter:blur(0.5px);"></div>
+                    <div style="position:absolute;inset:0;background:repeating-linear-gradient(175deg,transparent,transparent 2px,rgba(160,200,255,0.04) 2px,rgba(160,200,255,0.04) 3px);"></div>
+                    <span style="font-size:1.6rem;z-index:1;filter:drop-shadow(0 0 6px #94a3b8);">⛈️</span>
+                 </div>`},
+                {name:"Fireflies", color:"#a3e635", special:"fireflies",
+                 preview:`<div style="background:#010503;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;bottom:0;left:0;right:0;height:35%;background:#000;clip-path:polygon(0 40%,8% 0%,16% 35%,25% 5%,33% 30%,42% 0%,50% 28%,58% 8%,67% 35%,75% 5%,83% 30%,92% 0%,100% 25%,100% 100%,0 100%);"></div>
+                    <div style="position:absolute;width:5px;height:5px;border-radius:50%;background:radial-gradient(circle,rgba(180,255,100,0.95),rgba(120,220,50,0.3),transparent);top:30%;left:20%;filter:blur(1px);"></div>
+                    <div style="position:absolute;width:4px;height:4px;border-radius:50%;background:radial-gradient(circle,rgba(200,255,120,0.8),transparent);top:55%;left:65%;filter:blur(1px);"></div>
+                    <div style="position:absolute;width:6px;height:6px;border-radius:50%;background:radial-gradient(circle,rgba(160,255,80,0.9),rgba(100,200,40,0.2),transparent);top:40%;left:45%;filter:blur(1px);"></div>
+                    <div style="position:absolute;width:3px;height:3px;border-radius:50%;background:radial-gradient(circle,rgba(220,255,150,0.7),transparent);top:25%;left:75%;filter:blur(0.5px);"></div>
+                    <span style="font-size:1.6rem;z-index:1;">✨</span>
+                 </div>`},
+                {name:"Supernova", color:"#fbbf24", special:"supernova",
+                 preview:`<div style="background:#020008;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(255,200,80,0.35) 0%,rgba(255,100,10,0.2) 30%,rgba(180,20,0,0.08) 60%,transparent 80%);"></div>
+                    <div style="position:absolute;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,180,50,0.5);top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 12px rgba(255,160,30,0.4);"></div>
+                    <div style="position:absolute;width:65px;height:65px;border-radius:50%;border:1px solid rgba(255,140,20,0.25);top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+                    <span style="font-size:1.6rem;z-index:1;filter:drop-shadow(0 0 10px #fbbf24);">💥</span>
+                 </div>`},
+                {name:"Solar Flare", color:"#f97316", special:"solarflare",
+                 preview:`<div style="background:#050200;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);width:60px;height:60px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#fff 0%,#ffdc50 25%,#ff8c00 55%,rgba(200,50,0,0) 80%);box-shadow:0 0 30px rgba(255,140,0,0.6),0 0 60px rgba(255,80,0,0.3);"></div>
+                    <div style="position:absolute;bottom:18px;left:calc(50% + 20px);width:4px;height:30px;background:linear-gradient(to top,rgba(255,140,10,0.8),transparent);border-radius:4px;transform:rotate(25deg);transform-origin:bottom;"></div>
+                    <div style="position:absolute;bottom:18px;left:calc(50% - 24px);width:5px;height:38px;background:linear-gradient(to top,rgba(255,120,0,0.7),transparent);border-radius:4px;transform:rotate(-18deg);transform-origin:bottom;"></div>
+                    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(255,100,0,0.18) 0%,transparent 60%);"></div>
                  </div>`}
             ];
             adminThemes.forEach(t => {
