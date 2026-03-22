@@ -971,13 +971,14 @@
                 window.registerUsername(user.uid, userDocData.displayName || user.email.split('@')[0]);
                 // If admin was revoked and had an admin-only theme, clear it locally
                 const _special = localStorage.getItem('starlinkSpecialTheme');
-                if (!window.isAdminUser && (_special === 'matrix' || _special === 'bloodmoon' || _special === 'cyber' || _special === 'nebula')) {
+                if (!window.isAdminUser && (_special === 'matrix' || _special === 'bloodmoon' || _special === 'cyber' || _special === 'nebula' || _special === 'arcade')) {
                     localStorage.removeItem('starlinkSpecialTheme');
                     localStorage.setItem('starlinkAccent', '#ffffff');
                     stopMatrix();
                     stopBloodMoon();
                     stopCyber();
                     stopNebula();
+                    stopArcade();
                     document.documentElement.style.setProperty('--accent', '#ffffff');
                 }
 
@@ -2821,6 +2822,13 @@
                         <div style="position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;top:20%;left:55%;opacity:0.5;box-shadow:0 0 2px #c084fc;"></div>
                     </div>
                     <span style="font-size:1.6rem;z-index:1;filter:drop-shadow(0 0 6px #c084fc);">🌌</span>
+                 </div>`},
+                {name:"Arcade", color:"#ff00ff", special:"arcade",
+                 preview:`<div style="background:#000;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,0,255,0.15),rgba(0,255,255,0.1),rgba(255,255,0,0.12),rgba(0,255,0,0.1));"></div>
+                    <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.18) 3px,rgba(0,0,0,0.18) 4px);pointer-events:none;"></div>
+                    <div style="position:absolute;bottom:6px;left:0;right:0;text-align:center;font-family:monospace;font-size:0.45rem;font-weight:bold;color:#ff0;letter-spacing:1px;text-shadow:0 0 4px #ff0;">★ INSERT COIN ★</div>
+                    <span style="font-size:1.6rem;z-index:1;filter:drop-shadow(0 0 8px #f0f);">🕹️</span>
                  </div>`}
             ];
             adminThemes.forEach(t => {
@@ -3655,6 +3663,125 @@
             if (starBg) starBg.style.display = 'block';
         }
 
+        function startArcade() {
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (!canvas) return;
+            canvas.style.display = 'block';
+            if (starBg) starBg.style.display = 'none';
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const ctx = canvas.getContext('2d');
+
+            // Rainbow hue cycling for accent
+            let hue = 0;
+            const root = document.documentElement;
+
+            // Scanline overlay params
+            let scanOffset = 0;
+
+            // Pixel grid "noise" blocks
+            const cols = Math.ceil(canvas.width / 8);
+            const rows = Math.ceil(canvas.height / 8);
+
+            // Marquee text sprites
+            const marqueeChars = '★STARLINK★ INSERT COIN ★ PRESS START ★ HIGH SCORE ★ PLAYER ONE ★ LEVEL UP ★ ';
+            let marqueeX = canvas.width;
+
+            // Random pixel sprite positions for background color bursts
+            const bursts = Array.from({length: 12}, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                hue: Math.random() * 360,
+                r: Math.random() * 60 + 20,
+                life: Math.random(),
+                speed: Math.random() * 0.02 + 0.005,
+            }));
+
+            if (window._arcadeAnim) cancelAnimationFrame(window._arcadeAnim);
+
+            function drawFrame() {
+                hue = (hue + 0.8) % 360;
+
+                // Update CSS accent to cycle rainbow
+                const accentColor = `hsl(${hue},100%,65%)`;
+                root.style.setProperty('--accent', accentColor);
+
+                // Dark background with very slight persistence
+                ctx.fillStyle = 'rgba(0,0,0,0.82)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw color burst blobs in background
+                bursts.forEach(b => {
+                    b.life += b.speed;
+                    if (b.life > 1) {
+                        b.life = 0;
+                        b.x = Math.random() * canvas.width;
+                        b.y = Math.random() * canvas.height;
+                        b.hue = Math.random() * 360;
+                        b.r = Math.random() * 60 + 20;
+                    }
+                    const alpha = Math.sin(b.life * Math.PI) * 0.18;
+                    const grad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+                    grad.addColorStop(0, `hsla(${b.hue},100%,65%,${alpha})`);
+                    grad.addColorStop(1, `hsla(${b.hue},100%,50%,0)`);
+                    ctx.beginPath();
+                    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+                    ctx.fillStyle = grad;
+                    ctx.fill();
+                });
+
+                // Pixel grid random flicker — sparse colored pixels
+                const numPixels = 40;
+                for (let i = 0; i < numPixels; i++) {
+                    const px = Math.floor(Math.random() * cols) * 8;
+                    const py = Math.floor(Math.random() * rows) * 8;
+                    ctx.fillStyle = `hsla(${Math.random()*360},100%,65%,${Math.random()*0.6+0.2})`;
+                    ctx.fillRect(px, py, 8, 8);
+                }
+
+                // Horizontal scanlines
+                ctx.fillStyle = 'rgba(0,0,0,0.18)';
+                for (let y = 0; y < canvas.height; y += 4) {
+                    ctx.fillRect(0, y, canvas.width, 2);
+                }
+
+                // Moving bright scanline sweep
+                scanOffset = (scanOffset + 2) % canvas.height;
+                ctx.fillStyle = `hsla(${hue},100%,80%,0.06)`;
+                ctx.fillRect(0, scanOffset, canvas.width, 6);
+
+                // Scrolling marquee text at bottom
+                ctx.font = 'bold 13px monospace';
+                ctx.fillStyle = `hsl(${hue},100%,70%)`;
+                ctx.shadowColor = `hsl(${hue},100%,60%)`;
+                ctx.shadowBlur = 8;
+                ctx.fillText(marqueeChars + marqueeChars, marqueeX, canvas.height - 18);
+                ctx.shadowBlur = 0;
+                marqueeX -= 1.5;
+                if (marqueeX < -ctx.measureText(marqueeChars).width) marqueeX = canvas.width;
+
+                // Blinking border flash
+                if (Math.random() > 0.97) {
+                    ctx.strokeStyle = `hsla(${hue},100%,65%,0.5)`;
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+                }
+
+                window._arcadeAnim = requestAnimationFrame(drawFrame);
+            }
+            drawFrame();
+            window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+        }
+
+        function stopArcade() {
+            if (window._arcadeAnim) { cancelAnimationFrame(window._arcadeAnim); window._arcadeAnim = null; }
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
+            if (starBg) starBg.style.display = 'block';
+        }
+
         function setTheme(color, special) {
             localStorage.setItem('starlinkAccent', color);
             localStorage.setItem('starlinkSpecialTheme', special || '');
@@ -3663,10 +3790,12 @@
             stopBloodMoon();
             stopCyber();
             stopNebula();
+            stopArcade();
             if (special === 'matrix') startMatrix();
             else if (special === 'bloodmoon') startBloodMoon();
             else if (special === 'cyber') startCyber();
             else if (special === 'nebula') startNebula();
+            else if (special === 'arcade') startArcade();
         }
 
         function loadTheme() {
@@ -3677,6 +3806,7 @@
             else if (special === 'bloodmoon') startBloodMoon();
             else if (special === 'cyber') startCyber();
             else if (special === 'nebula') startNebula();
+            else if (special === 'arcade') startArcade();
         }
 
         function createStar(x, y) {
@@ -3781,6 +3911,13 @@
                         <div style="position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;top:20%;left:55%;opacity:0.5;box-shadow:0 0 2px #c084fc;"></div>
                     </div>
                     <span style="font-size:1.6rem;z-index:1;filter:drop-shadow(0 0 6px #c084fc);">🌌</span>
+                 </div>`},
+                {name:"Arcade", color:"#ff00ff", special:"arcade",
+                 preview:`<div style="background:#000;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,0,255,0.15),rgba(0,255,255,0.1),rgba(255,255,0,0.12),rgba(0,255,0,0.1));"></div>
+                    <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.18) 3px,rgba(0,0,0,0.18) 4px);pointer-events:none;"></div>
+                    <div style="position:absolute;bottom:6px;left:0;right:0;text-align:center;font-family:monospace;font-size:0.45rem;font-weight:bold;color:#ff0;letter-spacing:1px;text-shadow:0 0 4px #ff0;">★ INSERT COIN ★</div>
+                    <span style="font-size:1.6rem;z-index:1;filter:drop-shadow(0 0 8px #f0f);">🕹️</span>
                  </div>`}
             ];
             adminThemes.forEach(t => {
