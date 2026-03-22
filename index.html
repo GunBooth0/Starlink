@@ -3193,7 +3193,7 @@
 
 
         // ── Verified badge ──
-        window.setVerified = async (uid, grant) => {
+        window.setVerified = async (uid, grant, silent) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
                 await setDoc(doc(db, "users", uid), { verified: grant }, { merge: true });
@@ -3204,7 +3204,14 @@
                 const dmSnap = await getDocs(collectionGroup(db, "messages"));
                 await Promise.all(dmSnap.docs.filter(d => d.data().uid === uid).map(d => setDoc(d.ref, { verified: grant }, { merge: true })));
                 window.loadAdminUsers();
-                alert(`Verified badge ${grant ? 'granted ✓' : 'revoked'}.`);
+                if (!silent) {
+                    // Show a brief non-blocking toast
+                    const toast = document.createElement('div');
+                    toast.textContent = grant ? 'Verified badge granted ✓' : 'Verified badge revoked';
+                    toast.style.cssText = 'position:fixed;bottom:2rem;right:2rem;z-index:99999;background:rgba(30,30,40,0.95);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:0.75rem 1.5rem;border-radius:1rem;font-size:0.95rem;box-shadow:0 4px 24px rgba(0,0,0,0.4);transition:opacity 0.4s ease;';
+                    document.body.appendChild(toast);
+                    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 2500);
+                }
             } catch(e) { alert('Error: ' + e.message); }
         };
 
@@ -3303,7 +3310,7 @@
         window.approveVerify = async (reqId, uid) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
-                await window.setVerified(uid, true);
+                await window.setVerified(uid, true, true);
                 await deleteDoc(doc(db, "verifyRequests", reqId));
                 const row = document.getElementById('vreq-row-' + reqId);
                 if (row) { row.style.opacity = '0'; row.style.transition = 'opacity 0.3s'; setTimeout(() => row.remove(), 300); }
@@ -5483,10 +5490,12 @@
                 try {
                     const uid = await window._termGetUid(email);
                     if (!uid) return err(`User not found: ${email}`);
-                    if      (action==='ban')     { await window.setBanUser(uid,true);   ok(`${email} banned`); }
-                    else if (action==='unban')   { await window.setBanUser(uid,false);  ok(`${email} unbanned`); }
-                    else if (action==='admin')   { await window.setAdminUser(uid,true); ok(`${email} granted admin`); }
-                    else if (action==='unadmin') { await window.setAdminUser(uid,false);ok(`${email} admin revoked`); }
+                    if      (action==='ban')      { await window.setBanUser(uid,true);    ok(`${email} banned`); }
+                    else if (action==='unban')    { await window.setBanUser(uid,false);   ok(`${email} unbanned`); }
+                    else if (action==='admin')    { await window.setAdminUser(uid,true);  ok(`${email} granted admin`); }
+                    else if (action==='unadmin')  { await window.setAdminUser(uid,false); ok(`${email} admin revoked`); }
+                    else if (action==='verify')   { await window.setVerified(uid,true,true);   ok(`${email} verified ✓`); }
+                    else if (action==='unverify') { await window.setVerified(uid,false,true);  ok(`${email} unverified`); }
                     else if (action==='del') {
                         if (!confirm(`Delete user ${email}?`)) return info('Cancelled.');
                         await window.deleteUserFromAdmin(uid); ok(`${email} deleted`);
@@ -6470,18 +6479,6 @@
 
 
             // ── USER VERIFY / UNVERIFY ──
-            if (c === 'user' && (args[0] === 'verify' || args[0] === 'unverify')) {
-                const email = args[1];
-                if (!email) return err(`Usage: user ${args[0]} <email>`);
-                try {
-                    const uid = await window._termGetUid(email);
-                    if (!uid) return err(`User not found: ${email}`);
-                    await window.setVerified(uid, args[0] === 'verify');
-                    ok(`${email} ${args[0] === 'verify' ? 'verified ✓' : 'unverified'}`);
-                } catch(e) { err(e.message); }
-                return;
-            }
-
             // ── VERIFY LIST ──
             if (c === 'verify' && args[0] === 'list') {
                 info('Loading verification requests...');
