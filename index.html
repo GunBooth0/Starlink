@@ -218,6 +218,12 @@
     </style>
 </head>
 <body>
+    <!-- Auth loader — covers UI until Firebase confirms auth state -->
+    <div id="auth-loader" style="position:fixed;inset:0;background:#000;z-index:99999;display:flex;align-items:center;justify-content:center;transition:opacity 0.3s ease;">
+        <svg width="48" height="48" viewBox="0 0 200 200" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg" style="animation:pulse 1.5s infinite ease-in-out;">
+            <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+        </svg>
+    </div>
     <div id="star-bg"></div>
     <canvas id="matrix-bg"></canvas>
 
@@ -1045,6 +1051,7 @@
                         }
                     }
                     window.initialLoadComplete = true;
+                    dismissAuthLoader();
                 }, 100);
 
                 sitesListener = onSnapshot(collection(db, "sites"), async () => {
@@ -1145,10 +1152,18 @@
                     </div>
                 `;
                 window.switchTab(0);
+                dismissAuthLoader();
             }
         }
 
         firebaseAuth.onAuthStateChanged(auth, updateUIForAuth);
+
+        function dismissAuthLoader() {
+            const loader = document.getElementById('auth-loader');
+            if (!loader) return;
+            loader.style.opacity = '0';
+            setTimeout(() => loader.remove(), 320);
+        }
 
         document.getElementById('auth-btn')?.addEventListener('click', async () => {
             const email = document.getElementById('email').value;
