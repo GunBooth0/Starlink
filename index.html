@@ -971,7 +971,7 @@
                 window.registerUsername(user.uid, userDocData.displayName || user.email.split('@')[0]);
                 // If admin was revoked and had an admin-only theme, clear it locally
                 const _special = localStorage.getItem('starlinkSpecialTheme');
-                if (!window.isAdminUser && (_special === 'matrix' || _special === 'bloodmoon' || _special === 'cyber' || _special === 'nebula' || _special === 'arcade')) {
+                if (!window.isAdminUser && (_special === 'matrix' || _special === 'bloodmoon' || _special === 'cyber' || _special === 'nebula' || _special === 'arcade' || _special === 'diamond')) {
                     localStorage.removeItem('starlinkSpecialTheme');
                     localStorage.setItem('starlinkAccent', '#ffffff');
                     stopMatrix();
@@ -979,6 +979,7 @@
                     stopCyber();
                     stopNebula();
                     stopArcade();
+                    stopDiamond();
                     document.documentElement.style.setProperty('--accent', '#ffffff');
                 }
 
@@ -2829,6 +2830,14 @@
                     <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.18) 3px,rgba(0,0,0,0.18) 4px);pointer-events:none;"></div>
                     <div style="position:absolute;bottom:6px;left:0;right:0;text-align:center;font-family:monospace;font-size:0.45rem;font-weight:bold;color:#ff0;letter-spacing:1px;text-shadow:0 0 4px #ff0;">★ INSERT COIN ★</div>
                     <span style="font-size:1.6rem;z-index:1;filter:drop-shadow(0 0 8px #f0f);">🕹️</span>
+                 </div>`},
+                {name:"Diamond", color:"#e0f2fe", special:"diamond",
+                 preview:`<div style="background:#02040c;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%,rgba(186,230,253,0.18) 0%,transparent 60%),radial-gradient(ellipse at 70% 70%,rgba(167,243,208,0.12) 0%,transparent 55%),radial-gradient(ellipse at 60% 20%,rgba(196,181,253,0.15) 0%,transparent 50%);"></div>
+                    <div style="position:absolute;top:20%;left:25%;width:1px;height:28px;background:linear-gradient(to bottom,transparent,rgba(220,240,255,0.9),transparent);transform:rotate(35deg);"></div>
+                    <div style="position:absolute;top:35%;left:65%;width:1px;height:18px;background:linear-gradient(to bottom,transparent,rgba(180,240,220,0.8),transparent);transform:rotate(-20deg);"></div>
+                    <div style="position:absolute;top:60%;left:45%;width:1px;height:22px;background:linear-gradient(to bottom,transparent,rgba(210,200,255,0.85),transparent);transform:rotate(55deg);"></div>
+                    <span style="font-size:1.6rem;z-index:1;filter:drop-shadow(0 0 8px #e0f2fe);">💎</span>
                  </div>`}
             ];
             adminThemes.forEach(t => {
@@ -3782,6 +3791,145 @@
             if (starBg) starBg.style.display = 'block';
         }
 
+        function startDiamond() {
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (!canvas) return;
+            canvas.style.display = 'block';
+            if (starBg) starBg.style.display = 'none';
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const ctx = canvas.getContext('2d');
+
+            // Prismatic light shards — each is a thin rotated rectangle refracting light
+            const shards = Array.from({length: 28}, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                len: Math.random() * 180 + 60,
+                width: Math.random() * 3 + 1,
+                angle: Math.random() * Math.PI,
+                hue: Math.random() * 360,
+                speed: (Math.random() - 0.5) * 0.004,
+                drift: { x: (Math.random() - 0.5) * 0.3, y: (Math.random() - 0.5) * 0.2 },
+                alpha: Math.random() * 0.5 + 0.1,
+                alphaDir: Math.random() > 0.5 ? 0.003 : -0.003,
+            }));
+
+            // Floating diamond shapes
+            const diamonds = Array.from({length: 10}, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 30 + 12,
+                angle: Math.random() * Math.PI,
+                rotSpeed: (Math.random() - 0.5) * 0.008,
+                drift: { x: (Math.random() - 0.5) * 0.15, y: (Math.random() - 0.5) * 0.15 },
+                hue: Math.random() * 60 + 180, // ice blues/cyans
+                alpha: Math.random() * 0.18 + 0.05,
+            }));
+
+            // Sparkle points
+            const sparkles = Array.from({length: 60}, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                life: Math.random() * Math.PI * 2,
+                speed: Math.random() * 0.05 + 0.02,
+                size: Math.random() * 2.5 + 0.5,
+            }));
+
+            if (window._diamondAnim) cancelAnimationFrame(window._diamondAnim);
+
+            function drawFrame() {
+                // Very dark near-black background with subtle blue tint
+                ctx.fillStyle = 'rgba(2,4,12,0.88)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw prismatic light shards
+                shards.forEach(s => {
+                    s.angle += s.speed;
+                    s.x += s.drift.x; s.y += s.drift.y;
+                    if (s.x < -200) s.x = canvas.width + 200;
+                    if (s.x > canvas.width + 200) s.x = -200;
+                    if (s.y < -200) s.y = canvas.height + 200;
+                    if (s.y > canvas.height + 200) s.y = -200;
+                    s.alpha += s.alphaDir;
+                    if (s.alpha > 0.65 || s.alpha < 0.05) s.alphaDir *= -1;
+                    s.hue = (s.hue + 0.3) % 360;
+
+                    ctx.save();
+                    ctx.translate(s.x, s.y);
+                    ctx.rotate(s.angle);
+                    const grad = ctx.createLinearGradient(-s.len / 2, 0, s.len / 2, 0);
+                    grad.addColorStop(0, `hsla(${s.hue},100%,90%,0)`);
+                    grad.addColorStop(0.3, `hsla(${s.hue},100%,95%,${s.alpha})`);
+                    grad.addColorStop(0.5, `hsla(${(s.hue+40)%360},80%,100%,${s.alpha * 1.4})`);
+                    grad.addColorStop(0.7, `hsla(${(s.hue+80)%360},100%,95%,${s.alpha})`);
+                    grad.addColorStop(1, `hsla(${s.hue},100%,90%,0)`);
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(-s.len / 2, -s.width / 2, s.len, s.width);
+                    ctx.restore();
+                });
+
+                // Draw floating diamond outlines
+                diamonds.forEach(d => {
+                    d.angle += d.rotSpeed;
+                    d.x += d.drift.x; d.y += d.drift.y;
+                    if (d.x < -50) d.x = canvas.width + 50;
+                    if (d.x > canvas.width + 50) d.x = -50;
+                    if (d.y < -50) d.y = canvas.height + 50;
+                    if (d.y > canvas.height + 50) d.y = -50;
+                    ctx.save();
+                    ctx.translate(d.x, d.y);
+                    ctx.rotate(d.angle);
+                    ctx.beginPath();
+                    ctx.moveTo(0, -d.size);
+                    ctx.lineTo(d.size * 0.6, 0);
+                    ctx.lineTo(0, d.size);
+                    ctx.lineTo(-d.size * 0.6, 0);
+                    ctx.closePath();
+                    ctx.strokeStyle = `hsla(${d.hue},80%,90%,${d.alpha})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    ctx.restore();
+                });
+
+                // Draw sparkles — 4-pointed star cross shape
+                sparkles.forEach(s => {
+                    s.life += s.speed;
+                    const alpha = (Math.sin(s.life) + 1) / 2;
+                    const r = s.size * alpha;
+                    if (r < 0.1) return;
+                    ctx.save();
+                    ctx.translate(s.x, s.y);
+                    ctx.strokeStyle = `rgba(220,240,255,${alpha * 0.9})`;
+                    ctx.lineWidth = 0.8;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -r * 3); ctx.lineTo(0, r * 3);
+                    ctx.moveTo(-r * 3, 0); ctx.lineTo(r * 3, 0);
+                    ctx.stroke();
+                    ctx.restore();
+                });
+
+                // Occasional full-screen prismatic flash
+                if (Math.random() > 0.994) {
+                    const flashHue = Math.random() * 360;
+                    ctx.fillStyle = `hsla(${flashHue},100%,98%,0.04)`;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+
+                window._diamondAnim = requestAnimationFrame(drawFrame);
+            }
+            drawFrame();
+            window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+        }
+
+        function stopDiamond() {
+            if (window._diamondAnim) { cancelAnimationFrame(window._diamondAnim); window._diamondAnim = null; }
+            const canvas = document.getElementById('matrix-bg');
+            const starBg = document.getElementById('star-bg');
+            if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
+            if (starBg) starBg.style.display = 'block';
+        }
+
         function setTheme(color, special) {
             localStorage.setItem('starlinkAccent', color);
             localStorage.setItem('starlinkSpecialTheme', special || '');
@@ -3791,11 +3939,13 @@
             stopCyber();
             stopNebula();
             stopArcade();
+            stopDiamond();
             if (special === 'matrix') startMatrix();
             else if (special === 'bloodmoon') startBloodMoon();
             else if (special === 'cyber') startCyber();
             else if (special === 'nebula') startNebula();
             else if (special === 'arcade') startArcade();
+            else if (special === 'diamond') startDiamond();
         }
 
         function loadTheme() {
@@ -3807,6 +3957,7 @@
             else if (special === 'cyber') startCyber();
             else if (special === 'nebula') startNebula();
             else if (special === 'arcade') startArcade();
+            else if (special === 'diamond') startDiamond();
         }
 
         function createStar(x, y) {
@@ -3918,6 +4069,14 @@
                     <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.18) 3px,rgba(0,0,0,0.18) 4px);pointer-events:none;"></div>
                     <div style="position:absolute;bottom:6px;left:0;right:0;text-align:center;font-family:monospace;font-size:0.45rem;font-weight:bold;color:#ff0;letter-spacing:1px;text-shadow:0 0 4px #ff0;">★ INSERT COIN ★</div>
                     <span style="font-size:1.6rem;z-index:1;filter:drop-shadow(0 0 8px #f0f);">🕹️</span>
+                 </div>`},
+                {name:"Diamond", color:"#e0f2fe", special:"diamond",
+                 preview:`<div style="background:#02040c;width:100%;height:100%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+                    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%,rgba(186,230,253,0.18) 0%,transparent 60%),radial-gradient(ellipse at 70% 70%,rgba(167,243,208,0.12) 0%,transparent 55%),radial-gradient(ellipse at 60% 20%,rgba(196,181,253,0.15) 0%,transparent 50%);"></div>
+                    <div style="position:absolute;top:20%;left:25%;width:1px;height:28px;background:linear-gradient(to bottom,transparent,rgba(220,240,255,0.9),transparent);transform:rotate(35deg);"></div>
+                    <div style="position:absolute;top:35%;left:65%;width:1px;height:18px;background:linear-gradient(to bottom,transparent,rgba(180,240,220,0.8),transparent);transform:rotate(-20deg);"></div>
+                    <div style="position:absolute;top:60%;left:45%;width:1px;height:22px;background:linear-gradient(to bottom,transparent,rgba(210,200,255,0.85),transparent);transform:rotate(55deg);"></div>
+                    <span style="font-size:1.6rem;z-index:1;filter:drop-shadow(0 0 8px #e0f2fe);">💎</span>
                  </div>`}
             ];
             adminThemes.forEach(t => {
