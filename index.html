@@ -21,79 +21,14 @@
      
         :root {
             --accent: #ffffff;
-            /* Dark mode defaults */
-            --bg:        #000000;
-            --surface:   rgba(255,255,255,0.04);
-            --surface2:  rgba(255,255,255,0.08);
-            --surface3:  rgba(255,255,255,0.03);
-            --surface4:  rgba(255,255,255,0.06);
-            --text:      #ffffff;
-            --text2:     rgba(255,255,255,0.7);
-            --text3:     rgba(255,255,255,0.5);
-            --text4:     rgba(255,255,255,0.4);
-            --border:    rgba(255,255,255,0.15);
-            --border2:   rgba(255,255,255,0.12);
-            --border3:   rgba(255,255,255,0.25);
-            --sidebar-bg:#000000;
-            --header-bg: rgba(0,0,0,0.80);
-            --input-bg:  rgba(255,255,255,0.08);
-            --input-focus-bg: rgba(255,255,255,0.12);
-            --btn-bg:    #000000;
-            --shadow-focus: rgba(255,255,255,0.15);
         }
-
-        /* ── Light Mode ── */
-        :root[data-mode="light"] {
-            --bg:        #f1f5f9;
-            --surface:   rgba(255,255,255,0.85);
-            --surface2:  rgba(0,0,0,0.06);
-            --surface3:  rgba(255,255,255,0.7);
-            --surface4:  rgba(255,255,255,0.95);
-            --text:      #0f172a;
-            --text2:     rgba(15,23,42,0.7);
-            --text3:     rgba(15,23,42,0.5);
-            --text4:     rgba(15,23,42,0.4);
-            --border:    rgba(0,0,0,0.12);
-            --border2:   rgba(0,0,0,0.1);
-            --border3:   rgba(0,0,0,0.2);
-            --sidebar-bg:#ffffff;
-            --header-bg: rgba(255,255,255,0.90);
-            --input-bg:  rgba(0,0,0,0.06);
-            --input-focus-bg: rgba(0,0,0,0.09);
-            --btn-bg:    #ffffff;
-            --shadow-focus: rgba(0,0,0,0.12);
-        }
-
-        /* ── Sepia Mode ── */
-        :root[data-mode="sepia"] {
-            --bg:        #f5efe0;
-            --surface:   rgba(180,140,90,0.12);
-            --surface2:  rgba(120,80,30,0.09);
-            --surface3:  rgba(180,140,90,0.08);
-            --surface4:  rgba(200,160,100,0.15);
-            --text:      #2c1a00;
-            --text2:     rgba(44,26,0,0.7);
-            --text3:     rgba(44,26,0,0.5);
-            --text4:     rgba(44,26,0,0.4);
-            --border:    rgba(120,80,30,0.2);
-            --border2:   rgba(120,80,30,0.15);
-            --border3:   rgba(120,80,30,0.3);
-            --sidebar-bg:#ede3cf;
-            --header-bg: rgba(237,227,207,0.92);
-            --input-bg:  rgba(120,80,30,0.08);
-            --input-focus-bg: rgba(120,80,30,0.14);
-            --btn-bg:    #ede3cf;
-            --shadow-focus: rgba(120,80,30,0.18);
-        }
-
         body {
-            background: var(--bg);
-            color: var(--text);
+            background: #000000;
+            color: #ffffff;
             font-family: 'Inter', system-ui, sans-serif;
             margin: 0;
             height: 100vh;
             overflow: hidden;
-            transition: background 0.4s ease, color 0.4s ease;
         }
      
         .logo-font {
@@ -109,13 +44,13 @@
         }
         .nav-link {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            color: var(--text);
+            color: #ffffff;
         }
      
         .nav-link:hover,
         .nav-link.active-tab {
             color: var(--accent) !important;
-            background: var(--surface2);
+            background: rgba(255,255,255,0.08);
         }
         .nav-link i {
             color: inherit;
@@ -127,19 +62,19 @@
         }
         .card {
             transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-            background: var(--surface3);
-            border: 1px solid var(--border2);
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.12);
         }
      
         .card:hover {
             transform: translateY(-8px) scale(1.03);
             border-color: var(--accent);
-            background: var(--surface4);
+            background: rgba(255,255,255,0.06);
         }
         .glass {
-            background: var(--surface);
+            background: rgba(255,255,255,0.04);
             backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
+            border: 1px solid rgba(255,255,255,0.15);
         }
         
 
@@ -179,9 +114,9 @@
             padding-top: 4rem;
         }
         input[type="email"], input[type="password"], input[type="text"], textarea, select {
-            background: var(--input-bg);
-            border: 1px solid var(--border3);
-            color: var(--text);
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: white;
             padding: 1rem 1.25rem;
             border-radius: 1rem;
             width: 100%;
@@ -192,11 +127,11 @@
         input:focus, textarea:focus, select:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 0 4px var(--shadow-focus);
-            background: var(--input-focus-bg);
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.12);
         }
         input::placeholder, textarea::placeholder {
-            color: var(--text3);
+            color: rgba(255,255,255,0.5);
         }
         button {
             padding: 1.25rem 2rem;
@@ -217,9 +152,9 @@
             transform: translateY(-2px);
         }
         .github-style-btn {
-            background: var(--btn-bg);
-            border: 1px solid var(--border3);
-            color: var(--text);
+            background: black;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
             padding: 1rem 1.5rem;
             border-radius: 1rem;
             font-weight: 500;
@@ -277,7 +212,7 @@
         /* Sidebar separator line */
         .sidebar-separator {
             height: 1px;
-            background: var(--border);
+            background: rgba(255,255,255,0.15);
             margin: 1.25rem 0;
         }
     </style>
@@ -287,8 +222,8 @@
     <canvas id="matrix-bg"></canvas>
 
     <!-- SIDEBAR -->
-    <div class="w-72 flex flex-col fixed h-screen z-[100]" style="background:var(--sidebar-bg);border-right:1px solid var(--border);">
-        <div class="p-8 flex items-center gap-x-4" style="border-bottom:1px solid var(--border);">
+    <div class="w-72 bg-black border-r border-white/10 flex flex-col fixed h-screen z-[100]">
+        <div class="p-8 flex items-center gap-x-4 border-b border-white/10">
             <svg width="48" height="48" viewBox="0 0 200 200" class="star-svg" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
                 <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
             </svg>
@@ -302,7 +237,7 @@
 
     <!-- MAIN CONTENT -->
     <div class="flex-1 ml-72 main-content">
-        <div class="h-16 fixed w-[calc(100%-288px)] z-[100] top-0" style="border-bottom:1px solid var(--border);background:var(--header-bg);backdrop-filter:blur(20px);">
+        <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-[100] top-0">
             <div class="h-full px-10 flex items-center gap-4">
                 <i id="current-tab-icon" class="text-3xl fa-solid fa-lock"></i>
                 <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Sign In Required</div>
@@ -559,53 +494,14 @@
             <div id="content-settings" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
                     <h3 class="text-2xl font-semibold mb-6">Appearance • Choose Theme</h3>
-                    <p class="mb-8" style="color:var(--text2)">Click a color to instantly change the accent, stars, glow, and sidebar highlights</p>
+                    <p class="text-white/70 mb-8">Click a color to instantly change the accent, stars, glow, and sidebar highlights</p>
                     <div id="theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div>
-
-                    <!-- Surface Mode -->
-                    <div class="mt-10 mb-2">
-                        <h3 class="text-2xl font-semibold mb-3">Appearance • Surface Mode</h3>
-                        <p class="mb-6" style="color:var(--text2)">Changes the background and surface colors across the whole UI</p>
-                        <div class="grid grid-cols-3 gap-5">
-                            <button id="mode-btn-dark" onclick="window.setSurfaceMode('dark')"
-                                class="rounded-2xl overflow-hidden border-2 transition-all shadow-md text-left"
-                                style="padding:0;margin:0;width:100%;background:#000;border-color:var(--border);">
-                                <div style="background:#000;height:64px;display:flex;align-items:center;justify-content:center;gap:10px;">
-                                    <div style="width:16px;height:16px;border-radius:50%;background:#111;border:1px solid rgba(255,255,255,0.2);"></div>
-                                    <div style="width:40px;height:8px;border-radius:4px;background:rgba(255,255,255,0.08);"></div>
-                                    <div style="width:24px;height:8px;border-radius:4px;background:rgba(255,255,255,0.04);"></div>
-                                </div>
-                                <div style="text-align:center;padding:10px 0;font-size:0.8rem;font-weight:600;background:#111;color:#fff;">🌑 Dark</div>
-                            </button>
-                            <button id="mode-btn-light" onclick="window.setSurfaceMode('light')"
-                                class="rounded-2xl overflow-hidden border-2 transition-all shadow-md text-left"
-                                style="padding:0;margin:0;width:100%;background:#f1f5f9;border-color:var(--border);">
-                                <div style="background:#f1f5f9;height:64px;display:flex;align-items:center;justify-content:center;gap:10px;">
-                                    <div style="width:16px;height:16px;border-radius:50%;background:#fff;border:1px solid rgba(0,0,0,0.15);"></div>
-                                    <div style="width:40px;height:8px;border-radius:4px;background:rgba(0,0,0,0.08);"></div>
-                                    <div style="width:24px;height:8px;border-radius:4px;background:rgba(0,0,0,0.05);"></div>
-                                </div>
-                                <div style="text-align:center;padding:10px 0;font-size:0.8rem;font-weight:600;background:#e2e8f0;color:#0f172a;">☀️ Light</div>
-                            </button>
-                            <button id="mode-btn-sepia" onclick="window.setSurfaceMode('sepia')"
-                                class="rounded-2xl overflow-hidden border-2 transition-all shadow-md text-left"
-                                style="padding:0;margin:0;width:100%;background:#f5efe0;border-color:var(--border);">
-                                <div style="background:#f5efe0;height:64px;display:flex;align-items:center;justify-content:center;gap:10px;">
-                                    <div style="width:16px;height:16px;border-radius:50%;background:#ede3cf;border:1px solid rgba(120,80,30,0.2);"></div>
-                                    <div style="width:40px;height:8px;border-radius:4px;background:rgba(120,80,30,0.1);"></div>
-                                    <div style="width:24px;height:8px;border-radius:4px;background:rgba(120,80,30,0.07);"></div>
-                                </div>
-                                <div style="text-align:center;padding:10px 0;font-size:0.8rem;font-weight:600;background:#ede3cf;color:#2c1a00;">📜 Sepia</div>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="glass rounded-3xl p-8 mt-10">
+                    <div class="glass rounded-3xl p-8 mt-8">
                         <h3 class="text-2xl font-semibold mb-6 text-red-400">Danger Zone</h3>
                         <button onclick="resetEverything()" class="bg-red-600 hover:bg-red-700 text-white font-medium py-4 px-8 rounded-xl transition-colors text-lg">
                             Reset Everything (theme, preferences & sign out)
                         </button>
-                        <p id="reset-message" class="text-sm mt-3 hidden" style="color:var(--text3)">Reset complete! Signing out and refreshing...</p>
+                        <p id="reset-message" class="text-sm text-white/60 mt-3 hidden">Reset complete! Signing out and refreshing...</p>
                     </div>
                 </div>
             </div>
@@ -1070,7 +966,6 @@
                     if (termHint) termHint.classList.toggle('hidden', user.email !== ADMIN_EMAIL);
                 }, 150);
                 loadTheme(); // re-apply theme now that isAdminUser is known
-                loadSurfaceMode();
                 window.currentDisplayName = userDocData.displayName || '';
                 // Always write to public usernames lookup on every login
                 window.registerUsername(user.uid, userDocData.displayName || user.email.split('@')[0]);
@@ -4830,25 +4725,6 @@
             else if (special === 'lava') startLava();
         }
 
-        window.setSurfaceMode = function(mode) {
-            localStorage.setItem('starlinkSurfaceMode', mode);
-            document.documentElement.setAttribute('data-mode', mode === 'dark' ? '' : mode);
-            // Update active button borders
-            ['dark','light','sepia'].forEach(m => {
-                const btn = document.getElementById('mode-btn-' + m);
-                if (btn) btn.style.borderColor = m === mode ? 'var(--accent)' : 'var(--border)';
-            });
-            // Hide star-bg for light/sepia (it looks odd on light backgrounds)
-            const starBg = document.getElementById('star-bg');
-            const matrixBg = document.getElementById('matrix-bg');
-            if (starBg) starBg.style.opacity = (mode === 'dark') ? '1' : '0.18';
-        };
-
-        function loadSurfaceMode() {
-            const mode = localStorage.getItem('starlinkSurfaceMode') || 'dark';
-            window.setSurfaceMode(mode);
-        }
-
         function createStar(x, y) {
             const s = document.createElement('div');
             s.className = 'star';
@@ -5202,7 +5078,6 @@
 
         function initialize() {
             loadTheme();
-            loadSurfaceMode();
             initStars();
         }
 
