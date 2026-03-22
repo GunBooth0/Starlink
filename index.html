@@ -400,6 +400,28 @@
                 </div>
             </div>
 
+            <!-- REQUEST A SITE TAB -->
+            <div id="content-request-site" class="tab-content hidden">
+                <div class="max-w-xl mx-auto py-12">
+                    <div class="glass rounded-3xl p-10">
+                        <div class="text-center mb-8">
+                            <i class="fa-solid fa-paper-plane text-5xl mb-4" style="color:var(--accent)"></i>
+                            <h2 class="text-3xl font-bold logo-font tracking-tight mb-2">Request a Site</h2>
+                            <p class="text-white/60 text-sm">Suggest a site to add to Starlink. The admin will review your request.</p>
+                        </div>
+                        <input id="req-name" type="text" placeholder="Site name" class="w-full">
+                        <input id="req-url" type="text" placeholder="URL (e.g. https://example.com)" class="w-full">
+                        <select id="req-category" class="w-full" style="font-size:1.1rem;padding:1rem 1.25rem;"></select>
+                        <div class="flex gap-4">
+                            <input id="req-icon" type="text" placeholder="Icon (emoji) – optional" maxlength="2" style="flex:1">
+                            <input id="req-desc" type="text" placeholder="Short description (optional)" style="flex:3">
+                        </div>
+                        <button onclick="window.submitSiteRequest()" class="auth-btn w-full mt-2">Submit Request</button>
+                        <p id="req-message" class="text-center text-sm mt-4 hidden"></p>
+                    </div>
+                </div>
+            </div>
+
 
 
             <!-- REQUEST VERIFICATION TAB -->
@@ -789,25 +811,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- REQUEST A SITE MODAL -->
-    <div id="request-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9998] hidden items-center justify-center">
-        <div class="glass border border-white/20 rounded-3xl p-10 max-w-lg w-full mx-6 shadow-2xl">
-            <div class="flex items-center justify-between mb-8">
-                <h2 class="text-3xl font-bold logo-font tracking-tight">Request a Site</h2>
-                <button onclick="document.getElementById('request-modal').classList.add('hidden');document.getElementById('request-modal').classList.remove('flex');" class="text-white/50 hover:text-white text-2xl w-auto p-0 m-0 bg-transparent border-none" style="width:auto;padding:0;margin:0;">✕</button>
-            </div>
-            <input id="req-name" type="text" placeholder="Site name" class="w-full">
-            <input id="req-url" type="text" placeholder="URL (e.g. https://example.com)" class="w-full">
-            <select id="req-category" class="w-full" style="font-size:1.1rem;padding:1rem 1.25rem;"></select>
-            <div class="flex gap-4">
-                <input id="req-icon" type="text" placeholder="Icon (emoji) – optional" maxlength="2" style="flex:1">
-                <input id="req-desc" type="text" placeholder="Short description (optional)" style="flex:3">
-            </div>
-            <button onclick="window.submitSiteRequest()" class="auth-btn w-full mt-2">Submit Request</button>
-            <p id="req-message" class="text-center text-sm mt-4 hidden"></p>
         </div>
     </div>
 
@@ -1884,19 +1887,6 @@
         };
 
         // ── Site requests ──
-        window.openRequestModal = () => {
-            // Populate category select
-            const sel = document.getElementById('req-category');
-            if (sel) {
-                sel.innerHTML = (window.allCategories || []).map(c => `<option value="${c.key}">${c.label}</option>`).join('');
-            }
-            document.getElementById('req-message').classList.add('hidden');
-            ['req-name','req-url','req-icon','req-desc'].forEach(id => document.getElementById(id).value = '');
-            const modal = document.getElementById('request-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        };
-
         window.submitSiteRequest = async () => {
             const name = document.getElementById('req-name').value.trim();
             const url = document.getElementById('req-url').value.trim();
@@ -1916,10 +1906,7 @@
                 msgEl.className = 'text-center text-sm mt-4 success';
                 msgEl.classList.remove('hidden');
                 ['req-name','req-url','req-icon','req-desc'].forEach(id => document.getElementById(id).value = '');
-                setTimeout(() => {
-                    const modal = document.getElementById('request-modal');
-                    modal.classList.add('hidden'); modal.classList.remove('flex');
-                }, 2000);
+                setTimeout(() => { msgEl.classList.add('hidden'); }, 3000);
             } catch(e) {
                 msgEl.textContent = 'Error: ' + e.message;
                 msgEl.className = 'text-center text-sm mt-4 error';
@@ -3217,7 +3204,7 @@
                 const dmSnap = await getDocs(collectionGroup(db, "messages"));
                 await Promise.all(dmSnap.docs.filter(d => d.data().uid === uid).map(d => setDoc(d.ref, { verified: grant }, { merge: true })));
                 window.loadAdminUsers();
-                alert(`Verified badge ${grant ? 'granted ✓' : 'revoked'}. The user will see a refresh prompt.`);
+                alert(`Verified badge ${grant ? 'granted ✓' : 'revoked'}.`);
             } catch(e) { alert('Error: ' + e.message); }
         };
 
@@ -5099,10 +5086,12 @@
                 idx++;
 
                 html += `
-                    <div onclick="window.openRequestModal()" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mt-2" id="tab-request">
+                    <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
                         <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
                     </div>
                 `;
+                window.tabMapping.push({contentId: 'content-request-site', title: 'Request a Site', icon: 'fa-paper-plane'});
+                idx++;
             }
 
             // Request Verification — show only if not owner and not already verified
@@ -5120,7 +5109,7 @@
         };
 
         window.populateCategorySelect = () => {
-            ['admin-cat-select', 'admin-cat-select-p'].forEach(id => {
+            ['admin-cat-select', 'admin-cat-select-p', 'req-category'].forEach(id => {
                 const select = document.getElementById(id);
                 if (!select) return;
                 select.innerHTML = (window.allCategories || []).map(cat =>
