@@ -1275,7 +1275,20 @@
             const user = auth.currentUser;
             if (!user) return alert("Not logged in.");
             try {
+                // Grab the username before deleting the user doc so we can free it
+                const userSnap = await getDoc(doc(db, "users", user.uid));
+                const username = userSnap.exists() ? userSnap.data().displayName : null;
+
                 await deleteDoc(doc(db, "users", user.uid));
+
+                // Free the username so others can register with it
+                if (username) {
+                    try { await deleteDoc(doc(db, "usernames", username.toLowerCase())); } catch(_) {}
+                }
+
+                // Delete pending signup request if one exists
+                try { await deleteDoc(doc(db, "signupRequests", user.uid)); } catch(_) {}
+
                 await deleteUser(user);
                 alert("Account fully deleted.");
             } catch (e) {
