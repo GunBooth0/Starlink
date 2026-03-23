@@ -700,7 +700,7 @@
                                 <p class="font-semibold text-lg mb-1"><i class="fa-solid fa-rotate mr-2 text-indigo-400"></i>Push Refresh to All Users</p>
                                 <p class="text-white/50 text-sm">Forces a full page reload on every online user's screen. Use only when a change requires a hard reload.</p>
                             </div>
-                            <button onclick="window.broadcastRefresh()" class="text-white font-semibold py-3 px-8 rounded-2xl transition-colors" style="width:auto;margin:0;font-size:1rem;background:#6366f1;">Push Refresh</button>
+                            <button onclick="if(confirm('Push a refresh prompt to all online users?')) window.broadcastRefresh()" class="text-white font-semibold py-3 px-8 rounded-2xl transition-colors" style="width:auto;margin:0;font-size:1rem;background:#6366f1;">Push Refresh</button>
                         </div>
                     </div>
 
@@ -1017,6 +1017,7 @@
                     const _pRole = user.email === ADMIN_EMAIL ? 'Owner' : window.isAdminUser ? 'Admin' : 'User';
                     const _pName = window.currentDisplayName || user.email.split('@')[0];
                     window.startPresence(user.uid, _pName, _pRole);
+                    window.loadFriendsList(); // Start friend/request listeners immediately on login
                     document.getElementById('search-wrapper').classList.remove('hidden');
                     document.getElementById('search-wrapper').classList.add('flex');
                     window.switchTab(window.isAdminUser ? 1 : 0);
@@ -2515,6 +2516,12 @@
             friendsListener = onSnapshot(collection(db, "friends", me.uid, "list"), async (snap) => {
                 const container = document.getElementById('friends-list');
                 if (!container) return;
+
+                // If currently in a DM with someone who is no longer a friend, go back to global chat
+                if (window.currentDMUser) {
+                    const stillFriends = snap.docs.some(d => d.id === window.currentDMUser.uid);
+                    if (!stillFriends) window.openGlobalChat();
+                }
                 if (snap.empty) { container.innerHTML = '<p class="text-xs text-white/30 text-center mt-4">No friends yet</p>'; return; }
 
                 // Get online UIDs
@@ -2560,7 +2567,6 @@
 
         // ── Remove friend ──
         window.removeFriend = async (friendUid) => {
-            if (!confirm('Remove this friend?')) return;
             const me = auth.currentUser;
             try {
                 await deleteDoc(doc(db, "friends", me.uid, "list", friendUid));
@@ -3329,13 +3335,11 @@
 
         window.broadcastRefresh = async () => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
-            if (!confirm('Push a refresh prompt to all online users?')) return;
             try {
                 await setDoc(doc(db, "config", "broadcastRefresh"), {
                     triggeredAt: serverTimestamp(),
                     triggeredBy: ADMIN_EMAIL
                 });
-                alert('Refresh prompt sent to all online users.');
             } catch(e) { alert('Error: ' + e.message); }
         };
 
@@ -5409,7 +5413,7 @@
             if (c === 'site' && args[0] === 'del') {
                 const id = args[1];
                 if (!id) return err('Usage: site del <id>');
-                if (!confirm(`Delete site ${id}?`)) return info('Cancelled.');
+                
                 try { await window.deleteSite(id); ok('Site deleted'); }
                 catch(e) { err(e.message); }
                 return;
@@ -5456,7 +5460,7 @@
                 if (!key) return err('Usage: cat del <key>');
                 const cat=(window.allCategories||[]).find(c=>c.key===key);
                 if (!cat) return err(`Category "${key}" not found`);
-                if (!confirm(`Delete category "${key}"?`)) return info('Cancelled.');
+                
                 try { await window.deleteCategory(cat.id, key); ok(`Category "${key}" deleted`); }
                 catch(e) { err(e.message); }
                 return;
@@ -5489,7 +5493,7 @@
                         const docs=await window._termGetUsers();
                         const banned=docs.filter(d=>d.data().banned===true);
                         if (!banned.length) return info('No banned users.');
-                        if (!confirm(`Unban all ${banned.length} banned users?`)) return info('Cancelled.');
+                        
                         const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
                         await Promise.all(banned.map(d=>setDoc(doc(window.db,"users",d.id),{banned:false},{merge:true})));
                         ok(`Unbanned ${banned.length} user(s)`);
@@ -5507,7 +5511,7 @@
                     else if (action==='verify')   { await window.setVerified(uid,true,true);   ok(`${email} verified ✓`); }
                     else if (action==='unverify') { await window.setVerified(uid,false,true);  ok(`${email} unverified`); }
                     else if (action==='del') {
-                        if (!confirm(`Delete user ${email}?`)) return info('Cancelled.');
+                        
                         await window.deleteUserFromAdmin(uid); ok(`${email} deleted`);
                     }
                     else if (action==='rename') {
@@ -5528,7 +5532,7 @@
             // ── ANNOUNCE ──
             if (c === 'announce') {
                 if (args[0]==='clear') {
-                    if (!confirm('Clear announcement?')) return info('Cancelled.');
+                    
                     await window.clearAnnouncement(); ok('Announcement cleared');
                 } else {
                     const msg=args.join(' ');
@@ -5577,7 +5581,7 @@
                 try {
                     const docs=await window._termGetRequests('site');
                     if (!docs||!docs.length) return info('No pending site requests.');
-                    if (!confirm(`${c==='approve'?'Approve':'Deny'} all ${docs.length} pending site requests?`)) return info('Cancelled.');
+                    
                     for (const d of docs) {
                         const r=d.data();
                         if (c==='approve') await window.approveSiteRequest(d.id,r.name||'',r.url||'',r.category||'',r.icon||'',r.desc||'');
@@ -5593,7 +5597,7 @@
                 try {
                     const docs=await window._termGetRequests(type);
                     if (!docs||!docs.length) return info(`No pending ${args[1]} requests.`);
-                    if (!confirm(`Deny all ${docs.length} pending ${args[1]} requests?`)) return info('Cancelled.');
+                    
                     for (const d of docs) {
                         if (type==='admin') await window.denyAdminRequest(d.id);
                         else await window.denyCategoryRequest(d.id);
@@ -5671,7 +5675,7 @@
             if (c === 'dm' && args[0] === 'clear') {
                 const u1=args[1], u2=args[2];
                 if (!u1||!u2) return err('Usage: dm clear <username1> <username2>');
-                if (!confirm(`Delete all messages between ${u1} and ${u2}?`)) return info('Cancelled.');
+                
                 try {
                     const { getDoc: gd, doc: dc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
                     const s1=await gd(dc(window.db,"usernames",u1.toLowerCase()));
@@ -5823,7 +5827,7 @@
             if (c === 'dm' && args[0] === 'purge') {
                 const email=args[1];
                 if (!email) return err('Usage: dm purge <email>');
-                if (!confirm(`Delete ALL DMs involving ${email}?`)) return info('Cancelled.');
+                
                 try {
                     const uid=await window._termGetUid(email);
                     if (!uid) return err(`User not found: ${email}`);
@@ -6078,7 +6082,7 @@
             if (c === 'chat' && args[0] === 'purge') {
                 const email=args[1];
                 if (!email) return err('Usage: chat purge <email>');
-                if (!confirm(`Delete all global chat messages from ${email}?`)) return info('Cancelled.');
+                
                 try {
                     const uid=await window._termGetUid(email);
                     if (!uid) return err(`User not found: ${email}`);
@@ -6109,7 +6113,7 @@
             if (c === 'friends' && args[0] === 'clear') {
                 const email=args[1];
                 if (!email) return err('Usage: friends clear <email>');
-                if (!confirm(`Remove all friends of ${email}?`)) return info('Cancelled.');
+                
                 try {
                     const uid=await window._termGetUid(email);
                     if (!uid) return err(`User not found: ${email}`);
@@ -6314,7 +6318,7 @@
                 if (!(window.allCategories||[]).some(cat=>cat.key===tocat)) return err(`Category "${tocat}" not found`);
                 const sites=window.allSites?.[fromcat]||[];
                 if (!sites.length) return info(`No sites in "${fromcat}"`);
-                if (!confirm(`Move all ${sites.length} sites from "${fromcat}" to "${tocat}"?`)) return info('Cancelled.');
+                
                 try {
                     const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
                     await Promise.all(sites.map(s=>setDoc(doc(window.db,"sites",s.id),{category:tocat},{merge:true})));
@@ -6425,7 +6429,7 @@
                         const snap = await getDocs(query(collection(window.db, "signupRequests"), orderBy("requestedAt", "desc")));
                         const pending = snap.docs.filter(d => d.data().status === 'pending');
                         if (!pending.length) return info('No pending signups.');
-                        if (!confirm(`Approve all ${pending.length} pending signups?`)) return info('Cancelled.');
+                        
                         for (const d of pending) {
                             const r = d.data();
                             await setDoc(doc(window.db, "users", r.uid), { status: 'approved' }, { merge: true });
@@ -6450,7 +6454,7 @@
                         await deleteDoc(doc(window.db, "signupRequests", match.id));
                         ok(`${email} approved — they can now log in`);
                     } else if (action === 'deny') {
-                        if (!confirm(`Deny and delete signup for ${email}?`)) return info('Cancelled.');
+                        
                         await deleteDoc(doc(window.db, "users", r.uid));
                         await deleteDoc(doc(window.db, "signupRequests", match.id));
                         if (r.displayName) {
@@ -6465,7 +6469,7 @@
 
             // ── RESET ORDERS ──
             if (c === 'reset' && args[0] === 'orders') {
-                if (!confirm('Reset all category and site orders?')) return info('Cancelled.');
+                
                 info('Resetting orders...');
                 try { await window.resetOrders(); ok('Orders reset successfully'); }
                 catch(e) { err(e.message); }
@@ -6630,7 +6634,7 @@
 
             // ── BROADCAST REFRESH ──
             if (c === 'broadcast' && args[0] === 'refresh') {
-                if (!confirm('Push refresh prompt to all online users?')) return info('Cancelled.');
+                
                 try { await window.broadcastRefresh(); ok('Refresh pushed to all online users'); }
                 catch(e) { err(e.message); }
                 return;
