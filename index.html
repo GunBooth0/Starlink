@@ -215,95 +215,6 @@
             background: rgba(255,255,255,0.15);
             margin: 1.25rem 0;
         }
-
-        /* ── Custom confirm dialog ── */
-        #confirm-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(6px);
-            z-index: 9999998;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-        #confirm-overlay.show { display: flex; }
-        #confirm-box {
-            background: rgba(15,15,20,0.97);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 1.5rem;
-            padding: 2rem 2.25rem;
-            max-width: 420px;
-            width: 90%;
-            box-shadow: 0 24px 80px rgba(0,0,0,0.6);
-            animation: toastIn 0.25s cubic-bezier(0.34,1.56,0.64,1) forwards;
-        }
-        #confirm-message {
-            font-size: 1.05rem;
-            color: rgba(255,255,255,0.9);
-            margin-bottom: 1.5rem;
-            line-height: 1.55;
-        }
-        #confirm-buttons {
-            display: flex;
-            gap: 0.75rem;
-            justify-content: flex-end;
-        }
-        #toast-container {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            z-index: 999999;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            pointer-events: none;
-        }
-        .toast {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.9rem 1.4rem;
-            border-radius: 1rem;
-            font-size: 0.95rem;
-            font-weight: 500;
-            backdrop-filter: blur(16px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-            pointer-events: all;
-            animation: toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards;
-            max-width: 360px;
-        }
-        .toast.toast-success {
-            background: rgba(16,185,129,0.15);
-            border: 1px solid rgba(16,185,129,0.4);
-            color: #6ee7b7;
-        }
-        .toast.toast-error {
-            background: rgba(239,68,68,0.15);
-            border: 1px solid rgba(239,68,68,0.4);
-            color: #fca5a5;
-        }
-        .toast.toast-info {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #fff;
-        }
-        .toast.toast-warning {
-            background: rgba(245,158,11,0.15);
-            border: 1px solid rgba(245,158,11,0.4);
-            color: #fcd34d;
-        }
-        .toast.toast-out {
-            animation: toastOut 0.25s ease forwards;
-        }
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateX(40px) scale(0.95); }
-            to   { opacity: 1; transform: translateX(0) scale(1); }
-        }
-        @keyframes toastOut {
-            from { opacity: 1; transform: translateX(0) scale(1); }
-            to   { opacity: 0; transform: translateX(40px) scale(0.95); }
-        }
     </style>
 </head>
 <body>
@@ -312,16 +223,6 @@
         <svg width="48" height="48" viewBox="0 0 200 200" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg" style="animation:pulse 1.5s infinite ease-in-out;">
             <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
         </svg>
-    </div>
-    <div id="toast-container"></div>
-    <div id="confirm-overlay">
-        <div id="confirm-box">
-            <div id="confirm-message"></div>
-            <div id="confirm-buttons">
-                <button id="confirm-cancel" style="width:auto;margin:0;padding:0.65rem 1.4rem;font-size:0.95rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);border-radius:0.75rem;">Cancel</button>
-                <button id="confirm-ok" style="width:auto;margin:0;padding:0.65rem 1.4rem;font-size:0.95rem;background:var(--accent);color:#000;border:none;border-radius:0.75rem;font-weight:600;">Confirm</button>
-            </div>
-        </div>
     </div>
     <div id="star-bg"></div>
     <canvas id="matrix-bg"></canvas>
@@ -1045,7 +946,7 @@
 
                 if (userDocData.banned === true) {
                     await signOut(auth);
-                    window.showToast("Your account has been banned. Please contact the administrator.", "error", 6000);
+                    alert("Your account has been banned. Please contact the administrator.");
                     return;
                 }
 
@@ -1054,7 +955,7 @@
                     window._signingUp = true;
                     await signOut(auth);
                     window._signingUp = false;
-                    window.showToast("Your account is pending approval. You will be notified when approved.", "warning", 6000);
+                    alert("Your account is pending approval by the owner. You will be able to log in once approved.");
                     return;
                 }
 
@@ -1206,7 +1107,7 @@
                     if (!snap.exists()) {
                         if (window._signingUp || !window.initialLoadComplete) return;
                         await signOut(auth);
-                        window.showToast("Your account has been removed by the owner.", "error", 5000);
+                        alert("Your account has been removed by the owner.");
                         return;
                     }
                     const data = snap.data();
@@ -1316,7 +1217,7 @@
                     updateUIForAuth(cred.user);
                 } else {
                     const signupUsername = document.getElementById('signup-username').value.trim();
-                    if (!signupUsername) { window.showToast('Please choose a username before signing up.', 'warning'); return; }
+                    if (!signupUsername) { alert('Please choose a username before signing up.'); return; }
                     window._signingUp = true;
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
                     // Check username uniqueness
@@ -1324,7 +1225,7 @@
                     if (_takenSnap.exists() && _takenSnap.data().uid !== cred.user.uid) {
                         await deleteUser(cred.user);
                         window._signingUp = false;
-                        window.showToast(`Username "${signupUsername}" is already taken.`, "error");
+                        alert(`Username "${signupUsername}" is already taken. Please choose a different one.`);
                         return;
                     }
                     // Reserve username
@@ -1351,10 +1252,10 @@
                     await signOut(auth);
                     window._signingUp = false;
                     updateUIForAuth(null);
-                    window.showToast("Account created! Pending approval by the owner.", "success", 5000);
+                    alert("Account created! Your signup is pending approval by the owner. You will be notified when approved.");
                 }
             } catch (e) {
-                window.showToast(e.message, "error");
+                alert(e.message);
             }
         });
 
@@ -1369,21 +1270,21 @@
         });
 
         window.deleteAccount = async () => {
-            if (!await window.showConfirm("Delete account permanently? This cannot be undone.", "Delete", true)) return;
+            if (!confirm("Delete account permanently? This cannot be undone.")) return;
             const user = auth.currentUser;
-            if (!user) return window.showToast("Not logged in.", "error");
+            if (!user) return alert("Not logged in.");
             try {
                 await deleteDoc(doc(db, "users", user.uid));
                 await deleteUser(user);
-                window.showToast("Account deleted.", "success");
+                alert("Account fully deleted.");
             } catch (e) {
-                window.showToast("Error: " + e.message, "error");
+                alert("Error: " + e.message);
             }
         };
 
         window.changePassword = async () => {
             const user = auth.currentUser;
-            if (!user?.email) return window.showToast("Not logged in.", "error");
+            if (!user?.email) return alert("Not logged in.");
             try {
                 await sendPasswordResetEmail(auth, user.email);
                 document.getElementById('auth-message').textContent = "Password reset email sent!";
@@ -1396,7 +1297,7 @@
 
         window.changeEmail = async () => {
             const user = auth.currentUser;
-            if (!user) return window.showToast("Not logged in.", "error");
+            if (!user) return alert("Not logged in.");
             const newEmail = prompt("New email:", user.email);
             if (!newEmail || newEmail === user.email) return;
             const pass = prompt("Current password:");
@@ -1405,10 +1306,10 @@
                 const cred = EmailAuthProvider.credential(user.email, pass);
                 await reauthenticateWithCredential(user, cred);
                 await updateEmail(user, newEmail);
-                window.showToast("Email updated! Check your new inbox to verify.", "success");
+                alert("Email updated! Verify new email.");
                 document.getElementById('user-email').textContent = newEmail;
             } catch (e) {
-                window.showToast("Error: " + e.message, "error");
+                alert("Error: " + e.message);
             }
         };
 
@@ -1473,7 +1374,7 @@
 
         window.saveGlobalAnnouncement = async () => {
             const msg = document.getElementById('announcement-input').value.trim();
-            if (!msg) return window.showToast("Cannot be empty", "warning");
+            if (!msg) return alert("Cannot be empty");
             try {
                 const user = auth.currentUser;
                 const userSnap = await getDoc(doc(db, "users", user.uid));
@@ -1486,20 +1387,20 @@
                     publisherRole,
                     updatedAt: serverTimestamp()
                 });
-                window.showToast("Announcement published!", "success");
+                alert("Announcement published!");
                 document.getElementById('announcement-input').value = '';
             } catch (e) {
-                window.showToast("Error: " + e.message, "error");
+                alert("Error: " + e.message);
             }
         };
 
         window.clearAnnouncement = async () => {
-            if (!await window.showConfirm("Clear this announcement?", "Clear")) return;
+            if (!confirm("Clear announcement?")) return;
             try {
                 await deleteDoc(doc(db, "config", "announcement"));
-                window.showToast("Announcement cleared!", "info");
+                alert("Announcement cleared!");
             } catch (e) {
-                window.showToast("Error: " + e.message, "error");
+                alert("Error: " + e.message);
             }
         };
 
@@ -1578,33 +1479,33 @@
         };
 
         window.setBanUser = async (uid, ban) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return window.showToast("Only the owner can do this.", "error");
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             // Extra safety: never ban owner or admins
             try {
                 const targetSnap = await getDoc(doc(db, "users", uid));
                 const targetData = targetSnap.exists() ? targetSnap.data() : {};
-                if (targetData.email === ADMIN_EMAIL || targetData.isAdmin === true) return window.showToast('You cannot ban admins or the owner.', 'error');
+                if (targetData.email === ADMIN_EMAIL || targetData.isAdmin === true) return alert('You cannot ban admins or the owner.');
             } catch(_) {}
             const action = ban ? 'ban' : 'unban';
-            if (!await window.showConfirm(`Are you sure you want to ${action} this user?`, "Confirm", true)) return;
+            if (!confirm(`Are you sure you want to ${action} this user?`)) return;
             try {
                 await setDoc(doc(db, "users", uid), { banned: ban }, { merge: true });
                 window.loadAdminUsers();
             } catch (e) {
-                window.showToast("Error: " + e.message, "error");
+                alert("Error: " + e.message);
             }
         };
 
         window.setAdminUser = async (uid, grant) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return window.showToast("Only the owner can do this.", "error");
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             // Never modify the owner's own record
             try {
                 const targetSnap = await getDoc(doc(db, "users", uid));
                 const targetData = targetSnap.exists() ? targetSnap.data() : {};
-                if (targetData.email === ADMIN_EMAIL) return window.showToast("You cannot change the owner's role.", "error");
+                if (targetData.email === ADMIN_EMAIL) return alert("You cannot change the owner's role.");
             } catch(_) {}
             const action = grant ? 'grant admin access to' : 'revoke admin access from';
-            if (!await window.showConfirm(`Are you sure you want to ${action} this user?`, "Confirm", true)) return;
+            if (!confirm(`Are you sure you want to ${action} this user?`)) return;
             try {
                 await setDoc(doc(db, "users", uid), { isAdmin: grant }, { merge: true });
                 if (!grant) {
@@ -1616,20 +1517,20 @@
                 await window.cascadeRoleUpdate(uid, newRole);
                 window.loadAdminUsers();
             } catch (e) {
-                window.showToast("Error: " + e.message, "error");
+                alert("Error: " + e.message);
             }
         };
 
         window.deleteUserFromAdmin = async (uid) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return window.showToast("Only the owner can do this.", "error");
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             // Never delete owner or other admins
             let targetData = {};
             try {
                 const targetSnap = await getDoc(doc(db, "users", uid));
                 targetData = targetSnap.exists() ? targetSnap.data() : {};
-                if (targetData.email === ADMIN_EMAIL || targetData.isAdmin === true) return window.showToast('You cannot delete admins or the owner.', 'error');
+                if (targetData.email === ADMIN_EMAIL || targetData.isAdmin === true) return alert('You cannot delete admins or the owner.');
             } catch(_) {}
-            if (!await window.showConfirm("Delete this user's record? Auth account must still be deleted in Firebase Console.", "Delete", true)) return;
+            if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
             try {
                 // Delete user doc
                 await deleteDoc(doc(db, "users", uid));
@@ -1639,10 +1540,10 @@
                 }
                 // Delete signup request if pending
                 try { await deleteDoc(doc(db, "signupRequests", uid)); } catch(_) {}
-                window.showToast("User removed from list.", "success");
+                alert("User removed from list.");
                 window.loadAdminUsers();
             } catch (e) {
-                window.showToast("Error: " + e.message, "error");
+                alert("Error: " + e.message);
             }
         };
 
@@ -1651,38 +1552,38 @@
             const label = document.getElementById('new-cat-label').value.trim();
             let icon = document.getElementById('new-cat-icon').value.trim();
             if (!icon.startsWith('fa-')) icon = 'fa-' + icon;
-            if (!key || !label) return window.showToast("Key and Label required (key must be lowercase, no spaces)", "warning");
+            if (!key || !label) return alert("Key and Label required (key must be lowercase, no spaces)");
 
             if (window.editingCategoryId) {
                 try {
                     await setDoc(doc(db, "categories", window.editingCategoryId), { key, label, icon }, { merge: true });
-                    window.showToast("Category updated!", "success");
+                    alert("Category updated!");
                     window.editingCategoryId = null;
                     document.getElementById('cat-action-btn').textContent = "Add Category";
                     ['new-cat-key','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
                 } catch (e) {
-                    window.showToast("Error: " + e.message, "error");
+                    alert("Error: " + e.message);
                 }
             } else {
-                if ((window.allCategories || []).some(c => c.key === key)) return window.showToast("Key already exists!", "error");
+                if ((window.allCategories || []).some(c => c.key === key)) return alert("Key already exists!");
                 const maxOrder = (window.allCategories || []).length ? Math.max(...(window.allCategories || []).map(c => c.order ?? 0)) + 1 : 0;
                 try {
                     await addDoc(collection(db, "categories"), { key, label, icon, order: maxOrder });
-                    window.showToast("Category added!", "success");
+                    alert("Category added!");
                     ['new-cat-key','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
                 } catch (e) {
-                    window.showToast("Error: " + e.message, "error");
+                    alert("Error: " + e.message);
                 }
             }
         };
 
         window.deleteCategory = async (docId, key) => {
-            if (!await window.showConfirm(`Delete category "${key}" forever? Sites won't appear until moved.`, "Delete", true)) return;
+            if (!confirm(`Delete category "${key}" forever? Sites in this category will no longer appear until moved.`)) return;
             try {
                 await deleteDoc(doc(db, "categories", docId));
-                window.showToast("Category deleted!", "success");
+                alert("Category deleted!");
             } catch (e) {
-                window.showToast("Error: " + e.message, "error");
+                alert("Error: " + e.message);
             }
         };
 
@@ -1700,7 +1601,7 @@
                 await window.loadCategories();
                 window.buildNav();
                 window.reloadAdminCategories();
-            } catch (e) { window.showToast("Reorder error: " + e.message, "error"); }
+            } catch (e) { alert("Reorder error: " + e.message); }
         };
 
         window.moveCategoryDown = async (docId) => {
@@ -1715,7 +1616,7 @@
                 await window.loadCategories();
                 window.buildNav();
                 window.reloadAdminCategories();
-            } catch (e) { window.showToast("Reorder error: " + e.message, "error"); }
+            } catch (e) { alert("Reorder error: " + e.message); }
         };
 
         window.editCategory = (docId, key, label, icon) => {
@@ -1767,31 +1668,31 @@
             const icon = document.getElementById('new-site-icon').value.trim();
             const desc = document.getElementById('new-site-desc').value.trim();
 
-            if (!name || !url) return window.showToast("Name and URL required", "warning");
+            if (!name || !url) return alert("Name and URL required");
 
             try {
                 const catSites = window.allSites[cat] || [];
                 const maxOrder = catSites.length ? Math.max(...catSites.map(s => s.order ?? 0)) + 1 : 0;
                 await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc, order: maxOrder });
-                window.showToast("Site added!", "success");
+                alert("Site added!");
                 ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                 await window.loadAllSites();
                 window.populateAllGrids();
                 window.reloadAdminSites();
             } catch (e) {
-                window.showToast("Error: " + e.message, "error");
+                alert("Error: " + e.message);
             }
         };
 
         window.deleteSite = async (id) => {
-            if (!await window.showConfirm("Delete this site forever?", "Delete", true)) return;
+            if (!confirm("Delete forever?")) return;
             try {
                 await deleteDoc(doc(db, "sites", id));
                 await window.loadAllSites();
                 window.populateAllGrids();
                 window.reloadAdminSites();
             } catch (e) {
-                window.showToast("Error: " + e.message, "error");
+                alert("Error: " + e.message);
             }
         };
 
@@ -1811,7 +1712,7 @@
                 const newIcon = document.getElementById('new-site-icon').value.trim();
                 const newDesc = document.getElementById('new-site-desc').value.trim();
 
-                if (!newName || !newUrl) return window.showToast("Name and URL required", "warning");
+                if (!newName || !newUrl) return alert("Name and URL required");
 
                 try {
                     await setDoc(doc(db, "sites", id), {
@@ -1822,7 +1723,7 @@
                         desc: newDesc,
                         updatedAt: serverTimestamp()
                     }, { merge: true });
-                    window.showToast("Site updated!", "success");
+                    alert("Site updated successfully!");
                     ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                     btn.textContent = 'Add New Site';
                     btn.onclick = window.addNewSiteFromAdmin;
@@ -1830,7 +1731,7 @@
                     window.populateAllGrids();
                     window.reloadAdminSites();
                 } catch (e) {
-                    window.showToast("Error: " + e.message, "error");
+                    alert("Error updating site: " + e.message);
                 }
             };
         };
@@ -1901,7 +1802,7 @@
                 await window.loadAllSites();
                 window.populateAllGrids();
                 window.reloadAdminSites();
-            } catch (e) { window.showToast("Error: " + e.message, "error"); }
+            } catch (e) { alert("Error: " + e.message); }
         };
 
         window.moveSiteDown = async (siteId, catKey) => {
@@ -1916,7 +1817,7 @@
                 await window.loadAllSites();
                 window.populateAllGrids();
                 window.reloadAdminSites();
-            } catch (e) { window.showToast("Error: " + e.message, "error"); }
+            } catch (e) { alert("Error: " + e.message); }
         };
 
 
@@ -2054,7 +1955,7 @@
         };
 
         window.approveSiteRequest = async (reqId, name, url, category, icon, desc) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return window.showToast("Only the owner can do this.", "error");
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
                 const catSites = window.allSites[category] || [];
                 const maxOrder = catSites.length ? Math.max(...catSites.map(s => s.order ?? 0)) + 1 : 0;
@@ -2070,11 +1971,11 @@
                 const badge = document.getElementById('requests-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('site-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending requests</p>'; }
                 else { badge.textContent = remaining; }
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert("Error: " + e.message); }
         };
 
         window.rejectSiteRequest = async (reqId) => {
-            if (!await window.showConfirm("Reject and remove this request?", "Reject", true)) return;
+            if (!confirm("Reject and remove this request?")) return;
             try {
                 await deleteDoc(doc(db, "siteRequests", reqId));
                 const row = document.getElementById('req-row-' + reqId);
@@ -2083,7 +1984,7 @@
                 const badge = document.getElementById('requests-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('site-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending requests</p>'; }
                 else { badge.textContent = remaining; }
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert("Error: " + e.message); }
         };
 
 
@@ -2120,12 +2021,12 @@
         };
 
         window.cancelAdminRequest = async () => {
-            if (!await window.showConfirm("Cancel your admin request?", "Cancel Request")) return;
+            if (!confirm('Cancel your admin request?')) return;
             try {
                 await deleteDoc(doc(db, "adminRequests", auth.currentUser.uid));
                 document.getElementById('admin-req-form').classList.remove('hidden');
                 document.getElementById('admin-req-already').classList.add('hidden');
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.checkExistingAdminRequest = async () => {
@@ -2184,7 +2085,7 @@
         };
 
         window.approveAdminRequest = async (reqId, uid) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return window.showToast("Only the owner can do this.", "error");
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
                 await setDoc(doc(db, "users", uid), { isAdmin: true }, { merge: true });
                 await deleteDoc(doc(db, "adminRequests", reqId));
@@ -2196,12 +2097,12 @@
                 else { badge.textContent = remaining; }
                 // Reload users table so the new admin badge shows
                 window.loadAdminUsers();
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.denyAdminRequest = async (reqId) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return window.showToast("Only the owner can do this.", "error");
-            if (!await window.showConfirm("Deny and remove this request?", "Deny", true)) return;
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            if (!confirm('Deny and remove this request?')) return;
             try {
                 await deleteDoc(doc(db, "adminRequests", reqId));
                 const row = document.getElementById('admin-req-row-' + reqId);
@@ -2210,7 +2111,7 @@
                 const badge = document.getElementById('admin-req-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('admin-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending admin requests</p>'; }
                 else { badge.textContent = remaining; }
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
 
@@ -2295,12 +2196,12 @@
         };
 
         window.approveCategoryRequest = async (reqId, label, icon) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return window.showToast("Only the owner can do this.", "error");
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
                 // Generate a key from the label
                 const key = label.toLowerCase().replace(/[^a-z0-9]/g, '');
                 if ((window.allCategories || []).some(c => c.key === key)) {
-                    window.showToast(`A category with key "${key}" already exists.`, "warning");
+                    alert(`A category with key "${key}" already exists. Deny this and add it manually if needed.`);
                     return;
                 }
                 const maxOrder = (window.allCategories || []).length
@@ -2313,12 +2214,12 @@
                 const badge = document.getElementById('cat-req-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('category-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending category requests</p>'; }
                 else { badge.textContent = remaining; }
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.denyCategoryRequest = async (reqId) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return window.showToast("Only the owner can do this.", "error");
-            if (!await window.showConfirm("Deny and remove this request?", "Deny", true)) return;
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            if (!confirm('Deny and remove this request?')) return;
             try {
                 await deleteDoc(doc(db, "categoryRequests", reqId));
                 const row = document.getElementById('cat-req-row-' + reqId);
@@ -2327,7 +2228,7 @@
                 const badge = document.getElementById('cat-req-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('category-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending category requests</p>'; }
                 else { badge.textContent = remaining; }
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
 
@@ -2502,7 +2403,7 @@
         window.deleteChatMessage = async (msgId) => {
             try {
                 await deleteDoc(doc(db, "chat", msgId));
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.sendChatMessage = async () => {
@@ -2529,7 +2430,7 @@
                 // Clear typing indicator immediately on send
                 if (typingTimeout) clearTimeout(typingTimeout);
                 try { await deleteDoc(doc(db, "typing", user.uid)); } catch(_) {}
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
 
@@ -2551,25 +2452,25 @@
         window.sendFriendRequest = async () => {
             const input = document.getElementById('friend-search-input');
             const username = input?.value.trim();
-            if (!username) return window.showToast("Enter a username to add.", "warning");
+            if (!username) return alert('Enter a username to add.');
             const me = auth.currentUser;
-            if (!me) return window.showToast("Not logged in.", "error");
+            if (!me) return alert('Not logged in.');
 
             // Step 1: look up target by username
             let usernameSnap;
             try {
                 usernameSnap = await getDoc(doc(db, "usernames", username.toLowerCase()));
-            } catch(e) { return window.showToast("Could not look up username: " + e.message, "error"); }
-            if (!usernameSnap.exists()) return window.showToast(`No user found with username "${username}".`, "error");
+            } catch(e) { return alert('Could not look up username: ' + e.message); }
+            if (!usernameSnap.exists()) return alert(`No user found with username "${username}". Have them open the Live Chat tab once to register.`);
 
             const targetUid = usernameSnap.data().uid;
             const targetDisplayName = usernameSnap.data().displayName;
-            if (targetUid === me.uid) return window.showToast("You can't add yourself.", "warning");
+            if (targetUid === me.uid) return alert("You can't add yourself.");
 
             // Step 2: check if already friends (read own list — always allowed)
             try {
                 const existingFriend = await getDoc(doc(db, "friends", me.uid, "list", targetUid));
-                if (existingFriend.exists()) return window.showToast("You are already friends with this user.", "warning");
+                if (existingFriend.exists()) return alert('You are already friends with this user.');
             } catch(_) {} // ignore if this fails, not critical
 
             // Step 3: write the friend request using my display name from window
@@ -2580,10 +2481,10 @@
                     fromName: myName,
                     sentAt: serverTimestamp()
                 });
-            } catch(e) { return window.showToast('Could not send request: ' + e.message, 'error'); }
+            } catch(e) { return alert('Could not send request: ' + e.message); }
 
             input.value = '';
-            window.showToast(`Friend request sent to ${targetDisplayName}!`, 'success');
+            alert(`Friend request sent to ${targetDisplayName}!`);
         };
 
         // ── Load friends list in sidebar ──
@@ -2646,7 +2547,7 @@
                 await setDoc(doc(db, "friends", fromUid, "list", me.uid), { displayName: myName, addedAt: serverTimestamp() });
                 // Remove the incoming request
                 await deleteDoc(doc(db, "friendRequests", me.uid, "incoming", fromUid));
-            } catch(e) { window.showToast('Error: ' + e.message, 'error'); }
+            } catch(e) { alert('Error accepting: ' + e.message); }
         };
 
         // ── Decline friend request ──
@@ -2654,18 +2555,18 @@
             const me = auth.currentUser;
             if (!me) return;
             try { await deleteDoc(doc(db, "friendRequests", me.uid, "incoming", fromUid)); }
-            catch(e) { window.showToast("Error: " + e.message, "error"); }
+            catch(e) { alert('Error: ' + e.message); }
         };
 
         // ── Remove friend ──
         window.removeFriend = async (friendUid) => {
-            if (!await window.showConfirm("Remove this friend?", "Remove", true)) return;
+            if (!confirm('Remove this friend?')) return;
             const me = auth.currentUser;
             try {
                 await deleteDoc(doc(db, "friends", me.uid, "list", friendUid));
                 await deleteDoc(doc(db, "friends", friendUid, "list", me.uid));
                 if (window.currentDMUser?.uid === friendUid) window.openGlobalChat();
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         // ── Open a DM conversation ──
@@ -2764,7 +2665,7 @@
                         sentAt: serverTimestamp()
                     });
                     input.value = '';
-                } catch(e) { window.showToast("Error: " + e.message, "error"); }
+                } catch(e) { alert('Error: ' + e.message); }
             } else {
                 await _originalSendChat();
             }
@@ -2773,7 +2674,7 @@
         // ── Delete DM message ──
         window.deleteDMMessage = async (convoId, msgId) => {
             try { await deleteDoc(doc(db, "dms", convoId, "messages", msgId)); }
-            catch(e) { window.showToast("Error: " + e.message, "error"); }
+            catch(e) { alert('Error: ' + e.message); }
         };
 
         // ── Stop DM listener ──
@@ -2866,8 +2767,8 @@
 
 
         window.clearChat = async () => {
-            if (!window.isAdminUser) return window.showToast("Only admins can do this.", "error");
-            if (!await window.showConfirm("Delete ALL global chat messages AND all DMs? This cannot be undone.", "Delete All", true)) return;
+            if (!window.isAdminUser) return alert('Only admins can do this.');
+            if (!confirm('Delete ALL global chat messages AND all DM conversations permanently? This cannot be undone.')) return;
             try {
                 // Clear global chat
                 const globalSnap = await getDocs(collection(db, "chat"));
@@ -2879,15 +2780,15 @@
                     .filter(d => d.ref.parent.parent?.parent?.id === "dms")
                     .map(d => deleteDoc(d.ref)));
 
-                window.showToast("All chats cleared.", "success");
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+                alert('All chats cleared.');
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
 
         window.setOwnerUser = async (uid, grant) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return window.showToast("Only the owner can do this.", "error");
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             const action = grant ? 'grant owner access to' : 'revoke owner access from';
-            if (!await window.showConfirm(`Are you sure you want to ${action} this user?`, "Confirm", true)) return;
+            if (!confirm(`Are you sure you want to ${action} this user?`)) return;
             try {
                 // If granting owner, auto-revoke admin so they can't have both
                 if (grant) {
@@ -2897,7 +2798,7 @@
                 }
                 if (window.chatRolesCache) delete window.chatRolesCache[uid];
                 window.loadAdminUsers();
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         // Admin panel (limited) wiring — mirrors owner panel functions but for -p element IDs
@@ -2906,14 +2807,14 @@
             const label = document.getElementById('new-cat-label-p').value.trim();
             let icon = document.getElementById('new-cat-icon-p').value.trim();
             if (!icon.startsWith('fa-')) icon = 'fa-' + icon;
-            if (!key || !label) return window.showToast("Key and Label required", "warning");
-            if ((window.allCategories || []).some(c => c.key === key)) return window.showToast("Key already exists!", "error");
+            if (!key || !label) return alert("Key and Label required");
+            if ((window.allCategories || []).some(c => c.key === key)) return alert("Key already exists!");
             const maxOrder = (window.allCategories || []).length ? Math.max(...(window.allCategories || []).map(c => c.order ?? 0)) + 1 : 0;
             try {
                 await addDoc(collection(db, "categories"), { key, label, icon, order: maxOrder });
-                window.showToast("Category added!", "success");
+                alert("Category added!");
                 ['new-cat-key-p','new-cat-label-p','new-cat-icon-p'].forEach(id => document.getElementById(id).value = '');
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert("Error: " + e.message); }
         };
 
         window.addNewSiteFromAdminPanel = async () => {
@@ -2922,16 +2823,16 @@
             const url = document.getElementById('new-site-url-p').value.trim();
             const icon = document.getElementById('new-site-icon-p').value.trim();
             const desc = document.getElementById('new-site-desc-p').value.trim();
-            if (!name || !url) return window.showToast("Name and URL required", "warning");
+            if (!name || !url) return alert("Name and URL required");
             try {
                 const catSites = window.allSites[cat] || [];
                 const maxOrder = catSites.length ? Math.max(...catSites.map(s => s.order ?? 0)) + 1 : 0;
                 await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc, order: maxOrder });
-                window.showToast("Site added!", "success");
+                alert("Site added!");
                 ['new-site-name-p','new-site-url-p','new-site-desc-p','new-site-icon-p'].forEach(id => document.getElementById(id).value = '');
                 await window.loadAllSites();
                 window.populateAllGrids();
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert("Error: " + e.message); }
         };
 
         function populateAdminThemePanelGrid() {
@@ -3058,12 +2959,12 @@
 
 
         window.editUserUsername = async (uid, currentName) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return window.showToast("Only the owner can do this.", "error");
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             const newName = prompt('Enter new username for this user:', currentName);
             if (newName === null) return;
             const trimmed = newName.trim();
-            if (!trimmed) return window.showToast("Username cannot be empty.", "warning");
-            if (trimmed.length > 24) return window.showToast("Max 24 characters.", "warning");
+            if (!trimmed) return alert('Username cannot be empty.');
+            if (trimmed.length > 24) return alert('Max 24 characters.');
             try {
                 await setDoc(doc(db, "users", uid), { displayName: trimmed }, { merge: true });
                 // Update cell immediately
@@ -3071,7 +2972,7 @@
                 if (cell) cell.textContent = trimmed;
                 // Cascade to friends lists, chat history, DMs
                 await window.cascadeUsernameUpdate(uid, currentName, trimmed);
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
 
@@ -3166,7 +3067,7 @@
         };
 
         window.approveSignup = async (reqId, uid) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return window.showToast("Only the owner can do this.", "error");
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
                 // Remove pending status from user doc
                 await setDoc(doc(db, "users", uid), { status: 'approved' }, { merge: true });
@@ -3178,12 +3079,12 @@
                 const badge = document.getElementById('signup-req-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('signup-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending signup requests</p>'; }
                 else badge.textContent = remaining;
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.denySignup = async (reqId, uid) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return window.showToast("Only the owner can do this.", "error");
-            if (!await window.showConfirm("Deny and delete this signup?", "Deny", true)) return;
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            if (!confirm('Deny and delete this signup?')) return;
             try {
                 // Delete user doc and signup request
                 await deleteDoc(doc(db, "users", uid));
@@ -3200,7 +3101,7 @@
                 const badge = document.getElementById('signup-req-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('signup-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending signup requests</p>'; }
                 else badge.textContent = remaining;
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
 
@@ -3263,7 +3164,7 @@
 
 
         window.resetOrders = async () => {
-            if (!await window.showConfirm("Reset all category and site orders? This fixes ordering bugs.", "Reset")) return;
+            if (!confirm('Reset all category and site orders to clean sequential numbers? This fixes any ordering bugs.')) return;
             try {
                 // Reset category orders
                 const catSnap = await getDocs(query(collection(db, "categories"), orderBy("order", "asc")));
@@ -3288,14 +3189,14 @@
                 window.populateAllGrids();
                 window.reloadAdminCategories();
                 window.reloadAdminSites();
-                window.showToast("Orders reset successfully!", "success");
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+                alert('Orders reset successfully!');
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
 
         // ── Verified badge ──
         window.setVerified = async (uid, grant, silent) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return window.showToast("Only the owner can do this.", "error");
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
                 await setDoc(doc(db, "users", uid), { verified: grant }, { merge: true });
                 // Update past chat messages
@@ -3306,9 +3207,9 @@
                 await Promise.all(dmSnap.docs.filter(d => d.data().uid === uid).map(d => setDoc(d.ref, { verified: grant }, { merge: true })));
                 window.loadAdminUsers();
                 if (!silent) {
-                    window.showToast(grant ? "Verified badge granted ✓" : "Verified badge revoked.", grant ? "success" : "info");
+                    alert(grant ? 'Verified badge granted ✓' : 'Verified badge revoked.');
                 }
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.submitVerifyRequest = async () => {
@@ -3336,12 +3237,12 @@
         };
 
         window.cancelVerifyRequest = async () => {
-            if (!await window.showConfirm("Cancel your verification request?", "Cancel Request")) return;
+            if (!confirm('Cancel your verification request?')) return;
             try {
                 await deleteDoc(doc(db, "verifyRequests", auth.currentUser.uid));
                 document.getElementById('verify-req-form').classList.remove('hidden');
                 document.getElementById('verify-req-already').classList.add('hidden');
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.checkExistingVerifyRequest = async () => {
@@ -3404,38 +3305,38 @@
         };
 
         window.approveVerify = async (reqId, uid) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return window.showToast("Only the owner can do this.", "error");
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
                 await window.setVerified(uid, true, true);
                 await deleteDoc(doc(db, "verifyRequests", reqId));
                 const row = document.getElementById('vreq-row-' + reqId);
                 if (row) { row.style.opacity = '0'; row.style.transition = 'opacity 0.3s'; setTimeout(() => row.remove(), 300); }
                 window.loadVerifyRequests();
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.denyVerify = async (reqId) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return window.showToast("Only the owner can do this.", "error");
-            if (!await window.showConfirm("Deny this verification request?", "Deny", true)) return;
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            if (!confirm('Deny this verification request?')) return;
             try {
                 await deleteDoc(doc(db, "verifyRequests", reqId));
                 const row = document.getElementById('vreq-row-' + reqId);
                 if (row) { row.style.opacity = '0'; row.style.transition = 'opacity 0.3s'; setTimeout(() => row.remove(), 300); }
                 window.loadVerifyRequests();
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
 
         window.broadcastRefresh = async () => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return window.showToast("Only the owner can do this.", "error");
-            if (!await window.showConfirm("Push a refresh prompt to all online users?", "Push Refresh")) return;
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            if (!confirm('Push a refresh prompt to all online users?')) return;
             try {
                 await setDoc(doc(db, "config", "broadcastRefresh"), {
                     triggeredAt: serverTimestamp(),
                     triggeredBy: ADMIN_EMAIL
                 });
-                window.showToast("Refresh prompt sent to all online users.", "success");
-            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+                alert('Refresh prompt sent to all online users.');
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.loadAllSites = window.loadAllSites;
@@ -3575,49 +3476,8 @@
 
         window.requestSite = function() { window.openRequestModal(); };
 
-        // ── Toast notification system ──
-        window.showToast = function(message, type = 'info', duration = 3000) {
-            const container = document.getElementById('toast-container');
-            if (!container) return;
-            const icons = { success: '✓', error: '✕', info: 'ℹ', warning: '⚠' };
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            toast.innerHTML = `<span style="font-size:1rem;opacity:0.8;">${icons[type]||'ℹ'}</span><span>${message}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.classList.add('toast-out');
-                setTimeout(() => toast.remove(), 260);
-            }, duration);
-        };
-
-        // ── Custom confirm dialog ──
-        window.showConfirm = function(message, okLabel = 'Confirm', dangerOk = false) {
-            return new Promise(resolve => {
-                const overlay = document.getElementById('confirm-overlay');
-                const msgEl = document.getElementById('confirm-message');
-                const okBtn = document.getElementById('confirm-ok');
-                const cancelBtn = document.getElementById('confirm-cancel');
-                msgEl.textContent = message;
-                okBtn.textContent = okLabel;
-                okBtn.style.background = dangerOk ? '#ef4444' : 'var(--accent)';
-                okBtn.style.color = '#fff';
-                overlay.classList.add('show');
-                const cleanup = (result) => {
-                    overlay.classList.remove('show');
-                    okBtn.replaceWith(okBtn.cloneNode(true));
-                    cancelBtn.replaceWith(cancelBtn.cloneNode(true));
-                    // Re-attach after clone
-                    document.getElementById('confirm-ok').onclick = null;
-                    document.getElementById('confirm-cancel').onclick = null;
-                    resolve(result);
-                };
-                document.getElementById('confirm-ok').onclick = () => cleanup(true);
-                document.getElementById('confirm-cancel').onclick = () => cleanup(false);
-            });
-        };
-
         window.resetEverything = function() {
-            if (!await window.showConfirm("Reset all settings and sign out?", "Reset & Sign Out", true)) return;
+            if (!confirm("Reset all & sign out?")) return;
             localStorage.clear();
             document.documentElement.style.setProperty('--accent', '#ffffff');
             firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
@@ -5549,7 +5409,7 @@
             if (c === 'site' && args[0] === 'del') {
                 const id = args[1];
                 if (!id) return err('Usage: site del <id>');
-                
+                if (!confirm(`Delete site ${id}?`)) return info('Cancelled.');
                 try { await window.deleteSite(id); ok('Site deleted'); }
                 catch(e) { err(e.message); }
                 return;
@@ -5596,7 +5456,7 @@
                 if (!key) return err('Usage: cat del <key>');
                 const cat=(window.allCategories||[]).find(c=>c.key===key);
                 if (!cat) return err(`Category "${key}" not found`);
-                
+                if (!confirm(`Delete category "${key}"?`)) return info('Cancelled.');
                 try { await window.deleteCategory(cat.id, key); ok(`Category "${key}" deleted`); }
                 catch(e) { err(e.message); }
                 return;
@@ -5629,7 +5489,7 @@
                         const docs=await window._termGetUsers();
                         const banned=docs.filter(d=>d.data().banned===true);
                         if (!banned.length) return info('No banned users.');
-                        
+                        if (!confirm(`Unban all ${banned.length} banned users?`)) return info('Cancelled.');
                         const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
                         await Promise.all(banned.map(d=>setDoc(doc(window.db,"users",d.id),{banned:false},{merge:true})));
                         ok(`Unbanned ${banned.length} user(s)`);
@@ -5647,7 +5507,7 @@
                     else if (action==='verify')   { await window.setVerified(uid,true,true);   ok(`${email} verified ✓`); }
                     else if (action==='unverify') { await window.setVerified(uid,false,true);  ok(`${email} unverified`); }
                     else if (action==='del') {
-                        
+                        if (!confirm(`Delete user ${email}?`)) return info('Cancelled.');
                         await window.deleteUserFromAdmin(uid); ok(`${email} deleted`);
                     }
                     else if (action==='rename') {
@@ -5668,7 +5528,7 @@
             // ── ANNOUNCE ──
             if (c === 'announce') {
                 if (args[0]==='clear') {
-                    
+                    if (!confirm('Clear announcement?')) return info('Cancelled.');
                     await window.clearAnnouncement(); ok('Announcement cleared');
                 } else {
                     const msg=args.join(' ');
@@ -5717,7 +5577,7 @@
                 try {
                     const docs=await window._termGetRequests('site');
                     if (!docs||!docs.length) return info('No pending site requests.');
-                    
+                    if (!confirm(`${c==='approve'?'Approve':'Deny'} all ${docs.length} pending site requests?`)) return info('Cancelled.');
                     for (const d of docs) {
                         const r=d.data();
                         if (c==='approve') await window.approveSiteRequest(d.id,r.name||'',r.url||'',r.category||'',r.icon||'',r.desc||'');
@@ -5733,7 +5593,7 @@
                 try {
                     const docs=await window._termGetRequests(type);
                     if (!docs||!docs.length) return info(`No pending ${args[1]} requests.`);
-                    
+                    if (!confirm(`Deny all ${docs.length} pending ${args[1]} requests?`)) return info('Cancelled.');
                     for (const d of docs) {
                         if (type==='admin') await window.denyAdminRequest(d.id);
                         else await window.denyCategoryRequest(d.id);
@@ -5811,7 +5671,7 @@
             if (c === 'dm' && args[0] === 'clear') {
                 const u1=args[1], u2=args[2];
                 if (!u1||!u2) return err('Usage: dm clear <username1> <username2>');
-                
+                if (!confirm(`Delete all messages between ${u1} and ${u2}?`)) return info('Cancelled.');
                 try {
                     const { getDoc: gd, doc: dc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
                     const s1=await gd(dc(window.db,"usernames",u1.toLowerCase()));
@@ -5963,7 +5823,7 @@
             if (c === 'dm' && args[0] === 'purge') {
                 const email=args[1];
                 if (!email) return err('Usage: dm purge <email>');
-                
+                if (!confirm(`Delete ALL DMs involving ${email}?`)) return info('Cancelled.');
                 try {
                     const uid=await window._termGetUid(email);
                     if (!uid) return err(`User not found: ${email}`);
@@ -6218,7 +6078,7 @@
             if (c === 'chat' && args[0] === 'purge') {
                 const email=args[1];
                 if (!email) return err('Usage: chat purge <email>');
-                
+                if (!confirm(`Delete all global chat messages from ${email}?`)) return info('Cancelled.');
                 try {
                     const uid=await window._termGetUid(email);
                     if (!uid) return err(`User not found: ${email}`);
@@ -6249,7 +6109,7 @@
             if (c === 'friends' && args[0] === 'clear') {
                 const email=args[1];
                 if (!email) return err('Usage: friends clear <email>');
-                
+                if (!confirm(`Remove all friends of ${email}?`)) return info('Cancelled.');
                 try {
                     const uid=await window._termGetUid(email);
                     if (!uid) return err(`User not found: ${email}`);
@@ -6454,7 +6314,7 @@
                 if (!(window.allCategories||[]).some(cat=>cat.key===tocat)) return err(`Category "${tocat}" not found`);
                 const sites=window.allSites?.[fromcat]||[];
                 if (!sites.length) return info(`No sites in "${fromcat}"`);
-                
+                if (!confirm(`Move all ${sites.length} sites from "${fromcat}" to "${tocat}"?`)) return info('Cancelled.');
                 try {
                     const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
                     await Promise.all(sites.map(s=>setDoc(doc(window.db,"sites",s.id),{category:tocat},{merge:true})));
@@ -6565,7 +6425,7 @@
                         const snap = await getDocs(query(collection(window.db, "signupRequests"), orderBy("requestedAt", "desc")));
                         const pending = snap.docs.filter(d => d.data().status === 'pending');
                         if (!pending.length) return info('No pending signups.');
-                        
+                        if (!confirm(`Approve all ${pending.length} pending signups?`)) return info('Cancelled.');
                         for (const d of pending) {
                             const r = d.data();
                             await setDoc(doc(window.db, "users", r.uid), { status: 'approved' }, { merge: true });
@@ -6590,7 +6450,7 @@
                         await deleteDoc(doc(window.db, "signupRequests", match.id));
                         ok(`${email} approved — they can now log in`);
                     } else if (action === 'deny') {
-                        
+                        if (!confirm(`Deny and delete signup for ${email}?`)) return info('Cancelled.');
                         await deleteDoc(doc(window.db, "users", r.uid));
                         await deleteDoc(doc(window.db, "signupRequests", match.id));
                         if (r.displayName) {
@@ -6605,7 +6465,7 @@
 
             // ── RESET ORDERS ──
             if (c === 'reset' && args[0] === 'orders') {
-                
+                if (!confirm('Reset all category and site orders?')) return info('Cancelled.');
                 info('Resetting orders...');
                 try { await window.resetOrders(); ok('Orders reset successfully'); }
                 catch(e) { err(e.message); }
@@ -6770,7 +6630,7 @@
 
             // ── BROADCAST REFRESH ──
             if (c === 'broadcast' && args[0] === 'refresh') {
-                
+                if (!confirm('Push refresh prompt to all online users?')) return info('Cancelled.');
                 try { await window.broadcastRefresh(); ok('Refresh pushed to all online users'); }
                 catch(e) { err(e.message); }
                 return;
