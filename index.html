@@ -700,7 +700,7 @@
                                 <p class="font-semibold text-lg mb-1"><i class="fa-solid fa-rotate mr-2 text-indigo-400"></i>Push Refresh to All Users</p>
                                 <p class="text-white/50 text-sm">Forces a full page reload on every online user's screen. Use only when a change requires a hard reload.</p>
                             </div>
-                            <button onclick="if(true) window.broadcastRefresh()" class="text-white font-semibold py-3 px-8 rounded-2xl transition-colors" style="width:auto;margin:0;font-size:1rem;background:#6366f1;">Push Refresh</button>
+                            <button onclick="if(confirm('Push a refresh prompt to all online users?')) window.broadcastRefresh()" class="text-white font-semibold py-3 px-8 rounded-2xl transition-colors" style="width:auto;margin:0;font-size:1rem;background:#6366f1;">Push Refresh</button>
                         </div>
                     </div>
 
@@ -946,7 +946,7 @@
 
                 if (userDocData.banned === true) {
                     await signOut(auth);
-                    console.log("Your account has been banned. Please contact the administrator.");
+                    alert("Your account has been banned. Please contact the administrator.");
                     return;
                 }
 
@@ -955,7 +955,7 @@
                     window._signingUp = true;
                     await signOut(auth);
                     window._signingUp = false;
-                    console.log("Your account is pending approval by the owner. You will be able to log in once approved.");
+                    alert("Your account is pending approval by the owner. You will be able to log in once approved.");
                     return;
                 }
 
@@ -1108,7 +1108,7 @@
                     if (!snap.exists()) {
                         if (window._signingUp || !window.initialLoadComplete) return;
                         await signOut(auth);
-                        console.log("Your account has been removed by the owner.");
+                        alert("Your account has been removed by the owner.");
                         return;
                     }
                     const data = snap.data();
@@ -1218,7 +1218,7 @@
                     updateUIForAuth(cred.user);
                 } else {
                     const signupUsername = document.getElementById('signup-username').value.trim();
-                    if (!signupUsername) { console.log('Please choose a username before signing up.'); return; }
+                    if (!signupUsername) { alert('Please choose a username before signing up.'); return; }
                     window._signingUp = true;
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
                     // Check username uniqueness
@@ -1226,7 +1226,7 @@
                     if (_takenSnap.exists() && _takenSnap.data().uid !== cred.user.uid) {
                         await deleteUser(cred.user);
                         window._signingUp = false;
-                        console.log(`Username "${signupUsername}" is already taken. Please choose a different one.`);
+                        alert(`Username "${signupUsername}" is already taken. Please choose a different one.`);
                         return;
                     }
                     // Reserve username
@@ -1253,10 +1253,10 @@
                     await signOut(auth);
                     window._signingUp = false;
                     updateUIForAuth(null);
-                    console.log("Account created! Your signup is pending approval by the owner. You will be notified when approved.");
+                    alert("Account created! Your signup is pending approval by the owner. You will be notified when approved.");
                 }
             } catch (e) {
-                console.log(e.message);
+                alert(e.message);
             }
         });
 
@@ -1271,20 +1271,21 @@
         });
 
         window.deleteAccount = async () => {
+            if (!confirm("Delete account permanently? This cannot be undone.")) return;
             const user = auth.currentUser;
-            if (!user) return console.log("Not logged in.");
+            if (!user) return alert("Not logged in.");
             try {
                 await deleteDoc(doc(db, "users", user.uid));
                 await deleteUser(user);
-                console.log("Account fully deleted.");
+                alert("Account fully deleted.");
             } catch (e) {
-                console.log("Error: " + e.message);
+                alert("Error: " + e.message);
             }
         };
 
         window.changePassword = async () => {
             const user = auth.currentUser;
-            if (!user?.email) return console.log("Not logged in.");
+            if (!user?.email) return alert("Not logged in.");
             try {
                 await sendPasswordResetEmail(auth, user.email);
                 document.getElementById('auth-message').textContent = "Password reset email sent!";
@@ -1297,16 +1298,19 @@
 
         window.changeEmail = async () => {
             const user = auth.currentUser;
-            if (!user) return console.log("Not logged in.");
-            const newEmail = user.email;
+            if (!user) return alert("Not logged in.");
+            const newEmail = prompt("New email:", user.email);
             if (!newEmail || newEmail === user.email) return;
-            const pass = pass;
+            const pass = prompt("Current password:");
+            if (!pass) return;
+            try {
+                const cred = EmailAuthProvider.credential(user.email, pass);
                 await reauthenticateWithCredential(user, cred);
                 await updateEmail(user, newEmail);
-                console.log("Email updated! Verify new email.");
+                alert("Email updated! Verify new email.");
                 document.getElementById('user-email').textContent = newEmail;
             } catch (e) {
-                console.log("Error: " + e.message);
+                alert("Error: " + e.message);
             }
         };
 
@@ -1371,7 +1375,7 @@
 
         window.saveGlobalAnnouncement = async () => {
             const msg = document.getElementById('announcement-input').value.trim();
-            if (!msg) return console.log("Cannot be empty");
+            if (!msg) return alert("Cannot be empty");
             try {
                 const user = auth.currentUser;
                 const userSnap = await getDoc(doc(db, "users", user.uid));
@@ -1384,19 +1388,20 @@
                     publisherRole,
                     updatedAt: serverTimestamp()
                 });
-                console.log("Announcement published!");
+                alert("Announcement published!");
                 document.getElementById('announcement-input').value = '';
             } catch (e) {
-                console.log("Error: " + e.message);
+                alert("Error: " + e.message);
             }
         };
 
         window.clearAnnouncement = async () => {
+            if (!confirm("Clear announcement?")) return;
             try {
                 await deleteDoc(doc(db, "config", "announcement"));
-                console.log("Announcement cleared!");
+                alert("Announcement cleared!");
             } catch (e) {
-                console.log("Error: " + e.message);
+                alert("Error: " + e.message);
             }
         };
 
@@ -1475,31 +1480,33 @@
         };
 
         window.setBanUser = async (uid, ban) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return console.log('Only the owner can do this.');
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             // Extra safety: never ban owner or admins
             try {
                 const targetSnap = await getDoc(doc(db, "users", uid));
                 const targetData = targetSnap.exists() ? targetSnap.data() : {};
-                if (targetData.email === ADMIN_EMAIL || targetData.isAdmin === true) return console.log('You cannot ban admins or the owner.');
+                if (targetData.email === ADMIN_EMAIL || targetData.isAdmin === true) return alert('You cannot ban admins or the owner.');
             } catch(_) {}
             const action = ban ? 'ban' : 'unban';
+            if (!confirm(`Are you sure you want to ${action} this user?`)) return;
             try {
                 await setDoc(doc(db, "users", uid), { banned: ban }, { merge: true });
                 window.loadAdminUsers();
             } catch (e) {
-                console.log("Error: " + e.message);
+                alert("Error: " + e.message);
             }
         };
 
         window.setAdminUser = async (uid, grant) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return console.log('Only the owner can do this.');
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             // Never modify the owner's own record
             try {
                 const targetSnap = await getDoc(doc(db, "users", uid));
                 const targetData = targetSnap.exists() ? targetSnap.data() : {};
-                if (targetData.email === ADMIN_EMAIL) return console.log("You cannot change the owner's role.");
+                if (targetData.email === ADMIN_EMAIL) return alert("You cannot change the owner's role.");
             } catch(_) {}
             const action = grant ? 'grant admin access to' : 'revoke admin access from';
+            if (!confirm(`Are you sure you want to ${action} this user?`)) return;
             try {
                 await setDoc(doc(db, "users", uid), { isAdmin: grant }, { merge: true });
                 if (!grant) {
@@ -1511,19 +1518,20 @@
                 await window.cascadeRoleUpdate(uid, newRole);
                 window.loadAdminUsers();
             } catch (e) {
-                console.log("Error: " + e.message);
+                alert("Error: " + e.message);
             }
         };
 
         window.deleteUserFromAdmin = async (uid) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return console.log('Only the owner can do this.');
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             // Never delete owner or other admins
             let targetData = {};
             try {
                 const targetSnap = await getDoc(doc(db, "users", uid));
                 targetData = targetSnap.exists() ? targetSnap.data() : {};
-                if (targetData.email === ADMIN_EMAIL || targetData.isAdmin === true) return console.log('You cannot delete admins or the owner.');
+                if (targetData.email === ADMIN_EMAIL || targetData.isAdmin === true) return alert('You cannot delete admins or the owner.');
             } catch(_) {}
+            if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
             try {
                 // Delete user doc
                 await deleteDoc(doc(db, "users", uid));
@@ -1533,10 +1541,10 @@
                 }
                 // Delete signup request if pending
                 try { await deleteDoc(doc(db, "signupRequests", uid)); } catch(_) {}
-                console.log("User removed from list.");
+                alert("User removed from list.");
                 window.loadAdminUsers();
             } catch (e) {
-                console.log("Error: " + e.message);
+                alert("Error: " + e.message);
             }
         };
 
@@ -1545,37 +1553,38 @@
             const label = document.getElementById('new-cat-label').value.trim();
             let icon = document.getElementById('new-cat-icon').value.trim();
             if (!icon.startsWith('fa-')) icon = 'fa-' + icon;
-            if (!key || !label) return console.log("Key and Label required (key must be lowercase, no spaces)");
+            if (!key || !label) return alert("Key and Label required (key must be lowercase, no spaces)");
 
             if (window.editingCategoryId) {
                 try {
                     await setDoc(doc(db, "categories", window.editingCategoryId), { key, label, icon }, { merge: true });
-                    console.log("Category updated!");
+                    alert("Category updated!");
                     window.editingCategoryId = null;
                     document.getElementById('cat-action-btn').textContent = "Add Category";
                     ['new-cat-key','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
                 } catch (e) {
-                    console.log("Error: " + e.message);
+                    alert("Error: " + e.message);
                 }
             } else {
-                if ((window.allCategories || []).some(c => c.key === key)) return console.log("Key already exists!");
+                if ((window.allCategories || []).some(c => c.key === key)) return alert("Key already exists!");
                 const maxOrder = (window.allCategories || []).length ? Math.max(...(window.allCategories || []).map(c => c.order ?? 0)) + 1 : 0;
                 try {
                     await addDoc(collection(db, "categories"), { key, label, icon, order: maxOrder });
-                    console.log("Category added!");
+                    alert("Category added!");
                     ['new-cat-key','new-cat-label','new-cat-icon'].forEach(id => document.getElementById(id).value = '');
                 } catch (e) {
-                    console.log("Error: " + e.message);
+                    alert("Error: " + e.message);
                 }
             }
         };
 
         window.deleteCategory = async (docId, key) => {
+            if (!confirm(`Delete category "${key}" forever? Sites in this category will no longer appear until moved.`)) return;
             try {
                 await deleteDoc(doc(db, "categories", docId));
-                console.log("Category deleted!");
+                alert("Category deleted!");
             } catch (e) {
-                console.log("Error: " + e.message);
+                alert("Error: " + e.message);
             }
         };
 
@@ -1593,7 +1602,7 @@
                 await window.loadCategories();
                 window.buildNav();
                 window.reloadAdminCategories();
-            } catch (e) { console.log("Reorder error: " + e.message); }
+            } catch (e) { alert("Reorder error: " + e.message); }
         };
 
         window.moveCategoryDown = async (docId) => {
@@ -1608,7 +1617,7 @@
                 await window.loadCategories();
                 window.buildNav();
                 window.reloadAdminCategories();
-            } catch (e) { console.log("Reorder error: " + e.message); }
+            } catch (e) { alert("Reorder error: " + e.message); }
         };
 
         window.editCategory = (docId, key, label, icon) => {
@@ -1660,30 +1669,31 @@
             const icon = document.getElementById('new-site-icon').value.trim();
             const desc = document.getElementById('new-site-desc').value.trim();
 
-            if (!name || !url) return console.log("Name and URL required");
+            if (!name || !url) return alert("Name and URL required");
 
             try {
                 const catSites = window.allSites[cat] || [];
                 const maxOrder = catSites.length ? Math.max(...catSites.map(s => s.order ?? 0)) + 1 : 0;
                 await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc, order: maxOrder });
-                console.log("Site added!");
+                alert("Site added!");
                 ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                 await window.loadAllSites();
                 window.populateAllGrids();
                 window.reloadAdminSites();
             } catch (e) {
-                console.log("Error: " + e.message);
+                alert("Error: " + e.message);
             }
         };
 
         window.deleteSite = async (id) => {
+            if (!confirm("Delete forever?")) return;
             try {
                 await deleteDoc(doc(db, "sites", id));
                 await window.loadAllSites();
                 window.populateAllGrids();
                 window.reloadAdminSites();
             } catch (e) {
-                console.log("Error: " + e.message);
+                alert("Error: " + e.message);
             }
         };
 
@@ -1703,7 +1713,7 @@
                 const newIcon = document.getElementById('new-site-icon').value.trim();
                 const newDesc = document.getElementById('new-site-desc').value.trim();
 
-                if (!newName || !newUrl) return console.log("Name and URL required");
+                if (!newName || !newUrl) return alert("Name and URL required");
 
                 try {
                     await setDoc(doc(db, "sites", id), {
@@ -1714,7 +1724,7 @@
                         desc: newDesc,
                         updatedAt: serverTimestamp()
                     }, { merge: true });
-                    console.log("Site updated successfully!");
+                    alert("Site updated successfully!");
                     ['new-site-name','new-site-url','new-site-desc','new-site-icon'].forEach(id => document.getElementById(id).value = '');
                     btn.textContent = 'Add New Site';
                     btn.onclick = window.addNewSiteFromAdmin;
@@ -1722,7 +1732,7 @@
                     window.populateAllGrids();
                     window.reloadAdminSites();
                 } catch (e) {
-                    console.log("Error updating site: " + e.message);
+                    alert("Error updating site: " + e.message);
                 }
             };
         };
@@ -1793,7 +1803,7 @@
                 await window.loadAllSites();
                 window.populateAllGrids();
                 window.reloadAdminSites();
-            } catch (e) { console.log("Error: " + e.message); }
+            } catch (e) { alert("Error: " + e.message); }
         };
 
         window.moveSiteDown = async (siteId, catKey) => {
@@ -1808,7 +1818,7 @@
                 await window.loadAllSites();
                 window.populateAllGrids();
                 window.reloadAdminSites();
-            } catch (e) { console.log("Error: " + e.message); }
+            } catch (e) { alert("Error: " + e.message); }
         };
 
 
@@ -1946,7 +1956,7 @@
         };
 
         window.approveSiteRequest = async (reqId, name, url, category, icon, desc) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return console.log('Only the owner can do this.');
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
                 const catSites = window.allSites[category] || [];
                 const maxOrder = catSites.length ? Math.max(...catSites.map(s => s.order ?? 0)) + 1 : 0;
@@ -1962,10 +1972,11 @@
                 const badge = document.getElementById('requests-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('site-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending requests</p>'; }
                 else { badge.textContent = remaining; }
-            } catch(e) { console.log("Error: " + e.message); }
+            } catch(e) { alert("Error: " + e.message); }
         };
 
         window.rejectSiteRequest = async (reqId) => {
+            if (!confirm("Reject and remove this request?")) return;
             try {
                 await deleteDoc(doc(db, "siteRequests", reqId));
                 const row = document.getElementById('req-row-' + reqId);
@@ -1974,7 +1985,7 @@
                 const badge = document.getElementById('requests-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('site-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending requests</p>'; }
                 else { badge.textContent = remaining; }
-            } catch(e) { console.log("Error: " + e.message); }
+            } catch(e) { alert("Error: " + e.message); }
         };
 
 
@@ -2011,11 +2022,12 @@
         };
 
         window.cancelAdminRequest = async () => {
+            if (!confirm('Cancel your admin request?')) return;
             try {
                 await deleteDoc(doc(db, "adminRequests", auth.currentUser.uid));
                 document.getElementById('admin-req-form').classList.remove('hidden');
                 document.getElementById('admin-req-already').classList.add('hidden');
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.checkExistingAdminRequest = async () => {
@@ -2074,7 +2086,7 @@
         };
 
         window.approveAdminRequest = async (reqId, uid) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return console.log('Only the owner can do this.');
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
                 await setDoc(doc(db, "users", uid), { isAdmin: true }, { merge: true });
                 await deleteDoc(doc(db, "adminRequests", reqId));
@@ -2086,11 +2098,12 @@
                 else { badge.textContent = remaining; }
                 // Reload users table so the new admin badge shows
                 window.loadAdminUsers();
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.denyAdminRequest = async (reqId) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return console.log('Only the owner can do this.');
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            if (!confirm('Deny and remove this request?')) return;
             try {
                 await deleteDoc(doc(db, "adminRequests", reqId));
                 const row = document.getElementById('admin-req-row-' + reqId);
@@ -2099,7 +2112,7 @@
                 const badge = document.getElementById('admin-req-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('admin-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending admin requests</p>'; }
                 else { badge.textContent = remaining; }
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
 
@@ -2184,12 +2197,12 @@
         };
 
         window.approveCategoryRequest = async (reqId, label, icon) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return console.log('Only the owner can do this.');
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
                 // Generate a key from the label
                 const key = label.toLowerCase().replace(/[^a-z0-9]/g, '');
                 if ((window.allCategories || []).some(c => c.key === key)) {
-                    console.log(`A category with key "${key}" already exists. Deny this and add it manually if needed.`);
+                    alert(`A category with key "${key}" already exists. Deny this and add it manually if needed.`);
                     return;
                 }
                 const maxOrder = (window.allCategories || []).length
@@ -2202,11 +2215,12 @@
                 const badge = document.getElementById('cat-req-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('category-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending category requests</p>'; }
                 else { badge.textContent = remaining; }
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.denyCategoryRequest = async (reqId) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return console.log('Only the owner can do this.');
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            if (!confirm('Deny and remove this request?')) return;
             try {
                 await deleteDoc(doc(db, "categoryRequests", reqId));
                 const row = document.getElementById('cat-req-row-' + reqId);
@@ -2215,7 +2229,7 @@
                 const badge = document.getElementById('cat-req-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('category-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending category requests</p>'; }
                 else { badge.textContent = remaining; }
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
 
@@ -2390,7 +2404,7 @@
         window.deleteChatMessage = async (msgId) => {
             try {
                 await deleteDoc(doc(db, "chat", msgId));
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.sendChatMessage = async () => {
@@ -2417,7 +2431,7 @@
                 // Clear typing indicator immediately on send
                 if (typingTimeout) clearTimeout(typingTimeout);
                 try { await deleteDoc(doc(db, "typing", user.uid)); } catch(_) {}
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
 
@@ -2439,25 +2453,25 @@
         window.sendFriendRequest = async () => {
             const input = document.getElementById('friend-search-input');
             const username = input?.value.trim();
-            if (!username) return console.log('Enter a username to add.');
+            if (!username) return alert('Enter a username to add.');
             const me = auth.currentUser;
-            if (!me) return console.log('Not logged in.');
+            if (!me) return alert('Not logged in.');
 
             // Step 1: look up target by username
             let usernameSnap;
             try {
                 usernameSnap = await getDoc(doc(db, "usernames", username.toLowerCase()));
-            } catch(e) { return console.log('Could not look up username: ' + e.message); }
-            if (!usernameSnap.exists()) return console.log(`No user found with username "${username}". Have them open the Live Chat tab once to register.`);
+            } catch(e) { return alert('Could not look up username: ' + e.message); }
+            if (!usernameSnap.exists()) return alert(`No user found with username "${username}". Have them open the Live Chat tab once to register.`);
 
             const targetUid = usernameSnap.data().uid;
             const targetDisplayName = usernameSnap.data().displayName;
-            if (targetUid === me.uid) return console.log("You can't add yourself.");
+            if (targetUid === me.uid) return alert("You can't add yourself.");
 
             // Step 2: check if already friends (read own list — always allowed)
             try {
                 const existingFriend = await getDoc(doc(db, "friends", me.uid, "list", targetUid));
-                if (existingFriend.exists()) return console.log('You are already friends with this user.');
+                if (existingFriend.exists()) return alert('You are already friends with this user.');
             } catch(_) {} // ignore if this fails, not critical
 
             // Step 3: write the friend request using my display name from window
@@ -2468,10 +2482,10 @@
                     fromName: myName,
                     sentAt: serverTimestamp()
                 });
-            } catch(e) { return console.log('Could not send request: ' + e.message); }
+            } catch(e) { return alert('Could not send request: ' + e.message); }
 
             input.value = '';
-            console.log(`Friend request sent to ${targetDisplayName}!`);
+            alert(`Friend request sent to ${targetDisplayName}!`);
         };
 
         // ── Load friends list in sidebar ──
@@ -2540,7 +2554,7 @@
                 await setDoc(doc(db, "friends", fromUid, "list", me.uid), { displayName: myName, addedAt: serverTimestamp() });
                 // Remove the incoming request
                 await deleteDoc(doc(db, "friendRequests", me.uid, "incoming", fromUid));
-            } catch(e) { console.log('Error accepting: ' + e.message); }
+            } catch(e) { alert('Error accepting: ' + e.message); }
         };
 
         // ── Decline friend request ──
@@ -2548,7 +2562,7 @@
             const me = auth.currentUser;
             if (!me) return;
             try { await deleteDoc(doc(db, "friendRequests", me.uid, "incoming", fromUid)); }
-            catch(e) { console.log('Error: ' + e.message); }
+            catch(e) { alert('Error: ' + e.message); }
         };
 
         // ── Remove friend ──
@@ -2558,7 +2572,7 @@
                 await deleteDoc(doc(db, "friends", me.uid, "list", friendUid));
                 await deleteDoc(doc(db, "friends", friendUid, "list", me.uid));
                 if (window.currentDMUser?.uid === friendUid) window.openGlobalChat();
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         // ── Open a DM conversation ──
@@ -2657,7 +2671,7 @@
                         sentAt: serverTimestamp()
                     });
                     input.value = '';
-                } catch(e) { console.log('Error: ' + e.message); }
+                } catch(e) { alert('Error: ' + e.message); }
             } else {
                 await _originalSendChat();
             }
@@ -2666,7 +2680,7 @@
         // ── Delete DM message ──
         window.deleteDMMessage = async (convoId, msgId) => {
             try { await deleteDoc(doc(db, "dms", convoId, "messages", msgId)); }
-            catch(e) { console.log('Error: ' + e.message); }
+            catch(e) { alert('Error: ' + e.message); }
         };
 
         // ── Stop DM listener ──
@@ -2759,7 +2773,8 @@
 
 
         window.clearChat = async () => {
-            if (!window.isAdminUser) return console.log('Only admins can do this.');
+            if (!window.isAdminUser) return alert('Only admins can do this.');
+            if (!confirm('Delete ALL global chat messages AND all DM conversations permanently? This cannot be undone.')) return;
             try {
                 // Clear global chat
                 const globalSnap = await getDocs(collection(db, "chat"));
@@ -2771,14 +2786,15 @@
                     .filter(d => d.ref.parent.parent?.parent?.id === "dms")
                     .map(d => deleteDoc(d.ref)));
 
-                console.log('All chats cleared.');
-            } catch(e) { console.log('Error: ' + e.message); }
+                alert('All chats cleared.');
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
 
         window.setOwnerUser = async (uid, grant) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return console.log('Only the owner can do this.');
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             const action = grant ? 'grant owner access to' : 'revoke owner access from';
+            if (!confirm(`Are you sure you want to ${action} this user?`)) return;
             try {
                 // If granting owner, auto-revoke admin so they can't have both
                 if (grant) {
@@ -2788,7 +2804,7 @@
                 }
                 if (window.chatRolesCache) delete window.chatRolesCache[uid];
                 window.loadAdminUsers();
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         // Admin panel (limited) wiring — mirrors owner panel functions but for -p element IDs
@@ -2797,14 +2813,14 @@
             const label = document.getElementById('new-cat-label-p').value.trim();
             let icon = document.getElementById('new-cat-icon-p').value.trim();
             if (!icon.startsWith('fa-')) icon = 'fa-' + icon;
-            if (!key || !label) return console.log("Key and Label required");
-            if ((window.allCategories || []).some(c => c.key === key)) return console.log("Key already exists!");
+            if (!key || !label) return alert("Key and Label required");
+            if ((window.allCategories || []).some(c => c.key === key)) return alert("Key already exists!");
             const maxOrder = (window.allCategories || []).length ? Math.max(...(window.allCategories || []).map(c => c.order ?? 0)) + 1 : 0;
             try {
                 await addDoc(collection(db, "categories"), { key, label, icon, order: maxOrder });
-                console.log("Category added!");
+                alert("Category added!");
                 ['new-cat-key-p','new-cat-label-p','new-cat-icon-p'].forEach(id => document.getElementById(id).value = '');
-            } catch(e) { console.log("Error: " + e.message); }
+            } catch(e) { alert("Error: " + e.message); }
         };
 
         window.addNewSiteFromAdminPanel = async () => {
@@ -2813,16 +2829,16 @@
             const url = document.getElementById('new-site-url-p').value.trim();
             const icon = document.getElementById('new-site-icon-p').value.trim();
             const desc = document.getElementById('new-site-desc-p').value.trim();
-            if (!name || !url) return console.log("Name and URL required");
+            if (!name || !url) return alert("Name and URL required");
             try {
                 const catSites = window.allSites[cat] || [];
                 const maxOrder = catSites.length ? Math.max(...catSites.map(s => s.order ?? 0)) + 1 : 0;
                 await addDoc(collection(db, "sites"), { category: cat, name, url, icon, desc, order: maxOrder });
-                console.log("Site added!");
+                alert("Site added!");
                 ['new-site-name-p','new-site-url-p','new-site-desc-p','new-site-icon-p'].forEach(id => document.getElementById(id).value = '');
                 await window.loadAllSites();
                 window.populateAllGrids();
-            } catch(e) { console.log("Error: " + e.message); }
+            } catch(e) { alert("Error: " + e.message); }
         };
 
         function populateAdminThemePanelGrid() {
@@ -2949,12 +2965,12 @@
 
 
         window.editUserUsername = async (uid, currentName) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return console.log('Only the owner can do this.');
-            const newName = currentName;
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            const newName = prompt('Enter new username for this user:', currentName);
             if (newName === null) return;
             const trimmed = newName.trim();
-            if (!trimmed) return console.log('Username cannot be empty.');
-            if (trimmed.length > 24) return console.log('Max 24 characters.');
+            if (!trimmed) return alert('Username cannot be empty.');
+            if (trimmed.length > 24) return alert('Max 24 characters.');
             try {
                 await setDoc(doc(db, "users", uid), { displayName: trimmed }, { merge: true });
                 // Update cell immediately
@@ -2962,7 +2978,7 @@
                 if (cell) cell.textContent = trimmed;
                 // Cascade to friends lists, chat history, DMs
                 await window.cascadeUsernameUpdate(uid, currentName, trimmed);
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
 
@@ -3057,7 +3073,7 @@
         };
 
         window.approveSignup = async (reqId, uid) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return console.log('Only the owner can do this.');
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
                 // Remove pending status from user doc
                 await setDoc(doc(db, "users", uid), { status: 'approved' }, { merge: true });
@@ -3069,11 +3085,12 @@
                 const badge = document.getElementById('signup-req-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('signup-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending signup requests</p>'; }
                 else badge.textContent = remaining;
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.denySignup = async (reqId, uid) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return console.log('Only the owner can do this.');
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            if (!confirm('Deny and delete this signup?')) return;
             try {
                 // Delete user doc and signup request
                 await deleteDoc(doc(db, "users", uid));
@@ -3090,7 +3107,7 @@
                 const badge = document.getElementById('signup-req-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('signup-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending signup requests</p>'; }
                 else badge.textContent = remaining;
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
 
@@ -3153,6 +3170,7 @@
 
 
         window.resetOrders = async () => {
+            if (!confirm('Reset all category and site orders to clean sequential numbers? This fixes any ordering bugs.')) return;
             try {
                 // Reset category orders
                 const catSnap = await getDocs(query(collection(db, "categories"), orderBy("order", "asc")));
@@ -3177,14 +3195,14 @@
                 window.populateAllGrids();
                 window.reloadAdminCategories();
                 window.reloadAdminSites();
-                console.log('Orders reset successfully!');
-            } catch(e) { console.log('Error: ' + e.message); }
+                alert('Orders reset successfully!');
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
 
         // ── Verified badge ──
         window.setVerified = async (uid, grant, silent) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return console.log('Only the owner can do this.');
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
                 await setDoc(doc(db, "users", uid), { verified: grant }, { merge: true });
                 // Update past chat messages
@@ -3195,9 +3213,9 @@
                 await Promise.all(dmSnap.docs.filter(d => d.data().uid === uid).map(d => setDoc(d.ref, { verified: grant }, { merge: true })));
                 window.loadAdminUsers();
                 if (!silent) {
-                    console.log(grant ? 'Verified badge granted ✓' : 'Verified badge revoked.');
+                    alert(grant ? 'Verified badge granted ✓' : 'Verified badge revoked.');
                 }
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.submitVerifyRequest = async () => {
@@ -3225,11 +3243,12 @@
         };
 
         window.cancelVerifyRequest = async () => {
+            if (!confirm('Cancel your verification request?')) return;
             try {
                 await deleteDoc(doc(db, "verifyRequests", auth.currentUser.uid));
                 document.getElementById('verify-req-form').classList.remove('hidden');
                 document.getElementById('verify-req-already').classList.add('hidden');
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.checkExistingVerifyRequest = async () => {
@@ -3292,35 +3311,36 @@
         };
 
         window.approveVerify = async (reqId, uid) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return console.log('Only the owner can do this.');
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
                 await window.setVerified(uid, true, true);
                 await deleteDoc(doc(db, "verifyRequests", reqId));
                 const row = document.getElementById('vreq-row-' + reqId);
                 if (row) { row.style.opacity = '0'; row.style.transition = 'opacity 0.3s'; setTimeout(() => row.remove(), 300); }
                 window.loadVerifyRequests();
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.denyVerify = async (reqId) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return console.log('Only the owner can do this.');
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            if (!confirm('Deny this verification request?')) return;
             try {
                 await deleteDoc(doc(db, "verifyRequests", reqId));
                 const row = document.getElementById('vreq-row-' + reqId);
                 if (row) { row.style.opacity = '0'; row.style.transition = 'opacity 0.3s'; setTimeout(() => row.remove(), 300); }
                 window.loadVerifyRequests();
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
 
         window.broadcastRefresh = async () => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return console.log('Only the owner can do this.');
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
                 await setDoc(doc(db, "config", "broadcastRefresh"), {
                     triggeredAt: serverTimestamp(),
                     triggeredBy: ADMIN_EMAIL
                 });
-            } catch(e) { console.log('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
         };
 
         window.loadAllSites = window.loadAllSites;
@@ -3461,6 +3481,7 @@
         window.requestSite = function() { window.openRequestModal(); };
 
         window.resetEverything = function() {
+            if (!confirm("Reset all & sign out?")) return;
             localStorage.clear();
             document.documentElement.style.setProperty('--accent', '#ffffff');
             firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
@@ -5153,7 +5174,7 @@
 
         window.installPWA = async () => {
             if (!deferredPrompt) return;
-            deferredPrompt."";
+            deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
             deferredPrompt = null;
             if (installBtn) installBtn.classList.add('hidden');
