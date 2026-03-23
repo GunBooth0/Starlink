@@ -2516,6 +2516,12 @@
             friendsListener = onSnapshot(collection(db, "friends", me.uid, "list"), async (snap) => {
                 const container = document.getElementById('friends-list');
                 if (!container) return;
+
+                // If currently in a DM with someone who is no longer a friend, go back to global chat
+                if (window.currentDMUser) {
+                    const stillFriends = snap.docs.some(d => d.id === window.currentDMUser.uid);
+                    if (!stillFriends) window.openGlobalChat();
+                }
                 if (snap.empty) { container.innerHTML = '<p class="text-xs text-white/30 text-center mt-4">No friends yet</p>'; return; }
 
                 // Get online UIDs
@@ -2561,7 +2567,6 @@
 
         // ── Remove friend ──
         window.removeFriend = async (friendUid) => {
-            if (!confirm('Remove this friend?')) return;
             const me = auth.currentUser;
             try {
                 await deleteDoc(doc(db, "friends", me.uid, "list", friendUid));
