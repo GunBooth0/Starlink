@@ -77,6 +77,7 @@
             border: 1px solid rgba(255,255,255,0.15);
         }
         
+
         .tail-container {
             max-width: 1280px;
             margin-left: auto;
@@ -225,6 +226,7 @@
     </div>
     <div id="star-bg"></div>
     <canvas id="matrix-bg"></canvas>
+
     <!-- SIDEBAR -->
     <div class="w-72 bg-black border-r border-white/10 flex flex-col fixed h-screen z-[100]">
         <div class="p-8 flex items-center gap-x-4 border-b border-white/10">
@@ -238,6 +240,7 @@
         </div>
         <div class="flex-1 px-6 py-8 overflow-y-auto" id="nav-links"></div>
     </div>
+
     <!-- MAIN CONTENT -->
     <div class="flex-1 ml-72 main-content">
         <div class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-[100] top-0">
@@ -259,7 +262,9 @@
                 </div>
             </div>
         </div>
+
         <div class="pt-0 pb-20 px-10 tail-container">
+
             <!-- GLOBAL ANNOUNCEMENT -->
             <div id="global-announcement" class="hidden max-w-4xl mx-auto mb-8 p-6 glass rounded-3xl border-l-4 border-[var(--accent)]">
                 <div class="flex items-center gap-3">
@@ -267,6 +272,8 @@
                     <span id="announcement-text-display" class="text-lg font-medium"></span>
                 </div>
             </div>
+
+
             <!-- SEARCH RESULTS -->
             <div id="content-search" class="tab-content hidden">
                 <div class="max-w-5xl mx-auto glass rounded-3xl p-8">
@@ -275,6 +282,7 @@
                     <p id="search-no-results" class="hidden text-center text-white/40 text-xl mt-20">No sites found</p>
                 </div>
             </div>
+
             <!-- ACCOUNT TAB -->
             <div id="content-account" class="tab-content">
                 <div class="max-w-md mx-auto py-12">
@@ -295,6 +303,7 @@
                         <!-- Display name -->
                         <div class="flex items-center justify-center gap-2"><div id="account-username" class="text-4xl font-bold logo-font tracking-tight mb-1"></div><span id="account-verified-badge" class="hidden" style="color:#3b82f6;font-size:1.8rem;" title="Verified">✓</span></div>
                         <p class="text-white/50 text-sm mb-8"><span id="user-email" class="text-[var(--accent)]"></span></p>
+
                         <button onclick="changeEmail()" class="github-style-btn"><i class="fa-solid fa-envelope"></i> Change Email</button>
                         <button onclick="changePassword()" class="github-style-btn"><i class="fa-solid fa-key"></i> Change Password</button>
                         <button onclick="deleteAccount()" class="github-style-btn"><i class="fa-solid fa-trash-can"></i> Delete Account</button>
@@ -331,6 +340,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- HOME -->
             <div id="content-home" class="tab-content">
                 <div class="max-w-4xl mx-auto text-center pt-12 glass rounded-3xl p-12">
@@ -345,6 +355,8 @@
                     <div class="mt-8 text-white/50 text-lg">By: Gunnar Booth</div>
                 </div>
             </div>
+
+
             <!-- REQUEST ADMIN TAB -->
             <div id="content-request-admin" class="tab-content hidden">
                 <div class="max-w-xl mx-auto py-12">
@@ -368,6 +380,8 @@
                     </div>
                 </div>
             </div>
+
+
             <!-- REQUEST CATEGORY TAB -->
             <div id="content-request-category" class="tab-content hidden">
                 <div class="max-w-xl mx-auto py-12">
@@ -385,6 +399,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- REQUEST A SITE TAB -->
             <div id="content-request-site" class="tab-content hidden">
                 <div class="max-w-xl mx-auto py-12">
@@ -406,6 +421,9 @@
                     </div>
                 </div>
             </div>
+
+
+
             <!-- REQUEST VERIFICATION TAB -->
             <div id="content-request-verify" class="tab-content hidden">
                 <div class="max-w-xl mx-auto py-12">
@@ -434,9 +452,11 @@
                     </div>
                 </div>
             </div>
+
             <!-- LIVE CHAT TAB -->
             <div id="content-chat" class="tab-content hidden">
                 <div style="display:flex;gap:1.5rem;height:calc(100vh - 10rem);">
+
                     <!-- LEFT: Friends panel -->
                     <div class="glass rounded-3xl" style="width:260px;min-width:260px;display:flex;flex-direction:column;overflow:hidden;">
                         <div style="padding:1.25rem 1.25rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.1);">
@@ -465,6 +485,7 @@
                             </button>
                         </div>
                     </div>
+
                     <!-- RIGHT: Chat area -->
                     <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
                         <!-- Chat header -->
@@ -496,6 +517,7 @@
             </div>
             <!-- DYNAMIC CATEGORY CONTENTS -->
             <div id="dynamic-category-contents"></div>
+
             <!-- SETTINGS -->
             <div id="content-settings" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
@@ -511,6 +533,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- CREDITS -->
             <div id="content-credits" class="tab-content hidden">
                 <div class="max-w-3xl mx-auto text-center py-20 glass rounded-3xl p-12">
@@ -527,6 +550,7 @@
                     </a>
                 </div>
             </div>
+
             <!-- ADMIN PANEL -->
             <div id="content-admin" class="tab-content hidden">
                 <div class="glass rounded-3xl p-10 max-w-6xl mx-auto">
@@ -538,6 +562,8 @@
                         <kbd style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:0.35rem;padding:0.15rem 0.5rem;font-family:monospace;color:rgba(255,255,255,0.6);">/</kbd>
                         <span>to open the owner terminal</span>
                     </div>
+
+
                     <!-- Online Users -->
                     <div class="mb-16" id="online-users-section">
                         <div class="flex items-center justify-between mb-6">
@@ -551,6 +577,7 @@
                             <p class="text-center text-white/40 text-sm py-4">Click Refresh to see who is online</p>
                         </div>
                     </div>
+
                     <!-- Announcement -->
                     <div class="mb-16">
                         <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
@@ -562,6 +589,7 @@
                             <button onclick="clearAnnouncement()" class="github-style-btn flex-1">Clear</button>
                         </div>
                     </div>
+
                     <!-- Users -->
                     <div class="mb-16">
                         <div class="flex items-center justify-between mb-6">
@@ -570,11 +598,13 @@
                             </h3>
                             <div class="flex gap-4">
                                 <button onclick="loadAdminUsers()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
+
                             </div>
                         </div>
                         <div id="users-table" class="glass rounded-3xl p-2 max-h-[420px] overflow-auto"></div>
                         <p class="text-xs text-white/50 mt-4 text-center">Delete removes the user from this list.<br>Full auth deletion still required in Firebase Console → Authentication</p>
                     </div>
+
                     <!-- Site Requests (owner only) -->
                     <div class="mb-16" id="site-requests-section" style="display:none;">
                         <div class="flex items-center justify-between mb-6">
@@ -588,6 +618,10 @@
                             <p class="p-8 text-center text-white/50">Click Refresh to load requests</p>
                         </div>
                     </div>
+
+
+
+
                     <!-- Verification Requests (owner only) -->
                     <div class="mb-16" id="verify-requests-section" style="display:none;">
                         <div class="flex items-center justify-between mb-6">
@@ -601,6 +635,7 @@
                             <p class="p-8 text-center text-white/50">Click Refresh to load verification requests</p>
                         </div>
                     </div>
+
                     <!-- Signup Requests (owner only) -->
                     <div class="mb-16" id="signup-requests-section" style="display:none;">
                         <div class="flex items-center justify-between mb-6">
@@ -614,6 +649,7 @@
                             <p class="p-8 text-center text-white/50">Click Refresh to load pending signups</p>
                         </div>
                     </div>
+
                     <!-- Admin Access Requests (owner only) -->
                     <div class="mb-16" id="admin-requests-section" style="display:none;">
                         <div class="flex items-center justify-between mb-6">
@@ -627,6 +663,7 @@
                             <p class="p-8 text-center text-white/50">Click Refresh to load requests</p>
                         </div>
                     </div>
+
                     <!-- DMs Viewer (owner only) -->
                     <div class="mb-16" id="dms-admin-section" style="display:none;">
                         <div class="flex items-center justify-between mb-6">
@@ -639,6 +676,7 @@
                             <p class="p-8 text-center text-white/50">Click Refresh to load conversations</p>
                         </div>
                     </div>
+
                     <!-- Category Requests (owner only) -->
                     <div class="mb-16" id="cat-requests-section" style="display:none;">
                         <div class="flex items-center justify-between mb-6">
@@ -652,6 +690,8 @@
                             <p class="p-8 text-center text-white/50">Click Refresh to load requests</p>
                         </div>
                     </div>
+
+
                     <!-- Clear Chat (owner only) -->
                     <!-- Broadcast Refresh (owner only) -->
                     <div class="mb-8" id="broadcast-refresh-section" style="display:none;">
@@ -663,6 +703,7 @@
                             <button onclick="if(confirm('Push a refresh prompt to all online users?')) window.broadcastRefresh()" class="text-white font-semibold py-3 px-8 rounded-2xl transition-colors" style="width:auto;margin:0;font-size:1rem;background:#6366f1;">Push Refresh</button>
                         </div>
                     </div>
+
                     <div class="mb-16" id="clear-chat-section" style="display:none;">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="text-2xl font-semibold flex items-center gap-3">
@@ -677,6 +718,7 @@
                             <button onclick="window.clearChat()" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-8 rounded-2xl transition-colors" style="width:auto;margin:0;font-size:1rem;">Clear Chat</button>
                         </div>
                     </div>
+
                     <!-- Admin Only Themes -->
                     <div class="mb-16">
                         <div class="flex items-center justify-between mb-6">
@@ -687,6 +729,7 @@
                         <p class="text-white/50 text-sm mb-6">Exclusive themes only available to admins and the owner. Selecting one applies it immediately.</p>
                         <div class="glass rounded-3xl p-6 mb-2"><div id="admin-theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div></div>
                     </div>
+
                     <!-- Reset Orders -->
                     <div class="mb-8">
                         <div class="glass rounded-3xl p-6 flex items-center justify-between" style="border:1px solid rgba(255,165,0,0.2);">
@@ -697,6 +740,7 @@
                             <button onclick="window.resetOrders()" class="github-style-btn text-sm px-6 py-3" style="width:auto;margin:0;white-space:nowrap;">Reset Orders</button>
                         </div>
                     </div>
+
                     <!-- Categories Management -->
                     <div class="mb-16">
                         <div class="flex items-center justify-between mb-6">
@@ -724,6 +768,7 @@
                         </div>
                         <div id="admin-categories-list" class="space-y-4"></div>
                     </div>
+
                     <!-- Sites Management -->
                     <div>
                         <div class="flex items-center justify-between mb-6">
@@ -761,12 +806,14 @@
                             </div>
                             <button id="add-update-site-btn" onclick="addNewSiteFromAdmin()" class="auth-btn mt-8 py-6 text-lg w-full">Add New Site</button>
                         </div>
+
                         <div id="admin-sites-list" class="space-y-10"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
     <!-- OWNER TERMINAL -->
     <!-- OWNER TERMINAL — bottom bar style -->
     <style>
@@ -817,6 +864,7 @@
             <span style="color:rgba(255,255,255,0.25);font-size:0.7rem;">ESC to close</span>
         </div>
     </div>
+
     <!-- REFRESH MODAL -->
     <div id="refresh-modal">
         <div id="refresh-content">
@@ -830,14 +878,17 @@
             </button>
         </div>
     </div>
+
     <!-- Firebase SDK -->
     <script type="module">
         // ────────────────────────────────────────────────
         //   All Firebase / auth / data logic stays here
         // ────────────────────────────────────────────────
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
         import { getFirestore, collection, collectionGroup, doc, setDoc, getDocs, addDoc, deleteDoc, getDoc, query, orderBy, where, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyDI979T4jI-ZbGbRDFo-kNZPyG3Pc8gkXw",
             authDomain: "starlink-42031.firebaseapp.com",
@@ -847,23 +898,28 @@
             appId: "1:264424976547:web:6725648e3ae60397870f16",
             measurementId: "G-Z2B3TBENYK"
         };
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+
         window.db = db;
         window.firebaseAuth = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider, auth };
+
         window.currentUser = null;
         window.isAdminUser = false;
         window.isVerifiedUser = false;
         const ADMIN_EMAIL = "gunnarbooth@gmail.com";
         window.ADMIN_EMAIL = ADMIN_EMAIL;
         window.editingCategoryId = null;
+
         let sitesListener = null;
         let announcementListener = null;
         let categoriesListener = null;
         let userDocListener = null;
         window.initialLoadComplete = false;
         window._signingUp = false;
+
         async function updateUIForAuth(user) {
             if (window._signingUp) return; // ignore during signup/verify flow
             window.currentUser = user;
@@ -874,44 +930,26 @@
             const accountTitle = document.getElementById('account-title');
             const currentTabEl = document.getElementById('current-tab');
             const currentIconEl = document.getElementById('current-tab-icon');
+
             if (sitesListener) sitesListener();
             if (announcementListener) announcementListener();
             if (categoriesListener) categoriesListener();
             if (userDocListener) userDocListener();
+
             if (user) {
                 // Check banned + isAdmin from Firestore before showing UI
                 let userDocData = {};
                 try {
-                    const userRef = doc(db, "users", user.uid);
-                    const userSnap = await getDoc(userRef);
-                    if (userSnap.exists()) {
-                        userDocData = userSnap.data();
-                    } else if (user.email) {
-                        const approvedSignup = await findSignupRequestByEmail(user.email);
-                        if (approvedSignup?.data?.status === 'approved') {
-                            const approvedName = approvedSignup.data.displayName?.trim() || user.email.split('@')[0];
-                            await setDoc(userRef, {
-                                email: user.email,
-                                displayName: approvedName,
-                                createdAt: serverTimestamp(),
-                                status: 'approved'
-                            }, { merge: true });
-                            await window.registerUsername(user.uid, approvedName);
-                            await deleteSignupRequestCopies({ email: user.email, keepId: approvedSignup.id });
-                            try { await deleteDoc(approvedSignup.ref); } catch(_) {}
-                            userDocData = {
-                                email: user.email,
-                                displayName: approvedName,
-                                status: 'approved'
-                            };
-                        }
-                    }
+                    const userSnap = await getDoc(doc(db, "users", user.uid));
+                    if (userSnap.exists()) userDocData = userSnap.data();
                 } catch (_) {}
+
                 if (userDocData.banned === true) {
                     await signOut(auth);
                     alert("Your account has been banned. Please contact the administrator.");
                     return;
                 }
+
                 // Block pending users (awaiting owner approval)
                 if (userDocData.status === 'pending' && user.email !== ADMIN_EMAIL) {
                     window._signingUp = true;
@@ -920,6 +958,7 @@
                     alert("Your account is pending approval by the owner. You will be able to log in once approved.");
                     return;
                 }
+
                 window.isAdminUser = user.email === ADMIN_EMAIL || userDocData.isAdmin === true;
                 window.isVerifiedUser = userDocData.verified === true || user.email === ADMIN_EMAIL;
                 // Auto-grant owner verified badge if not already set
@@ -958,12 +997,14 @@
                     stopLava();
                     document.documentElement.style.setProperty('--accent', '#ffffff');
                 }
+
                 statusEl.textContent = `Logged in as ${user.email.split('@')[0]}`;
                 window.updateAccountTab(user, userDocData);
                 userInfo?.classList.remove('hidden');
                 document.getElementById('user-email').textContent = user.email;
                 authForm?.classList.add('hidden');
                 accountTitle.textContent = 'Account';
+
                 setTimeout(async () => {
                     populateThemeGrid();
                     await window.loadCategories();
@@ -1016,6 +1057,7 @@
                     window.initialLoadComplete = true;
                     dismissAuthLoader();
                 }, 100);
+
                 sitesListener = onSnapshot(collection(db, "sites"), async () => {
                     await window.loadAllSites();
                     window.populateAllGrids();
@@ -1024,6 +1066,7 @@
                     }
                     // Silent update for all users — no refresh modal needed
                 });
+
                 // Listen for owner broadcast refresh
                 let _lastBroadcast = null;
                 onSnapshot(doc(db, "config", "broadcastRefresh"), (snap) => {
@@ -1040,10 +1083,12 @@
                         document.getElementById('refresh-modal').classList.add('show');
                     }
                 });
+
                 announcementListener = onSnapshot(doc(db, "config", "announcement"), () => {
                     // Silently update announcement for everyone — no refresh modal needed
                     window.showGlobalAnnouncement();
                 });
+
                 categoriesListener = onSnapshot(collection(db, "categories"), async () => {
                     if (!window.initialLoadComplete) return;
                     await window.loadCategories();
@@ -1056,6 +1101,7 @@
                     }
                     // Silent update for all users — no refresh modal needed
                 });
+
                 // Watch this user's own doc for ban or admin changes made by the owner
                 userDocListener = onSnapshot(doc(db, "users", user.uid), async (snap) => {
                     // Doc deleted — ignore during signup or before load completes
@@ -1130,6 +1176,7 @@
                         window.registerUsername(user.uid, newName);
                     }
                 });
+
             } else {
                 window.stopPresence();
                 window.stopChat();
@@ -1152,177 +1199,67 @@
                 dismissAuthLoader();
             }
         }
+
         firebaseAuth.onAuthStateChanged(auth, updateUIForAuth);
+
         function dismissAuthLoader() {
             const loader = document.getElementById('auth-loader');
             if (!loader) return;
             loader.style.opacity = '0';
             setTimeout(() => loader.remove(), 320);
         }
-        function normalizeSignupEmail(email = '') {
-            return email.trim().toLowerCase();
-        }
-        function randomHex(bytes = 16) {
-            return Array.from(crypto.getRandomValues(new Uint8Array(bytes))).map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-        async function hashSignupPassword(password = '', salt = '') {
-            const baseKey = await crypto.subtle.importKey(
-                'raw',
-                new TextEncoder().encode(password),
-                'PBKDF2',
-                false,
-                ['deriveBits']
-            );
-            const derivedBits = await crypto.subtle.deriveBits({
-                name: 'PBKDF2',
-                salt: new TextEncoder().encode(salt),
-                iterations: 120000,
-                hash: 'SHA-256'
-            }, baseKey, 256);
-            return Array.from(new Uint8Array(derivedBits)).map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-        async function createSignupPasswordProof(password = '') {
-            const salt = randomHex(16);
-            const hash = await hashSignupPassword(password, salt);
-            return { salt, hash };
-        }
-        async function findSignupRequestByEmail(email) {
-            const normalizedEmail = normalizeSignupEmail(email);
-            if (!normalizedEmail) return null;
-            try {
-                const directRef = doc(db, "signupRequests", normalizedEmail);
-                const directSnap = await getDoc(directRef);
-                if (directSnap.exists()) {
-                    return { id: directSnap.id, ref: directRef, data: directSnap.data() };
-                }
-            } catch(_) {}
-            const snap = await getDocs(collection(db, "signupRequests"));
-            const match = snap.docs.find(d => normalizeSignupEmail(d.data().email || '') === normalizedEmail);
-            return match ? { id: match.id, ref: match.ref, data: match.data() } : null;
-        }
-        async function deleteSignupRequestCopies({ email = '', uid = '', keepId = null } = {}) {
-            const idsToDelete = new Set();
-            const normalizedEmail = normalizeSignupEmail(email);
-            if (uid) idsToDelete.add(uid);
-            if (normalizedEmail) idsToDelete.add(normalizedEmail);
-            await Promise.all([...idsToDelete].map(async id => {
-                if (!id || id === keepId) return;
-                try { await deleteDoc(doc(db, "signupRequests", id)); } catch(_) {}
-            }));
-            if (!normalizedEmail) return;
-            try {
-                const snap = await getDocs(collection(db, "signupRequests"));
-                const duplicates = snap.docs.filter(d => d.id !== keepId && normalizeSignupEmail(d.data().email || '') === normalizedEmail);
-                await Promise.all(duplicates.map(d => deleteDoc(d.ref)));
-            } catch(_) {}
-        }
-        async function validateSignupRequest(email, signupUsername) {
-            const normalizedEmail = normalizeSignupEmail(email);
-            const normalizedUsername = signupUsername.trim().toLowerCase();
-            if (!normalizedEmail) throw new Error('Please enter an email address.');
-            if (!normalizedUsername) throw new Error('Please choose a username before signing up.');
-            const takenUsername = await getDoc(doc(db, "usernames", normalizedUsername));
-            if (takenUsername.exists()) {
-                throw new Error(`Username "${signupUsername}" is already taken. Please choose a different one.`);
-            }
-            const existingRequest = await findSignupRequestByEmail(normalizedEmail);
-            if (existingRequest) {
-                const existingStatus = existingRequest.data?.status || 'pending';
-                if (existingStatus === 'approved') {
-                    throw new Error('Your signup is already approved. Please sign in with your email and password.');
-                }
-                throw new Error('You already have a signup request waiting for review.');
-            }
-            const signupSnap = await getDocs(collection(db, "signupRequests"));
-            const duplicateUsername = signupSnap.docs.find(d => {
-                const data = d.data();
-                return d.id !== normalizedEmail && (data.displayName || '').trim().toLowerCase() === normalizedUsername;
-            });
-            if (duplicateUsername) {
-                throw new Error(`Username "${signupUsername}" is already requested by another user. Please choose a different one.`);
-            }
-        }
-        async function activateApprovedSignup(email, password) {
-            const normalizedEmail = normalizeSignupEmail(email);
-            const approvedSignup = await findSignupRequestByEmail(normalizedEmail);
-            if (!approvedSignup || approvedSignup.data?.status !== 'approved') return null;
-            const requestedName = approvedSignup.data.displayName?.trim() || normalizedEmail.split('@')[0];
-            if (approvedSignup.data?.passwordHash) {
-                const attemptedHash = await hashSignupPassword(password, approvedSignup.data.passwordSalt || '');
-                if (attemptedHash !== approvedSignup.data.passwordHash) {
-                    throw new Error('That password does not match the one used when the signup request was sent.');
-                }
-            }
-            window._signingUp = true;
-            try {
-                let cred;
-                try {
-                    cred = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
-                } catch (e) {
-                    if (e.code === 'auth/email-already-in-use') {
-                        cred = await signInWithEmailAndPassword(auth, normalizedEmail, password);
-                    } else {
-                        throw e;
-                    }
-                }
-                const usernameRef = doc(db, "usernames", requestedName.toLowerCase());
-                const usernameSnap = await getDoc(usernameRef);
-                if (usernameSnap.exists() && usernameSnap.data().uid !== cred.user.uid) {
-                    throw new Error(`Your approved signup cannot be activated because the username "${requestedName}" is no longer available.`);
-                }
-                await setDoc(usernameRef, {
-                    uid: cred.user.uid,
-                    displayName: requestedName
-                });
-                await setDoc(doc(db, "users", cred.user.uid), {
-                    email: normalizedEmail,
-                    displayName: requestedName,
-                    createdAt: serverTimestamp(),
-                    status: 'approved'
-                }, { merge: true });
-                await deleteSignupRequestCopies({ email: normalizedEmail, keepId: approvedSignup.id });
-                try { await deleteDoc(approvedSignup.ref); } catch(_) {}
-                return cred.user;
-            } finally {
-                window._signingUp = false;
-            }
-        }
+
         document.getElementById('auth-btn')?.addEventListener('click', async () => {
-            const email = document.getElementById('email').value.trim();
+            const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             try {
                 if (document.getElementById('form-title').textContent === 'Sign In') {
-                    try {
-                        await signInWithEmailAndPassword(auth, email, password);
-                    } catch (e) {
-                        if (['auth/user-not-found', 'auth/invalid-credential', 'auth/invalid-login-credentials'].includes(e.code)) {
-                            const activatedUser = await activateApprovedSignup(email, password);
-                            if (activatedUser) {
-                                await updateUIForAuth(activatedUser);
-                                return;
-                            }
-                        }
-                        throw e;
-                    }
+                    const cred = await signInWithEmailAndPassword(auth, email, password);
+                    updateUIForAuth(cred.user);
                 } else {
                     const signupUsername = document.getElementById('signup-username').value.trim();
-                    await validateSignupRequest(email, signupUsername);
-                    const passwordProof = await createSignupPasswordProof(password);
-                    await setDoc(doc(db, "signupRequests", normalizeSignupEmail(email)), {
-                        email: normalizeSignupEmail(email),
+                    if (!signupUsername) { alert('Please choose a username before signing up.'); return; }
+                    window._signingUp = true;
+                    const cred = await createUserWithEmailAndPassword(auth, email, password);
+                    // Check username uniqueness
+                    const _takenSnap = await getDoc(doc(db, "usernames", signupUsername.toLowerCase()));
+                    if (_takenSnap.exists() && _takenSnap.data().uid !== cred.user.uid) {
+                        await deleteUser(cred.user);
+                        window._signingUp = false;
+                        alert(`Username "${signupUsername}" is already taken. Please choose a different one.`);
+                        return;
+                    }
+                    // Reserve username
+                    await setDoc(doc(db, "usernames", signupUsername.toLowerCase()), {
+                        uid: cred.user.uid,
+                        displayName: signupUsername
+                    });
+                    // Create user doc with pending status
+                    await setDoc(doc(db, "users", cred.user.uid), {
+                        email,
                         displayName: signupUsername,
-                        passwordHash: passwordProof.hash,
-                        passwordSalt: passwordProof.salt,
+                        createdAt: serverTimestamp(),
+                        status: 'pending'
+                    });
+                    // Also write to signupRequests collection for owner review
+                    await setDoc(doc(db, "signupRequests", cred.user.uid), {
+                        uid: cred.user.uid,
+                        email,
+                        displayName: signupUsername,
                         requestedAt: serverTimestamp(),
                         status: 'pending'
                     });
+                    window._signingUp = true;
+                    await signOut(auth);
+                    window._signingUp = false;
                     updateUIForAuth(null);
-                    alert("Signup request sent. Your Firebase account and profile will be created after the owner approves you.");
+                    alert("Account created! Your signup is pending approval by the owner. You will be notified when approved.");
                 }
             } catch (e) {
                 alert(e.message);
             }
         });
+
         document.getElementById('toggle-link')?.addEventListener('click', e => {
             e.preventDefault();
             const isSignIn = document.getElementById('form-title').textContent === 'Sign In';
@@ -1332,6 +1269,7 @@
             const usernameField = document.getElementById('signup-username');
             if (usernameField) usernameField.classList.toggle('hidden', !isSignIn);
         });
+
         window.deleteAccount = async () => {
             if (!confirm("Delete account permanently? This cannot be undone.")) return;
             const user = auth.currentUser;
@@ -1340,19 +1278,24 @@
                 // Grab the username before deleting the user doc so we can free it
                 const userSnap = await getDoc(doc(db, "users", user.uid));
                 const username = userSnap.exists() ? userSnap.data().displayName : null;
+
                 await deleteDoc(doc(db, "users", user.uid));
+
                 // Free the username so others can register with it
                 if (username) {
                     try { await deleteDoc(doc(db, "usernames", username.toLowerCase())); } catch(_) {}
                 }
+
                 // Delete pending signup request if one exists
-                await deleteSignupRequestCopies({ email: user.email, uid: user.uid });
+                try { await deleteDoc(doc(db, "signupRequests", user.uid)); } catch(_) {}
+
                 await deleteUser(user);
                 alert("Account fully deleted.");
             } catch (e) {
                 alert("Error: " + e.message);
             }
         };
+
         window.changePassword = async () => {
             const user = auth.currentUser;
             if (!user?.email) return alert("Not logged in.");
@@ -1365,6 +1308,7 @@
                 document.getElementById('auth-message').className = "error";
             }
         };
+
         window.changeEmail = async () => {
             const user = auth.currentUser;
             if (!user) return alert("Not logged in.");
@@ -1382,6 +1326,7 @@
                 alert("Error: " + e.message);
             }
         };
+
         window.loadCategories = async () => {
             const catRef = collection(db, "categories");
             let snap = await getDocs(catRef);
@@ -1400,6 +1345,7 @@
             }
             window.allCategories = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         };
+
         window.loadAllSites = async () => {
             const snap = await getDocs(collection(db, "sites"));
             window.allSites = {};
@@ -1416,9 +1362,11 @@
                 window.allSites[key].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
             });
         };
+
         window.populateAllGrids = () => {
             (window.allCategories || []).forEach(cat => populateGrid(cat.key, `${cat.key}-grid`));
         };
+
         window.showGlobalAnnouncement = async () => {
             const banner = document.getElementById('global-announcement');
             try {
@@ -1437,6 +1385,7 @@
                 banner.classList.add('hidden');
             }
         };
+
         window.saveGlobalAnnouncement = async () => {
             const msg = document.getElementById('announcement-input').value.trim();
             if (!msg) return alert("Cannot be empty");
@@ -1458,6 +1407,7 @@
                 alert("Error: " + e.message);
             }
         };
+
         window.clearAnnouncement = async () => {
             if (!confirm("Clear announcement?")) return;
             try {
@@ -1467,6 +1417,7 @@
                 alert("Error: " + e.message);
             }
         };
+
         window.loadAdminUsers = async () => {
             const container = document.getElementById('users-table');
             container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
@@ -1487,6 +1438,7 @@
                     const isOwner = data.email === ADMIN_EMAIL;
                     const isUserAdmin = data.isAdmin === true || isOwner;
                     const isVerified = data.verified === true;
+
                     const statusBadge = isBanned
                         ? `<span class="px-3 py-1 bg-red-900/60 text-red-400 rounded-xl text-xs font-semibold">Banned</span>`
                         : isOwner
@@ -1494,23 +1446,29 @@
                             : isUserAdmin
                                 ? `<span class="px-3 py-1 bg-purple-900/60 text-purple-400 rounded-xl text-xs font-semibold">Admin</span>`
                                 : `<span class="px-3 py-1 bg-white/10 text-white/60 rounded-xl text-xs font-semibold">User</span>`;
+
                     // Only the hardcoded owner can take actions
                     // Actions are only shown for plain users — not for the owner, not for other admins
                     const actingIsOwner = auth.currentUser?.email === ADMIN_EMAIL;
                     const canAct = actingIsOwner && !isOwner && !isUserAdmin;
+
                     const banBtn = !canAct ? '' : isBanned
                         ? `<button onclick="window.setBanUser('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-green-900/60 hover:bg-green-900 text-green-400 rounded-2xl transition-colors">Unban</button>`
                         : `<button onclick="window.setBanUser('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-orange-900/60 hover:bg-orange-900 text-orange-400 rounded-2xl transition-colors">Ban</button>`;
+
                     // Make Admin / Revoke Admin — owner only, but can act on both users AND admins (to revoke)
                     const adminBtn = !actingIsOwner || isOwner ? '' : isUserAdmin
                         ? `<button onclick="window.setAdminUser('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-purple-900/60 hover:bg-purple-900 text-purple-400 rounded-2xl transition-colors">Revoke Admin</button>`
                         : `<button onclick="window.setAdminUser('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">Make Admin</button>`;
+
                     const isOwnerRow = data.email === ADMIN_EMAIL;
                     const verifyBtn = !actingIsOwner || isOwnerRow ? '' : isVerified
                         ? `<button onclick="window.setVerified('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">Revoke Verify</button>`
                         : `<button onclick="window.setVerified('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-300 rounded-2xl transition-colors">Grant Verify ✓</button>`;
+
                     const usernameEditBtn = !actingIsOwner ? '' :
                         `<button onclick="window.editUserUsername('${d.id}', '${(data.displayName||'').replace(/'/g,"\\'")}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 text-white/70 rounded-2xl transition-colors">Edit Username</button>`;
+
                     html += `<tr>
                         <td class="px-6 py-4 font-medium">${data.email}</td>
                         <td class="px-6 py-4 text-white/70" id="uname-cell-${d.id}">${data.displayName || '<span class="text-white/30 italic">not set</span>'}${isVerified ? '<span title="Verified" style="color:#3b82f6;font-size:0.8rem;margin-left:0.35rem;">✓</span>' : ''}</td>
@@ -1533,6 +1491,7 @@
                 container.innerHTML = `<p class="p-8 text-red-400">Error loading users.<br>Check Firestore rules.</p>`;
             }
         };
+
         window.setBanUser = async (uid, ban) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             // Extra safety: never ban owner or admins
@@ -1550,6 +1509,7 @@
                 alert("Error: " + e.message);
             }
         };
+
         window.setAdminUser = async (uid, grant) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             // Never modify the owner's own record
@@ -1574,6 +1534,7 @@
                 alert("Error: " + e.message);
             }
         };
+
         window.deleteUserFromAdmin = async (uid) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             // Never delete owner or other admins
@@ -1592,19 +1553,21 @@
                     try { await deleteDoc(doc(db, "usernames", targetData.displayName.toLowerCase())); } catch(_) {}
                 }
                 // Delete signup request if pending
-                await deleteSignupRequestCopies({ email: targetData.email, uid });
+                try { await deleteDoc(doc(db, "signupRequests", uid)); } catch(_) {}
                 alert("User removed from list.");
                 window.loadAdminUsers();
             } catch (e) {
                 alert("Error: " + e.message);
             }
         };
+
         window.addOrUpdateCategory = async () => {
             const key = document.getElementById('new-cat-key').value.trim().toLowerCase().replace(/\s+/g, '');
             const label = document.getElementById('new-cat-label').value.trim();
             let icon = document.getElementById('new-cat-icon').value.trim();
             if (!icon.startsWith('fa-')) icon = 'fa-' + icon;
             if (!key || !label) return alert("Key and Label required (key must be lowercase, no spaces)");
+
             if (window.editingCategoryId) {
                 try {
                     await setDoc(doc(db, "categories", window.editingCategoryId), { key, label, icon }, { merge: true });
@@ -1627,6 +1590,7 @@
                 }
             }
         };
+
         window.deleteCategory = async (docId, key) => {
             if (!confirm(`Delete category "${key}" forever? Sites in this category will no longer appear until moved.`)) return;
             try {
@@ -1636,6 +1600,7 @@
                 alert("Error: " + e.message);
             }
         };
+
         window.moveCategoryUp = async (docId) => {
             // Always work from freshly sorted array
             const cats = [...(window.allCategories || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
@@ -1652,6 +1617,7 @@
                 window.reloadAdminCategories();
             } catch (e) { alert("Reorder error: " + e.message); }
         };
+
         window.moveCategoryDown = async (docId) => {
             const cats = [...(window.allCategories || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
             const idx = cats.findIndex(c => c.id === docId);
@@ -1666,6 +1632,7 @@
                 window.reloadAdminCategories();
             } catch (e) { alert("Reorder error: " + e.message); }
         };
+
         window.editCategory = (docId, key, label, icon) => {
             window.editingCategoryId = docId;
             document.getElementById('new-cat-key').value = key;
@@ -1673,6 +1640,7 @@
             document.getElementById('new-cat-icon').value = icon;
             document.getElementById('cat-action-btn').textContent = "Update Category";
         };
+
         window.reloadAdminCategories = () => {
             ['admin-categories-list', 'admin-categories-list-panel'].forEach(cid => {
                 const container = document.getElementById(cid);
@@ -1706,13 +1674,16 @@
             });
             container.innerHTML = html;
         };
+
         window.addNewSiteFromAdmin = async () => {
             const cat = document.getElementById('admin-cat-select').value;
             const name = document.getElementById('new-site-name').value.trim();
             const url = document.getElementById('new-site-url').value.trim();
             const icon = document.getElementById('new-site-icon').value.trim();
             const desc = document.getElementById('new-site-desc').value.trim();
+
             if (!name || !url) return alert("Name and URL required");
+
             try {
                 const catSites = window.allSites[cat] || [];
                 const maxOrder = catSites.length ? Math.max(...catSites.map(s => s.order ?? 0)) + 1 : 0;
@@ -1726,6 +1697,7 @@
                 alert("Error: " + e.message);
             }
         };
+
         window.deleteSite = async (id) => {
             if (!confirm("Delete forever?")) return;
             try {
@@ -1737,12 +1709,14 @@
                 alert("Error: " + e.message);
             }
         };
+
         window.editSite = (id, category, name, url, icon, desc) => {
             document.getElementById('admin-cat-select').value = category;
             document.getElementById('new-site-name').value = name;
             document.getElementById('new-site-url').value = url;
             document.getElementById('new-site-icon').value = icon || '';
             document.getElementById('new-site-desc').value = desc || '';
+
             const btn = document.getElementById('add-update-site-btn');
             btn.textContent = 'Update Site';
             btn.onclick = async () => {
@@ -1751,7 +1725,9 @@
                 const newUrl = document.getElementById('new-site-url').value.trim();
                 const newIcon = document.getElementById('new-site-icon').value.trim();
                 const newDesc = document.getElementById('new-site-desc').value.trim();
+
                 if (!newName || !newUrl) return alert("Name and URL required");
+
                 try {
                     await setDoc(doc(db, "sites", id), {
                         category: newCat,
@@ -1773,6 +1749,7 @@
                 }
             };
         };
+
         window.reloadAdminSites = () => {
             window.populateCategorySelect(); // Keeps category dropdown up to date
             const container = document.getElementById('admin-sites-list');
@@ -1813,6 +1790,8 @@
                 container.innerHTML += html;
             });
         };
+
+
         // Normalize order values for a category so they are 0,1,2,3... with no duplicates
         async function normalizeSiteOrder(catKey) {
             const sites = window.allSites[catKey] || [];
@@ -1822,6 +1801,7 @@
             });
             await Promise.all(batch);
         }
+
         window.moveSiteUp = async (siteId, catKey) => {
             // Sort first so we work with correct positions
             const sites = [...(window.allSites[catKey] || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
@@ -1838,6 +1818,7 @@
                 window.reloadAdminSites();
             } catch (e) { alert("Error: " + e.message); }
         };
+
         window.moveSiteDown = async (siteId, catKey) => {
             const sites = [...(window.allSites[catKey] || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
             const idx = sites.findIndex(s => s.id === siteId);
@@ -1852,12 +1833,15 @@
                 window.reloadAdminSites();
             } catch (e) { alert("Error: " + e.message); }
         };
+
+
         // ── Presence tracking ──
         let presenceRef = null;
         let presenceListener = null;
         let heartbeatInterval = null;
         const HEARTBEAT_MS = 20000;  // update every 20s
         const STALE_MS     = 45000;  // consider stale after 45s
+
         function updateOnlineCounter(snap) {
             const now = Date.now();
             // Only count docs whose lastSeen is within STALE_MS
@@ -1874,12 +1858,15 @@
                 el.classList.add('flex');
             }
         }
+
         window.startPresence = async (uid, forceName, forceRole) => {
             presenceRef = doc(db, "presence", uid);
             const _presenceName = forceName || window.currentDisplayName || window.currentUser?.email?.split('@')[0] || '';
             const _presenceRole = forceRole || (window.currentUser?.email === ADMIN_EMAIL ? 'Owner' : window.isAdminUser ? 'Admin' : 'User');
+
             // Write presence with guaranteed correct name and role
             await setDoc(presenceRef, { uid, lastSeen: serverTimestamp(), displayName: _presenceName, role: _presenceRole });
+
             // Heartbeat — keep lastSeen fresh so we're not counted as stale
             if (heartbeatInterval) clearInterval(heartbeatInterval);
             // Store name/role for heartbeat reuse
@@ -1891,6 +1878,7 @@
                 }
                 catch(_) {}
             }, HEARTBEAT_MS);
+
             // Clean up on tab close / navigate away
             window.addEventListener('beforeunload', () => {
                 try { deleteDoc(presenceRef); } catch(_) {}
@@ -1900,10 +1888,12 @@
                     try { await setDoc(presenceRef, { uid, lastSeen: serverTimestamp() }); } catch(_) {}
                 }
             });
+
             // Listen and filter out stale docs
             if (presenceListener) presenceListener();
             presenceListener = onSnapshot(collection(db, "presence"), updateOnlineCounter);
         };
+
         window.stopPresence = async () => {
             if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
             if (presenceRef) { try { await deleteDoc(presenceRef); } catch(_) {} presenceRef = null; }
@@ -1911,6 +1901,7 @@
             const el = document.getElementById('online-counter');
             if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
         };
+
         // ── Site requests ──
         window.submitSiteRequest = async () => {
             const name = document.getElementById('req-name').value.trim();
@@ -1938,6 +1929,7 @@
                 msgEl.classList.remove('hidden');
             }
         };
+
         window.loadSiteRequests = async () => {
             const container = document.getElementById('site-requests-list');
             container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
@@ -1975,6 +1967,7 @@
                 container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`;
             }
         };
+
         window.approveSiteRequest = async (reqId, name, url, category, icon, desc) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
@@ -1994,6 +1987,7 @@
                 else { badge.textContent = remaining; }
             } catch(e) { alert("Error: " + e.message); }
         };
+
         window.rejectSiteRequest = async (reqId) => {
             if (!confirm("Reject and remove this request?")) return;
             try {
@@ -2006,7 +2000,10 @@
                 else { badge.textContent = remaining; }
             } catch(e) { alert("Error: " + e.message); }
         };
+
+
         // ── Admin Access Requests ──
+
         window.submitAdminRequest = async () => {
             const reason = document.getElementById('admin-req-reason').value.trim();
             const msgEl = document.getElementById('admin-req-message');
@@ -2036,6 +2033,7 @@
                 msgEl.classList.remove('hidden');
             }
         };
+
         window.cancelAdminRequest = async () => {
             if (!confirm('Cancel your admin request?')) return;
             try {
@@ -2044,6 +2042,7 @@
                 document.getElementById('admin-req-already').classList.add('hidden');
             } catch(e) { alert('Error: ' + e.message); }
         };
+
         window.checkExistingAdminRequest = async () => {
             // Silently check — no error shown if it fails
             try {
@@ -2061,6 +2060,7 @@
                 document.getElementById('admin-req-already').classList.add('hidden');
             }
         };
+
         window.loadAdminRequests = async () => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return; // owner only
             const container = document.getElementById('admin-requests-list');
@@ -2097,6 +2097,7 @@
                 container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`;
             }
         };
+
         window.approveAdminRequest = async (reqId, uid) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
@@ -2112,6 +2113,7 @@
                 window.loadAdminUsers();
             } catch(e) { alert('Error: ' + e.message); }
         };
+
         window.denyAdminRequest = async (reqId) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             if (!confirm('Deny and remove this request?')) return;
@@ -2125,7 +2127,10 @@
                 else { badge.textContent = remaining; }
             } catch(e) { alert('Error: ' + e.message); }
         };
+
+
         // ── Category Requests ──
+
         window.submitCategoryRequest = async () => {
             const label = document.getElementById('cat-req-label').value.trim();
             const icon = document.getElementById('cat-req-icon').value.trim();
@@ -2163,6 +2168,7 @@
                 msgEl.classList.remove('hidden');
             }
         };
+
         window.loadCategoryRequests = async () => {
             if (!window.isAdminUser) return;
             const isOwnerCheck = auth.currentUser?.email === ADMIN_EMAIL;
@@ -2202,6 +2208,7 @@
                 container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`;
             }
         };
+
         window.approveCategoryRequest = async (reqId, label, icon) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
@@ -2223,6 +2230,7 @@
                 else { badge.textContent = remaining; }
             } catch(e) { alert('Error: ' + e.message); }
         };
+
         window.denyCategoryRequest = async (reqId) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             if (!confirm('Deny and remove this request?')) return;
@@ -2236,12 +2244,15 @@
                 else { badge.textContent = remaining; }
             } catch(e) { alert('Error: ' + e.message); }
         };
+
+
         // ── Account tab: role badge + username ──
         window.updateAccountTab = (user, docData) => {
             const isOwner = user.email === ADMIN_EMAIL;
             const isUserAdmin = docData?.isAdmin === true || isOwner;
             const isVerified = docData?.verified === true || isOwner;
             const displayName = docData?.displayName || '';
+
             // Role badge
             const badge = document.getElementById('account-role-badge');
             if (badge) {
@@ -2256,15 +2267,18 @@
                     badge.style.cssText = 'background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);';
                 }
             }
+
             // Display name
             const nameEl = document.getElementById('account-username');
             if (nameEl) nameEl.textContent = displayName || user.email.split('@')[0];
+
             // Verified badge next to name
             const verifiedBadgeEl = document.getElementById('account-verified-badge');
             if (verifiedBadgeEl) {
                 if (isVerified) verifiedBadgeEl.classList.remove('hidden');
                 else verifiedBadgeEl.classList.add('hidden');
             }
+
             // Verification badge section — always visible, status changes
             const verifySection = document.getElementById('account-verify-section');
             if (verifySection) verifySection.classList.remove('hidden');
@@ -2281,17 +2295,20 @@
                 }
             }
         };
+
         // ── Live Chat ──
         let chatListener = null;
         window.currentDisplayName = '';
         // uid -> isAdmin cache, built from users collection
         window.chatRolesCache = {};
+
         window.initChat = () => {
             if (chatListener) return;
             const messagesEl = document.getElementById('chat-messages');
             const q = query(collection(db, "chat"), orderBy("sentAt", "asc"));
             chatListener = onSnapshot(q, async (snap) => {
                 if (!messagesEl) return;
+
                 // Build roles cache from unique uids in this snapshot
                 const uids = [...new Set(snap.docs.map(d => d.data().uid).filter(Boolean))];
                 await Promise.all(uids.map(async uid => {
@@ -2301,6 +2318,7 @@
                         window.chatRolesCache[uid] = uSnap.exists() ? (uSnap.data().isAdmin === true) : false;
                     } catch(_) { window.chatRolesCache[uid] = false; }
                 }));
+
                 messagesEl.innerHTML = '';
                 if (snap.empty) {
                     messagesEl.innerHTML = '<p class="text-center text-white/30 text-sm py-8">No messages yet. Say hi! 👋</p>';
@@ -2337,23 +2355,29 @@
                 messagesEl.scrollTop = messagesEl.scrollHeight;
             });
         };
+
+
         // ── Typing indicator ──
         let typingTimeout = null;
         let typingListener = null;
+
         window.handleTyping = () => {
             const user = auth.currentUser;
             if (!user) return;
             const uid = user.uid;
             const typingRef = doc(db, "typing", uid);
             const displayName = window.currentDisplayName || user.email.split('@')[0];
+
             // Write typing doc with expiry timestamp
             setDoc(typingRef, { uid, displayName, typingAt: serverTimestamp() });
+
             // Clear after 3s of no typing
             if (typingTimeout) clearTimeout(typingTimeout);
             typingTimeout = setTimeout(async () => {
                 try { await deleteDoc(typingRef); } catch(_) {}
             }, 3000);
         };
+
         window.startTypingListener = () => {
             if (typingListener) return;
             typingListener = onSnapshot(collection(db, "typing"), (snap) => {
@@ -2381,6 +2405,7 @@
                 }
             });
         };
+
         window.stopTypingListener = () => {
             if (typingListener) { typingListener(); typingListener = null; }
             // Clean up own typing doc
@@ -2388,11 +2413,13 @@
             if (user) { try { deleteDoc(doc(db, "typing", user.uid)); } catch(_) {} }
             if (typingTimeout) { clearTimeout(typingTimeout); typingTimeout = null; }
         };
+
         window.deleteChatMessage = async (msgId) => {
             try {
                 await deleteDoc(doc(db, "chat", msgId));
             } catch(e) { alert('Error: ' + e.message); }
         };
+
         window.sendChatMessage = async () => {
             const input = document.getElementById('chat-input');
             const text = input?.value.trim();
@@ -2419,6 +2446,8 @@
                 try { await deleteDoc(doc(db, "typing", user.uid)); } catch(_) {}
             } catch(e) { alert('Error: ' + e.message); }
         };
+
+
         // ══════════════════════════════════════════════
         // FRIENDS & DMs
         // ══════════════════════════════════════════════
@@ -2427,10 +2456,12 @@
         let friendRequestsListener = null;
         window.currentDMUser = null; // {uid, displayName} of person we're DMing
         window.chatMode = 'global'; // 'global' or 'dm'
+
         // Generate a stable conversation ID from two UIDs
         function dmConvoId(uid1, uid2) {
             return [uid1, uid2].sort().join('_');
         }
+
         // ── Send friend request by username ──
         window.sendFriendRequest = async () => {
             const input = document.getElementById('friend-search-input');
@@ -2438,20 +2469,24 @@
             if (!username) return alert('Enter a username to add.');
             const me = auth.currentUser;
             if (!me) return alert('Not logged in.');
+
             // Step 1: look up target by username
             let usernameSnap;
             try {
                 usernameSnap = await getDoc(doc(db, "usernames", username.toLowerCase()));
             } catch(e) { return alert('Could not look up username: ' + e.message); }
             if (!usernameSnap.exists()) return alert(`No user found with username "${username}". Have them open the Live Chat tab once to register.`);
+
             const targetUid = usernameSnap.data().uid;
             const targetDisplayName = usernameSnap.data().displayName;
             if (targetUid === me.uid) return alert("You can't add yourself.");
+
             // Step 2: check if already friends (read own list — always allowed)
             try {
                 const existingFriend = await getDoc(doc(db, "friends", me.uid, "list", targetUid));
                 if (existingFriend.exists()) return alert('You are already friends with this user.');
             } catch(_) {} // ignore if this fails, not critical
+
             // Step 3: write the friend request using my display name from window
             const myName = window.currentDisplayName || me.email.split('@')[0];
             try {
@@ -2461,15 +2496,18 @@
                     sentAt: serverTimestamp()
                 });
             } catch(e) { return alert('Could not send request: ' + e.message); }
+
             input.value = '';
             alert(`Friend request sent to ${targetDisplayName}!`);
         };
+
         // ── Load friends list in sidebar ──
         window.loadFriendsList = () => {
             if (friendsListener) friendsListener();
             if (friendRequestsListener) friendRequestsListener();
             const me = auth.currentUser;
             if (!me) return;
+
             // Listen to friend requests
             friendRequestsListener = onSnapshot(collection(db, "friendRequests", me.uid, "incoming"), (snap) => {
                 const container = document.getElementById('friend-requests-list');
@@ -2486,19 +2524,23 @@
                         </div>`;
                     }).join('');
             });
+
             // Listen to friends list
             friendsListener = onSnapshot(collection(db, "friends", me.uid, "list"), async (snap) => {
                 const container = document.getElementById('friends-list');
                 if (!container) return;
+
                 // If currently in a DM with someone who is no longer a friend, go back to global chat
                 if (window.currentDMUser) {
                     const stillFriends = snap.docs.some(d => d.id === window.currentDMUser.uid);
                     if (!stillFriends) window.openGlobalChat();
                 }
                 if (snap.empty) { container.innerHTML = '<p class="text-xs text-white/30 text-center mt-4">No friends yet</p>'; return; }
+
                 // Get online UIDs
                 const onlineSnap = await getDocs(collection(db, "presence"));
                 const onlineUids = new Set(onlineSnap.docs.map(d => d.id));
+
                 container.innerHTML = snap.docs.map(d => {
                     const f = d.data();
                     const isOnline = onlineUids.has(d.id);
@@ -2512,6 +2554,7 @@
                 }).join('');
             });
         };
+
         // ── Accept friend request ──
         window.acceptFriendRequest = async (fromUid, fromName) => {
             const me = auth.currentUser;
@@ -2526,6 +2569,7 @@
                 await deleteDoc(doc(db, "friendRequests", me.uid, "incoming", fromUid));
             } catch(e) { alert('Error accepting: ' + e.message); }
         };
+
         // ── Decline friend request ──
         window.declineFriendRequest = async (fromUid) => {
             const me = auth.currentUser;
@@ -2533,6 +2577,7 @@
             try { await deleteDoc(doc(db, "friendRequests", me.uid, "incoming", fromUid)); }
             catch(e) { alert('Error: ' + e.message); }
         };
+
         // ── Remove friend ──
         window.removeFriend = async (friendUid) => {
             const me = auth.currentUser;
@@ -2542,21 +2587,27 @@
                 if (window.currentDMUser?.uid === friendUid) window.openGlobalChat();
             } catch(e) { alert('Error: ' + e.message); }
         };
+
         // ── Open a DM conversation ──
         window.openDM = (friendUid, friendName) => {
             window.currentDMUser = { uid: friendUid, displayName: friendName };
             window.chatMode = 'dm';
+
             // Update header
             const header = document.getElementById('chat-header-name');
             if (header) header.textContent = `💬 ${friendName}`;
+
             // Update global chat button style
             const globalBtn = document.getElementById('global-chat-btn');
             if (globalBtn) globalBtn.style.background = 'rgba(255,255,255,0.05)';
+
             // Stop global chat listener, start DM listener
             if (chatListener) { chatListener(); chatListener = null; }
+
             const convoId = dmConvoId(auth.currentUser.uid, friendUid);
             const messagesEl = document.getElementById('chat-messages');
             messagesEl.innerHTML = '<p class="text-center text-white/30 text-sm py-8">Loading messages...</p>';
+
             const q = query(collection(db, "dms", convoId, "messages"), orderBy("sentAt", "asc"));
             dmListener = onSnapshot(q, (snap) => {
                 if (!messagesEl) return;
@@ -2592,9 +2643,11 @@
                 });
                 messagesEl.scrollTop = messagesEl.scrollHeight;
             });
+
             // Update friends list to highlight active
             window.loadFriendsList();
         };
+
         // ── Open global chat ──
         window.openGlobalChat = () => {
             window.currentDMUser = null;
@@ -2607,6 +2660,7 @@
             window.initChat();
             window.loadFriendsList();
         };
+
         // ── Send message (global or DM) ──
         // Override sendChatMessage to handle DM mode
         const _originalSendChat = window.sendChatMessage;
@@ -2635,11 +2689,13 @@
                 await _originalSendChat();
             }
         };
+
         // ── Delete DM message ──
         window.deleteDMMessage = async (convoId, msgId) => {
             try { await deleteDoc(doc(db, "dms", convoId, "messages", msgId)); }
             catch(e) { alert('Error: ' + e.message); }
         };
+
         // ── Stop DM listener ──
         window.stopDMListeners = () => {
             if (dmListener) { dmListener(); dmListener = null; }
@@ -2648,6 +2704,7 @@
             window.currentDMUser = null;
             window.chatMode = 'global';
         };
+
         // ── Load DMs for owner panel ──
         window.loadAdminDMs = async () => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return;
@@ -2686,6 +2743,7 @@
                 container.innerHTML = html;
             } catch(e) { container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`; }
         };
+
         window.viewAdminDM = async (convoId) => {
             const container = document.getElementById('dms-admin-list');
             container.innerHTML = '<p class="p-4 text-center text-white/50">Loading messages...</p>';
@@ -2705,6 +2763,8 @@
                 container.innerHTML = html;
             } catch(e) { container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`; }
         };
+
+
         window.registerUsername = async (uid, displayName) => {
             if (!uid || !displayName) return;
             try {
@@ -2719,9 +2779,12 @@
                 // Silently fail — will retry next login
             }
         };
+
         window.stopChat = () => {
             if (chatListener) { chatListener(); chatListener = null; }
         };
+
+
         window.clearChat = async () => {
             if (!window.isAdminUser) return alert('Only admins can do this.');
             if (!confirm('Delete ALL global chat messages AND all DM conversations permanently? This cannot be undone.')) return;
@@ -2729,14 +2792,18 @@
                 // Clear global chat
                 const globalSnap = await getDocs(collection(db, "chat"));
                 await Promise.all(globalSnap.docs.map(d => deleteDoc(doc(db, "chat", d.id))));
+
                 // Clear all DM messages — query collectionGroup for all messages across all convos
                 const allDMsSnap = await getDocs(collectionGroup(db, "messages"));
                 await Promise.all(allDMsSnap.docs
                     .filter(d => d.ref.parent.parent?.parent?.id === "dms")
                     .map(d => deleteDoc(d.ref)));
+
                 alert('All chats cleared.');
             } catch(e) { alert('Error: ' + e.message); }
         };
+
+
         window.setOwnerUser = async (uid, grant) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             const action = grant ? 'grant owner access to' : 'revoke owner access from';
@@ -2752,6 +2819,7 @@
                 window.loadAdminUsers();
             } catch(e) { alert('Error: ' + e.message); }
         };
+
         // Admin panel (limited) wiring — mirrors owner panel functions but for -p element IDs
         window.addOrUpdateCategoryPanel = async () => {
             const key = document.getElementById('new-cat-key-p').value.trim().toLowerCase().replace(/\s+/g, '');
@@ -2767,6 +2835,7 @@
                 ['new-cat-key-p','new-cat-label-p','new-cat-icon-p'].forEach(id => document.getElementById(id).value = '');
             } catch(e) { alert("Error: " + e.message); }
         };
+
         window.addNewSiteFromAdminPanel = async () => {
             const cat = document.getElementById('admin-cat-select-p').value;
             const name = document.getElementById('new-site-name-p').value.trim();
@@ -2784,6 +2853,7 @@
                 window.populateAllGrids();
             } catch(e) { alert("Error: " + e.message); }
         };
+
         function populateAdminThemePanelGrid() {
             const cont = document.getElementById('admin-theme-grid-panel');
             if (!cont) return;
@@ -2905,6 +2975,8 @@
                 cont.appendChild(el);
             });
         }
+
+
         window.editUserUsername = async (uid, currentName) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             const newName = prompt('Enter new username for this user:', currentName);
@@ -2921,6 +2993,8 @@
                 await window.cascadeUsernameUpdate(uid, currentName, trimmed);
             } catch(e) { alert('Error: ' + e.message); }
         };
+
+
         // ── Cascade username update across friends lists, chat, and DMs ──
         window.cascadeUsernameUpdate = async (uid, oldName, newName) => {
             if (!newName || newName === oldName) return;
@@ -2931,6 +3005,7 @@
                 if (oldName) {
                     try { await deleteDoc(doc(db, "usernames", oldName.toLowerCase())); } catch(_) {}
                 }
+
                 // 2. Update friends lists — find all users who have this person as a friend
                 const allUsersSnap = await getDocs(collection(db, "users"));
                 for (const userDoc of allUsersSnap.docs) {
@@ -2943,27 +3018,34 @@
                         }
                     } catch(_) {}
                 }
+
                 // 3. Update past global chat messages
                 const chatSnap = await getDocs(query(collection(db, "chat"), where("uid", "==", uid)));
                 await Promise.all(chatSnap.docs.map(d => setDoc(doc(db, "chat", d.id), { displayName: newName }, { merge: true })));
+
                 // 4. Update past DM messages using collectionGroup
                 const dmSnap = await getDocs(collectionGroup(db, "messages"));
                 const dmUpdates = dmSnap.docs.filter(d => d.data().uid === uid);
                 await Promise.all(dmUpdates.map(d => setDoc(d.ref, { displayName: newName }, { merge: true })));
+
             } catch(e) { console.error('Cascade username error:', e.message); }
         };
+
         // ── Cascade role update across chat and DMs ──
         window.cascadeRoleUpdate = async (uid, newRole) => {
             try {
                 // Update global chat messages
                 const chatSnap = await getDocs(query(collection(db, "chat"), where("uid", "==", uid)));
                 await Promise.all(chatSnap.docs.map(d => setDoc(doc(db, "chat", d.id), { role: newRole }, { merge: true })));
+
                 // Update DM messages
                 const dmSnap = await getDocs(collectionGroup(db, "messages"));
                 const dmUpdates = dmSnap.docs.filter(d => d.data().uid === uid);
                 await Promise.all(dmUpdates.map(d => setDoc(d.ref, { role: newRole }, { merge: true })));
             } catch(e) { console.error('Cascade role error:', e.message); }
         };
+
+
         window.loadSignupRequests = async () => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return;
             const container = document.getElementById('signup-requests-list');
@@ -2992,8 +3074,8 @@
                                 <div class="text-xs text-white/30 mt-1">${date}</div>
                             </div>
                             <div class="flex gap-2 shrink-0">
-                                <button onclick="window.approveSignup('${d.id}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-green-900/60 hover:bg-green-900 text-green-400 rounded-2xl transition-colors">Approve</button>
-                                <button onclick="window.denySignup('${d.id}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Deny</button>
+                                <button onclick="window.approveSignup('${d.id}','${r.uid}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-green-900/60 hover:bg-green-900 text-green-400 rounded-2xl transition-colors">Approve</button>
+                                <button onclick="window.denySignup('${d.id}','${r.uid}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Deny</button>
                             </div>
                         </div>
                     </div>`;
@@ -3002,26 +3084,14 @@
                 container.innerHTML = html;
             } catch(e) { container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`; }
         };
-        window.approveSignup = async (reqId) => {
+
+        window.approveSignup = async (reqId, uid) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
-                const requestRef = doc(db, "signupRequests", reqId);
-                const requestSnap = await getDoc(requestRef);
-                if (!requestSnap.exists()) {
-                    await window.loadSignupRequests();
-                    return alert('That signup request no longer exists.');
-                }
-                const requestData = requestSnap.data();
-                if (requestData.uid) {
-                    await setDoc(doc(db, "users", requestData.uid), { status: 'approved' }, { merge: true });
-                    await deleteDoc(requestRef);
-                } else {
-                    await setDoc(requestRef, {
-                        status: 'approved',
-                        approvedAt: serverTimestamp(),
-                        approvedBy: auth.currentUser.email
-                    }, { merge: true });
-                }
+                // Remove pending status from user doc
+                await setDoc(doc(db, "users", uid), { status: 'approved' }, { merge: true });
+                // Remove from signupRequests
+                await deleteDoc(doc(db, "signupRequests", reqId));
                 const row = document.getElementById('signup-req-row-' + reqId);
                 if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
                 const remaining = document.querySelectorAll('[id^="signup-req-row-"]').length - 1;
@@ -3030,20 +3100,20 @@
                 else badge.textContent = remaining;
             } catch(e) { alert('Error: ' + e.message); }
         };
-        window.denySignup = async (reqId) => {
+
+        window.denySignup = async (reqId, uid) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             if (!confirm('Deny and delete this signup?')) return;
             try {
-                const requestRef = doc(db, "signupRequests", reqId);
-                const requestSnap = await getDoc(requestRef);
-                const requestData = requestSnap.exists() ? requestSnap.data() : {};
-                if (requestData.uid) {
-                    await deleteDoc(doc(db, "users", requestData.uid));
-                    if (requestData.displayName) {
-                        await deleteDoc(doc(db, "usernames", requestData.displayName.toLowerCase()));
-                    }
+                // Delete user doc and signup request
+                await deleteDoc(doc(db, "users", uid));
+                await deleteDoc(doc(db, "signupRequests", reqId));
+                // Also delete username reservation
+                const userSnap = await getDoc(doc(db, "users", uid));
+                if (userSnap.exists()) {
+                    const name = userSnap.data().displayName;
+                    if (name) await deleteDoc(doc(db, "usernames", name.toLowerCase()));
                 }
-                await deleteSignupRequestCopies({ email: requestData.email, uid: requestData.uid });
                 const row = document.getElementById('signup-req-row-' + reqId);
                 if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
                 const remaining = document.querySelectorAll('[id^="signup-req-row-"]').length - 1;
@@ -3052,6 +3122,8 @@
                 else badge.textContent = remaining;
             } catch(e) { alert('Error: ' + e.message); }
         };
+
+
         window.loadOnlineUsers = async () => {
             const container = document.getElementById('online-users-list');
             const countEl = document.getElementById('panel-online-count');
@@ -3108,6 +3180,8 @@
                 container.innerHTML = `<p class="text-center text-red-400 text-sm py-4">Error: ${e.message}</p>`;
             }
         };
+
+
         window.resetOrders = async () => {
             if (!confirm('Reset all category and site orders to clean sequential numbers? This fixes any ordering bugs.')) return;
             try {
@@ -3115,6 +3189,7 @@
                 const catSnap = await getDocs(query(collection(db, "categories"), orderBy("order", "asc")));
                 const cats = catSnap.docs;
                 await Promise.all(cats.map((d, i) => setDoc(doc(db, "categories", d.id), { order: i }, { merge: true })));
+
                 // Reset site orders per category
                 const siteSnap = await getDocs(collection(db, "sites"));
                 const byCat = {};
@@ -3126,6 +3201,7 @@
                 for (const cat of Object.keys(byCat)) {
                     await Promise.all(byCat[cat].map((d, i) => setDoc(doc(db, "sites", d.id), { order: i }, { merge: true })));
                 }
+
                 await window.loadCategories();
                 await window.loadAllSites();
                 window.buildNav();
@@ -3135,6 +3211,8 @@
                 alert('Orders reset successfully!');
             } catch(e) { alert('Error: ' + e.message); }
         };
+
+
         // ── Verified badge ──
         window.setVerified = async (uid, grant, silent) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
@@ -3152,6 +3230,7 @@
                 }
             } catch(e) { alert('Error: ' + e.message); }
         };
+
         window.submitVerifyRequest = async () => {
             const reason = document.getElementById('verify-req-reason').value.trim();
             const msgEl = document.getElementById('verify-req-message');
@@ -3175,6 +3254,7 @@
                 msgEl.classList.add('hidden');
             } catch(e) { msgEl.textContent = 'Error: ' + e.message; msgEl.className = 'text-center text-sm mt-4 text-red-400'; msgEl.classList.remove('hidden'); }
         };
+
         window.cancelVerifyRequest = async () => {
             if (!confirm('Cancel your verification request?')) return;
             try {
@@ -3183,6 +3263,7 @@
                 document.getElementById('verify-req-already').classList.add('hidden');
             } catch(e) { alert('Error: ' + e.message); }
         };
+
         window.checkExistingVerifyRequest = async () => {
             try {
                 const uid = auth.currentUser.uid;
@@ -3205,6 +3286,7 @@
                 }
             } catch(_) {}
         };
+
         window.loadVerifyRequests = async () => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return;
             const container = document.getElementById('verify-requests-list');
@@ -3240,6 +3322,7 @@
                 container.innerHTML = html;
             } catch(e) { container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`; }
         };
+
         window.approveVerify = async (reqId, uid) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
@@ -3250,6 +3333,7 @@
                 window.loadVerifyRequests();
             } catch(e) { alert('Error: ' + e.message); }
         };
+
         window.denyVerify = async (reqId) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             if (!confirm('Deny this verification request?')) return;
@@ -3260,6 +3344,8 @@
                 window.loadVerifyRequests();
             } catch(e) { alert('Error: ' + e.message); }
         };
+
+
         window.broadcastRefresh = async () => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             try {
@@ -3269,6 +3355,7 @@
                 });
             } catch(e) { alert('Error: ' + e.message); }
         };
+
         window.loadAllSites = window.loadAllSites;
         window.populateAllGrids = window.populateAllGrids;
         window.showGlobalAnnouncement = window.showGlobalAnnouncement;
@@ -3337,12 +3424,14 @@
         window.approveCategoryRequest = window.approveCategoryRequest;
         window.denyCategoryRequest = window.denyCategoryRequest;
     </script>
+
     <!-- Global scope functions (needed for onclick) -->
     <script>
         window.switchTab = function(index) {
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
             const activeEl = document.getElementById(`tab-${index}`);
             if (activeEl) activeEl.classList.add('active-tab');
+
             if (!window.currentUser) {
                 document.getElementById('current-tab').textContent = 'Sign In Required';
                 document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-lock';
@@ -3350,10 +3439,13 @@
                 document.getElementById('content-account')?.classList.remove('hidden');
                 return;
             }
+
             const mapping = (window.tabMapping || [])[index];
             if (!mapping) return;
+
             document.getElementById('current-tab').textContent = mapping.title;
             document.getElementById('current-tab-icon').className = `text-3xl fa-solid ${mapping.icon}`;
+
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(mapping.contentId)?.classList.remove('hidden');
             if (mapping.contentId === 'content-request-admin') window.checkExistingAdminRequest();
@@ -3398,28 +3490,36 @@
                 }
             }
         };
+
         window.requestSite = function() { window.openRequestModal(); };
+
         window.resetEverything = function() {
             if (!confirm("Reset all & sign out?")) return;
             localStorage.clear();
             document.documentElement.style.setProperty('--accent', '#ffffff');
             firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
         };
+
+
         window.handleSearch = (query) => {
             const clearBtn = document.getElementById('search-clear');
             const q = query.trim().toLowerCase();
+
             if (!q) {
                 window.clearSearch();
                 return;
             }
+
             clearBtn.classList.remove('hidden');
             document.getElementById('search-query-label').textContent = query.trim();
+
             // Show search tab, hide all others
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById('content-search').classList.remove('hidden');
             document.getElementById('current-tab').textContent = 'Search';
             document.getElementById('current-tab-icon').className = 'text-3xl fa-solid fa-magnifying-glass';
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-tab'));
+
             // Gather all sites across all categories
             const allSites = [];
             (window.allCategories || []).forEach(cat => {
@@ -3427,19 +3527,23 @@
                     allSites.push({ ...site, catLabel: cat.label });
                 });
             });
+
             const matches = allSites.filter(s =>
                 (s.name || '').toLowerCase().includes(q) ||
                 (s.desc || '').toLowerCase().includes(q) ||
                 (s.catLabel || '').toLowerCase().includes(q)
             );
+
             const grid = document.getElementById('search-results-grid');
             const noResults = document.getElementById('search-no-results');
             grid.innerHTML = '';
+
             if (!matches.length) {
                 noResults.classList.remove('hidden');
                 return;
             }
             noResults.classList.add('hidden');
+
             matches.forEach(site => {
                 const iconDisplay = site.icon
                     ? `<div class="text-5xl mb-6 transition-transform group-hover:scale-125">${site.icon}</div>`
@@ -3456,6 +3560,7 @@
                 grid.appendChild(card);
             });
         };
+
         window.clearSearch = () => {
             const input = document.getElementById('search-input');
             const clearBtn = document.getElementById('search-clear');
@@ -3465,7 +3570,9 @@
             const homeIdx = (window.tabMapping || []).findIndex(t => t.contentId === 'content-home');
             if (homeIdx >= 0) window.switchTab(homeIdx);
         };
+
         let matrixInterval = null;
+
         function startMatrix() {
             const canvas = document.getElementById('matrix-bg');
             const starBg = document.getElementById('star-bg');
@@ -3495,6 +3602,7 @@
                 canvas.height = window.innerHeight;
             };
         }
+
         function stopMatrix() {
             if (matrixInterval) { clearInterval(matrixInterval); matrixInterval = null; }
             const canvas = document.getElementById('matrix-bg');
@@ -3502,6 +3610,7 @@
             if (canvas) { canvas.style.display = 'none'; const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
             if (starBg) starBg.style.display = 'block';
         }
+
         let bloodMoonInterval = null;
         function startBloodMoon() {
             const canvas = document.getElementById('matrix-bg');
@@ -3532,6 +3641,7 @@
             }, 55);
             window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
         }
+
         function stopBloodMoon() {
             if (bloodMoonInterval) { clearInterval(bloodMoonInterval); bloodMoonInterval = null; }
             const canvas = document.getElementById('matrix-bg');
@@ -3554,6 +3664,7 @@
                 // Fade to black slowly
                 ctx.fillStyle = 'rgba(0,0,0,0.08)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+
                 // Many bright horizontal glitch bars
                 const numGlitches = Math.floor(Math.random() * 8) + 3;
                 for (let i = 0; i < numGlitches; i++) {
@@ -3565,12 +3676,14 @@
                     const h = Math.random() > 0.7 ? Math.floor(Math.random() * 4) + 2 : 1;
                     ctx.fillRect(x, y, w, h);
                 }
+
                 // Occasional full-width bright flash lines
                 if (Math.random() > 0.85) {
                     const y = Math.random() * canvas.height;
                     ctx.fillStyle = `rgba(250,204,21,${Math.random() * 0.4 + 0.2})`;
                     ctx.fillRect(0, y, canvas.width, 1);
                 }
+
                 // Bright moving scanline
                 const scanY = (frame * 4) % canvas.height;
                 ctx.fillStyle = 'rgba(250,204,21,0.18)';
@@ -3578,6 +3691,7 @@
                 // Glow above scanline
                 ctx.fillStyle = 'rgba(250,204,21,0.06)';
                 ctx.fillRect(0, scanY - 4, canvas.width, 4);
+
                 // Random pixel noise clusters
                 for (let i = 0; i < 20; i++) {
                     const px = Math.random() * canvas.width;
@@ -3585,10 +3699,12 @@
                     ctx.fillStyle = `rgba(250,204,21,${Math.random() * 0.8 + 0.2})`;
                     ctx.fillRect(px, py, 2, 2);
                 }
+
                 frame++;
             }, 35);
             window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
         }
+
         function stopCyber() {
             if (window._cyberInterval) { clearInterval(window._cyberInterval); window._cyberInterval = null; }
             const canvas = document.getElementById('matrix-bg');
@@ -3596,6 +3712,7 @@
             if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
             if (starBg) starBg.style.display = 'block';
         }
+
         function startNebula() {
             const canvas = document.getElementById('matrix-bg');
             const starBg = document.getElementById('star-bg');
@@ -3605,6 +3722,7 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             const ctx = canvas.getContext('2d');
+
             // Nebula cloud blobs — each has a position, radius, color, drift speed
             const blobs = Array.from({length: 18}, () => ({
                 x: Math.random() * canvas.width,
@@ -3615,6 +3733,7 @@
                 hue: Math.random() > 0.5 ? (Math.random() * 60 + 260) : (Math.random() * 40 + 300), // purples & magentas
                 alpha: Math.random() * 0.13 + 0.04,
             }));
+
             // Tiny star field
             const stars = Array.from({length: 200}, () => ({
                 x: Math.random() * canvas.width,
@@ -3623,12 +3742,16 @@
                 twinkle: Math.random() * Math.PI * 2,
                 speed: Math.random() * 0.04 + 0.01,
             }));
+
             if (window._nebulaAnim) cancelAnimationFrame(window._nebulaAnim);
+
             function drawFrame() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+
                 // Deep space background
                 ctx.fillStyle = '#03000d';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+
                 // Draw nebula blobs
                 blobs.forEach(b => {
                     b.x += b.dx; b.y += b.dy;
@@ -3645,6 +3768,7 @@
                     ctx.fillStyle = grad;
                     ctx.fill();
                 });
+
                 // Draw stars with twinkle
                 stars.forEach(s => {
                     s.twinkle += s.speed;
@@ -3654,11 +3778,13 @@
                     ctx.fillStyle = `rgba(255,220,255,${opacity})`;
                     ctx.fill();
                 });
+
                 window._nebulaAnim = requestAnimationFrame(drawFrame);
             }
             drawFrame();
             window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
         }
+
         function stopNebula() {
             if (window._nebulaAnim) { cancelAnimationFrame(window._nebulaAnim); window._nebulaAnim = null; }
             const canvas = document.getElementById('matrix-bg');
@@ -3666,6 +3792,7 @@
             if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
             if (starBg) starBg.style.display = 'block';
         }
+
         function startArcade() {
             const canvas = document.getElementById('matrix-bg');
             const starBg = document.getElementById('star-bg');
@@ -3675,17 +3802,22 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             const ctx = canvas.getContext('2d');
+
             // Rainbow hue cycling for accent
             let hue = 0;
             const root = document.documentElement;
+
             // Scanline overlay params
             let scanOffset = 0;
+
             // Pixel grid "noise" blocks
             const cols = Math.ceil(canvas.width / 8);
             const rows = Math.ceil(canvas.height / 8);
+
             // Marquee text sprites
             const marqueeChars = '★STARLINK★ INSERT COIN ★ PRESS START ★ HIGH SCORE ★ PLAYER ONE ★ LEVEL UP ★ ';
             let marqueeX = canvas.width;
+
             // Random pixel sprite positions for background color bursts
             const bursts = Array.from({length: 12}, () => ({
                 x: Math.random() * canvas.width,
@@ -3695,15 +3827,20 @@
                 life: Math.random(),
                 speed: Math.random() * 0.02 + 0.005,
             }));
+
             if (window._arcadeAnim) cancelAnimationFrame(window._arcadeAnim);
+
             function drawFrame() {
                 hue = (hue + 0.8) % 360;
+
                 // Update CSS accent to cycle rainbow
                 const accentColor = `hsl(${hue},100%,65%)`;
                 root.style.setProperty('--accent', accentColor);
+
                 // Dark background with very slight persistence
                 ctx.fillStyle = 'rgba(0,0,0,0.82)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+
                 // Draw color burst blobs in background
                 bursts.forEach(b => {
                     b.life += b.speed;
@@ -3723,6 +3860,7 @@
                     ctx.fillStyle = grad;
                     ctx.fill();
                 });
+
                 // Pixel grid random flicker — sparse colored pixels
                 const numPixels = 40;
                 for (let i = 0; i < numPixels; i++) {
@@ -3731,15 +3869,18 @@
                     ctx.fillStyle = `hsla(${Math.random()*360},100%,65%,${Math.random()*0.6+0.2})`;
                     ctx.fillRect(px, py, 8, 8);
                 }
+
                 // Horizontal scanlines
                 ctx.fillStyle = 'rgba(0,0,0,0.18)';
                 for (let y = 0; y < canvas.height; y += 4) {
                     ctx.fillRect(0, y, canvas.width, 2);
                 }
+
                 // Moving bright scanline sweep
                 scanOffset = (scanOffset + 2) % canvas.height;
                 ctx.fillStyle = `hsla(${hue},100%,80%,0.06)`;
                 ctx.fillRect(0, scanOffset, canvas.width, 6);
+
                 // Scrolling marquee text at bottom
                 ctx.font = 'bold 13px monospace';
                 ctx.fillStyle = `hsl(${hue},100%,70%)`;
@@ -3749,17 +3890,20 @@
                 ctx.shadowBlur = 0;
                 marqueeX -= 1.5;
                 if (marqueeX < -ctx.measureText(marqueeChars).width) marqueeX = canvas.width;
+
                 // Blinking border flash
                 if (Math.random() > 0.97) {
                     ctx.strokeStyle = `hsla(${hue},100%,65%,0.5)`;
                     ctx.lineWidth = 4;
                     ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
                 }
+
                 window._arcadeAnim = requestAnimationFrame(drawFrame);
             }
             drawFrame();
             window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
         }
+
         function stopArcade() {
             if (window._arcadeAnim) { cancelAnimationFrame(window._arcadeAnim); window._arcadeAnim = null; }
             const canvas = document.getElementById('matrix-bg');
@@ -3767,6 +3911,7 @@
             if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
             if (starBg) starBg.style.display = 'block';
         }
+
         function startDiamond() {
             const canvas = document.getElementById('matrix-bg');
             const starBg = document.getElementById('star-bg');
@@ -3776,6 +3921,7 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             const ctx = canvas.getContext('2d');
+
             // Prismatic light shards — each is a thin rotated rectangle refracting light
             const shards = Array.from({length: 28}, () => ({
                 x: Math.random() * canvas.width,
@@ -3789,6 +3935,7 @@
                 alpha: Math.random() * 0.5 + 0.1,
                 alphaDir: Math.random() > 0.5 ? 0.003 : -0.003,
             }));
+
             // Floating diamond shapes
             const diamonds = Array.from({length: 10}, () => ({
                 x: Math.random() * canvas.width,
@@ -3800,6 +3947,7 @@
                 hue: Math.random() * 60 + 180, // ice blues/cyans
                 alpha: Math.random() * 0.18 + 0.05,
             }));
+
             // Sparkle points
             const sparkles = Array.from({length: 60}, () => ({
                 x: Math.random() * canvas.width,
@@ -3808,11 +3956,14 @@
                 speed: Math.random() * 0.05 + 0.02,
                 size: Math.random() * 2.5 + 0.5,
             }));
+
             if (window._diamondAnim) cancelAnimationFrame(window._diamondAnim);
+
             function drawFrame() {
                 // Very dark near-black background with subtle blue tint
                 ctx.fillStyle = 'rgba(2,4,12,0.88)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+
                 // Draw prismatic light shards
                 shards.forEach(s => {
                     s.angle += s.speed;
@@ -3824,6 +3975,7 @@
                     s.alpha += s.alphaDir;
                     if (s.alpha > 0.65 || s.alpha < 0.05) s.alphaDir *= -1;
                     s.hue = (s.hue + 0.3) % 360;
+
                     ctx.save();
                     ctx.translate(s.x, s.y);
                     ctx.rotate(s.angle);
@@ -3837,6 +3989,7 @@
                     ctx.fillRect(-s.len / 2, -s.width / 2, s.len, s.width);
                     ctx.restore();
                 });
+
                 // Draw floating diamond outlines
                 diamonds.forEach(d => {
                     d.angle += d.rotSpeed;
@@ -3859,6 +4012,7 @@
                     ctx.stroke();
                     ctx.restore();
                 });
+
                 // Draw sparkles — 4-pointed star cross shape
                 sparkles.forEach(s => {
                     s.life += s.speed;
@@ -3875,17 +4029,20 @@
                     ctx.stroke();
                     ctx.restore();
                 });
+
                 // Occasional full-screen prismatic flash
                 if (Math.random() > 0.994) {
                     const flashHue = Math.random() * 360;
                     ctx.fillStyle = `hsla(${flashHue},100%,98%,0.04)`;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                 }
+
                 window._diamondAnim = requestAnimationFrame(drawFrame);
             }
             drawFrame();
             window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
         }
+
         function stopDiamond() {
             if (window._diamondAnim) { cancelAnimationFrame(window._diamondAnim); window._diamondAnim = null; }
             const canvas = document.getElementById('matrix-bg');
@@ -3893,6 +4050,7 @@
             if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
             if (starBg) starBg.style.display = 'block';
         }
+
         function startThunderstorm() {
             const canvas = document.getElementById('matrix-bg');
             const starBg = document.getElementById('star-bg');
@@ -3902,6 +4060,7 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             const ctx = canvas.getContext('2d');
+
             // Rain drops
             const drops = Array.from({length: 220}, () => ({
                 x: Math.random() * canvas.width,
@@ -3910,10 +4069,12 @@
                 speed: Math.random() * 10 + 12,
                 alpha: Math.random() * 0.35 + 0.1,
             }));
+
             // Lightning state
             let lightningTimer = 0;
             let lightningFlash = 0;
             let lightningBolts = [];
+
             function generateBolt(x, y, angle, depth) {
                 if (depth <= 0) return;
                 const len = Math.random() * 80 + 40;
@@ -3923,13 +4084,16 @@
                 if (Math.random() > 0.4) generateBolt(nx, ny, angle + (Math.random() - 0.5) * 0.9, depth - 1);
                 if (Math.random() > 0.65) generateBolt(nx, ny, angle + (Math.random() - 0.5) * 1.4, depth - 2);
             }
+
             if (window._stormAnim) cancelAnimationFrame(window._stormAnim);
+
             function drawFrame() {
                 // Dark stormy sky
                 ctx.fillStyle = lightningFlash > 0
                     ? `rgba(180,200,230,${Math.min(lightningFlash * 0.12, 0.18)})`
                     : 'rgba(4,6,14,0.72)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+
                 // Rain
                 ctx.strokeStyle = 'rgba(160,200,255,0.28)';
                 ctx.lineWidth = 1;
@@ -3943,10 +4107,12 @@
                     ctx.lineTo(d.x - 2, d.y - d.len);
                     ctx.stroke();
                 });
+
                 // Lightning flash overlay
                 if (lightningFlash > 0) {
                     ctx.fillStyle = `rgba(210,230,255,${lightningFlash * 0.08})`;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
                     // Draw bolts
                     lightningBolts.forEach(b => {
                         ctx.strokeStyle = `rgba(220,240,255,${Math.min(lightningFlash * 0.6, 0.9)})`;
@@ -3962,6 +4128,7 @@
                     lightningFlash -= 0.06;
                     if (lightningFlash < 0) lightningFlash = 0;
                 }
+
                 // Trigger new lightning
                 lightningTimer--;
                 if (lightningTimer <= 0) {
@@ -3971,11 +4138,13 @@
                     lightningFlash = 1.0;
                     lightningTimer = Math.random() * 180 + 60;
                 }
+
                 window._stormAnim = requestAnimationFrame(drawFrame);
             }
             drawFrame();
             window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
         }
+
         function stopThunderstorm() {
             if (window._stormAnim) { cancelAnimationFrame(window._stormAnim); window._stormAnim = null; }
             const canvas = document.getElementById('matrix-bg');
@@ -3983,6 +4152,7 @@
             if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
             if (starBg) starBg.style.display = 'block';
         }
+
         function startFireflies() {
             const canvas = document.getElementById('matrix-bg');
             const starBg = document.getElementById('star-bg');
@@ -3992,6 +4162,7 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             const ctx = canvas.getContext('2d');
+
             const flies = Array.from({length: 55}, () => ({
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
@@ -4004,10 +4175,13 @@
                 wanderAngle: Math.random() * Math.PI * 2,
                 wanderSpeed: (Math.random() - 0.5) * 0.04,
             }));
+
             if (window._firefliesAnim) cancelAnimationFrame(window._firefliesAnim);
+
             function drawFrame() {
                 ctx.fillStyle = 'rgba(1,5,3,0.78)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+
                 // Faint dark tree silhouette at bottom
                 ctx.fillStyle = 'rgba(0,0,0,0.6)';
                 ctx.beginPath();
@@ -4024,6 +4198,7 @@
                     ctx.lineTo(tx + 60, canvas.height);
                     ctx.fill();
                 }
+
                 flies.forEach(f => {
                     // Organic wander movement
                     f.wanderAngle += f.wanderSpeed;
@@ -4039,9 +4214,11 @@
                     if (f.x > canvas.width) f.x = 0;
                     if (f.y < 0) f.y = canvas.height * 0.8;
                     if (f.y > canvas.height * 0.85) f.y = 20;
+
                     f.life += f.lifeSpeed;
                     const brightness = (Math.sin(f.life) + 1) / 2;
                     if (brightness < 0.08) return; // off phase
+
                     const glow = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 8);
                     glow.addColorStop(0, `hsla(${f.hue},100%,75%,${brightness * 0.9})`);
                     glow.addColorStop(0.3, `hsla(${f.hue},90%,60%,${brightness * 0.4})`);
@@ -4050,17 +4227,20 @@
                     ctx.arc(f.x, f.y, f.r * 8, 0, Math.PI * 2);
                     ctx.fillStyle = glow;
                     ctx.fill();
+
                     // Bright core
                     ctx.beginPath();
                     ctx.arc(f.x, f.y, f.r * brightness, 0, Math.PI * 2);
                     ctx.fillStyle = `hsla(${f.hue},100%,90%,${brightness})`;
                     ctx.fill();
                 });
+
                 window._firefliesAnim = requestAnimationFrame(drawFrame);
             }
             drawFrame();
             window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
         }
+
         function stopFireflies() {
             if (window._firefliesAnim) { cancelAnimationFrame(window._firefliesAnim); window._firefliesAnim = null; }
             const canvas = document.getElementById('matrix-bg');
@@ -4068,6 +4248,7 @@
             if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
             if (starBg) starBg.style.display = 'block';
         }
+
         function startSupernova() {
             const canvas = document.getElementById('matrix-bg');
             const starBg = document.getElementById('star-bg');
@@ -4077,10 +4258,12 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             const ctx = canvas.getContext('2d');
+
             let phase = 0; // 0=buildup, 1=explosion, 2=fade, 3=cooldown
             let phaseTimer = 0;
             let blastR = 0;
             const cx = canvas.width / 2, cy = canvas.height / 2;
+
             // Background stars
             const stars = Array.from({length: 180}, () => ({
                 x: Math.random() * canvas.width,
@@ -4088,8 +4271,10 @@
                 r: Math.random() * 1.5 + 0.3,
                 alpha: Math.random() * 0.7 + 0.2,
             }));
+
             // Debris particles ejected on explosion
             let debris = [];
+
             function triggerExplosion() {
                 phase = 1; blastR = 0; phaseTimer = 0;
                 debris = Array.from({length: 120}, () => {
@@ -4106,11 +4291,14 @@
                     };
                 });
             }
+
             if (window._supernovaAnim) cancelAnimationFrame(window._supernovaAnim);
             triggerExplosion();
+
             function drawFrame() {
                 ctx.fillStyle = 'rgba(2,0,8,0.88)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+
                 // Background stars
                 stars.forEach(s => {
                     ctx.beginPath();
@@ -4118,7 +4306,9 @@
                     ctx.fillStyle = `rgba(255,240,200,${s.alpha})`;
                     ctx.fill();
                 });
+
                 phaseTimer++;
+
                 if (phase === 1) {
                     // Expanding blast wave rings
                     blastR += 4.5;
@@ -4136,6 +4326,7 @@
                         ctx.fillStyle = grad;
                         ctx.fill();
                     }
+
                     // Bright core flash
                     const coreAlpha = Math.max(0, 1 - blastR / 300);
                     if (coreAlpha > 0) {
@@ -4148,8 +4339,10 @@
                         ctx.fillStyle = coreGrad;
                         ctx.fill();
                     }
+
                     if (blastR > canvas.width * 0.85) { phase = 2; phaseTimer = 0; }
                 }
+
                 // Debris particles always drawn during/after explosion
                 debris.forEach(d => {
                     d.x += d.vx; d.y += d.vy;
@@ -4164,13 +4357,16 @@
                     ctx.fillStyle = grad;
                     ctx.fill();
                 });
+
                 if (phase === 2 && phaseTimer > 140) { phase = 3; phaseTimer = 0; }
                 if (phase === 3 && phaseTimer > 90) triggerExplosion();
+
                 window._supernovaAnim = requestAnimationFrame(drawFrame);
             }
             drawFrame();
             window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
         }
+
         function stopSupernova() {
             if (window._supernovaAnim) { cancelAnimationFrame(window._supernovaAnim); window._supernovaAnim = null; }
             const canvas = document.getElementById('matrix-bg');
@@ -4178,6 +4374,7 @@
             if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
             if (starBg) starBg.style.display = 'block';
         }
+
         function startSolarFlare() {
             const canvas = document.getElementById('matrix-bg');
             const starBg = document.getElementById('star-bg');
@@ -4187,10 +4384,13 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             const ctx = canvas.getContext('2d');
+
             const cx = canvas.width / 2, cy = canvas.height * 0.72;
+
             // Pulse rings expanding from sun core
             let rings = [];
             let ringTimer = 0;
+
             // Solar prominence arcs
             const prominences = Array.from({length: 6}, (_, i) => ({
                 angle: (Math.PI / 5) * i - Math.PI * 0.5,
@@ -4200,6 +4400,7 @@
                 alpha: Math.random() * 0.5 + 0.3,
                 alphaDir: (Math.random() > 0.5 ? 1 : -1) * 0.004,
             }));
+
             // Particle stream
             const particles = Array.from({length: 80}, () => ({
                 angle: Math.random() * Math.PI * 2,
@@ -4209,10 +4410,13 @@
                 alpha: Math.random() * 0.7 + 0.2,
                 hue: Math.random() * 40 + 25,
             }));
+
             if (window._solarFlareAnim) cancelAnimationFrame(window._solarFlareAnim);
+
             function drawFrame() {
                 ctx.fillStyle = 'rgba(5,2,0,0.82)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+
                 // Ambient deep orange glow from below
                 const ambientGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, canvas.width * 0.7);
                 ambientGrad.addColorStop(0, 'rgba(255,120,10,0.22)');
@@ -4222,6 +4426,7 @@
                 ctx.arc(cx, cy, canvas.width * 0.7, 0, Math.PI * 2);
                 ctx.fillStyle = ambientGrad;
                 ctx.fill();
+
                 // Expanding pulse rings
                 ringTimer++;
                 if (ringTimer > 45) { rings.push({ r: 55, alpha: 0.7 }); ringTimer = 0; }
@@ -4235,6 +4440,7 @@
                     ctx.lineWidth = 2.5;
                     ctx.stroke();
                 });
+
                 // Solar prominences — curved arcs shooting out
                 prominences.forEach(p => {
                     p.angle += p.speed;
@@ -4255,6 +4461,7 @@
                     ctx.stroke();
                     ctx.shadowBlur = 0;
                 });
+
                 // Orbiting corona particles
                 particles.forEach(p => {
                     p.angle += p.speed;
@@ -4265,6 +4472,7 @@
                     ctx.fillStyle = `hsla(${p.hue},100%,75%,${p.alpha})`;
                     ctx.fill();
                 });
+
                 // Sun core
                 const sunGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 55);
                 sunGrad.addColorStop(0, 'rgba(255,255,220,1)');
@@ -4275,11 +4483,13 @@
                 ctx.arc(cx, cy, 55, 0, Math.PI * 2);
                 ctx.fillStyle = sunGrad;
                 ctx.fill();
+
                 window._solarFlareAnim = requestAnimationFrame(drawFrame);
             }
             drawFrame();
             window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
         }
+
         function stopSolarFlare() {
             if (window._solarFlareAnim) { cancelAnimationFrame(window._solarFlareAnim); window._solarFlareAnim = null; }
             const canvas = document.getElementById('matrix-bg');
@@ -4287,6 +4497,7 @@
             if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
             if (starBg) starBg.style.display = 'block';
         }
+
         function startCityLights() {
             const canvas = document.getElementById('matrix-bg');
             const starBg = document.getElementById('star-bg');
@@ -4296,6 +4507,7 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             const ctx = canvas.getContext('2d');
+
             // Build city skyline buildings
             const buildings = [];
             let bx = 0;
@@ -4305,6 +4517,7 @@
                 buildings.push({ x: bx, w, h, floors: Math.floor(h / 14), cols: Math.max(1, Math.floor(w / 14)) });
                 bx += w + Math.random() * 4;
             }
+
             // Windows — each has a twinkle timer
             const windows = [];
             buildings.forEach(b => {
@@ -4323,6 +4536,7 @@
                     }
                 }
             });
+
             // Stars above skyline
             const stars = Array.from({ length: 120 }, () => ({
                 x: Math.random() * canvas.width,
@@ -4331,9 +4545,12 @@
                 twinkle: Math.random() * Math.PI * 2,
                 speed: Math.random() * 0.02 + 0.005,
             }));
+
             // Moon
             const moonX = canvas.width * 0.8, moonY = canvas.height * 0.15;
+
             if (window._cityLightsAnim) cancelAnimationFrame(window._cityLightsAnim);
+
             function drawFrame() {
                 // Night sky gradient
                 const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height * 0.75);
@@ -4341,6 +4558,7 @@
                 skyGrad.addColorStop(1, '#0a0a18');
                 ctx.fillStyle = skyGrad;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+
                 // Moon glow
                 const moonGlow = ctx.createRadialGradient(moonX, moonY, 0, moonX, moonY, 55);
                 moonGlow.addColorStop(0, 'rgba(255,248,220,0.12)');
@@ -4349,6 +4567,7 @@
                 ctx.fillStyle = moonGlow; ctx.fill();
                 ctx.beginPath(); ctx.arc(moonX, moonY, 14, 0, Math.PI * 2);
                 ctx.fillStyle = 'rgba(255,248,210,0.88)'; ctx.fill();
+
                 // Stars
                 stars.forEach(s => {
                     s.twinkle += s.speed;
@@ -4356,11 +4575,13 @@
                     ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
                     ctx.fillStyle = `rgba(220,230,255,${alpha})`; ctx.fill();
                 });
+
                 // Buildings silhouette
                 ctx.fillStyle = '#050508';
                 buildings.forEach(b => {
                     ctx.fillRect(b.x, canvas.height - b.h, b.w, b.h);
                 });
+
                 // Windows
                 windows.forEach(w => {
                     w.timer++;
@@ -4375,17 +4596,20 @@
                     ctx.fillStyle = wg;
                     ctx.fillRect(w.x - 6, w.y - 6, 20, 20);
                 });
+
                 // Ground / road reflection
                 const roadGrad = ctx.createLinearGradient(0, canvas.height - 28, 0, canvas.height);
                 roadGrad.addColorStop(0, 'rgba(10,10,20,0.9)');
                 roadGrad.addColorStop(1, '#000');
                 ctx.fillStyle = roadGrad;
                 ctx.fillRect(0, canvas.height - 28, canvas.width, 28);
+
                 window._cityLightsAnim = requestAnimationFrame(drawFrame);
             }
             drawFrame();
             window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
         }
+
         function stopCityLights() {
             if (window._cityLightsAnim) { cancelAnimationFrame(window._cityLightsAnim); window._cityLightsAnim = null; }
             const canvas = document.getElementById('matrix-bg');
@@ -4393,6 +4617,7 @@
             if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
             if (starBg) starBg.style.display = 'block';
         }
+
         function startLava() {
             const canvas = document.getElementById('matrix-bg');
             const starBg = document.getElementById('star-bg');
@@ -4402,6 +4627,7 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             const ctx = canvas.getContext('2d');
+
             // Lava blobs — slow drifting circles that merge visually
             const blobs = Array.from({ length: 14 }, () => ({
                 x: Math.random() * canvas.width,
@@ -4413,6 +4639,7 @@
                 pulse: Math.random() * Math.PI * 2,
                 pulseSpeed: Math.random() * 0.012 + 0.004,
             }));
+
             // Hot cracks / veins
             const cracks = Array.from({ length: 18 }, () => ({
                 x: Math.random() * canvas.width,
@@ -4423,6 +4650,7 @@
                 alphaDir: (Math.random() > 0.5 ? 1 : -1) * 0.005,
                 hue: Math.random() * 25 + 15,
             }));
+
             // Ember particles rising
             const embers = Array.from({ length: 55 }, () => ({
                 x: Math.random() * canvas.width,
@@ -4433,10 +4661,13 @@
                 life: Math.random(),
                 hue: Math.random() * 40 + 10,
             }));
+
             if (window._lavaAnim) cancelAnimationFrame(window._lavaAnim);
+
             function drawFrame() {
                 ctx.fillStyle = 'rgba(4,1,0,0.88)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+
                 // Draw lava blobs
                 blobs.forEach(b => {
                     b.pulse += b.pulseSpeed;
@@ -4456,6 +4687,7 @@
                     ctx.fillStyle = grad;
                     ctx.fill();
                 });
+
                 // Hot glowing cracks
                 cracks.forEach(c => {
                     c.alpha += c.alphaDir;
@@ -4476,6 +4708,7 @@
                     ctx.stroke();
                     ctx.shadowBlur = 0;
                 });
+
                 // Rising embers
                 embers.forEach(e => {
                     e.y += e.vy; e.x += e.vx;
@@ -4490,11 +4723,13 @@
                     ctx.fillStyle = `hsla(${e.hue},100%,70%,${e.life * 0.8})`;
                     ctx.fill();
                 });
+
                 window._lavaAnim = requestAnimationFrame(drawFrame);
             }
             drawFrame();
             window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
         }
+
         function stopLava() {
             if (window._lavaAnim) { cancelAnimationFrame(window._lavaAnim); window._lavaAnim = null; }
             const canvas = document.getElementById('matrix-bg');
@@ -4502,6 +4737,7 @@
             if (canvas) { canvas.style.display = 'none'; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
             if (starBg) starBg.style.display = 'block';
         }
+
         function setTheme(color, special) {
             localStorage.setItem('starlinkAccent', color);
             localStorage.setItem('starlinkSpecialTheme', special || '');
@@ -4531,6 +4767,7 @@
             else if (special === 'citylights') startCityLights();
             else if (special === 'lava') startLava();
         }
+
         function loadTheme() {
             const color = localStorage.getItem('starlinkAccent') || '#ffffff';
             const special = localStorage.getItem('starlinkSpecialTheme') || '';
@@ -4548,6 +4785,7 @@
             else if (special === 'citylights') startCityLights();
             else if (special === 'lava') startLava();
         }
+
         function createStar(x, y) {
             const s = document.createElement('div');
             s.className = 'star';
@@ -4560,6 +4798,7 @@
             const drift = (Math.random() - 0.5) * 100;
             s.style.transform = `translateX(${drift}px)`;
             document.getElementById('star-bg').appendChild(s);
+
             const check = setInterval(() => {
                 const rect = s.getBoundingClientRect();
                 if (rect.top < -window.innerHeight * 4) {
@@ -4568,24 +4807,28 @@
                 }
             }, 8000);
         }
+
         function initStars() {
             for (let i = 0; i < 100; i++) {
                 const x = Math.random() * window.innerWidth;
                 const y = Math.random() * window.innerHeight * 1.5;
                 createStar(x, y);
             }
+
             setInterval(() => {
                 const x = Math.random() * window.innerWidth;
                 const y = window.innerHeight + 80;
                 createStar(x, y);
             }, 5000 + Math.random() * 5000);
         }
+
         document.addEventListener('click', e => {
             if (e.target.closest('button, a, input, select, textarea, label, svg, .card, .nav-link, #refresh-modal, #add-update-site-btn, .github-style-btn, .auth-btn, .users-table, .admin-sites-list')) {
                 return;
             }
             createStar(e.clientX, e.clientY);
         });
+
         function populateThemeGrid() {
             const cont = document.getElementById('theme-grid');
             cont.innerHTML = '';
@@ -4606,7 +4849,9 @@
                 el.onclick = () => setTheme(t.color);
                 cont.appendChild(el);
             });
+
         }
+
         function populateAdminThemeGrid() {
             const cont = document.getElementById('admin-theme-grid');
             if (!cont) return;
@@ -4728,6 +4973,7 @@
                 cont.appendChild(el);
             });
         }
+
         function populateGrid(catKey, gridId) {
             const cont = document.getElementById(gridId);
             if (!cont) return;
@@ -4748,6 +4994,7 @@
                 cont.appendChild(card);
             });
         }
+
         window.createCategoryContents = () => {
             const container = document.getElementById('dynamic-category-contents');
             container.innerHTML = '';
@@ -4759,6 +5006,7 @@
                 container.appendChild(div);
             });
         };
+
         window.buildNav = () => {
             const navLinks = document.getElementById('nav-links');
             if (!navLinks) return;
@@ -4770,10 +5018,12 @@
                 `;
                 return;
             }
+
             const isAdmin = window.isAdminUser === true;
             let html = '';
             window.tabMapping = [];
             let idx = 0;
+
             if (isAdmin) {
                 const isRealOwner = window.currentUser?.email === ADMIN_EMAIL;
                 const panelNavLabel = isRealOwner ? 'Owner Panel' : 'Admin Panel';
@@ -4787,6 +5037,7 @@
                 idx++;
                 html += '<div class="sidebar-separator mx-6"></div>';
             }
+
             const homeActive = !isAdmin ? 'active-tab' : '';
             html += `
                 <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1 ${homeActive}" id="tab-${idx}">
@@ -4795,6 +5046,7 @@
             `;
             window.tabMapping.push({contentId: 'content-home', title: 'Home', icon: 'fa-house'});
             idx++;
+
             (window.allCategories || []).forEach(cat => {
                 html += `
                     <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
@@ -4804,6 +5056,7 @@
                 window.tabMapping.push({contentId: `content-${cat.key}`, title: cat.label, icon: cat.icon});
                 idx++;
             });
+
             html += `
                 <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
                     <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
@@ -4811,6 +5064,7 @@
             `;
             window.tabMapping.push({contentId: 'content-settings', title: 'Settings', icon: 'fa-gear'});
             idx++;
+
             html += `
                 <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
                     <i class="fa-solid fa-comments w-5"></i> <span>Live Chat</span>
@@ -4818,6 +5072,7 @@
             `;
             window.tabMapping.push({contentId: 'content-chat', title: 'Live Chat', icon: 'fa-comments'});
             idx++;
+
             html += `
                 <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
                     <i class="fa-solid fa-user w-5"></i> <span>Account</span>
@@ -4825,6 +5080,7 @@
             `;
             window.tabMapping.push({contentId: 'content-account', title: 'Account', icon: 'fa-user'});
             idx++;
+
             html += `
                 <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
                     <i class="fa-solid fa-heart w-5"></i> <span>Credits</span>
@@ -4832,6 +5088,7 @@
             `;
             window.tabMapping.push({contentId: 'content-credits', title: 'Credits', icon: 'fa-heart'});
             idx++;
+
             if (!isAdmin) {
                 html += `
                     <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
@@ -4840,6 +5097,7 @@
                 `;
                 window.tabMapping.push({contentId: 'content-request-admin', title: 'Request Admin', icon: 'fa-crown'});
                 idx++;
+
                 html += `
                     <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
                         <i class="fa-solid fa-list w-5"></i> <span>Request a Category</span>
@@ -4847,6 +5105,7 @@
                 `;
                 window.tabMapping.push({contentId: 'content-request-category', title: 'Request a Category', icon: 'fa-list'});
                 idx++;
+
                 html += `
                     <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
                         <i class="fa-solid fa-paper-plane w-5"></i> <span>Request a Site</span>
@@ -4855,6 +5114,7 @@
                 window.tabMapping.push({contentId: 'content-request-site', title: 'Request a Site', icon: 'fa-paper-plane'});
                 idx++;
             }
+
             // Request Verification — show only if not owner and not already verified
             if (window.currentUser?.email !== ADMIN_EMAIL && !window.isVerifiedUser) {
                 html += `
@@ -4865,8 +5125,10 @@
                 window.tabMapping.push({contentId: 'content-request-verify', title: 'Request Verification', icon: 'fa-circle-check'});
                 idx++;
             }
+
             navLinks.innerHTML = html;
         };
+
         window.populateCategorySelect = () => {
             ['admin-cat-select', 'admin-cat-select-p', 'req-category'].forEach(id => {
                 const select = document.getElementById(id);
@@ -4876,12 +5138,15 @@
                 ).join('');
             });
         };
+
         function initialize() {
             loadTheme();
             initStars();
         }
+
         window.onload = initialize;
     </script>
+
     <!-- PWA Service Worker + Install Prompt -->
     <script>
         // Register service worker
@@ -4902,9 +5167,11 @@
                     .catch(err => console.log('SW registration failed:', err));
             });
         }
+
         // Install prompt
         let deferredPrompt = null;
         const installBtn = document.getElementById('pwa-install-btn');
+
         window.addEventListener('beforeinstallprompt', e => {
             e.preventDefault();
             deferredPrompt = e;
@@ -4912,10 +5179,12 @@
                 installBtn.classList.remove('hidden');
             }
         });
+
         window.addEventListener('appinstalled', () => {
             deferredPrompt = null;
             if (installBtn) installBtn.classList.add('hidden');
         });
+
         window.installPWA = async () => {
             if (!deferredPrompt) return;
             deferredPrompt.prompt();
@@ -4924,6 +5193,7 @@
             if (installBtn) installBtn.classList.add('hidden');
         };
     </script>
+
     <!-- Owner Terminal Logic -->
     <script>
     (function() {
@@ -4933,6 +5203,7 @@
         let _aliases = JSON.parse(localStorage.getItem('termAliases') || '{}');
         let _macros  = JSON.parse(localStorage.getItem('termMacros')  || '{}');
         let _savedThemes = JSON.parse(localStorage.getItem('termThemes') || '{}');
+
         function isOwner() { return window.currentUser?.email === OWNER; }
         function print(text, color) {
             const out = document.getElementById('terminal-output');
@@ -4947,6 +5218,7 @@
         function err(t)  { print('✗  ' + t, '#ef4444'); }
         function info(t) { print('   ' + t, '#a0a0a0'); }
         function cmd(t)  { print('<span style="color:#00ff41">Gunnar Booth $</span> ' + t); }
+
         window.openTerminal = () => {
             if (!isOwner()) return;
             if (!window._termSessionStart) window._termSessionStart = Date.now();
@@ -4974,6 +5246,7 @@
             await runCommand(_expanded);
             print('');
         };
+
         // ── Suppress browser popups while a terminal command is running ──
         const _nativeAlert   = window.alert.bind(window);
         const _nativeConfirm = window.confirm.bind(window);
@@ -4981,6 +5254,7 @@
         window.alert   = (...a) => { if (window._terminalRunning) return;   _nativeAlert(...a); };
         window.confirm = (...a) => { if (window._terminalRunning) return true;  return _nativeConfirm(...a); };
         window.prompt  = (...a) => { if (window._terminalRunning) return a[1] !== undefined ? a[1] : null; return _nativePrompt(...a); };
+
         async function runCommand(raw) {
             if (!isOwner()) return err('Access denied.');
             window._terminalRunning = true;
@@ -4988,6 +5262,7 @@
             const parts = raw.trim().split(/\s+/);
             const c = parts[0].toLowerCase();
             const args = parts.slice(1);
+
             // ── HELP ──
             if (c === 'help') {
                 print('  <span style="color:#00ff41;font-weight:bold">SITES</span>');
@@ -5118,8 +5393,10 @@
                 info('<span style="color:#fff">export log</span>                 — download this terminal session as a text file');
                 return;
             }
+
             if (c === 'exit')  { window.closeTerminal(); return; }
             if (c === 'clear') { document.getElementById('terminal-output').innerHTML = ''; return; }
+
             // ── SITES LIST ──
             if (c === 'sites' && args[0] === 'list') {
                 (window.allCategories||[]).forEach(cat => {
@@ -5128,6 +5405,7 @@
                 });
                 return;
             }
+
             // ── SITE FIND ──
             if (c === 'site' && args[0] === 'find') {
                 const name = args.slice(1).join(' ').toLowerCase();
@@ -5138,6 +5416,7 @@
                 found.forEach(s => info(`<span style="color:#fff">${s.name}</span> [${s.category}] id:<span style="color:#a0a0a0">${s.id}</span>`));
                 return;
             }
+
             // ── SITE ADD ──
             if (c === 'site' && args[0] === 'add') {
                 const cat=args[1], name=args[2], url=args[3], icon=args[4]||'', desc=args.slice(5).join(' ')||'';
@@ -5152,6 +5431,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── SITE DEL ──
             if (c === 'site' && args[0] === 'del') {
                 const id = args[1];
@@ -5161,6 +5441,7 @@
                 catch(e) { err(e.message); }
                 return;
             }
+
             // ── SITE EDIT ──
             if (c === 'site' && args[0] === 'edit') {
                 const id=args[1], field=args[2], value=args.slice(3).join(' ');
@@ -5174,11 +5455,13 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── CAT LIST ──
             if (c === 'cat' && args[0] === 'list') {
                 (window.allCategories||[]).forEach(cat => info(`<span style="color:#fff">${cat.key}</span> — ${cat.label} [${cat.icon}]`));
                 return;
             }
+
             // ── CAT ADD ──
             if (c === 'cat' && args[0] === 'add') {
                 let key=args[1], label=args[2], icon=args[3]||'fa-folder';
@@ -5193,6 +5476,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── CAT DEL ──
             if (c === 'cat' && args[0] === 'del') {
                 const key=args[1];
@@ -5204,6 +5488,7 @@
                 catch(e) { err(e.message); }
                 return;
             }
+
             // ── USERS LIST ──
             if (c === 'users' && args[0] === 'list') {
                 info('Loading...');
@@ -5221,6 +5506,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── USER ACTIONS ──
             if (c === 'user') {
                 const action=args[0], email=args[1];
@@ -5265,6 +5551,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── ANNOUNCE ──
             if (c === 'announce') {
                 if (args[0]==='clear') {
@@ -5280,11 +5567,13 @@
                 }
                 return;
             }
+
             // ── CHAT CLEAR ──
             if (c === 'chat' && args[0] === 'clear') {
                 await window.clearChat();
                 return;
             }
+
             // ── THEME ──
             if (c === 'theme') {
                 if      (args[0]==='reset')  { setTheme('#ffffff','');       ok('Theme reset to default'); }
@@ -5292,6 +5581,7 @@
                 else err('Usage: theme <#hex> | reset');
                 return;
             }
+
             // ── REQUESTS LIST ──
             if (c === 'requests') {
                 try {
@@ -5307,6 +5597,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── APPROVE / REJECT / DENY ──
             // Handle "all" bulk operations first before generic handler
             if ((c === 'approve' || c === 'deny') && args[0] === 'all' && args[1] === 'site') {
@@ -5323,6 +5614,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             if (c === 'deny' && args[0] === 'all' && (args[1]==='admin'||args[1]==='cat')) {
                 const type=args[1]==='cat'?'category':args[1];
                 try {
@@ -5337,6 +5629,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             if (c==='approve'||c==='reject'||c==='deny') {
                 const type=args[0], id=args[1];
                 if (!type||!id) return err(`Usage: ${c} <site|admin|cat> <id>`);
@@ -5355,6 +5648,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── DM LIST ──
             if (c === 'dm' && args[0] === 'list') {
                 info('Loading DM conversations...');
@@ -5377,6 +5671,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── DM READ ──
             if (c === 'dm' && args[0] === 'read') {
                 const u1=args[1], u2=args[2];
@@ -5398,6 +5693,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── DM CLEAR ──
             if (c === 'dm' && args[0] === 'clear') {
                 const u1=args[1], u2=args[2];
@@ -5416,6 +5712,8 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
+
             // ── SITE LIST <cat> ──
             if (c === 'site' && args[0] === 'list') {
                 const key = args[1]?.toLowerCase();
@@ -5425,6 +5723,7 @@
                 sites.forEach(s => info(`<span style="color:#fff">${s.name}</span> — ${s.url} id:<span style="color:#a0a0a0">${s.id}</span>`));
                 return;
             }
+
             // ── SITE MOVE ──
             if (c === 'site' && args[0] === 'move') {
                 const id=args[1], newcat=args[2];
@@ -5438,6 +5737,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── SITE URL ──
             if (c === 'site' && args[0] === 'url') {
                 const id=args[1];
@@ -5449,6 +5749,7 @@
                 ok(`Opening: ${found.name}`);
                 return;
             }
+
             // ── USER INFO ──
             if (c === 'user' && args[0] === 'info') {
                 const email=args[1];
@@ -5469,6 +5770,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── USERS ADMINS / BANNED ──
             if (c === 'users' && (args[0]==='admins'||args[0]==='banned')) {
                 try {
@@ -5484,6 +5786,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── USER COUNT ──
             if (c === 'user' && args[0] === 'count') {
                 try {
@@ -5492,6 +5795,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── ANNOUNCE SHOW ──
             if (c === 'announce' && args[0] === 'show') {
                 try {
@@ -5504,6 +5808,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── CHAT COUNT ──
             if (c === 'chat' && args[0] === 'count') {
                 try {
@@ -5513,6 +5818,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── CHAT LAST ──
             if (c === 'chat' && args[0] === 'last') {
                 const n=parseInt(args[1])||5;
@@ -5529,6 +5835,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── DM COUNT ──
             if (c === 'dm' && args[0] === 'count') {
                 try {
@@ -5538,6 +5845,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── DM PURGE ──
             if (c === 'dm' && args[0] === 'purge') {
                 const email=args[1];
@@ -5557,6 +5865,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── THEME LIST ──
             if (c === 'theme' && args[0] === 'list') {
                 const themes=[
@@ -5570,6 +5879,7 @@
                 themes.forEach(t=>info(`<span style="color:${t.color}">■</span> <span style="color:#fff">${t.name}</span>${t.special?' [admin only]':''} <span style="color:#a0a0a0">${t.color}</span>`));
                 return;
             }
+
             // ── THEME CURRENT ──
             if (c === 'theme' && args[0] === 'current') {
                 const color=localStorage.getItem('starlinkAccent')||'#ffffff';
@@ -5578,6 +5888,7 @@
                 if (special) info(`Special: <span style="color:#fff">${special}</span>`);
                 return;
             }
+
             // ── STATS ──
             if (c === 'stats') {
                 let total=0;
@@ -5591,6 +5902,7 @@
                 } catch(_) {}
                 return;
             }
+
             // ── WHOAMI ──
             if (c === 'whoami') {
                 info(`Username: <span style="color:#fff">${window.currentDisplayName||window.currentUser?.email?.split('@')[0]}</span>`);
@@ -5598,6 +5910,7 @@
                 info(`Role:     <span style="color:#f59e0b">★ Owner</span>`);
                 return;
             }
+
             // ── ONLINE ──
             if (c === 'online') {
                 try {
@@ -5630,6 +5943,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── PING ──
             if (c === 'ping') {
                 info('Pinging Firebase...');
@@ -5641,6 +5955,7 @@
                 } catch(e) { err(`Firebase unreachable: ${e.message}`); }
                 return;
             }
+
             // ── UPTIME ──
             if (c === 'uptime') {
                 if (!window._termSessionStart) window._termSessionStart=Date.now();
@@ -5649,6 +5964,7 @@
                 info(`Session uptime: <span style="color:#fff">${mins}m ${secs}s</span>`);
                 return;
             }
+
             // ── VERSION ──
             if (c === 'version') {
                 info(`Starlink <span style="color:#fff">v1.0</span>`);
@@ -5656,6 +5972,8 @@
                 info(`Firebase SDK: <span style="color:#fff">12.10.0</span>`);
                 return;
             }
+
+
             // ── SITE DUPE ──
             if (c === 'site' && args[0] === 'dupe') {
                 const id = args[1];
@@ -5673,6 +5991,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── SITE TOP ──
             if (c === 'site' && args[0] === 'top') {
                 const n = parseInt(args[1]) || 10;
@@ -5681,6 +6000,7 @@
                 all.slice(0, n).forEach((s,i) => info(`${i+1}. <span style="color:#fff">${s.name}</span> [${s.category}] id:<span style="color:#a0a0a0">${s.id}</span>`));
                 return;
             }
+
             // ── SITE NOICON ──
             if (c === 'site' && args[0] === 'noicon') {
                 let found = [];
@@ -5690,6 +6010,7 @@
                 info(`Total: ${found.length}`);
                 return;
             }
+
             // ── SITE NODESC ──
             if (c === 'site' && args[0] === 'nodesc') {
                 let found = [];
@@ -5699,6 +6020,7 @@
                 info(`Total: ${found.length}`);
                 return;
             }
+
             // ── CAT RENAME ──
             if (c === 'cat' && args[0] === 'rename') {
                 const key=args[1], newlabel=args.slice(2).join(' ');
@@ -5712,6 +6034,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── CAT ICON ──
             if (c === 'cat' && args[0] === 'icon') {
                 let key=args[1], icon=args[2];
@@ -5726,6 +6049,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── USER NEWEST ──
             if (c === 'user' && args[0] === 'newest') {
                 try {
@@ -5737,6 +6061,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── USER OLDEST ──
             if (c === 'user' && args[0] === 'oldest') {
                 try {
@@ -5748,6 +6073,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── USERS COUNT ADMINS / BANNED ──
             if (c === 'users' && args[0] === 'count') {
                 try {
@@ -5762,6 +6088,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── CHAT DEL ──
             if (c === 'chat' && args[0] === 'del') {
                 const msgid=args[1];
@@ -5773,6 +6100,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── CHAT PURGE ──
             if (c === 'chat' && args[0] === 'purge') {
                 const email=args[1];
@@ -5788,6 +6116,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── FRIENDS LIST ──
             if (c === 'friends' && args[0] === 'list') {
                 const email=args[1];
@@ -5802,6 +6131,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── FRIENDS CLEAR ──
             if (c === 'friends' && args[0] === 'clear') {
                 const email=args[1];
@@ -5817,12 +6147,14 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── HISTORY ──
             if (c === 'history') {
                 if (!cmdHistory.length) return info('No command history yet.');
                 cmdHistory.slice(0,20).forEach((cmd,i)=>info(`<span style="color:#a0a0a0">${i+1}.</span> <span style="color:#fff">${cmd}</span>`));
                 return;
             }
+
             // ── RELOAD ──
             if (c === 'reload') {
                 info('Reloading data...');
@@ -5837,6 +6169,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── GOTO ──
             if (c === 'goto') {
                 const dest=args[0]?.toLowerCase();
@@ -5846,6 +6179,7 @@
                 else err(`Unknown tab: ${dest}. Try: home, admin, chat, settings, account, credits`);
                 return;
             }
+
             // ── SEARCH ──
             if (c === 'search') {
                 const q=args.join(' ');
@@ -5856,6 +6190,8 @@
                 ok(`Searching for "${q}"`);
                 return;
             }
+
+
             // ── SITE DUPES ──
             if (c === 'site' && args[0] === 'dupes') {
                 const seen = {}, dupes = [];
@@ -5868,6 +6204,7 @@
                 info(`Total duplicates: ${dupes.length}`);
                 return;
             }
+
             // ── SITE COUNT ──
             if (c === 'site' && args[0] === 'count') {
                 let total = 0;
@@ -5875,11 +6212,13 @@
                 info(`Total sites: <span style="color:#fff">${total}</span>`);
                 return;
             }
+
             // ── CAT COUNT ──
             if (c === 'cat' && args[0] === 'count') {
                 info(`Total categories: <span style="color:#fff">${(window.allCategories||[]).length}</span>`);
                 return;
             }
+
             // ── USER NOTE ──
             if (c === 'user' && args[0] === 'note') {
                 const email=args[1], note=args.slice(2).join(' ');
@@ -5893,6 +6232,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── CHAT FIND ──
             if (c === 'chat' && args[0] === 'find') {
                 const keyword=args.slice(1).join(' ').toLowerCase();
@@ -5912,6 +6252,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── CHAT TOP ──
             if (c === 'chat' && args[0] === 'top') {
                 const n=parseInt(args[1])||5;
@@ -5929,6 +6270,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── REQUESTS COUNT ──
             if (c === 'requests' && args[0] === 'count') {
                 try {
@@ -5943,6 +6285,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── RANDOM ──
             if (c === 'random') {
                 let pool=[];
@@ -5953,12 +6296,15 @@
                 ok(`Opening: <span style="color:#fff">${site.name}</span> [${site.category}]`);
                 return;
             }
+
             // ── TAB LIST ──
             if (c === 'tab' && args[0] === 'list') {
                 info('Available tabs for goto:');
                 (window.tabMapping||[]).forEach(t=>info(`  <span style="color:#fff">${t.title}</span> → goto ${t.contentId.replace('content-','')}`));
                 return;
             }
+
+
             // ── SITE INFO ──
             if (c === 'site' && args[0] === 'info') {
                 const id=args[1];
@@ -5974,6 +6320,7 @@
                 info(`ID:       <span style="color:#a0a0a0">${found.id}</span>`);
                 return;
             }
+
             // ── SITE RENAME ──
             if (c === 'site' && args[0] === 'rename') {
                 const id=args[1], newname=args.slice(2).join(' ');
@@ -5986,6 +6333,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── SITE MOVEALL ──
             if (c === 'site' && args[0] === 'moveall') {
                 const fromcat=args[1], tocat=args[2];
@@ -6002,6 +6350,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── USER READNOTE ──
             if (c === 'user' && args[0] === 'readnote') {
                 const email=args[1];
@@ -6017,6 +6366,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── CHAT STATS ──
             if (c === 'chat' && args[0] === 'stats') {
                 try {
@@ -6042,6 +6392,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── NOW ──
             if (c === 'now') {
                 const now=new Date();
@@ -6049,6 +6400,7 @@
                 info(`Time: <span style="color:#fff">${now.toLocaleTimeString()}</span>`);
                 return;
             }
+
             // ── ABOUT ──
             if (c === 'about') {
                 print('  <span style="color:#00ff41">★ Starlink</span>', '#00ff41');
@@ -6058,6 +6410,8 @@
                 info(`Backend: <span style="color:#fff">Firebase (Firestore + Auth)</span>`);
                 return;
             }
+
+
             // ── SIGNUPS LIST ──
             if ((c === 'signups' || c === 'signup') && args[0] === 'list') {
                 info('Loading pending signups...');
@@ -6075,6 +6429,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── SIGNUPS COUNT ──
             if ((c === 'signups' || c === 'signup') && args[0] === 'count') {
                 try {
@@ -6085,9 +6440,11 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── SIGNUP APPROVE / DENY ──
             if (c === 'signup') {
                 const action = args[0], email = args[1];
+
                 // Approve all
                 if (action === 'approve' && email === 'all') {
                     try {
@@ -6098,46 +6455,32 @@
                         
                         for (const d of pending) {
                             const r = d.data();
-                            if (r.uid) {
-                                await setDoc(doc(window.db, "users", r.uid), { status: 'approved' }, { merge: true });
-                                await deleteDoc(doc(window.db, "signupRequests", d.id));
-                            } else {
-                                await setDoc(doc(window.db, "signupRequests", d.id), {
-                                    status: 'approved',
-                                    approvedAt: serverTimestamp(),
-                                    approvedBy: auth.currentUser?.email || ADMIN_EMAIL
-                                }, { merge: true });
-                            }
+                            await setDoc(doc(window.db, "users", r.uid), { status: 'approved' }, { merge: true });
+                            await deleteDoc(doc(window.db, "signupRequests", d.id));
                         }
                         ok(`Approved ${pending.length} signup(s)`);
                     } catch(e) { err(e.message); }
                     return;
                 }
+
                 if (!action || !email) return err('Usage: signup approve|deny <email>');
+
                 try {
                     const { getDocs, collection, query, orderBy, setDoc, doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
                     const snap = await getDocs(query(collection(window.db, "signupRequests"), orderBy("requestedAt", "desc")));
                     const match = snap.docs.find(d => d.data().email?.toLowerCase() === email.toLowerCase() && d.data().status === 'pending');
                     if (!match) return err(`No pending signup found for: ${email}`);
                     const r = match.data();
+
                     if (action === 'approve') {
-                        if (r.uid) {
-                            await setDoc(doc(window.db, "users", r.uid), { status: 'approved' }, { merge: true });
-                            await deleteDoc(doc(window.db, "signupRequests", match.id));
-                        } else {
-                            await setDoc(doc(window.db, "signupRequests", match.id), {
-                                status: 'approved',
-                                approvedAt: serverTimestamp(),
-                                approvedBy: auth.currentUser?.email || ADMIN_EMAIL
-                            }, { merge: true });
-                        }
+                        await setDoc(doc(window.db, "users", r.uid), { status: 'approved' }, { merge: true });
+                        await deleteDoc(doc(window.db, "signupRequests", match.id));
                         ok(`${email} approved — they can now log in`);
                     } else if (action === 'deny') {
-                        if (r.uid) {
-                            await deleteDoc(doc(window.db, "users", r.uid));
-                        }
-                        await deleteSignupRequestCopies({ email: r.email, uid: r.uid });
-                        if (r.uid && r.displayName) {
+                        
+                        await deleteDoc(doc(window.db, "users", r.uid));
+                        await deleteDoc(doc(window.db, "signupRequests", match.id));
+                        if (r.displayName) {
                             try { await deleteDoc(doc(window.db, "usernames", r.displayName.toLowerCase())); } catch(_) {}
                         }
                         ok(`${email} denied and removed`);
@@ -6145,6 +6488,8 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
+
             // ── RESET ORDERS ──
             if (c === 'reset' && args[0] === 'orders') {
                 
@@ -6153,6 +6498,8 @@
                 catch(e) { err(e.message); }
                 return;
             }
+
+
             // ── USER VERIFY / UNVERIFY ──
             // ── VERIFY LIST ──
             if (c === 'verify' && args[0] === 'list') {
@@ -6170,6 +6517,7 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
             // ── VERIFY APPROVE / DENY ──
             if (c === 'verify' && (args[0] === 'approve' || args[0] === 'deny')) {
                 const email = args[1];
@@ -6189,6 +6537,8 @@
                 } catch(e) { err(e.message); }
                 return;
             }
+
+
             // ── ALIAS ──
             if (c === 'alias') {
                 const name = args[0], cmd2 = args.slice(1).join(' ');
@@ -6198,6 +6548,7 @@
                 ok(`Alias saved: <span style="color:#fff">${name}</span> → ${cmd2}`);
                 return;
             }
+
             // ── ALIASES ──
             if (c === 'aliases') {
                 const keys = Object.keys(_aliases);
@@ -6205,6 +6556,7 @@
                 keys.forEach(k => info(`<span style="color:#fff">${k}</span> → ${_aliases[k]}`));
                 return;
             }
+
             // ── UNALIAS ──
             if (c === 'unalias') {
                 const name = args[0];
@@ -6215,6 +6567,7 @@
                 ok(`Alias removed: ${name}`);
                 return;
             }
+
             // ── MACRO ──
             if (c === 'macro') {
                 if (args[0] === 'save') {
@@ -6253,6 +6606,7 @@
                 }
                 return;
             }
+
             // ── THEME SAVE / LOAD / PRESETS ──
             if (c === 'theme' && args[0] === 'save') {
                 const name = args[1];
@@ -6264,6 +6618,7 @@
                 ok(`Theme saved as "<span style="color:${color}">${name}</span>" (${color}${special ? ' + ' + special : ''})`);
                 return;
             }
+
             if (c === 'theme' && args[0] === 'load') {
                 const name = args[1];
                 if (!name) return err('Usage: theme load <name>');
@@ -6274,6 +6629,7 @@
                 ok(`Theme loaded: <span style="color:${color}">${name}</span>`);
                 return;
             }
+
             if (c === 'theme' && args[0] === 'presets') {
                 const keys = Object.keys(_savedThemes);
                 if (!keys.length) return info('No saved theme presets. Use: theme save <name>');
@@ -6283,6 +6639,7 @@
                 });
                 return;
             }
+
             // ── EXPORT LOG ──
             if (c === 'export' && args[0] === 'log') {
                 const out = document.getElementById('terminal-output');
@@ -6296,6 +6653,8 @@
                 ok('Terminal session exported');
                 return;
             }
+
+
             // ── BROADCAST REFRESH ──
             if (c === 'broadcast' && args[0] === 'refresh') {
                 
@@ -6303,9 +6662,11 @@
                 catch(e) { err(e.message); }
                 return;
             }
+
             err(`Unknown command: "${c}" — type <span style="color:#fff">help</span>`);
             } finally { window._terminalRunning = false; }
         }
+
         // ── Helpers ──
         window._termGetUsers = async () => {
             const { getDocs, collection, query, orderBy } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
@@ -6324,6 +6685,7 @@
             const snap=await getDocs(query(collection(window.db,col),orderBy("requestedAt","desc")));
             return snap.docs.filter(d=>(d.data().status||'pending')==='pending');
         };
+
         // ── Open on / key (owner only) ──
         document.addEventListener('keydown', function(e) {
             if (e.key !== '/') return;
@@ -6333,6 +6695,7 @@
             const t=document.getElementById('owner-terminal');
             t.classList.contains('open') ? window.closeTerminal() : window.openTerminal();
         });
+
     })();
     </script>
 </body>
