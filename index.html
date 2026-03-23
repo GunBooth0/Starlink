@@ -5234,8 +5234,18 @@
             print('');
         };
 
+        // ── Suppress browser popups while a terminal command is running ──
+        const _nativeAlert   = window.alert.bind(window);
+        const _nativeConfirm = window.confirm.bind(window);
+        const _nativePrompt  = window.prompt.bind(window);
+        window.alert   = (...a) => { if (window._terminalRunning) return;   _nativeAlert(...a); };
+        window.confirm = (...a) => { if (window._terminalRunning) return true;  return _nativeConfirm(...a); };
+        window.prompt  = (...a) => { if (window._terminalRunning) return a[1] !== undefined ? a[1] : null; return _nativePrompt(...a); };
+
         async function runCommand(raw) {
             if (!isOwner()) return err('Access denied.');
+            window._terminalRunning = true;
+            try {
             const parts = raw.trim().split(/\s+/);
             const c = parts[0].toLowerCase();
             const args = parts.slice(1);
@@ -6641,6 +6651,7 @@
             }
 
             err(`Unknown command: "${c}" — type <span style="color:#fff">help</span>`);
+            } finally { window._terminalRunning = false; }
         }
 
         // ── Helpers ──
