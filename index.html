@@ -700,7 +700,7 @@
                                 <p class="font-semibold text-lg mb-1"><i class="fa-solid fa-rotate mr-2 text-indigo-400"></i>Push Refresh to All Users</p>
                                 <p class="text-white/50 text-sm">Forces a full page reload on every online user's screen. Use only when a change requires a hard reload.</p>
                             </div>
-                            <button onclick="window.broadcastRefresh()" class="text-white font-semibold py-3 px-8 rounded-2xl transition-colors" style="width:auto;margin:0;font-size:1rem;background:#6366f1;">Push Refresh</button>
+                            <button onclick="if(confirm('Push a refresh prompt to all online users?')) window.broadcastRefresh()" class="text-white font-semibold py-3 px-8 rounded-2xl transition-colors" style="width:auto;margin:0;font-size:1rem;background:#6366f1;">Push Refresh</button>
                         </div>
                     </div>
 
@@ -3335,13 +3335,11 @@
 
         window.broadcastRefresh = async () => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
-            if (!confirm('Push a refresh prompt to all online users?')) return;
             try {
                 await setDoc(doc(db, "config", "broadcastRefresh"), {
                     triggeredAt: serverTimestamp(),
                     triggeredBy: ADMIN_EMAIL
                 });
-                alert('Refresh prompt sent to all online users.');
             } catch(e) { alert('Error: ' + e.message); }
         };
 
