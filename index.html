@@ -5483,6 +5483,19 @@
             // ── USER ACTIONS ──
             if (c === 'user') {
                 const action=args[0], email=args[1];
+                // Special case: user unban all — handle before UID lookup
+                if (action === 'unban' && email === 'all') {
+                    try {
+                        const docs=await window._termGetUsers();
+                        const banned=docs.filter(d=>d.data().banned===true);
+                        if (!banned.length) return info('No banned users.');
+                        if (!confirm(`Unban all ${banned.length} banned users?`)) return info('Cancelled.');
+                        const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                        await Promise.all(banned.map(d=>setDoc(doc(window.db,"users",d.id),{banned:false},{merge:true})));
+                        ok(`Unbanned ${banned.length} user(s)`);
+                    } catch(e) { err(e.message); }
+                    return;
+                }
                 if (!action||!email) return err('Usage: user <action> <email>');
                 try {
                     const uid = await window._termGetUid(email);
@@ -5559,6 +5572,37 @@
             }
 
             // ── APPROVE / REJECT / DENY ──
+            // Handle "all" bulk operations first before generic handler
+            if ((c === 'approve' || c === 'deny') && args[0] === 'all' && args[1] === 'site') {
+                try {
+                    const docs=await window._termGetRequests('site');
+                    if (!docs||!docs.length) return info('No pending site requests.');
+                    if (!confirm(`${c==='approve'?'Approve':'Deny'} all ${docs.length} pending site requests?`)) return info('Cancelled.');
+                    for (const d of docs) {
+                        const r=d.data();
+                        if (c==='approve') await window.approveSiteRequest(d.id,r.name||'',r.url||'',r.category||'',r.icon||'',r.desc||'');
+                        else await window.rejectSiteRequest(d.id);
+                    }
+                    ok(`${c==='approve'?'Approved':'Denied'} ${docs.length} site request(s)`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
+            if (c === 'deny' && args[0] === 'all' && (args[1]==='admin'||args[1]==='cat')) {
+                const type=args[1]==='cat'?'category':args[1];
+                try {
+                    const docs=await window._termGetRequests(type);
+                    if (!docs||!docs.length) return info(`No pending ${args[1]} requests.`);
+                    if (!confirm(`Deny all ${docs.length} pending ${args[1]} requests?`)) return info('Cancelled.');
+                    for (const d of docs) {
+                        if (type==='admin') await window.denyAdminRequest(d.id);
+                        else await window.denyCategoryRequest(d.id);
+                    }
+                    ok(`Denied ${docs.length} ${args[1]} request(s)`);
+                } catch(e) { err(e.message); }
+                return;
+            }
+
             if (c==='approve'||c==='reject'||c==='deny') {
                 const type=args[0], id=args[1];
                 if (!type||!id) return err(`Usage: ${c} <site|admin|cat> <id>`);
@@ -6215,22 +6259,6 @@
                 return;
             }
 
-            // ── APPROVE ALL SITE / DENY ALL SITE ──
-            if ((c === 'approve' || c === 'deny') && args[0] === 'all' && args[1] === 'site') {
-                try {
-                    const docs=await window._termGetRequests('site');
-                    if (!docs||!docs.length) return info('No pending site requests.');
-                    if (!confirm(`${c==='approve'?'Approve':'Deny'} all ${docs.length} pending site requests?`)) return info('Cancelled.');
-                    for (const d of docs) {
-                        const r=d.data();
-                        if (c==='approve') await window.approveSiteRequest(d.id,r.name||'',r.url||'',r.category||'',r.icon||'',r.desc||'');
-                        else await window.rejectSiteRequest(d.id);
-                    }
-                    ok(`${c==='approve'?'Approved':'Denied'} ${docs.length} site request(s)`);
-                } catch(e) { err(e.message); }
-                return;
-            }
-
             // ── RANDOM ──
             if (c === 'random') {
                 let pool=[];
@@ -6312,20 +6340,6 @@
                 return;
             }
 
-            // ── USER UNBAN ALL ──
-            if (c === 'user' && args[0] === 'unban' && args[1] === 'all') {
-                try {
-                    const docs=await window._termGetUsers();
-                    const banned=docs.filter(d=>d.data().banned===true);
-                    if (!banned.length) return info('No banned users.');
-                    if (!confirm(`Unban all ${banned.length} banned users?`)) return info('Cancelled.');
-                    const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
-                    await Promise.all(banned.map(d=>setDoc(doc(window.db,"users",d.id),{banned:false},{merge:true})));
-                    ok(`Unbanned ${banned.length} user(s)`);
-                } catch(e) { err(e.message); }
-                return;
-            }
-
             // ── CHAT STATS ──
             if (c === 'chat' && args[0] === 'stats') {
                 try {
@@ -6348,22 +6362,6 @@
                     info(`Total messages: <span style="color:#fff">${snap.size}</span>`);
                     info(`Messages today: <span style="color:#fff">${today}</span>`);
                     if (peakHour) info(`Most active hour: <span style="color:#fff">${peakHour[0]}:00 (${peakHour[1]} messages)</span>`);
-                } catch(e) { err(e.message); }
-                return;
-            }
-
-            // ── DENY ALL ADMIN / CAT ──
-            if (c === 'deny' && args[0] === 'all' && (args[1]==='admin'||args[1]==='cat')) {
-                const type=args[1]==='cat'?'category':args[1];
-                try {
-                    const docs=await window._termGetRequests(type);
-                    if (!docs||!docs.length) return info(`No pending ${args[1]} requests.`);
-                    if (!confirm(`Deny all ${docs.length} pending ${args[1]} requests?`)) return info('Cancelled.');
-                    for (const d of docs) {
-                        if (type==='admin') await window.denyAdminRequest(d.id);
-                        else await window.denyCategoryRequest(d.id);
-                    }
-                    ok(`Denied ${docs.length} ${args[1]} request(s)`);
                 } catch(e) { err(e.message); }
                 return;
             }
