@@ -327,6 +327,7 @@
                                 </div>
                             </div>
                         </div>
+                        </div>
                         <!-- Verification Badge -->
                         <div id="account-verify-section" class="glass rounded-2xl p-6 mt-6 text-left">
                             <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-circle-check" style="color:#3b82f6"></i> Verification Badge</h3>
@@ -335,7 +336,6 @@
                                 <p class="text-white/70 text-sm">A verification badge is a blue checkmark granted by the owner to trusted and notable members of Starlink. It appears next to your name in global chat, DMs, and the online users list. It is not something you can earn automatically — it is manually awarded by the owner.</p>
                             </div>
                             <div id="account-verify-status" class="text-sm text-center py-2 rounded-2xl hidden"></div>
-                        </div>
                         </div>
                     </div>
                 </div>
@@ -959,15 +959,6 @@
                     return;
                 }
 
-                // Block denied/deleted users (no user doc means denied or deleted)
-                if (!userDocData.email && user.email !== ADMIN_EMAIL) {
-                    window._signingUp = true;
-                    await signOut(auth);
-                    window._signingUp = false;
-                    alert("Your account has been denied or does not exist. Please contact the owner.");
-                    return;
-                }
-
                 window.isAdminUser = user.email === ADMIN_EMAIL || userDocData.isAdmin === true;
                 window.isVerifiedUser = userDocData.verified === true || user.email === ADMIN_EMAIL;
                 // Auto-grant owner verified badge if not already set
@@ -1284,14 +1275,6 @@
             const user = auth.currentUser;
             if (!user) return alert("Not logged in.");
             try {
-                // Get username before deleting user doc
-                const userSnap = await getDoc(doc(db, "users", user.uid));
-                if (userSnap.exists()) {
-                    const name = userSnap.data().displayName;
-                    if (name) {
-                        try { await deleteDoc(doc(db, "usernames", name.toLowerCase())); } catch(_) {}
-                    }
-                }
                 await deleteDoc(doc(db, "users", user.uid));
                 await deleteUser(user);
                 alert("Account fully deleted.");
@@ -1390,9 +1373,9 @@
             }
         };
 
-        window.saveGlobalAnnouncement = async () => {
+        window.saveGlobalAnnouncement = async (silent) => {
             const msg = document.getElementById('announcement-input').value.trim();
-            if (!msg) return alert("Cannot be empty");
+            if (!msg) { if (!silent) alert("Cannot be empty"); return; }
             try {
                 const user = auth.currentUser;
                 const userSnap = await getDoc(doc(db, "users", user.uid));
@@ -1405,20 +1388,22 @@
                     publisherRole,
                     updatedAt: serverTimestamp()
                 });
-                alert("Announcement published!");
+                if (!silent) alert("Announcement published!");
                 document.getElementById('announcement-input').value = '';
             } catch (e) {
-                alert("Error: " + e.message);
+                if (!silent) alert("Error: " + e.message);
+                else throw e;
             }
         };
 
-        window.clearAnnouncement = async () => {
-            if (!confirm("Clear announcement?")) return;
+        window.clearAnnouncement = async (silent) => {
+            if (!silent && !confirm("Clear announcement?")) return;
             try {
                 await deleteDoc(doc(db, "config", "announcement"));
-                alert("Announcement cleared!");
+                if (!silent) alert("Announcement cleared!");
             } catch (e) {
-                alert("Error: " + e.message);
+                if (!silent) alert("Error: " + e.message);
+                else throw e;
             }
         };
 
@@ -1496,34 +1481,35 @@
             }
         };
 
-        window.setBanUser = async (uid, ban) => {
+        window.setBanUser = async (uid, ban, silent) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             // Extra safety: never ban owner or admins
             try {
                 const targetSnap = await getDoc(doc(db, "users", uid));
                 const targetData = targetSnap.exists() ? targetSnap.data() : {};
-                if (targetData.email === ADMIN_EMAIL || targetData.isAdmin === true) return alert('You cannot ban admins or the owner.');
+                if (targetData.email === ADMIN_EMAIL || targetData.isAdmin === true) { if (!silent) alert('You cannot ban admins or the owner.'); return; }
             } catch(_) {}
             const action = ban ? 'ban' : 'unban';
-            if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+            if (!silent && !confirm(`Are you sure you want to ${action} this user?`)) return;
             try {
                 await setDoc(doc(db, "users", uid), { banned: ban }, { merge: true });
                 window.loadAdminUsers();
             } catch (e) {
-                alert("Error: " + e.message);
+                if (!silent) alert("Error: " + e.message);
+                else throw e;
             }
         };
 
-        window.setAdminUser = async (uid, grant) => {
+        window.setAdminUser = async (uid, grant, silent) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             // Never modify the owner's own record
             try {
                 const targetSnap = await getDoc(doc(db, "users", uid));
                 const targetData = targetSnap.exists() ? targetSnap.data() : {};
-                if (targetData.email === ADMIN_EMAIL) return alert("You cannot change the owner's role.");
+                if (targetData.email === ADMIN_EMAIL) { if (!silent) alert("You cannot change the owner's role."); return; }
             } catch(_) {}
             const action = grant ? 'grant admin access to' : 'revoke admin access from';
-            if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+            if (!silent && !confirm(`Are you sure you want to ${action} this user?`)) return;
             try {
                 await setDoc(doc(db, "users", uid), { isAdmin: grant }, { merge: true });
                 if (!grant) {
@@ -1535,20 +1521,21 @@
                 await window.cascadeRoleUpdate(uid, newRole);
                 window.loadAdminUsers();
             } catch (e) {
-                alert("Error: " + e.message);
+                if (!silent) alert("Error: " + e.message);
+                else throw e;
             }
         };
 
-        window.deleteUserFromAdmin = async (uid) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+        window.deleteUserFromAdmin = async (uid, silent) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
             // Never delete owner or other admins
             let targetData = {};
             try {
                 const targetSnap = await getDoc(doc(db, "users", uid));
                 targetData = targetSnap.exists() ? targetSnap.data() : {};
-                if (targetData.email === ADMIN_EMAIL || targetData.isAdmin === true) return alert('You cannot delete admins or the owner.');
+                if (targetData.email === ADMIN_EMAIL || targetData.isAdmin === true) { if (!silent) alert('You cannot delete admins or the owner.'); return; }
             } catch(_) {}
-            if (!confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
+            if (!silent && !confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
             try {
                 // Delete user doc
                 await deleteDoc(doc(db, "users", uid));
@@ -1558,10 +1545,11 @@
                 }
                 // Delete signup request if pending
                 try { await deleteDoc(doc(db, "signupRequests", uid)); } catch(_) {}
-                alert("User removed from list.");
+                if (!silent) alert("User removed from list.");
                 window.loadAdminUsers();
             } catch (e) {
-                alert("Error: " + e.message);
+                if (!silent) alert("Error: " + e.message);
+                else throw e;
             }
         };
 
@@ -1595,13 +1583,14 @@
             }
         };
 
-        window.deleteCategory = async (docId, key) => {
-            if (!confirm(`Delete category "${key}" forever? Sites in this category will no longer appear until moved.`)) return;
+        window.deleteCategory = async (docId, key, silent) => {
+            if (!silent && !confirm(`Delete category "${key}" forever? Sites in this category will no longer appear until moved.`)) return;
             try {
                 await deleteDoc(doc(db, "categories", docId));
-                alert("Category deleted!");
+                if (!silent) alert("Category deleted!");
             } catch (e) {
-                alert("Error: " + e.message);
+                if (!silent) alert("Error: " + e.message);
+                else throw e;
             }
         };
 
@@ -1702,15 +1691,16 @@
             }
         };
 
-        window.deleteSite = async (id) => {
-            if (!confirm("Delete forever?")) return;
+        window.deleteSite = async (id, silent) => {
+            if (!silent && !confirm("Delete forever?")) return;
             try {
                 await deleteDoc(doc(db, "sites", id));
                 await window.loadAllSites();
                 window.populateAllGrids();
                 window.reloadAdminSites();
             } catch (e) {
-                alert("Error: " + e.message);
+                if (!silent) alert("Error: " + e.message);
+                else throw e;
             }
         };
 
@@ -1972,8 +1962,8 @@
             }
         };
 
-        window.approveSiteRequest = async (reqId, name, url, category, icon, desc) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+        window.approveSiteRequest = async (reqId, name, url, category, icon, desc, silent) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
             try {
                 const catSites = window.allSites[category] || [];
                 const maxOrder = catSites.length ? Math.max(...catSites.map(s => s.order ?? 0)) + 1 : 0;
@@ -1989,11 +1979,11 @@
                 const badge = document.getElementById('requests-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('site-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending requests</p>'; }
                 else { badge.textContent = remaining; }
-            } catch(e) { alert("Error: " + e.message); }
+            } catch(e) { if (!silent) alert("Error: " + e.message); else throw e; }
         };
 
-        window.rejectSiteRequest = async (reqId) => {
-            if (!confirm("Reject and remove this request?")) return;
+        window.rejectSiteRequest = async (reqId, silent) => {
+            if (!silent && !confirm("Reject and remove this request?")) return;
             try {
                 await deleteDoc(doc(db, "siteRequests", reqId));
                 const row = document.getElementById('req-row-' + reqId);
@@ -2002,7 +1992,7 @@
                 const badge = document.getElementById('requests-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('site-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending requests</p>'; }
                 else { badge.textContent = remaining; }
-            } catch(e) { alert("Error: " + e.message); }
+            } catch(e) { if (!silent) alert("Error: " + e.message); else throw e; }
         };
 
 
@@ -2102,8 +2092,8 @@
             }
         };
 
-        window.approveAdminRequest = async (reqId, uid) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+        window.approveAdminRequest = async (reqId, uid, silent) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
             try {
                 await setDoc(doc(db, "users", uid), { isAdmin: true }, { merge: true });
                 await deleteDoc(doc(db, "adminRequests", reqId));
@@ -2115,12 +2105,12 @@
                 else { badge.textContent = remaining; }
                 // Reload users table so the new admin badge shows
                 window.loadAdminUsers();
-            } catch(e) { alert('Error: ' + e.message); }
+            } catch(e) { if (!silent) alert('Error: ' + e.message); else throw e; }
         };
 
-        window.denyAdminRequest = async (reqId) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
-            if (!confirm('Deny and remove this request?')) return;
+        window.denyAdminRequest = async (reqId, silent) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
+            if (!silent && !confirm('Deny and remove this request?')) return;
             try {
                 await deleteDoc(doc(db, "adminRequests", reqId));
                 const row = document.getElementById('admin-req-row-' + reqId);
@@ -2129,7 +2119,7 @@
                 const badge = document.getElementById('admin-req-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('admin-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending admin requests</p>'; }
                 else { badge.textContent = remaining; }
-            } catch(e) { alert('Error: ' + e.message); }
+            } catch(e) { if (!silent) alert('Error: ' + e.message); else throw e; }
         };
 
 
@@ -2213,13 +2203,14 @@
             }
         };
 
-        window.approveCategoryRequest = async (reqId, label, icon) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+        window.approveCategoryRequest = async (reqId, label, icon, silent) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
             try {
                 // Generate a key from the label
                 const key = label.toLowerCase().replace(/[^a-z0-9]/g, '');
                 if ((window.allCategories || []).some(c => c.key === key)) {
-                    alert(`A category with key "${key}" already exists. Deny this and add it manually if needed.`);
+                    if (!silent) alert(`A category with key "${key}" already exists. Deny this and add it manually if needed.`);
+                    else throw new Error(`A category with key "${key}" already exists.`);
                     return;
                 }
                 const maxOrder = (window.allCategories || []).length
@@ -2232,12 +2223,12 @@
                 const badge = document.getElementById('cat-req-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('category-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending category requests</p>'; }
                 else { badge.textContent = remaining; }
-            } catch(e) { alert('Error: ' + e.message); }
+            } catch(e) { if (!silent) alert('Error: ' + e.message); else throw e; }
         };
 
-        window.denyCategoryRequest = async (reqId) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
-            if (!confirm('Deny and remove this request?')) return;
+        window.denyCategoryRequest = async (reqId, silent) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
+            if (!silent && !confirm('Deny and remove this request?')) return;
             try {
                 await deleteDoc(doc(db, "categoryRequests", reqId));
                 const row = document.getElementById('cat-req-row-' + reqId);
@@ -2246,7 +2237,7 @@
                 const badge = document.getElementById('cat-req-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('category-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending category requests</p>'; }
                 else { badge.textContent = remaining; }
-            } catch(e) { alert('Error: ' + e.message); }
+            } catch(e) { if (!silent) alert('Error: ' + e.message); else throw e; }
         };
 
 
@@ -2789,9 +2780,9 @@
         };
 
 
-        window.clearChat = async () => {
-            if (!window.isAdminUser) return alert('Only admins can do this.');
-            if (!confirm('Delete ALL global chat messages AND all DM conversations permanently? This cannot be undone.')) return;
+        window.clearChat = async (silent) => {
+            if (!window.isAdminUser) { if (!silent) alert('Only admins can do this.'); return; }
+            if (!silent && !confirm('Delete ALL global chat messages AND all DM conversations permanently? This cannot be undone.')) return;
             try {
                 // Clear global chat
                 const globalSnap = await getDocs(collection(db, "chat"));
@@ -2803,8 +2794,8 @@
                     .filter(d => d.ref.parent.parent?.parent?.id === "dms")
                     .map(d => deleteDoc(d.ref)));
 
-                alert('All chats cleared.');
-            } catch(e) { alert('Error: ' + e.message); }
+                if (!silent) alert('All chats cleared.');
+            } catch(e) { if (!silent) alert('Error: ' + e.message); else throw e; }
         };
 
 
@@ -3089,8 +3080,8 @@
             } catch(e) { container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`; }
         };
 
-        window.approveSignup = async (reqId, uid) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+        window.approveSignup = async (reqId, uid, silent) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
             try {
                 // Remove pending status from user doc
                 await setDoc(doc(db, "users", uid), { status: 'approved' }, { merge: true });
@@ -3102,25 +3093,21 @@
                 const badge = document.getElementById('signup-req-badge');
                 if (remaining <= 0) { badge.classList.add('hidden'); document.getElementById('signup-requests-list').innerHTML = '<p class="p-8 text-center text-white/50">No pending signup requests</p>'; }
                 else badge.textContent = remaining;
-            } catch(e) { alert('Error: ' + e.message); }
+            } catch(e) { if (!silent) alert('Error: ' + e.message); else throw e; }
         };
 
-        window.denySignup = async (reqId, uid) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
-            if (!confirm('Deny and delete this signup?')) return;
+        window.denySignup = async (reqId, uid, silent) => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
+            if (!silent && !confirm('Deny and delete this signup?')) return;
             try {
-                // Get username BEFORE deleting user doc
-                const userSnap = await getDoc(doc(db, "users", uid));
-                let username = null;
-                if (userSnap.exists()) {
-                    username = userSnap.data().displayName;
-                }
                 // Delete user doc and signup request
                 await deleteDoc(doc(db, "users", uid));
                 await deleteDoc(doc(db, "signupRequests", reqId));
-                // Delete username reservation
-                if (username) {
-                    try { await deleteDoc(doc(db, "usernames", username.toLowerCase())); } catch(_) {}
+                // Also delete username reservation
+                const userSnap = await getDoc(doc(db, "users", uid));
+                if (userSnap.exists()) {
+                    const name = userSnap.data().displayName;
+                    if (name) await deleteDoc(doc(db, "usernames", name.toLowerCase()));
                 }
                 const row = document.getElementById('signup-req-row-' + reqId);
                 if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
@@ -3190,8 +3177,8 @@
         };
 
 
-        window.resetOrders = async () => {
-            if (!confirm('Reset all category and site orders to clean sequential numbers? This fixes any ordering bugs.')) return;
+        window.resetOrders = async (silent) => {
+            if (!silent && !confirm('Reset all category and site orders to clean sequential numbers? This fixes any ordering bugs.')) return;
             try {
                 // Reset category orders
                 const catSnap = await getDocs(query(collection(db, "categories"), orderBy("order", "asc")));
@@ -3216,14 +3203,14 @@
                 window.populateAllGrids();
                 window.reloadAdminCategories();
                 window.reloadAdminSites();
-                alert('Orders reset successfully!');
+                if (!silent) alert('Orders reset successfully!');
             } catch(e) { alert('Error: ' + e.message); }
         };
 
 
         // ── Verified badge ──
         window.setVerified = async (uid, grant, silent) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            if (auth.currentUser?.email !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
             try {
                 await setDoc(doc(db, "users", uid), { verified: grant }, { merge: true });
                 // Update past chat messages
@@ -5435,7 +5422,7 @@
                 const id = args[1];
                 if (!id) return err('Usage: site del <id>');
                 
-                try { await window.deleteSite(id); ok('Site deleted'); }
+                try { await window.deleteSite(id, true); ok('Site deleted'); }
                 catch(e) { err(e.message); }
                 return;
             }
@@ -5482,7 +5469,7 @@
                 const cat=(window.allCategories||[]).find(c=>c.key===key);
                 if (!cat) return err(`Category "${key}" not found`);
                 
-                try { await window.deleteCategory(cat.id, key); ok(`Category "${key}" deleted`); }
+                try { await window.deleteCategory(cat.id, key, true); ok(`Category "${key}" deleted`); }
                 catch(e) { err(e.message); }
                 return;
             }
@@ -5525,15 +5512,15 @@
                 try {
                     const uid = await window._termGetUid(email);
                     if (!uid) return err(`User not found: ${email}`);
-                    if      (action==='ban')      { await window.setBanUser(uid,true);    ok(`${email} banned`); }
-                    else if (action==='unban')    { await window.setBanUser(uid,false);   ok(`${email} unbanned`); }
-                    else if (action==='admin')    { await window.setAdminUser(uid,true);  ok(`${email} granted admin`); }
-                    else if (action==='unadmin')  { await window.setAdminUser(uid,false); ok(`${email} admin revoked`); }
+                    if      (action==='ban')      { await window.setBanUser(uid,true,true);    ok(`${email} banned`); }
+                    else if (action==='unban')    { await window.setBanUser(uid,false,true);   ok(`${email} unbanned`); }
+                    else if (action==='admin')    { await window.setAdminUser(uid,true,true);  ok(`${email} granted admin`); }
+                    else if (action==='unadmin')  { await window.setAdminUser(uid,false,true); ok(`${email} admin revoked`); }
                     else if (action==='verify')   { await window.setVerified(uid,true,true);   ok(`${email} verified ✓`); }
                     else if (action==='unverify') { await window.setVerified(uid,false,true);  ok(`${email} unverified`); }
                     else if (action==='del') {
                         
-                        await window.deleteUserFromAdmin(uid); ok(`${email} deleted`);
+                        await window.deleteUserFromAdmin(uid, true); ok(`${email} deleted`);
                     }
                     else if (action==='rename') {
                         const newName=args.slice(2).join(' ');
@@ -5554,12 +5541,12 @@
             if (c === 'announce') {
                 if (args[0]==='clear') {
                     
-                    await window.clearAnnouncement(); ok('Announcement cleared');
+                    await window.clearAnnouncement(true); ok('Announcement cleared');
                 } else {
                     const msg=args.join(' ');
                     if (!msg) return err('Usage: announce <message>');
                     document.getElementById('announcement-input').value = msg;
-                    await window.saveGlobalAnnouncement();
+                    await window.saveGlobalAnnouncement(true);
                     document.getElementById('announcement-input').value = '';
                     ok(`Published: "${msg}"`);
                 }
@@ -5568,7 +5555,7 @@
 
             // ── CHAT CLEAR ──
             if (c === 'chat' && args[0] === 'clear') {
-                await window.clearChat();
+                await window.clearChat(true); ok('All chats cleared');
                 return;
             }
 
@@ -5605,8 +5592,8 @@
                     
                     for (const d of docs) {
                         const r=d.data();
-                        if (c==='approve') await window.approveSiteRequest(d.id,r.name||'',r.url||'',r.category||'',r.icon||'',r.desc||'');
-                        else await window.rejectSiteRequest(d.id);
+                        if (c==='approve') await window.approveSiteRequest(d.id,r.name||'',r.url||'',r.category||'',r.icon||'',r.desc||'',true);
+                        else await window.rejectSiteRequest(d.id,true);
                     }
                     ok(`${c==='approve'?'Approved':'Denied'} ${docs.length} site request(s)`);
                 } catch(e) { err(e.message); }
@@ -5620,8 +5607,8 @@
                     if (!docs||!docs.length) return info(`No pending ${args[1]} requests.`);
                     
                     for (const d of docs) {
-                        if (type==='admin') await window.denyAdminRequest(d.id);
-                        else await window.denyCategoryRequest(d.id);
+                        if (type==='admin') await window.denyAdminRequest(d.id,true);
+                        else await window.denyCategoryRequest(d.id,true);
                     }
                     ok(`Denied ${docs.length} ${args[1]} request(s)`);
                 } catch(e) { err(e.message); }
@@ -5637,12 +5624,12 @@
                     const match=docs.find(d=>d.id.startsWith(id)||d.id===id);
                     if (!match) return err(`Request not found: ${id}`);
                     const r=match.data();
-                    if (type==='site'&&c==='approve')      { await window.approveSiteRequest(match.id,r.name||'',r.url||'',r.category||'',r.icon||'',r.desc||''); ok(`Site "${r.name}" approved`); }
-                    else if (type==='site')                { await window.rejectSiteRequest(match.id); ok('Site request rejected'); }
-                    else if (type==='admin'&&c==='approve'){ await window.approveAdminRequest(match.id,r.uid); ok(`Admin granted to ${r.email}`); }
-                    else if (type==='admin')               { await window.denyAdminRequest(match.id); ok('Admin request denied'); }
-                    else if ((type==='cat'||type==='category')&&c==='approve') { await window.approveCategoryRequest(match.id,r.label,r.icon); ok(`Category "${r.label}" approved`); }
-                    else                                   { await window.denyCategoryRequest(match.id); ok('Category request denied'); }
+                    if (type==='site'&&c==='approve')      { await window.approveSiteRequest(match.id,r.name||'',r.url||'',r.category||'',r.icon||'',r.desc||'',true); ok(`Site "${r.name}" approved`); }
+                    else if (type==='site')                { await window.rejectSiteRequest(match.id,true); ok('Site request rejected'); }
+                    else if (type==='admin'&&c==='approve'){ await window.approveAdminRequest(match.id,r.uid,true); ok(`Admin granted to ${r.email}`); }
+                    else if (type==='admin')               { await window.denyAdminRequest(match.id,true); ok('Admin request denied'); }
+                    else if ((type==='cat'||type==='category')&&c==='approve') { await window.approveCategoryRequest(match.id,r.label,r.icon,true); ok(`Category "${r.label}" approved`); }
+                    else                                   { await window.denyCategoryRequest(match.id,true); ok('Category request denied'); }
                 } catch(e) { err(e.message); }
                 return;
             }
@@ -6492,7 +6479,7 @@
             if (c === 'reset' && args[0] === 'orders') {
                 
                 info('Resetting orders...');
-                try { await window.resetOrders(); ok('Orders reset successfully'); }
+                try { await window.resetOrders(true); ok('Orders reset successfully'); }
                 catch(e) { err(e.message); }
                 return;
             }
