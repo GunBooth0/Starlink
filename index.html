@@ -327,7 +327,6 @@
                                 </div>
                             </div>
                         </div>
-                        </div>
                         <!-- Verification Badge -->
                         <div id="account-verify-section" class="glass rounded-2xl p-6 mt-6 text-left">
                             <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-circle-check" style="color:#3b82f6"></i> Verification Badge</h3>
@@ -336,6 +335,7 @@
                                 <p class="text-white/70 text-sm">A verification badge is a blue checkmark granted by the owner to trusted and notable members of Starlink. It appears next to your name in global chat, DMs, and the online users list. It is not something you can earn automatically — it is manually awarded by the owner.</p>
                             </div>
                             <div id="account-verify-status" class="text-sm text-center py-2 rounded-2xl hidden"></div>
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -959,6 +959,15 @@
                     return;
                 }
 
+                // Block denied/deleted users (no user doc means denied or deleted)
+                if (!userDocData.email && user.email !== ADMIN_EMAIL) {
+                    window._signingUp = true;
+                    await signOut(auth);
+                    window._signingUp = false;
+                    alert("Your account has been denied or does not exist. Please contact the owner.");
+                    return;
+                }
+
                 window.isAdminUser = user.email === ADMIN_EMAIL || userDocData.isAdmin === true;
                 window.isVerifiedUser = userDocData.verified === true || user.email === ADMIN_EMAIL;
                 // Auto-grant owner verified badge if not already set
@@ -1275,6 +1284,14 @@
             const user = auth.currentUser;
             if (!user) return alert("Not logged in.");
             try {
+                // Get username before deleting user doc
+                const userSnap = await getDoc(doc(db, "users", user.uid));
+                if (userSnap.exists()) {
+                    const name = userSnap.data().displayName;
+                    if (name) {
+                        try { await deleteDoc(doc(db, "usernames", name.toLowerCase())); } catch(_) {}
+                    }
+                }
                 await deleteDoc(doc(db, "users", user.uid));
                 await deleteUser(user);
                 alert("Account fully deleted.");
@@ -3092,14 +3109,18 @@
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
             if (!confirm('Deny and delete this signup?')) return;
             try {
+                // Get username BEFORE deleting user doc
+                const userSnap = await getDoc(doc(db, "users", uid));
+                let username = null;
+                if (userSnap.exists()) {
+                    username = userSnap.data().displayName;
+                }
                 // Delete user doc and signup request
                 await deleteDoc(doc(db, "users", uid));
                 await deleteDoc(doc(db, "signupRequests", reqId));
-                // Also delete username reservation
-                const userSnap = await getDoc(doc(db, "users", uid));
-                if (userSnap.exists()) {
-                    const name = userSnap.data().displayName;
-                    if (name) await deleteDoc(doc(db, "usernames", name.toLowerCase()));
+                // Delete username reservation
+                if (username) {
+                    try { await deleteDoc(doc(db, "usernames", username.toLowerCase())); } catch(_) {}
                 }
                 const row = document.getElementById('signup-req-row-' + reqId);
                 if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
