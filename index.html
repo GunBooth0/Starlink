@@ -490,7 +490,7 @@
                     <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
                         <!-- Chat header -->
                         <div class="flex items-center justify-between mb-4">
-                            <div id="chat-header-name" class="text-2xl font-bold logo-font tracking-tight">Chat</div>
+                            <div id="chat-header-name" class="text-2xl font-bold logo-font tracking-tight">Live Chat</div>
                             <span id="chat-online-count" class="text-xs text-white/50 flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span>
                                 <span id="chat-online-num">0</span> online
@@ -707,7 +707,7 @@
                     <div class="mb-16" id="clear-chat-section" style="display:none;">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-comments"></i> Chat
+                                <i class="fa-solid fa-comments"></i> Live Chat
                             </h3>
                         </div>
                         <div class="glass rounded-3xl p-8 flex items-center justify-between" style="border:1px solid rgba(255,100,100,0.15);">
@@ -2291,7 +2291,7 @@
             }
         };
 
-        // ── Chat ──
+        // ── Live Chat ──
         let chatListener = null;
         window.currentDisplayName = '';
         // uid -> isAdmin cache, built from users collection
@@ -2470,7 +2470,7 @@
             try {
                 usernameSnap = await getDoc(doc(db, "usernames", username.toLowerCase()));
             } catch(e) { return alert('Could not look up username: ' + e.message); }
-            if (!usernameSnap.exists()) return alert(`No user found with username "${username}". Have them open the Chat tab once to register.`);
+            if (!usernameSnap.exists()) return alert(`No user found with username "${username}". Have them open the Live Chat tab once to register.`);
 
             const targetUid = usernameSnap.data().uid;
             const targetDisplayName = usernameSnap.data().displayName;
@@ -2649,7 +2649,7 @@
             window.chatMode = 'global';
             if (dmListener) { dmListener(); dmListener = null; }
             const header = document.getElementById('chat-header-name');
-            if (header) header.textContent = 'Chat';
+            if (header) header.textContent = 'Live Chat';
             const dot = document.getElementById('global-chat-active-dot');
             if (dot) dot.classList.remove('hidden');
             window.initChat();
@@ -5062,10 +5062,10 @@
 
             html += `
                 <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-comments w-5"></i> <span>Chat</span>
+                    <i class="fa-solid fa-comments w-5"></i> <span>Live Chat</span>
                 </div>
             `;
-            window.tabMapping.push({contentId: 'content-chat', title: 'Chat', icon: 'fa-comments'});
+            window.tabMapping.push({contentId: 'content-chat', title: 'Live Chat', icon: 'fa-comments'});
             idx++;
 
             html += `
