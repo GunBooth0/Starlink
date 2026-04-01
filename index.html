@@ -1438,7 +1438,7 @@
 
                     // Only the hardcoded owner can take actions
                     // Actions are only shown for plain users — not for the owner, not for other admins
-                    const actingIsOwner = auth.currentUser?.email === ADMIN_EMAIL;
+                    const actingIsOwner = (auth.currentUser?.email || window.currentUser?.email) === ADMIN_EMAIL;
                     const canAct = actingIsOwner && !isOwner && !isUserAdmin;
 
                     const banBtn = !canAct ? '' : isBanned
@@ -3210,7 +3210,8 @@
 
         // ── Verified badge ──
         window.setVerified = async (uid, grant, silent) => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
+            const actingEmail = auth.currentUser?.email || window.currentUser?.email;
+            if (actingEmail !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
             try {
                 await setDoc(doc(db, "users", uid), { verified: grant }, { merge: true });
                 // Update past chat messages
