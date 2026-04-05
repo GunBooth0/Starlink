@@ -1220,24 +1220,27 @@
                     const signupUsername = document.getElementById('signup-username').value.trim();
                     if (!signupUsername) { alert('Please choose a username before signing up.'); return; }
                     window._signingUp = true;
-                    const cred = await createUserWithEmailAndPassword(auth, email, password);
-                    // Check username uniqueness
-                    const _takenSnap = await getDoc(doc(db, "usernames", signupUsername.toLowerCase()));
-                    if (_takenSnap.exists() && _takenSnap.data().uid !== cred.user.uid) {
-                        await deleteUser(cred.user);
+                    const normalizedSignupUsername = signupUsername.toLowerCase();
+                    const [takenSnap, signupReqSnap, usersSnap] = await Promise.all([
+                        getDoc(doc(db, "usernames", normalizedSignupUsername)),
+                        getDocs(query(collection(db, "signupRequests"), where("displayNameLower", "==", normalizedSignupUsername))),
+                        getDocs(query(collection(db, "users"), where("displayNameLower", "==", normalizedSignupUsername)))
+                    ]);
+                    const usernameTaken =
+                        takenSnap.exists() ||
+                        signupReqSnap.docs.some(d => (d.data().status || 'pending') === 'pending') ||
+                        usersSnap.docs.some(d => d.data().status === 'approved');
+                    if (usernameTaken) {
                         window._signingUp = false;
                         alert(`Username "${signupUsername}" is already taken. Please choose a different one.`);
                         return;
                     }
-                    // Reserve username
-                    await setDoc(doc(db, "usernames", signupUsername.toLowerCase()), {
-                        uid: cred.user.uid,
-                        displayName: signupUsername
-                    });
+                    const cred = await createUserWithEmailAndPassword(auth, email, password);
                     // Create user doc with pending status
                     await setDoc(doc(db, "users", cred.user.uid), {
                         email,
                         displayName: signupUsername,
+                        displayNameLower: normalizedSignupUsername,
                         createdAt: serverTimestamp(),
                         status: 'pending'
                     });
@@ -1246,6 +1249,7 @@
                         uid: cred.user.uid,
                         email,
                         displayName: signupUsername,
+                        displayNameLower: normalizedSignupUsername,
                         requestedAt: serverTimestamp(),
                         status: 'pending'
                     });
@@ -1275,6 +1279,12 @@
             const user = auth.currentUser;
             if (!user) return alert("Not logged in.");
             try {
+                const userSnap = await getDoc(doc(db, "users", user.uid));
+                const displayName = userSnap.exists() ? userSnap.data().displayName : '';
+                await deleteDoc(doc(db, "signupRequests", user.uid)).catch(() => {});
+                if (displayName) {
+                    await deleteDoc(doc(db, "usernames", displayName.toLowerCase())).catch(() => {});
+                }
                 await deleteDoc(doc(db, "users", user.uid));
                 await deleteUser(user);
                 alert("Account fully deleted.");
@@ -1420,11 +1430,14 @@
                     <th class="px-6 py-4 text-left">Role</th>
                     <th class="px-6 py-4 text-left">Actions</th>
                 </tr></thead><tbody class="divide-y divide-white/10">`;
+                const actingEmail = auth.currentUser?.email || window.currentUser?.email || '';
+                const actingUid = auth.currentUser?.uid || window.currentUser?.uid || '';
+                const actingIsOwner = actingEmail === ADMIN_EMAIL;
                 snap.forEach(d => {
                     const data = d.data();
                     const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '—';
                     const isBanned = data.banned === true;
-                    const isOwner = data.email === ADMIN_EMAIL;
+                    const isOwner = data.email === ADMIN_EMAIL || (actingIsOwner && d.id === actingUid);
                     const isUserAdmin = data.isAdmin === true || isOwner;
                     const isVerified = data.verified === true;
 
@@ -1438,7 +1451,6 @@
 
                     // Only the hardcoded owner can take actions
                     // Actions are only shown for plain users — not for the owner, not for other admins
-                    const actingIsOwner = (auth.currentUser?.email || window.currentUser?.email) === ADMIN_EMAIL;
                     const canAct = actingIsOwner && !isOwner && !isUserAdmin;
 
                     const banBtn = !canAct ? '' : isBanned
@@ -1450,7 +1462,7 @@
                         ? `<button onclick="window.setAdminUser('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-purple-900/60 hover:bg-purple-900 text-purple-400 rounded-2xl transition-colors">Revoke Admin</button>`
                         : `<button onclick="window.setAdminUser('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">Make Admin</button>`;
 
-                    const isOwnerRow = data.email === ADMIN_EMAIL;
+                    const isOwnerRow = isOwner;
                     const verifyBtn = !actingIsOwner || isOwnerRow ? '' : isVerified
                         ? `<button onclick="window.setVerified('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">Revoke Verify</button>`
                         : `<button onclick="window.setVerified('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-300 rounded-2xl transition-colors">Grant Verify ✓</button>`;
@@ -3083,6 +3095,14 @@
         window.approveSignup = async (reqId, uid, silent) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
             try {
+                const userSnap = await getDoc(doc(db, "users", uid));
+                if (!userSnap.exists()) throw new Error('User record not found.');
+                const userData = userSnap.data();
+                if (!userData.displayName) throw new Error('User has no username to approve.');
+                await setDoc(doc(db, "usernames", userData.displayName.toLowerCase()), {
+                    uid,
+                    displayName: userData.displayName
+                });
                 // Remove pending status from user doc
                 await setDoc(doc(db, "users", uid), { status: 'approved' }, { merge: true });
                 // Remove from signupRequests
@@ -3100,15 +3120,13 @@
             if (auth.currentUser?.email !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
             if (!silent && !confirm('Deny and delete this signup?')) return;
             try {
+                const userSnap = await getDoc(doc(db, "users", uid));
+                const name = userSnap.exists() ? userSnap.data().displayName : '';
                 // Delete user doc and signup request
                 await deleteDoc(doc(db, "users", uid));
                 await deleteDoc(doc(db, "signupRequests", reqId));
                 // Also delete username reservation
-                const userSnap = await getDoc(doc(db, "users", uid));
-                if (userSnap.exists()) {
-                    const name = userSnap.data().displayName;
-                    if (name) await deleteDoc(doc(db, "usernames", name.toLowerCase()));
-                }
+                if (name) await deleteDoc(doc(db, "usernames", name.toLowerCase()));
                 const row = document.getElementById('signup-req-row-' + reqId);
                 if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
                 const remaining = document.querySelectorAll('[id^="signup-req-row-"]').length - 1;
