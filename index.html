@@ -1221,16 +1221,8 @@
                     if (!signupUsername) { alert('Please choose a username before signing up.'); return; }
                     window._signingUp = true;
                     const normalizedSignupUsername = signupUsername.toLowerCase();
-                    const [takenSnap, signupReqSnap, usersSnap] = await Promise.all([
-                        getDoc(doc(db, "usernames", normalizedSignupUsername)),
-                        getDocs(query(collection(db, "signupRequests"), where("displayNameLower", "==", normalizedSignupUsername))),
-                        getDocs(query(collection(db, "users"), where("displayNameLower", "==", normalizedSignupUsername)))
-                    ]);
-                    const usernameTaken =
-                        takenSnap.exists() ||
-                        signupReqSnap.docs.some(d => (d.data().status || 'pending') === 'pending') ||
-                        usersSnap.docs.some(d => d.data().status === 'approved');
-                    if (usernameTaken) {
+                    const takenSnap = await getDoc(doc(db, "usernames", normalizedSignupUsername));
+                    if (takenSnap.exists()) {
                         window._signingUp = false;
                         alert(`Username "${signupUsername}" is already taken. Please choose a different one.`);
                         return;
@@ -3099,6 +3091,10 @@
                 if (!userSnap.exists()) throw new Error('User record not found.');
                 const userData = userSnap.data();
                 if (!userData.displayName) throw new Error('User has no username to approve.');
+                const existingUsernameSnap = await getDoc(doc(db, "usernames", userData.displayName.toLowerCase()));
+                if (existingUsernameSnap.exists() && existingUsernameSnap.data().uid !== uid) {
+                    throw new Error(`Username "${userData.displayName}" is already taken. Rename the user before approving.`);
+                }
                 await setDoc(doc(db, "usernames", userData.displayName.toLowerCase()), {
                     uid,
                     displayName: userData.displayName
