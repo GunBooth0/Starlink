@@ -1439,7 +1439,7 @@
                     const isBanned = data.banned === true;
                     const isOwner = data.email === ADMIN_EMAIL || (actingIsOwner && d.id === actingUid);
                     const isUserAdmin = data.isAdmin === true || isOwner;
-                    const isVerified = data.verified === true;
+                    const isVerified = data.verified === true || isOwner;
 
                     const statusBadge = isBanned
                         ? `<span class="px-3 py-1 bg-red-900/60 text-red-400 rounded-xl text-xs font-semibold">Banned</span>`
@@ -3174,7 +3174,12 @@
                     let verified = false;
                     try {
                         const uSnap2 = await getDoc(doc(db, "users", uid));
-                        if (uSnap2.exists()) verified = uSnap2.data().verified === true;
+                        if (uSnap2.exists()) {
+                            const u2 = uSnap2.data();
+                            verified = u2.verified === true || u2.email === ADMIN_EMAIL || (actingIsOwner && uid === actingUid);
+                        } else if (actingIsOwner && uid === actingUid) {
+                            verified = true;
+                        }
                     } catch(_) {}
                     return { uid, name, role, verified };
                 }));
