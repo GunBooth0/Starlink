@@ -215,6 +215,92 @@
             background: rgba(255,255,255,0.15);
             margin: 1.25rem 0;
         }
+        .starclicker-panel {
+            background:
+                radial-gradient(circle at top, rgba(255,255,255,0.08), rgba(255,255,255,0.02) 45%, rgba(255,255,255,0.01) 100%),
+                rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+        }
+        .starclicker-button {
+            position: relative;
+            width: min(320px, 72vw);
+            aspect-ratio: 1;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.18);
+            background:
+                radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), rgba(255,255,255,0.08) 36%, rgba(0,0,0,0.22) 100%);
+            box-shadow:
+                inset 0 0 40px rgba(255,255,255,0.1),
+                0 0 40px rgba(255,255,255,0.08),
+                0 24px 80px rgba(0,0,0,0.45);
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .starclicker-button:hover {
+            transform: translateY(-4px) scale(1.015);
+            border-color: var(--accent);
+        }
+        .starclicker-button:active {
+            transform: scale(0.97);
+        }
+        .starclicker-core {
+            width: 58%;
+            filter: drop-shadow(0 0 30px var(--accent));
+            transition: transform 0.18s ease;
+        }
+        .starclicker-button:active .starclicker-core {
+            transform: scale(0.92) rotate(-6deg);
+        }
+        .starclicker-float {
+            position: absolute;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 12px rgba(255,255,255,0.45);
+            pointer-events: none;
+            animation: starclickerFloat 0.9s ease forwards;
+            white-space: nowrap;
+        }
+        @keyframes starclickerFloat {
+            0% { opacity: 0; transform: translate(-50%, -10px) scale(0.8); }
+            15% { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%, -90px) scale(1.1); }
+        }
+        .starclicker-upgrade {
+            width: 100%;
+            text-align: left;
+            margin: 0;
+            padding: 1.1rem 1.25rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.14);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+        .starclicker-upgrade:hover:not(:disabled) {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 14px 30px rgba(0,0,0,0.2);
+        }
+        .starclicker-upgrade:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+        .starclicker-stat {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .starclicker-debug-panel {
+            background: linear-gradient(180deg, rgba(18,18,24,0.96), rgba(8,8,12,0.96));
+            border: 1px solid rgba(255,255,255,0.14);
+            box-shadow: 0 30px 100px rgba(0,0,0,0.45);
+        }
     </style>
 </head>
 <body>
@@ -353,6 +439,115 @@
                         Fast, clean, and always available.
                     </p>
                     <div class="mt-8 text-white/50 text-lg">By: Gunnar Booth</div>
+                </div>
+            </div>
+
+            <!-- STARCLICKER -->
+            <div id="content-starclicker" class="tab-content hidden">
+                <div class="max-w-7xl mx-auto py-8">
+                    <div class="starclicker-panel rounded-[2rem] p-6 md:p-8">
+                        <div class="flex flex-col xl:flex-row gap-8">
+                            <div class="flex-1">
+                                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+                                    <div>
+                                        <div class="text-xs uppercase tracking-[0.35em] text-white/50 mb-3">Mini Game</div>
+                                        <h2 class="logo-font text-5xl md:text-6xl font-bold tracking-tight mb-3">Starclicker</h2>
+                                        <p class="text-white/65 text-lg max-w-2xl">Tap the star, stack upgrades, and trigger supernovas to turn this page into your own little idle game.</p>
+                                    </div>
+                                <div class="glass rounded-3xl px-5 py-4 min-w-[220px]">
+                                    <div class="text-xs uppercase tracking-[0.25em] text-white/50">Total Stars</div>
+                                    <div id="starclicker-score" class="logo-font text-4xl mt-2">0</div>
+                                </div>
+                            </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                                    <div class="starclicker-stat rounded-3xl p-5">
+                                        <div class="text-xs uppercase tracking-[0.2em] text-white/45">Per Click</div>
+                                        <div id="starclicker-per-click" class="text-3xl font-semibold mt-2">1</div>
+                                    </div>
+                                    <div class="starclicker-stat rounded-3xl p-5">
+                                        <div class="text-xs uppercase tracking-[0.2em] text-white/45">Per Second</div>
+                                        <div id="starclicker-per-second" class="text-3xl font-semibold mt-2">0</div>
+                                    </div>
+                                    <div class="starclicker-stat rounded-3xl p-5">
+                                        <div class="text-xs uppercase tracking-[0.2em] text-white/45">Supernova Multiplier</div>
+                                        <div id="starclicker-multiplier" class="text-3xl font-semibold mt-2">x1</div>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col items-center justify-center rounded-[2rem] border border-white/10 bg-black/25 p-6 md:p-10 min-h-[430px]">
+                                    <button id="starclicker-main-button" class="starclicker-button" type="button">
+                                        <svg viewBox="0 0 200 200" class="starclicker-core" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+                                        </svg>
+                                    </button>
+                                    <p class="text-white/55 text-sm mt-6 text-center max-w-md">Each click earns stars. Auto-forges create passive income, and supernovas reset progress in exchange for a permanent boost.</p>
+                                </div>
+                            </div>
+
+                            <div class="w-full xl:w-[390px] space-y-5">
+                                <div class="glass rounded-3xl p-5">
+                                    <div class="flex items-center justify-between gap-4 mb-4">
+                                        <h3 class="text-2xl font-semibold logo-font">Upgrades</h3>
+                                        <div class="flex items-center gap-3">
+                                            <button id="starclicker-debug-trigger" class="github-style-btn" style="width:auto;padding:0.75rem 1rem;margin:0;font-size:0.9rem;" title="Some stars hide secrets.">
+                                                <i class="fa-solid fa-terminal"></i>
+                                            </button>
+                                            <button id="starclicker-reset" class="github-style-btn" style="width:auto;padding:0.75rem 1rem;margin:0;font-size:0.9rem;">
+                                                <i class="fa-solid fa-rotate-left"></i> Reset
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mb-4 p-4 rounded-2xl bg-black/30 border border-white/10">
+                                        <div class="text-xs uppercase tracking-[0.24em] text-white/40 mb-2">Upgrade Tracks</div>
+                                        <div class="flex flex-wrap gap-2 text-xs text-white/60">
+                                            <span class="px-3 py-1 rounded-full bg-white/5 border border-white/10">Click</span>
+                                            <span class="px-3 py-1 rounded-full bg-white/5 border border-white/10">Passive</span>
+                                            <span class="px-3 py-1 rounded-full bg-white/5 border border-white/10">Boost</span>
+                                            <span class="px-3 py-1 rounded-full bg-white/5 border border-white/10">Cosmic</span>
+                                        </div>
+                                    </div>
+                                    <div id="starclicker-upgrades" class="space-y-3 max-h-[560px] overflow-y-auto pr-1"></div>
+                                </div>
+
+                                <div id="starclicker-debug-panel" class="starclicker-debug-panel rounded-3xl p-5 hidden">
+                                    <div class="flex items-center justify-between gap-4 mb-4">
+                                        <h3 class="text-2xl font-semibold logo-font">Debug Console</h3>
+                                        <button id="starclicker-debug-close" class="github-style-btn" style="width:auto;padding:0.7rem 1rem;margin:0;font-size:0.85rem;">
+                                            <i class="fa-solid fa-eye-slash"></i> Hide
+                                        </button>
+                                    </div>
+                                    <p class="text-white/55 text-sm mb-4">Secret unlock: type <span class="font-semibold text-white">nova</span> anywhere on the Starclicker tab or tap the tiny terminal button seven times.</p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <button class="auth-btn mt-0" style="font-size:1rem;padding:0.95rem 1.1rem;" onclick="window.starclickerDebugAdd(1000)">+1K Stars</button>
+                                        <button class="auth-btn mt-0" style="font-size:1rem;padding:0.95rem 1.1rem;" onclick="window.starclickerDebugAdd(1000000)">+1M Stars</button>
+                                        <button class="auth-btn mt-0" style="font-size:1rem;padding:0.95rem 1.1rem;" onclick="window.starclickerDebugSupernova()">+1 Supernova</button>
+                                        <button class="auth-btn mt-0" style="font-size:1rem;padding:0.95rem 1.1rem;" onclick="window.starclickerDebugMax()">Max All Upgrades</button>
+                                    </div>
+                                    <div class="mt-4 text-xs text-white/45">Use carefully: these buttons permanently change the saved Starclicker state.</div>
+                                </div>
+
+                                <div class="glass rounded-3xl p-5">
+                                    <h3 class="text-2xl font-semibold logo-font mb-3">Supernova</h3>
+                                    <p class="text-white/60 text-sm leading-relaxed mb-4">Cash in your run for a permanent multiplier. You lose current stars and upgrade levels, but every new run gets stronger.</p>
+                                    <div class="flex items-center justify-between gap-4 text-sm text-white/70 mb-4">
+                                        <span>Available bonus</span>
+                                        <span id="starclicker-prestige-gain" class="font-semibold text-white">+0</span>
+                                    </div>
+                                    <button id="starclicker-prestige" class="auth-btn mt-0">Trigger Supernova</button>
+                                </div>
+
+                                <div class="glass rounded-3xl p-5">
+                                    <h3 class="text-xl font-semibold mb-3">How To Win</h3>
+                                    <div class="space-y-2 text-sm text-white/60">
+                                        <p>Click fast early to unlock stronger taps.</p>
+                                        <p>Buy auto-forges to keep stars flowing while you browse.</p>
+                                        <p>Use supernova once the bonus is worth it, then snowball harder.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -3464,6 +3659,7 @@
 
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(mapping.contentId)?.classList.remove('hidden');
+            if (mapping.contentId === 'content-starclicker') renderStarclicker();
             if (mapping.contentId === 'content-request-admin') window.checkExistingAdminRequest();
             if (mapping.contentId === 'content-request-verify') window.checkExistingVerifyRequest();
             if (mapping.contentId === 'content-chat') { window.openGlobalChat(); window.startTypingListener(); window.loadFriendsList(); if (window.currentUser && window.currentDisplayName) window.registerUsername(window.currentUser.uid, window.currentDisplayName); }
@@ -5063,6 +5259,14 @@
             window.tabMapping.push({contentId: 'content-home', title: 'Home', icon: 'fa-house'});
             idx++;
 
+            html += `
+                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                    <i class="fa-solid fa-star w-5"></i> <span>Starclicker</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-starclicker', title: 'Starclicker', icon: 'fa-star'});
+            idx++;
+
             (window.allCategories || []).forEach(cat => {
                 html += `
                     <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
@@ -5155,9 +5359,357 @@
             });
         };
 
+        const STARCLICKER_STORAGE_KEY = 'starlinkStarclickerSave';
+        const STARCLICKER_UPGRADES = [
+            { id: 'cursor', name: 'Nova Cursor', desc: '+1 star per click', baseCost: 15, growth: 1.18, type: 'click', power: 1 },
+            { id: 'flare', name: 'Solar Flare', desc: '+8 stars per click', baseCost: 120, growth: 1.24, type: 'click', power: 8 },
+            { id: 'prism', name: 'Photon Prism', desc: '+40 stars per click', baseCost: 1250, growth: 1.28, type: 'click', power: 40 },
+            { id: 'comet', name: 'Comet Sling', desc: '+220 stars per click', baseCost: 9000, growth: 1.31, type: 'click', power: 220 },
+            { id: 'quasar', name: 'Quasar Lance', desc: '+1200 stars per click', baseCost: 60000, growth: 1.34, type: 'click', power: 1200 },
+            { id: 'drone', name: 'Star Drone', desc: '+1 star per second', baseCost: 40, growth: 1.2, type: 'auto', power: 1 },
+            { id: 'reactor', name: 'Nebula Reactor', desc: '+10 stars per second', baseCost: 360, growth: 1.28, type: 'auto', power: 10 },
+            { id: 'forge', name: 'Meteor Forge', desc: '+75 stars per second', baseCost: 3200, growth: 1.31, type: 'auto', power: 75 },
+            { id: 'station', name: 'Orbital Station', desc: '+450 stars per second', baseCost: 18500, growth: 1.34, type: 'auto', power: 450 },
+            { id: 'harvester', name: 'Void Harvester', desc: '+2500 stars per second', baseCost: 125000, growth: 1.38, type: 'auto', power: 2500 },
+            { id: 'core', name: 'Galaxy Core', desc: '+4% all income', baseCost: 900, growth: 1.35, type: 'boost', power: 0.04 },
+            { id: 'crown', name: 'Stellar Crown', desc: '+10% all income', baseCost: 9500, growth: 1.42, type: 'boost', power: 0.10 },
+            { id: 'rift', name: 'Gravity Rift', desc: '+20% all income', baseCost: 80000, growth: 1.48, type: 'boost', power: 0.20 },
+            { id: 'echo', name: 'Time Echo', desc: '+5% supernova power', baseCost: 150000, growth: 1.55, type: 'prestige', power: 0.05 },
+            { id: 'oracle', name: 'Cosmic Oracle', desc: '+1% of passive income added to each click', baseCost: 220000, growth: 1.45, type: 'hybrid', power: 0.01 },
+            { id: 'singularity', name: 'Singularity Well', desc: '+2% of lifetime stars as bonus passive income', baseCost: 500000, growth: 1.5, type: 'cosmic', power: 0.02 }
+        ];
+
+        window.starclickerState = null;
+        window.starclickerDebugClicks = 0;
+        window.starclickerSecretBuffer = '';
+        window.starclickerUpgradeSignature = '';
+
+        function starclickerDefaultState() {
+            return {
+                stars: 0,
+                lifetimeStars: 0,
+                supernovas: 0,
+                upgrades: Object.fromEntries(STARCLICKER_UPGRADES.map(upg => [upg.id, 0])),
+                lastTick: Date.now()
+            };
+        }
+
+        function getStarclickerState() {
+            if (!window.starclickerState) window.starclickerState = starclickerDefaultState();
+            return window.starclickerState;
+        }
+
+        function formatStarclickerNumber(value) {
+            if (!Number.isFinite(value)) return '0';
+            if (Math.abs(value) < 1000) {
+                return value % 1 === 0 ? String(Math.round(value)) : value.toFixed(1);
+            }
+            const units = ['K', 'M', 'B', 'T', 'Qa', 'Qi'];
+            let unitIndex = -1;
+            let n = value;
+            while (Math.abs(n) >= 1000 && unitIndex < units.length - 1) {
+                n /= 1000;
+                unitIndex++;
+            }
+            return `${n.toFixed(n >= 100 ? 0 : n >= 10 ? 1 : 2)}${units[unitIndex]}`;
+        }
+
+        function getStarclickerMultiplier(state = getStarclickerState()) {
+            const echoBonus = 1 + ((state.upgrades.echo || 0) * 0.05);
+            return 1 + state.supernovas * 0.25 * echoBonus;
+        }
+
+        function getStarclickerBoostMultiplier(state = getStarclickerState()) {
+            return 1 +
+                (state.upgrades.core || 0) * 0.04 +
+                (state.upgrades.crown || 0) * 0.10 +
+                (state.upgrades.rift || 0) * 0.20;
+        }
+
+        function getStarclickerLifetimeAutoBonus(state = getStarclickerState()) {
+            return (state.lifetimeStars * ((state.upgrades.singularity || 0) * 0.02)) || 0;
+        }
+
+        function getStarclickerPerClick(state = getStarclickerState()) {
+            const clickBase = 1 +
+                (state.upgrades.cursor || 0) * 1 +
+                (state.upgrades.flare || 0) * 8 +
+                (state.upgrades.prism || 0) * 40 +
+                (state.upgrades.comet || 0) * 220 +
+                (state.upgrades.quasar || 0) * 1200;
+            const autoContribution =
+                ((state.upgrades.drone || 0) * 1 +
+                (state.upgrades.reactor || 0) * 10 +
+                (state.upgrades.forge || 0) * 75 +
+                (state.upgrades.station || 0) * 450 +
+                (state.upgrades.harvester || 0) * 2500) *
+                ((state.upgrades.oracle || 0) * 0.01);
+            return (clickBase + autoContribution) * getStarclickerMultiplier(state) * getStarclickerBoostMultiplier(state);
+        }
+
+        function getStarclickerPerSecond(state = getStarclickerState()) {
+            const autoBase =
+                (state.upgrades.drone || 0) * 1 +
+                (state.upgrades.reactor || 0) * 10 +
+                (state.upgrades.forge || 0) * 75 +
+                (state.upgrades.station || 0) * 450 +
+                (state.upgrades.harvester || 0) * 2500;
+            return (autoBase + getStarclickerLifetimeAutoBonus(state)) * getStarclickerMultiplier(state) * getStarclickerBoostMultiplier(state);
+        }
+
+        function getStarclickerUpgradeCost(upgrade, level) {
+            return Math.floor(upgrade.baseCost * Math.pow(upgrade.growth, level));
+        }
+
+        function saveStarclicker() {
+            const state = getStarclickerState();
+            state.lastTick = Date.now();
+            localStorage.setItem(STARCLICKER_STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function getStarclickerUpgradeSignature(state = getStarclickerState()) {
+            return STARCLICKER_UPGRADES.map(upgrade => {
+                const level = state.upgrades[upgrade.id] || 0;
+                const cost = getStarclickerUpgradeCost(upgrade, level);
+                const affordable = state.stars >= cost;
+                return `${upgrade.id}:${level}:${affordable ? 1 : 0}:${formatStarclickerNumber(cost)}`;
+            }).join('|');
+        }
+
+        function renderStarclickerUpgrades(force = false) {
+            const container = document.getElementById('starclicker-upgrades');
+            if (!container) return;
+            const state = getStarclickerState();
+            const signature = getStarclickerUpgradeSignature(state);
+            if (!force && signature === window.starclickerUpgradeSignature) return;
+            window.starclickerUpgradeSignature = signature;
+            container.innerHTML = STARCLICKER_UPGRADES.map(upgrade => {
+                const level = state.upgrades[upgrade.id] || 0;
+                const cost = getStarclickerUpgradeCost(upgrade, level);
+                const disabled = state.stars < cost ? 'disabled' : '';
+                const trackLabel = upgrade.type === 'click' ? 'Click' :
+                    upgrade.type === 'auto' ? 'Passive' :
+                    upgrade.type === 'boost' ? 'Boost' :
+                    upgrade.type === 'prestige' ? 'Supernova' :
+                    upgrade.type === 'hybrid' ? 'Hybrid' : 'Cosmic';
+                return `
+                    <button class="starclicker-upgrade rounded-2xl" type="button" onclick="window.buyStarclickerUpgrade('${upgrade.id}')" ${disabled}>
+                        <span>
+                            <span class="block text-[10px] uppercase tracking-[0.26em] text-white/35 mb-1">${trackLabel}</span>
+                            <span class="block text-lg font-semibold">${upgrade.name}</span>
+                            <span class="block text-sm text-white/55">${upgrade.desc}</span>
+                            <span class="block text-xs text-white/35 mt-1">Level ${level}</span>
+                        </span>
+                        <span class="text-right shrink-0">
+                            <span class="block text-xs uppercase tracking-[0.2em] text-white/40">Cost</span>
+                            <span class="block text-lg font-semibold">${formatStarclickerNumber(cost)}</span>
+                        </span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function renderStarclicker() {
+            const state = getStarclickerState();
+            const scoreEl = document.getElementById('starclicker-score');
+            if (!scoreEl) return;
+            document.getElementById('starclicker-score').textContent = formatStarclickerNumber(state.stars);
+            document.getElementById('starclicker-per-click').textContent = formatStarclickerNumber(getStarclickerPerClick(state));
+            document.getElementById('starclicker-per-second').textContent = formatStarclickerNumber(getStarclickerPerSecond(state));
+            document.getElementById('starclicker-multiplier').textContent = `x${getStarclickerMultiplier(state).toFixed(2)}`;
+            document.getElementById('starclicker-prestige-gain').textContent = `+${Math.max(0, Math.floor(Math.sqrt(state.lifetimeStars / 2500)) - state.supernovas)}`;
+            renderStarclickerUpgrades();
+        }
+
+        function applyStarclickerIncome(amount) {
+            const state = getStarclickerState();
+            state.stars += amount;
+            state.lifetimeStars += amount;
+            renderStarclicker();
+            saveStarclicker();
+        }
+
+        function createStarclickerFloat(amount, event) {
+            const button = document.getElementById('starclicker-main-button');
+            if (!button) return;
+            const floatEl = document.createElement('div');
+            floatEl.className = 'starclicker-float';
+            floatEl.textContent = `+${formatStarclickerNumber(amount)}`;
+            const rect = button.getBoundingClientRect();
+            const x = event ? (event.clientX - rect.left) : rect.width / 2;
+            const y = event ? (event.clientY - rect.top) : rect.height / 2;
+            floatEl.style.left = `${x}px`;
+            floatEl.style.top = `${y}px`;
+            button.appendChild(floatEl);
+            setTimeout(() => floatEl.remove(), 900);
+        }
+
+        window.clickStarclicker = function(event) {
+            const amount = getStarclickerPerClick();
+            applyStarclickerIncome(amount);
+            createStarclickerFloat(amount, event);
+        };
+
+        window.buyStarclickerUpgrade = function(id) {
+            const state = getStarclickerState();
+            const upgrade = STARCLICKER_UPGRADES.find(item => item.id === id);
+            if (!upgrade) return;
+            const level = state.upgrades[id] || 0;
+            const cost = getStarclickerUpgradeCost(upgrade, level);
+            if (state.stars < cost) return;
+            state.stars -= cost;
+            state.upgrades[id] = level + 1;
+            renderStarclicker();
+            saveStarclicker();
+        };
+
+        window.resetStarclicker = function() {
+            window.starclickerState = starclickerDefaultState();
+            window.starclickerUpgradeSignature = '';
+            renderStarclicker();
+            saveStarclicker();
+        };
+
+        window.prestigeStarclicker = function() {
+            const state = getStarclickerState();
+            const gain = Math.max(0, Math.floor(Math.sqrt(state.lifetimeStars / 2500)) - state.supernovas);
+            if (gain <= 0) return;
+            window.starclickerState = {
+                stars: 0,
+                lifetimeStars: 0,
+                supernovas: state.supernovas + gain,
+                upgrades: Object.fromEntries(STARCLICKER_UPGRADES.map(upg => [upg.id, 0])),
+                lastTick: Date.now()
+            };
+            window.starclickerUpgradeSignature = '';
+            renderStarclicker();
+            saveStarclicker();
+        };
+
+        function loadStarclicker() {
+            try {
+                const raw = localStorage.getItem(STARCLICKER_STORAGE_KEY);
+                if (!raw) {
+                    window.starclickerState = starclickerDefaultState();
+                    return;
+                }
+                const parsed = JSON.parse(raw);
+                window.starclickerState = {
+                    ...starclickerDefaultState(),
+                    ...parsed,
+                    upgrades: {
+                        ...starclickerDefaultState().upgrades,
+                        ...(parsed.upgrades || {})
+                    }
+                };
+            } catch {
+                window.starclickerState = starclickerDefaultState();
+            }
+            const state = getStarclickerState();
+            const elapsedSeconds = Math.max(0, Math.min(3600, (Date.now() - (state.lastTick || Date.now())) / 1000));
+            const passiveGain = getStarclickerPerSecond(state) * elapsedSeconds;
+            state.stars += passiveGain;
+            state.lifetimeStars += passiveGain;
+            state.lastTick = Date.now();
+        }
+
+        function setStarclickerDebugOpen(open) {
+            const panel = document.getElementById('starclicker-debug-panel');
+            if (!panel) return;
+            panel.classList.toggle('hidden', !open);
+        }
+
+        window.starclickerDebugAdd = function(amount) {
+            applyStarclickerIncome(amount);
+        };
+
+        window.starclickerDebugSupernova = function() {
+            const state = getStarclickerState();
+            state.supernovas += 1;
+            renderStarclicker();
+            saveStarclicker();
+        };
+
+        window.starclickerDebugMax = function() {
+            const state = getStarclickerState();
+            STARCLICKER_UPGRADES.forEach(upgrade => {
+                state.upgrades[upgrade.id] = Math.max(state.upgrades[upgrade.id] || 0, 25);
+            });
+            state.stars = Math.max(state.stars, 5000000);
+            state.lifetimeStars = Math.max(state.lifetimeStars, state.stars);
+            window.starclickerUpgradeSignature = '';
+            renderStarclicker();
+            saveStarclicker();
+        };
+
+        function initStarclicker() {
+            loadStarclicker();
+            const mainButton = document.getElementById('starclicker-main-button');
+            const resetButton = document.getElementById('starclicker-reset');
+            const prestigeButton = document.getElementById('starclicker-prestige');
+            const debugTrigger = document.getElementById('starclicker-debug-trigger');
+            const debugClose = document.getElementById('starclicker-debug-close');
+            if (mainButton && !mainButton.dataset.bound) {
+                mainButton.addEventListener('click', window.clickStarclicker);
+                mainButton.dataset.bound = 'true';
+            }
+            if (resetButton && !resetButton.dataset.bound) {
+                resetButton.addEventListener('click', window.resetStarclicker);
+                resetButton.dataset.bound = 'true';
+            }
+            if (prestigeButton && !prestigeButton.dataset.bound) {
+                prestigeButton.addEventListener('click', window.prestigeStarclicker);
+                prestigeButton.dataset.bound = 'true';
+            }
+            if (debugTrigger && !debugTrigger.dataset.bound) {
+                debugTrigger.addEventListener('click', () => {
+                    window.starclickerDebugClicks += 1;
+                    if (window.starclickerDebugClicks >= 7) {
+                        setStarclickerDebugOpen(true);
+                        window.starclickerDebugClicks = 0;
+                    }
+                    setTimeout(() => {
+                        window.starclickerDebugClicks = 0;
+                    }, 1800);
+                });
+                debugTrigger.dataset.bound = 'true';
+            }
+            if (debugClose && !debugClose.dataset.bound) {
+                debugClose.addEventListener('click', () => setStarclickerDebugOpen(false));
+                debugClose.dataset.bound = 'true';
+            }
+            if (!window.starclickerSecretListenerBound) {
+                document.addEventListener('keydown', (event) => {
+                    if (document.getElementById('content-starclicker')?.classList.contains('hidden')) return;
+                    if (event.key.length !== 1) return;
+                    window.starclickerSecretBuffer = (window.starclickerSecretBuffer + event.key.toLowerCase()).slice(-4);
+                    if (window.starclickerSecretBuffer === 'nova') {
+                        setStarclickerDebugOpen(true);
+                        window.starclickerSecretBuffer = '';
+                    }
+                });
+                window.starclickerSecretListenerBound = true;
+            }
+            if (!window.starclickerInterval) {
+                window.starclickerInterval = setInterval(() => {
+                    const state = getStarclickerState();
+                    const income = getStarclickerPerSecond(state) / 4;
+                    if (income > 0) {
+                        state.stars += income;
+                        state.lifetimeStars += income;
+                    }
+                    renderStarclicker();
+                    saveStarclicker();
+                }, 250);
+            }
+            renderStarclickerUpgrades(true);
+            renderStarclicker();
+        }
+
         function initialize() {
             loadTheme();
             initStars();
+            initStarclicker();
         }
 
         window.onload = initialize;
@@ -6179,10 +6731,10 @@
             // ── GOTO ──
             if (c === 'goto') {
                 const dest=args[0]?.toLowerCase();
-                const map={home:'content-home',admin:'content-admin',chat:'content-chat',settings:'content-settings',account:'content-account',credits:'content-credits'};
+                const map={home:'content-home',starclicker:'content-starclicker',admin:'content-admin',chat:'content-chat',settings:'content-settings',account:'content-account',credits:'content-credits'};
                 const tabIdx=(window.tabMapping||[]).findIndex(t=>t.contentId===(map[dest]||`content-${dest}`));
                 if (tabIdx>=0) { window.switchTab(tabIdx); window.closeTerminal(); ok(`Navigated to ${dest}`); }
-                else err(`Unknown tab: ${dest}. Try: home, admin, chat, settings, account, credits`);
+                else err(`Unknown tab: ${dest}. Try: home, starclicker, admin, chat, settings, account, credits`);
                 return;
             }
 
