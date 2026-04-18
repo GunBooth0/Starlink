@@ -215,582 +215,81 @@
             background: rgba(255,255,255,0.15);
             margin: 1.25rem 0;
         }
-        /* Gambling styles */
-        #content-gambling {
-            --casino-bg: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-            --casino-border: rgba(255,255,255,0.12);
-            --casino-soft: rgba(255,255,255,0.06);
-            --casino-shadow: 0 24px 80px rgba(0,0,0,0.35);
-        }
-        .gamble-shell {
+        .casino-panel {
             position: relative;
             overflow: hidden;
             background:
-                radial-gradient(circle at top left, rgba(255,255,255,0.12), transparent 36%),
-                radial-gradient(circle at top right, rgba(255,255,255,0.08), transparent 28%),
-                linear-gradient(180deg, rgba(8,8,12,0.98), rgba(8,8,12,0.92));
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: var(--casino-shadow);
+                radial-gradient(circle at top left, rgba(255,255,255,0.12), transparent 30%),
+                radial-gradient(circle at top right, rgba(255,255,255,0.08), transparent 24%),
+                linear-gradient(180deg, rgba(8,8,12,0.98), rgba(8,8,12,0.94));
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 24px 80px rgba(0,0,0,0.35);
         }
-        .gamble-shell::before {
-            content: '';
-            position: absolute;
-            inset: -40% auto auto -10%;
-            width: 320px;
-            height: 320px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.12), transparent 70%);
-            pointer-events: none;
-        }
-        .gamble-shell::after {
-            content: '';
-            position: absolute;
-            right: -100px;
-            bottom: -140px;
-            width: 260px;
-            height: 260px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.08), transparent 72%);
-            pointer-events: none;
-        }
-        .gamble-hero {
-            position: relative;
-            z-index: 1;
-            display: grid;
-            grid-template-columns: minmax(0, 1.65fr) minmax(320px, 0.95fr);
+        .casino-hero {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
             gap: 1.5rem;
+            flex-wrap: wrap;
             margin-bottom: 1.5rem;
         }
-        .gamble-panel,
-        .gamble-stat-card,
-        .gamble-game-card,
-        .gamble-feature,
-        .gamble-case-card,
-        .gamble-modal-card {
-            position: relative;
-            background: var(--casino-bg);
-            border: 1px solid var(--casino-border);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
-        }
-        .gamble-panel {
-            border-radius: 2rem;
-            padding: 1.75rem;
-            backdrop-filter: blur(18px);
-        }
-        .gamble-panel h2,
-        .gamble-panel h3,
-        .gamble-game-card h3,
-        .gamble-game-card h4 {
-            letter-spacing: -0.03em;
-        }
-        .gamble-chip {
+        .casino-pill {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 0.9rem;
+            gap: 0.6rem;
+            padding: 0.55rem 0.9rem;
             border-radius: 999px;
             border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.05);
             color: rgba(255,255,255,0.72);
             font-size: 0.75rem;
             font-weight: 700;
             letter-spacing: 0.18em;
             text-transform: uppercase;
         }
-        .gamble-balance-hero {
-            display: flex;
-            align-items: flex-end;
-            gap: 1.25rem;
-            flex-wrap: wrap;
-            margin: 1.5rem 0;
-        }
-        .gamble-balance-hero strong {
-            font-size: clamp(2.2rem, 4vw, 4rem);
-            line-height: 0.95;
-            font-family: 'Space Grotesk', sans-serif;
-            color: var(--accent);
-            text-shadow: 0 0 28px rgba(255,255,255,0.15);
-        }
-        .gamble-active-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.55rem;
-            padding: 0.85rem 1rem;
-            border-radius: 1rem;
-            background: rgba(255,255,255,0.07);
-            border: 1px solid rgba(255,255,255,0.1);
-            min-width: 180px;
-        }
-        .gamble-grid,
-        .gamble-stats-grid,
-        .gamble-cases-grid,
-        .gamble-slots-layout,
-        .gamble-coinflip-layout {
-            display: grid;
-            gap: 1rem;
-        }
-        .gamble-bottom-grid {
-            grid-template-columns: minmax(0,1.2fr) minmax(280px,0.8fr);
-        }
-        .gamble-stats-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            margin-top: 1.25rem;
-        }
-        .gamble-stat-card {
-            border-radius: 1.5rem;
-            padding: 1rem 1.1rem;
-        }
-        .gamble-stat-card .value {
-            display: block;
-            margin-top: 0.45rem;
-            font-size: 1.45rem;
-            font-weight: 700;
-            color: var(--accent);
-        }
-        .gamble-feature {
+        .casino-frame-shell {
             border-radius: 1.75rem;
-            padding: 1.4rem;
-            min-height: 100%;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(0,0,0,0.42);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
         }
-        .gamble-feature-list {
-            margin-top: 1rem;
-            display: grid;
-            gap: 0.8rem;
-        }
-        .gamble-feature-item {
+        .casino-frame-toolbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 1rem;
-            padding: 0.85rem 1rem;
-            border-radius: 1rem;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
-        }
-        .gamble-tabs {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            gap: 0.8rem;
-            flex-wrap: wrap;
-            margin-bottom: 1.4rem;
-        }
-        .gamble-tab-btn {
-            width: auto;
-            margin: 0;
-            padding: 0.9rem 1.2rem;
-            border-radius: 1.15rem;
-            font-size: 0.95rem;
-            line-height: 1.2;
+            padding: 0.9rem 1.1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
             background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
         }
-        .gamble-tab-btn strong,
-        .gamble-tab-btn span {
-            display: block;
-            text-align: left;
-        }
-        .gamble-tab-btn span {
-            margin-top: 0.2rem;
-            color: rgba(255,255,255,0.55);
-            font-size: 0.78rem;
-            font-weight: 500;
-            letter-spacing: 0.02em;
-        }
-        .gamble-tab-btn.auth-btn span {
-            color: rgba(0,0,0,0.66);
-        }
-        .gamble-stage {
-            position: relative;
-            z-index: 1;
-            min-height: 520px;
-        }
-        .gamble-game-card {
-            border-radius: 2rem;
-            padding: 1.5rem;
-            backdrop-filter: blur(16px);
-        }
-        .gamble-section-head {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-        .gamble-section-kicker {
-            color: rgba(255,255,255,0.45);
-            text-transform: uppercase;
-            letter-spacing: 0.18em;
-            font-size: 0.7rem;
-            font-weight: 700;
-        }
-        .gamble-cases-grid {
-            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-        }
-        .gamble-case-card {
-            border-radius: 1.65rem;
-            padding: 1.35rem;
-            transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.35s ease, box-shadow 0.35s ease;
-            cursor: pointer;
-            overflow: hidden;
-        }
-        .gamble-case-card:hover {
-            border-color: rgba(255,255,255,0.22);
-            transform: translateY(-6px);
-            box-shadow: 0 18px 50px rgba(0,0,0,0.28);
-        }
-        .gamble-case-card::after {
-            content: '';
-            position: absolute;
-            inset: auto -30% -35% auto;
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.12), transparent 70%);
-            pointer-events: none;
-        }
-        .gamble-case-items {
-            display: flex;
+        .casino-dots {
+            display: inline-flex;
             gap: 0.45rem;
-            margin-top: 0.95rem;
-            flex-wrap: wrap;
-        }
-        .gamble-item-dot {
-            width: 2rem;
-            height: 2rem;
-            display: inline-flex;
             align-items: center;
-            justify-content: center;
+        }
+        .casino-dots span {
+            width: 0.7rem;
+            height: 0.7rem;
             border-radius: 999px;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.12);
-            font-size: 1rem;
+            background: rgba(255,255,255,0.24);
         }
-        .gamble-case-meta,
-        .gamble-side-grid,
-        .gamble-odds-list,
-        .gamble-history-list {
-            display: grid;
-            gap: 0.75rem;
+        .casino-embed {
+            width: 100%;
+            height: min(76vh, 980px);
+            min-height: 620px;
+            border: 0;
+            background: #000;
         }
-        .gamble-side-card {
-            border-radius: 1.35rem;
-            padding: 1rem 1rem 1.1rem;
+        .casino-note {
             background: rgba(255,255,255,0.04);
             border: 1px solid rgba(255,255,255,0.08);
-        }
-        .gamble-side-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-        .gamble-label {
-            color: rgba(255,255,255,0.45);
-            text-transform: uppercase;
-            letter-spacing: 0.14em;
-            font-size: 0.68rem;
-            font-weight: 700;
-        }
-        .gamble-odds-list {
-            margin-top: 1rem;
-        }
-        .gamble-odds-item,
-        .gamble-history-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.8rem;
-            padding: 0.85rem 1rem;
-            border-radius: 1rem;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
-        }
-        .gamble-history-item {
-            align-items: flex-start;
-        }
-        .gamble-history-item strong {
-            display: block;
-            font-size: 0.92rem;
-        }
-        .gamble-history-empty {
-            color: rgba(255,255,255,0.35);
-            text-align: center;
-            padding: 1rem;
-            border-radius: 1rem;
-            border: 1px dashed rgba(255,255,255,0.08);
-            background: rgba(255,255,255,0.02);
-        }
-        .gamble-bet-row {
-            display: flex;
-            align-items: center;
-            gap: 0.7rem;
-            flex-wrap: wrap;
-            margin: 1rem 0 1.15rem;
-        }
-        .gamble-bet-input {
-            width: 120px !important;
-            margin: 0 !important;
-            padding: 0.8rem 0.95rem !important;
-            border-radius: 1rem !important;
-            text-align: center;
-            font-size: 1rem !important;
-            background: rgba(255,255,255,0.08) !important;
-        }
-        .gamble-mini-btn {
-            width: auto;
-            margin: 0;
-            padding: 0.65rem 0.95rem;
-            border-radius: 0.95rem;
-            font-size: 0.85rem;
-        }
-        .gamble-spin-btn {
-            background: linear-gradient(135deg, #ffffff, #d8d8d8);
-            color: #000;
-            font-weight: 800;
-            letter-spacing: 0.1em;
-            box-shadow: 0 18px 40px rgba(255,255,255,0.14);
-        }
-        .gamble-spin-btn:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-        .gamble-reel {
-            background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
-            border: 1px solid rgba(255,255,255,0.14);
-            border-radius: 1.4rem;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 16px 30px rgba(0,0,0,0.26);
-        }
-        .gamble-reel.spinning { animation: reelFlash 0.12s steps(1) infinite; }
-        @keyframes reelFlash {
-            0%   { background: rgba(255,255,255,0.08); }
-            50%  { background: rgba(255,255,255,0.16); }
-        }
-        .gamble-slots-layout {
-            grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.85fr);
-        }
-        .gamble-jackpot-strip {
-            display: flex;
-            gap: 0.7rem;
-            flex-wrap: wrap;
-            margin-top: 1rem;
-        }
-        .gamble-jackpot-pill {
-            padding: 0.75rem 0.95rem;
-            border-radius: 1rem;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
-        }
-        .gamble-coinflip-layout {
-            grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
-        }
-        .gamble-side-pick {
-            width: auto;
-            margin: 0;
-            padding: 0.95rem 1.3rem;
-            border-radius: 1rem;
-            font-size: 0.95rem;
-        }
-        .gamble-coin-stage {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            border: 3px solid rgba(255,255,255,0.6);
-            background:
-                radial-gradient(circle at 30% 25%, rgba(255,255,255,0.24), transparent 25%),
-                linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 56px;
-            cursor: pointer;
-            margin: 1.4rem auto;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            user-select: none;
-            box-shadow: 0 18px 40px rgba(0,0,0,0.3);
-        }
-        .gamble-coin-stage:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 22px 46px rgba(0,0,0,0.34);
-        }
-        .gamble-spinner-viewport {
-            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 1.4rem;
-            overflow: hidden;
-            position: relative;
-            height: 120px;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
-        }
-        .gamble-spinner-track {
-            display: flex;
-            align-items: center;
-            height: 100%;
-            transition: transform 5s cubic-bezier(0.08, 0.9, 0.3, 1);
-            will-change: transform;
-        }
-        .gamble-spinner-item {
-            min-width: 96px;
-            height: 92px;
-            margin: 0 4px;
-            border-radius: 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 26px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.04);
-            flex-shrink: 0;
-        }
-        .gamble-pointer {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            background: var(--accent);
-            z-index: 10;
-            pointer-events: none;
-            box-shadow: 0 0 24px rgba(255,255,255,0.55);
-        }
-        .gamble-pointer::before,
-        .gamble-pointer::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 8px solid transparent;
-        }
-        .gamble-pointer::before {
-            top: 0;
-            border-top-color: var(--accent);
-            border-bottom: none;
-        }
-        .gamble-pointer::after {
-            bottom: 0;
-            border-bottom-color: var(--accent);
-            border-top: none;
-        }
-        .gamble-modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.9);
-            z-index: 9000;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
-            padding: 1rem;
-        }
-        .gamble-modal-card {
-            width: 780px;
-            max-width: calc(100vw - 32px);
-            border-radius: 2rem;
-            padding: 1.5rem;
-            overflow: hidden;
-        }
-        .gamble-modal-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-        .gamble-preview-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));
-            gap: 0.7rem;
-            margin: 1rem 0 1.2rem;
-        }
-        .gamble-preview-card {
-            border-radius: 1rem;
-            padding: 0.7rem 0.55rem;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.08);
-            background: rgba(255,255,255,0.05);
-        }
-        .gamble-modal-actions {
-            display: flex;
-            gap: 0.9rem;
-            flex-wrap: wrap;
-        }
-        .gamble-result-panel {
-            display: none;
-            position: absolute;
-            inset: 0;
-            background:
-                radial-gradient(circle at top, rgba(255,255,255,0.14), transparent 35%),
-                rgba(0,0,0,0.94);
-            border-radius: 2rem;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 2rem;
-        }
-        .gamble-result-panel.show {
-            display: flex;
-        }
-        .gamble-result-actions {
-            display: flex;
-            gap: 0.9rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .gamble-rarity-tag {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.35rem 0.7rem;
-            border-radius: 999px;
-            text-transform: uppercase;
-            letter-spacing: 0.14em;
-            font-size: 0.65rem;
-            font-weight: 700;
-            margin-top: 0.6rem;
-        }
-        .gamble-pos {
-            color: #a7f3d0;
-        }
-        .gamble-neg {
-            color: #fca5a5;
-        }
-        .gamble-muted {
-            color: rgba(255,255,255,0.5);
-        }
-        @media (max-width: 1024px) {
-            .gamble-hero,
-            .gamble-slots-layout,
-            .gamble-coinflip-layout,
-            .gamble-bottom-grid {
-                grid-template-columns: 1fr;
-            }
+            border-radius: 1.25rem;
         }
         @media (max-width: 768px) {
-            .gamble-panel,
-            .gamble-game-card,
-            .gamble-modal-card {
-                padding: 1.15rem;
-                border-radius: 1.5rem;
-            }
-            .gamble-stats-grid,
-            .gamble-side-grid {
-                grid-template-columns: 1fr;
-            }
-            .gamble-balance-hero strong {
-                font-size: 2.4rem;
-            }
-            .gamble-tabs {
-                flex-direction: column;
-            }
-            .gamble-tab-btn {
-                width: 100%;
-            }
-            .gamble-bet-row {
-                align-items: stretch;
-            }
-            .gamble-bet-input {
-                width: 100% !important;
+            .casino-embed {
+                min-height: 520px;
+                height: 72vh;
             }
         }
     </style>
@@ -934,313 +433,59 @@
                 </div>
             </div>
 
-            <!-- GAMBLING -->
-            <div id="content-gambling" class="tab-content hidden">
+            <!-- CASINO -->
+            <div id="content-starclicker" class="tab-content hidden">
                 <div class="max-w-7xl mx-auto py-8">
-                    <div class="gamble-shell rounded-[2rem] p-4 md:p-6">
-                        <div class="gamble-hero">
-                            <div class="gamble-panel">
-                                <div class="gamble-chip">
-                                    <i class="fa-solid fa-dice"></i>
-                                    Midnight Casino
+                    <div class="casino-panel rounded-[2rem] p-6 md:p-8">
+                        <div class="casino-hero">
+                            <div>
+                                <div class="casino-pill">
+                                    <i class="fa-solid fa-landmark"></i>
+                                    Embedded Casino
                                 </div>
-                                <div class="gamble-balance-hero">
-                                    <div>
-                                        <p class="text-white/55 text-sm uppercase tracking-[0.28em] mb-3">House bankroll</p>
-                                        <strong id="g-balance">$1,000</strong>
-                                    </div>
-                                    <div class="gamble-active-pill">
-                                        <div class="text-2xl" id="g-active-icon">🎁</div>
-                                        <div>
-                                            <div class="text-white/45 text-xs uppercase tracking-[0.18em]">Active table</div>
-                                            <div id="g-active-label" class="font-semibold text-lg">Cases</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <p class="text-white/70 max-w-2xl text-sm md:text-base leading-7">
-                                    Premium stakes, animated openings, and quick-hit games built into one high-contrast casino floor. Chase rare pulls, press your luck, and track the heater while your bankroll updates live.
-                                </p>
-                                <div class="gamble-stats-grid">
-                                    <div class="gamble-stat-card">
-                                        <span class="gamble-label">Inventory</span>
-                                        <span class="value" id="g-stat-inventory">0 items</span>
-                                    </div>
-                                    <div class="gamble-stat-card">
-                                        <span class="gamble-label">Best hit</span>
-                                        <span class="value" id="g-stat-best">$0</span>
-                                    </div>
-                                    <div class="gamble-stat-card">
-                                        <span class="gamble-label">Recent result</span>
-                                        <span class="value text-base md:text-xl" id="g-stat-recent">No action yet</span>
-                                    </div>
-                                    <div class="gamble-stat-card">
-                                        <span class="gamble-label">Session record</span>
-                                        <span class="value" id="g-stat-session">0W / 0L</span>
-                                    </div>
-                                </div>
+                                <h2 class="logo-font text-5xl md:text-6xl font-bold tracking-tight mt-5 mb-4">Casino</h2>
+                                <p class="text-white/65 text-lg max-w-3xl">This tab now loads the external casino site directly inside Starlink. If the site blocks embedding in your browser, use the launch button to open it in a new tab.</p>
                             </div>
-
-                            <div class="gamble-feature">
-                                <div class="flex items-center justify-between gap-3">
-                                    <div>
-                                        <div class="gamble-label">Featured floor</div>
-                                        <h3 class="logo-font text-3xl font-bold mt-2">Play the hot tables</h3>
-                                    </div>
-                                    <div class="gamble-chip">Live session</div>
-                                </div>
-                                <div class="gamble-feature-list">
-                                    <div class="gamble-feature-item">
-                                        <div>
-                                            <div class="font-semibold">Cases</div>
-                                            <div class="text-sm text-white/50">Weighted rarity drops and instant keep-or-sell decisions.</div>
-                                        </div>
-                                        <div class="text-xl">📦</div>
-                                    </div>
-                                    <div class="gamble-feature-item">
-                                        <div>
-                                            <div class="font-semibold">Slots</div>
-                                            <div class="text-sm text-white/50">Fast rolls with premium jackpots up to 50x.</div>
-                                        </div>
-                                        <div class="text-xl">🎰</div>
-                                    </div>
-                                    <div class="gamble-feature-item">
-                                        <div>
-                                            <div class="font-semibold">Coin Flip</div>
-                                            <div class="text-sm text-white/50">A straight 50/50 shot to double up your stake.</div>
-                                        </div>
-                                        <div class="text-xl">🪙</div>
-                                    </div>
-                                </div>
-                                <div class="gamble-jackpot-strip">
-                                    <div class="gamble-jackpot-pill">
-                                        <div class="gamble-label">Highest case value</div>
-                                        <div id="g-feature-case-max" class="font-semibold text-lg mt-1">$26,000</div>
-                                    </div>
-                                    <div class="gamble-jackpot-pill">
-                                        <div class="gamble-label">Slots max</div>
-                                        <div class="font-semibold text-lg mt-1">50x payout</div>
-                                    </div>
-                                    <div class="gamble-jackpot-pill">
-                                        <div class="gamble-label">Flip return</div>
-                                        <div class="font-semibold text-lg mt-1">2x on win</div>
-                                    </div>
-                                </div>
-                            </div>
+                            <a href="https://csgo.mtsl.dk/#" target="_blank" rel="noopener noreferrer" class="auth-btn mt-0" style="width:auto;padding:1rem 1.4rem;">
+                                <i class="fa-solid fa-arrow-up-right-from-square mr-2"></i> Open Casino Site
+                            </a>
                         </div>
 
-                        <div class="gamble-tabs">
-                            <button id="gtab-cases-btn" onclick="gSwitchTab('cases')" class="auth-btn gamble-tab-btn mt-0">
-                                <strong>Cases</strong>
-                                <span>Weighted drops and live reveal</span>
-                            </button>
-                            <button id="gtab-slots-btn" onclick="gSwitchTab('slots')" class="github-style-btn gamble-tab-btn">
-                                <strong>Slots</strong>
-                                <span>Reels, streaks, and jackpots</span>
-                            </button>
-                            <button id="gtab-coinflip-btn" onclick="gSwitchTab('coinflip')" class="github-style-btn gamble-tab-btn">
-                                <strong>Coin Flip</strong>
-                                <span>One call decides the round</span>
-                            </button>
+                        <div class="casino-frame-shell">
+                            <div class="casino-frame-toolbar">
+                                <div class="casino-dots" aria-hidden="true">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                                <div class="text-sm text-white/55 truncate">https://csgo.mtsl.dk/#</div>
+                                <div id="casino-status" class="text-sm text-white/45">Loading embed...</div>
+                            </div>
+                            <iframe
+                                id="casino-iframe"
+                                class="casino-embed"
+                                title="Casino"
+                                src="https://csgo.mtsl.dk/#"
+                                loading="lazy"
+                                referrerpolicy="no-referrer"
+                                allowfullscreen
+                            ></iframe>
                         </div>
 
-                        <div class="gamble-stage">
-                            <!-- CASES TAB -->
-                            <div id="gtab-cases" class="gamble-game-card">
-                                <div class="gamble-section-head">
-                                    <div>
-                                        <div class="gamble-section-kicker">Luxury drop room</div>
-                                        <h3 class="logo-font text-4xl font-bold">Cases</h3>
-                                        <p class="text-white/55 mt-2 max-w-2xl">Open curated cases with weighted rarity tables, scan the possible loot, and decide whether to bank the pull or sell instantly into your stack.</p>
-                                    </div>
-                                    <div class="gamble-chip" id="g-cases-summary">5 cases ready</div>
+                        <div class="casino-note mt-5 p-5">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <div>
+                                    <div class="text-xs uppercase tracking-[0.24em] text-white/40 mb-2">If the embed looks blank</div>
+                                    <p class="text-white/60 text-sm leading-relaxed">Some external sites block being shown inside another website. If that happens here, the direct-open button above will still take you to the same casino page.</p>
                                 </div>
-                                <div class="gamble-side-grid mb-5">
-                                    <div class="gamble-side-card">
-                                        <div class="gamble-label">Average entry</div>
-                                        <div id="g-cases-avg" class="text-2xl font-semibold mt-2">$0</div>
-                                    </div>
-                                    <div class="gamble-side-card">
-                                        <div class="gamble-label">Top shelf prize</div>
-                                        <div id="g-cases-top" class="text-2xl font-semibold mt-2">$0</div>
-                                    </div>
-                                </div>
-                                <div class="gamble-cases-grid" id="g-cases-grid"></div>
-                            </div>
-
-                            <!-- SLOTS TAB -->
-                            <div id="gtab-slots" class="gamble-game-card hidden">
-                                <div class="gamble-section-head">
-                                    <div>
-                                        <div class="gamble-section-kicker">High-voltage reels</div>
-                                        <h3 class="logo-font text-4xl font-bold">Slots</h3>
-                                        <p class="text-white/55 mt-2 max-w-2xl">Match three symbols, build rhythm, and stay alive long enough to spike a full jackpot line.</p>
-                                    </div>
-                                    <div class="gamble-chip" id="g-slots-rtp">Jackpot 50x</div>
-                                </div>
-                                <div class="gamble-slots-layout">
-                                    <div class="gamble-panel text-center">
-                                        <div class="flex gap-3 justify-center mb-6">
-                                            <div class="gamble-reel w-24 h-24 md:w-28 md:h-28 flex items-center justify-center text-4xl rounded-2xl" id="g-r0">🍒</div>
-                                            <div class="gamble-reel w-24 h-24 md:w-28 md:h-28 flex items-center justify-center text-4xl rounded-2xl" id="g-r1">🔔</div>
-                                            <div class="gamble-reel w-24 h-24 md:w-28 md:h-28 flex items-center justify-center text-4xl rounded-2xl" id="g-r2">💎</div>
-                                        </div>
-                                        <div id="g-slots-msg" class="text-xl font-bold min-h-8 mb-4" style="color:var(--accent)">Line up the reels and hunt a premium hit.</div>
-                                        <div class="gamble-bet-row justify-center">
-                                            <span class="gamble-label">Bet</span>
-                                            <input id="g-slots-bet" class="gamble-bet-input" type="number" value="50" min="10">
-                                            <button onclick="gHalfBet('g-slots-bet')" class="github-style-btn gamble-mini-btn">HALF</button>
-                                            <button onclick="gDoubleBet('g-slots-bet')" class="github-style-btn gamble-mini-btn">DOUBLE</button>
-                                            <button onclick="gMaxBet('g-slots-bet')" class="github-style-btn gamble-mini-btn">MAX</button>
-                                        </div>
-                                        <button id="g-slots-btn" class="gamble-spin-btn w-full mt-0" style="border-radius:1.15rem;padding:1rem 1.2rem;font-size:1.05rem;" onclick="gSpinSlots()">SPIN THE REELS</button>
-                                        <div class="gamble-jackpot-strip justify-center">
-                                            <div class="gamble-jackpot-pill">
-                                                <div class="gamble-label">Recent slots</div>
-                                                <div id="g-slots-last" class="font-semibold mt-1">No spins yet</div>
-                                            </div>
-                                            <div class="gamble-jackpot-pill">
-                                                <div class="gamble-label">Session streak</div>
-                                                <div id="g-slots-streak" class="font-semibold mt-1">0 wins</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="gamble-side-card">
-                                        <div class="gamble-label">Payout board</div>
-                                        <div class="gamble-odds-list mt-4">
-                                            <div class="gamble-odds-item"><span>🍒🍒🍒</span><strong>2x</strong></div>
-                                            <div class="gamble-odds-item"><span>🍋🍋🍋</span><strong>3x</strong></div>
-                                            <div class="gamble-odds-item"><span>🔔🔔🔔</span><strong>5x</strong></div>
-                                            <div class="gamble-odds-item"><span>⭐⭐⭐</span><strong>8x</strong></div>
-                                            <div class="gamble-odds-item"><span>💎💎💎</span><strong>15x</strong></div>
-                                            <div class="gamble-odds-item"><span>7️⃣7️⃣7️⃣</span><strong>25x</strong></div>
-                                            <div class="gamble-odds-item"><span>🎰🎰🎰</span><strong>50x</strong></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- COINFLIP TAB -->
-                            <div id="gtab-coinflip" class="gamble-game-card hidden">
-                                <div class="gamble-section-head">
-                                    <div>
-                                        <div class="gamble-section-kicker">Fifty-fifty room</div>
-                                        <h3 class="logo-font text-4xl font-bold">Coin Flip</h3>
-                                        <p class="text-white/55 mt-2 max-w-2xl">Pick a side, send the coin into the air, and either double your bet or burn the whole stake in one clean shot.</p>
-                                    </div>
-                                    <div class="gamble-chip">Straight 2x return</div>
-                                </div>
-                                <div class="gamble-coinflip-layout">
-                                    <div class="gamble-panel text-center">
-                                        <div class="flex gap-3 justify-center mb-4 flex-wrap">
-                                            <button id="g-cf-heads" onclick="gSelectSide('heads')" class="github-style-btn gamble-side-pick">Heads</button>
-                                            <button id="g-cf-tails" onclick="gSelectSide('tails')" class="github-style-btn gamble-side-pick">Tails</button>
-                                        </div>
-                                        <div id="g-coin" onclick="gFlipCoin()" class="gamble-coin-stage">🪙</div>
-                                        <div class="gamble-bet-row justify-center">
-                                            <span class="gamble-label">Bet</span>
-                                            <input id="g-cf-bet" class="gamble-bet-input" type="number" value="100" min="10">
-                                            <button onclick="gHalfBet('g-cf-bet')" class="github-style-btn gamble-mini-btn">HALF</button>
-                                            <button onclick="gDoubleBet('g-cf-bet')" class="github-style-btn gamble-mini-btn">DOUBLE</button>
-                                            <button onclick="gMaxBet('g-cf-bet')" class="github-style-btn gamble-mini-btn">MAX</button>
-                                        </div>
-                                        <button class="gamble-spin-btn w-full mt-0" style="border-radius:1.15rem;padding:1rem 1.2rem;font-size:1.05rem;" onclick="gFlipCoin()">FLIP FOR DOUBLE</button>
-                                        <div id="g-cf-result" class="text-xl font-bold min-h-8 mt-4" style="color:var(--accent)">Choose a side before you send the coin.</div>
-                                    </div>
-                                    <div class="gamble-side-card">
-                                        <div class="gamble-label">Table notes</div>
-                                        <div class="gamble-odds-list mt-4">
-                                            <div class="gamble-odds-item"><span>Win chance</span><strong>50%</strong></div>
-                                            <div class="gamble-odds-item"><span>Winning return</span><strong>2x stake</strong></div>
-                                            <div class="gamble-odds-item"><span>Miss penalty</span><strong>Lose bet</strong></div>
-                                        </div>
-                                        <div class="gamble-jackpot-strip mt-4">
-                                            <div class="gamble-jackpot-pill">
-                                                <div class="gamble-label">Selected side</div>
-                                                <div id="g-cf-side-label" class="font-semibold mt-1">None</div>
-                                            </div>
-                                            <div class="gamble-jackpot-pill">
-                                                <div class="gamble-label">Last flip</div>
-                                                <div id="g-cf-last" class="font-semibold mt-1">No flips yet</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="gamble-grid gamble-bottom-grid mt-4">
-                            <div class="gamble-side-card">
-                                <div class="flex items-center justify-between gap-3 mb-4">
-                                    <div>
-                                        <div class="gamble-label">Recent action</div>
-                                        <h4 class="logo-font text-2xl font-bold mt-2">Session history</h4>
-                                    </div>
-                                    <div class="gamble-chip">Last 6 rounds</div>
-                                </div>
-                                <div id="g-history-list" class="gamble-history-list"></div>
-                            </div>
-                            <div class="gamble-side-card">
-                                <div class="gamble-label">High rollers board</div>
-                                <div class="gamble-odds-list mt-4">
-                                    <div class="gamble-odds-item"><span>Total balance</span><strong id="g-board-balance">$1,000</strong></div>
-                                    <div class="gamble-odds-item"><span>Inventory value</span><strong id="g-board-inventory">$0</strong></div>
-                                    <div class="gamble-odds-item"><span>Biggest pull</span><strong id="g-board-biggest">$0</strong></div>
-                                </div>
+                                <a href="https://csgo.mtsl.dk/#" target="_blank" rel="noopener noreferrer" class="github-style-btn" style="width:auto;margin:0;padding:0.95rem 1.2rem;">
+                                    Try New Tab Instead
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- CASE OPEN MODAL -->
-            <div id="g-case-modal" class="gamble-modal-overlay">
-                <div class="gamble-modal-card" style="position:relative;">
-                    <div class="gamble-modal-top">
-                        <div>
-                            <div class="gamble-label">Featured opening</div>
-                            <h3 id="g-modal-title" class="logo-font text-3xl font-bold mt-2">Opening</h3>
-                        </div>
-                        <button onclick="gCloseModal()" class="github-style-btn" style="width:auto;padding:0.6rem 0.95rem;margin:0;font-size:0.9rem;">CLOSE</button>
-                    </div>
-                    <div class="gamble-side-grid mb-4">
-                        <div class="gamble-side-card">
-                            <div class="gamble-label">Entry</div>
-                            <div id="g-open-cost" class="text-2xl font-semibold mt-2">$0</div>
-                        </div>
-                        <div class="gamble-side-card">
-                            <div class="gamble-label">Potential top hit</div>
-                            <div id="g-open-top" class="text-2xl font-semibold mt-2">$0</div>
-                        </div>
-                    </div>
-                    <div class="gamble-spinner-viewport mb-4">
-                        <div class="gamble-spinner-track" id="g-spinner-track"></div>
-                        <div class="gamble-pointer"></div>
-                    </div>
-                    <div id="g-case-preview" class="gamble-preview-grid"></div>
-                    <button id="g-open-btn" class="auth-btn w-full mt-0" style="border-radius:1.15rem;" onclick="gOpenCase()">OPEN CASE FOR <span id="g-open-cost-btn"></span></button>
-                    <!-- Result -->
-                    <div id="g-result-panel" class="gamble-result-panel">
-                        <div id="g-result-emoji" style="font-size:80px;margin-bottom:12px;animation:gPop 0.4s cubic-bezier(0.2,2,0.5,1) forwards;"></div>
-                        <div id="g-result-name" class="logo-font text-3xl font-bold mb-2"></div>
-                        <div id="g-result-rarity" class="gamble-rarity-tag"></div>
-                        <div class="text-white/50 mb-6 mt-4">Value: <strong id="g-result-val" style="color:var(--accent)"></strong></div>
-                        <div class="gamble-result-actions">
-                            <button onclick="gKeepItem()" class="github-style-btn" style="width:auto;padding:0.8rem 1.8rem;margin:0;">KEEP</button>
-                            <button onclick="gSellItem()" class="auth-btn" style="width:auto;padding:0.8rem 1.8rem;margin:0;">SELL FOR <span id="g-sell-val"></span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <style>
-                @keyframes gPop { from{transform:scale(0.4);opacity:0} to{transform:scale(1);opacity:1} }
-                #g-case-modal.open { display:flex!important; }
-                #g-cf-heads.g-selected, #g-cf-tails.g-selected {
-                    border-color: var(--accent);
-                    color: var(--accent);
-                    background: rgba(255,255,255,0.1);
-                    box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset;
-                }
-            </style>
 
 
             <!-- REQUEST ADMIN TAB -->
@@ -4350,7 +3595,7 @@
 
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(mapping.contentId)?.classList.remove('hidden');
-            if (mapping.contentId === 'content-gambling') { gInitCases(); }
+            if (mapping.contentId === 'content-starclicker') initCasinoEmbed();
             if (mapping.contentId === 'content-request-admin') window.checkExistingAdminRequest();
             if (mapping.contentId === 'content-request-verify') window.checkExistingVerifyRequest();
             if (mapping.contentId === 'content-chat') { window.openGlobalChat(); window.startTypingListener(); window.loadFriendsList(); if (window.currentUser && window.currentDisplayName) window.registerUsername(window.currentUser.uid, window.currentDisplayName); }
@@ -5952,10 +5197,10 @@
 
             html += `
                 <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-dice w-5"></i> <span>Gambling</span>
+                    <i class="fa-solid fa-landmark w-5"></i> <span>Casino</span>
                 </div>
             `;
-            window.tabMapping.push({contentId: 'content-gambling', title: 'Gambling', icon: 'fa-dice'});
+            window.tabMapping.push({contentId: 'content-starclicker', title: 'Casino', icon: 'fa-landmark'});
             idx++;
 
             (window.allCategories || []).forEach(cat => {
@@ -6050,498 +5295,383 @@
             });
         };
 
-        // ── GAMBLING ──
-        const G_CASES = [
-            { id:'starter', name:'Starter Case', emoji:'📦', price:50, items:[
-                {name:'Penny',emoji:'🪙',value:10,rarity:'common'},
-                {name:'Rusty Key',emoji:'🗝️',value:18,rarity:'common'},
-                {name:'Silver Ring',emoji:'💍',value:40,rarity:'uncommon'},
-                {name:'Lucky Clover',emoji:'🍀',value:65,rarity:'uncommon'},
-                {name:'Blue Gem',emoji:'💠',value:130,rarity:'rare'},
-                {name:'Gold Bar',emoji:'🥇',value:210,rarity:'epic'},
-            ]},
-            { id:'nature', name:'Nature Case', emoji:'🌿', price:150, items:[
-                {name:'Pinecone',emoji:'🌲',value:30,rarity:'common'},
-                {name:'Butterfly',emoji:'🦋',value:75,rarity:'uncommon'},
-                {name:'Mushroom',emoji:'🍄',value:110,rarity:'uncommon'},
-                {name:'Crystal Fern',emoji:'🌿',value:210,rarity:'rare'},
-                {name:'Phoenix Feather',emoji:'🔥',value:420,rarity:'epic'},
-                {name:'Golden Leaf',emoji:'🍁',value:950,rarity:'legendary'},
-            ]},
-            { id:'tech', name:'Tech Case', emoji:'⚙️', price:300, items:[
-                {name:'USB Drive',emoji:'💾',value:80,rarity:'common'},
-                {name:'Circuit Board',emoji:'🔌',value:160,rarity:'uncommon'},
-                {name:'Laser Module',emoji:'🔦',value:300,rarity:'rare'},
-                {name:'Quantum Chip',emoji:'💡',value:520,rarity:'epic'},
-                {name:'Neural Core',emoji:'🧠',value:1000,rarity:'epic'},
-                {name:'Singularity Cell',emoji:'⚡',value:2600,rarity:'legendary'},
-            ]},
-            { id:'cosmic', name:'Cosmic Case', emoji:'🌌', price:700, items:[
-                {name:'Stardust',emoji:'✨',value:160,rarity:'uncommon'},
-                {name:'Comet Fragment',emoji:'☄️',value:370,rarity:'rare'},
-                {name:'Nebula Crystal',emoji:'🔮',value:730,rarity:'epic'},
-                {name:'Black Hole Shard',emoji:'🌑',value:1450,rarity:'epic'},
-                {name:'Supernova Core',emoji:'💥',value:3100,rarity:'legendary'},
-                {name:'The Void Key',emoji:'🗝️',value:8500,rarity:'legendary'},
-            ]},
-            { id:'legend', name:'Legendary Case', emoji:'👑', price:2000, items:[
-                {name:'Ancient Scroll',emoji:'📜',value:520,rarity:'rare'},
-                {name:'Dragon Scale',emoji:'🐉',value:1250,rarity:'epic'},
-                {name:'God Particle',emoji:'⚛️',value:3100,rarity:'legendary'},
-                {name:'Time Crystal',emoji:'⏳',value:5200,rarity:'legendary'},
-                {name:'Universe Gem',emoji:'🌍',value:12500,rarity:'legendary'},
-                {name:'Eternity Stone',emoji:'💎',value:26000,rarity:'legendary'},
-            ]},
+        const STARCLICKER_STORAGE_KEY = 'starlinkStarclickerSave';
+        const STARCLICKER_UPGRADES = [
+            { id: 'cursor', name: 'Nova Cursor', desc: '+1 star per click', baseCost: 15, growth: 1.18, type: 'click', power: 1 },
+            { id: 'flare', name: 'Solar Flare', desc: '+8 stars per click', baseCost: 120, growth: 1.24, type: 'click', power: 8 },
+            { id: 'prism', name: 'Photon Prism', desc: '+40 stars per click', baseCost: 1250, growth: 1.28, type: 'click', power: 40 },
+            { id: 'comet', name: 'Comet Sling', desc: '+220 stars per click', baseCost: 9000, growth: 1.31, type: 'click', power: 220 },
+            { id: 'quasar', name: 'Quasar Lance', desc: '+1200 stars per click', baseCost: 60000, growth: 1.34, type: 'click', power: 1200 },
+            { id: 'drone', name: 'Star Drone', desc: '+1 star per second', baseCost: 40, growth: 1.2, type: 'auto', power: 1 },
+            { id: 'reactor', name: 'Nebula Reactor', desc: '+10 stars per second', baseCost: 360, growth: 1.28, type: 'auto', power: 10 },
+            { id: 'forge', name: 'Meteor Forge', desc: '+75 stars per second', baseCost: 3200, growth: 1.31, type: 'auto', power: 75 },
+            { id: 'station', name: 'Orbital Station', desc: '+450 stars per second', baseCost: 18500, growth: 1.34, type: 'auto', power: 450 },
+            { id: 'harvester', name: 'Void Harvester', desc: '+2500 stars per second', baseCost: 125000, growth: 1.38, type: 'auto', power: 2500 },
+            { id: 'core', name: 'Galaxy Core', desc: '+4% all income', baseCost: 900, growth: 1.35, type: 'boost', power: 0.04 },
+            { id: 'crown', name: 'Stellar Crown', desc: '+10% all income', baseCost: 9500, growth: 1.42, type: 'boost', power: 0.10 },
+            { id: 'rift', name: 'Gravity Rift', desc: '+20% all income', baseCost: 80000, growth: 1.48, type: 'boost', power: 0.20 },
+            { id: 'echo', name: 'Time Echo', desc: '+5% supernova power', baseCost: 150000, growth: 1.55, type: 'prestige', power: 0.05 },
+            { id: 'oracle', name: 'Cosmic Oracle', desc: '+1% of passive income added to each click', baseCost: 220000, growth: 1.45, type: 'hybrid', power: 0.01 },
+            { id: 'singularity', name: 'Singularity Well', desc: '+2% of lifetime stars as bonus passive income', baseCost: 500000, growth: 1.5, type: 'cosmic', power: 0.02 }
         ];
-        const G_SLOTS_SYMS = ['🍒','🍋','🔔','💎','7️⃣','⭐','🎰'];
-        const G_SLOTS_PAY = {'🍒🍒🍒':2,'🍋🍋🍋':3,'🔔🔔🔔':5,'⭐⭐⭐':8,'💎💎💎':15,'7️⃣7️⃣7️⃣':25,'🎰🎰🎰':50};
-        const G_WEIGHTS = {common:50,uncommon:28,rare:14,epic:6,legendary:2};
-        const G_RARITY_COLORS = {common:'rgba(157,163,180,0.15)',uncommon:'rgba(16,185,129,0.12)',rare:'rgba(59,130,246,0.12)',epic:'rgba(139,92,246,0.14)',legendary:'rgba(245,197,66,0.12)'};
 
-        const G_GAME_META = {
-            cases: { icon: '📦', label: 'Cases' },
-            slots: { icon: '🎰', label: 'Slots' },
-            coinflip: { icon: '🪙', label: 'Coin Flip' }
-        };
-        const G_HISTORY_KEY = 'starlinkGambleHistory';
-        const G_SESSION_KEY = 'starlinkGambleSession';
+        window.starclickerState = null;
+        window.starclickerDebugClicks = 0;
+        window.starclickerSecretBuffer = '';
+        window.starclickerUpgradeSignature = '';
 
-        let gBalance = parseFloat(localStorage.getItem('starlinkGambleBalance')) || 1000;
-        let gInventory = JSON.parse(localStorage.getItem('starlinkGambleInv') || '[]');
-        let gHistory = JSON.parse(localStorage.getItem(G_HISTORY_KEY) || '[]');
-        let gSession = JSON.parse(localStorage.getItem(G_SESSION_KEY) || '{"wins":0,"losses":0,"bestWin":0,"lastGame":"","lastNet":0,"slotsWinStreak":0}');
-        let gSelectedCase = null;
-        let gPendingItem = null;
-        let gSlotsSpinning = false;
-        let gCfFlipping = false;
-        let gCfSide = null;
-        let gCasesInited = false;
-        let gActiveTab = 'cases';
-
-        function gSave() {
-            localStorage.setItem('starlinkGambleBalance', gBalance);
-            localStorage.setItem('starlinkGambleInv', JSON.stringify(gInventory));
-            localStorage.setItem(G_HISTORY_KEY, JSON.stringify(gHistory.slice(0, 6)));
-            localStorage.setItem(G_SESSION_KEY, JSON.stringify(gSession));
+        function starclickerDefaultState() {
+            return {
+                stars: 0,
+                lifetimeStars: 0,
+                supernovas: 0,
+                upgrades: Object.fromEntries(STARCLICKER_UPGRADES.map(upg => [upg.id, 0])),
+                lastTick: Date.now()
+            };
         }
 
-        function gFmt(n) { return '$' + Math.floor(n).toLocaleString(); }
-
-        function gUpdateBalance() {
-            ['g-balance', 'g-board-balance'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.textContent = gFmt(gBalance);
-            });
+        function getStarclickerState() {
+            if (!window.starclickerState) window.starclickerState = starclickerDefaultState();
+            return window.starclickerState;
         }
 
-        function gInventoryValue() {
-            return gInventory.reduce((sum, item) => sum + (item.value || 0), 0);
-        }
-
-        function gBestInventoryItem() {
-            return gInventory.reduce((best, item) => Math.max(best, item.value || 0), 0);
-        }
-
-        function gCaseTopValue() {
-            return G_CASES.reduce((maxCase, c) => {
-                const top = c.items.reduce((m, it) => Math.max(m, it.value || 0), 0);
-                return Math.max(maxCase, top);
-            }, 0);
-        }
-
-        function gCaseAveragePrice() {
-            return Math.round(G_CASES.reduce((sum, c) => sum + c.price, 0) / G_CASES.length);
-        }
-
-        function gFormatNet(net) {
-            const abs = gFmt(Math.abs(net));
-            return net >= 0 ? '+' + abs : '-' + abs;
-        }
-
-        function gRecordOutcome(game, result, net, detail) {
-            if (net >= 0) gSession.wins += 1;
-            else gSession.losses += 1;
-            gSession.bestWin = Math.max(gSession.bestWin || 0, Math.max(net, 0));
-            gSession.lastGame = game;
-            gSession.lastNet = net;
-            if (game.toLowerCase() === 'slots') {
-                gSession.slotsWinStreak = net > 0 ? (gSession.slotsWinStreak || 0) + 1 : 0;
+        function formatStarclickerNumber(value) {
+            if (!Number.isFinite(value)) return '0';
+            if (Math.abs(value) < 1000) {
+                return value % 1 === 0 ? String(Math.round(value)) : value.toFixed(1);
             }
-            gHistory.unshift({
-                game,
-                result,
-                net,
-                detail,
-                time: Date.now()
-            });
-            gHistory = gHistory.slice(0, 6);
-            gSave();
-            gRenderStats();
-        }
-
-        function gRenderHistory() {
-            const list = document.getElementById('g-history-list');
-            if (!list) return;
-            if (!gHistory.length) {
-                list.innerHTML = '<div class="gamble-history-empty">No rounds played yet. Your next spin or flip will land here.</div>';
-                return;
+            const units = ['K', 'M', 'B', 'T', 'Qa', 'Qi'];
+            let unitIndex = -1;
+            let n = value;
+            while (Math.abs(n) >= 1000 && unitIndex < units.length - 1) {
+                n /= 1000;
+                unitIndex++;
             }
-            list.innerHTML = gHistory.map(entry => `
-                <div class="gamble-history-item">
-                    <div>
-                        <strong>${entry.game}</strong>
-                        <div class="text-sm text-white/55">${entry.result}${entry.detail ? ' · ' + entry.detail : ''}</div>
-                    </div>
-                    <div class="${entry.net >= 0 ? 'gamble-pos' : 'gamble-neg'} font-semibold">${gFormatNet(entry.net)}</div>
-                </div>
-            `).join('');
+            return `${n.toFixed(n >= 100 ? 0 : n >= 10 ? 1 : 2)}${units[unitIndex]}`;
         }
 
-        function gRenderStats() {
-            gUpdateBalance();
-
-            const inventoryCount = document.getElementById('g-stat-inventory');
-            if (inventoryCount) inventoryCount.textContent = `${gInventory.length} item${gInventory.length === 1 ? '' : 's'}`;
-
-            const best = Math.max(gBestInventoryItem(), gSession.bestWin || 0);
-            const bestEl = document.getElementById('g-stat-best');
-            if (bestEl) bestEl.textContent = gFmt(best);
-
-            const recentEl = document.getElementById('g-stat-recent');
-            if (recentEl) {
-                if (gSession.lastGame) {
-                    recentEl.textContent = `${gSession.lastGame}: ${gFormatNet(gSession.lastNet || 0)}`;
-                    recentEl.classList.toggle('gamble-pos', (gSession.lastNet || 0) >= 0);
-                    recentEl.classList.toggle('gamble-neg', (gSession.lastNet || 0) < 0);
-                } else {
-                    recentEl.textContent = 'No action yet';
-                    recentEl.classList.remove('gamble-pos', 'gamble-neg');
-                }
-            }
-
-            const sessionEl = document.getElementById('g-stat-session');
-            if (sessionEl) sessionEl.textContent = `${gSession.wins || 0}W / ${gSession.losses || 0}L`;
-
-            const inventoryValueEl = document.getElementById('g-board-inventory');
-            if (inventoryValueEl) inventoryValueEl.textContent = gFmt(gInventoryValue());
-
-            const boardBiggest = document.getElementById('g-board-biggest');
-            if (boardBiggest) boardBiggest.textContent = gFmt(best);
-
-            const lastSlots = gHistory.find(entry => entry.game === 'Slots');
-            const slotsLastEl = document.getElementById('g-slots-last');
-            if (slotsLastEl) slotsLastEl.textContent = lastSlots ? `${lastSlots.result} · ${gFormatNet(lastSlots.net)}` : 'No spins yet';
-
-            const slotsStreakEl = document.getElementById('g-slots-streak');
-            if (slotsStreakEl) slotsStreakEl.textContent = `${gSession.slotsWinStreak || 0} win${(gSession.slotsWinStreak || 0) === 1 ? '' : 's'}`;
-
-            const lastFlip = gHistory.find(entry => entry.game === 'Coin Flip');
-            const flipLastEl = document.getElementById('g-cf-last');
-            if (flipLastEl) flipLastEl.textContent = lastFlip ? `${lastFlip.result} · ${gFormatNet(lastFlip.net)}` : 'No flips yet';
-
-            const casesSummary = document.getElementById('g-cases-summary');
-            if (casesSummary) casesSummary.textContent = `${G_CASES.length} cases ready`;
-
-            const avgEl = document.getElementById('g-cases-avg');
-            if (avgEl) avgEl.textContent = gFmt(gCaseAveragePrice());
-
-            const topEl = document.getElementById('g-cases-top');
-            if (topEl) topEl.textContent = gFmt(gCaseTopValue());
-
-            const featureTop = document.getElementById('g-feature-case-max');
-            if (featureTop) featureTop.textContent = gFmt(gCaseTopValue());
-
-            gRenderHistory();
-            gUpdateActiveGame();
+        function getStarclickerMultiplier(state = getStarclickerState()) {
+            const echoBonus = 1 + ((state.upgrades.echo || 0) * 0.05);
+            return 1 + state.supernovas * 0.25 * echoBonus;
         }
 
-        function gUpdateActiveGame() {
-            const meta = G_GAME_META[gActiveTab] || G_GAME_META.cases;
-            const iconEl = document.getElementById('g-active-icon');
-            const labelEl = document.getElementById('g-active-label');
-            if (iconEl) iconEl.textContent = meta.icon;
-            if (labelEl) labelEl.textContent = meta.label;
+        function getStarclickerBoostMultiplier(state = getStarclickerState()) {
+            return 1 +
+                (state.upgrades.core || 0) * 0.04 +
+                (state.upgrades.crown || 0) * 0.10 +
+                (state.upgrades.rift || 0) * 0.20;
         }
 
-        function gShowToast(msg) {
-            const existing = document.getElementById('g-toast');
-            if (existing) existing.remove();
-            const t = document.createElement('div');
-            t.id = 'g-toast';
-            t.textContent = msg;
-            t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(60px);background:rgba(20,20,30,0.95);border:1px solid rgba(255,255,255,0.15);border-radius:1rem;padding:12px 24px;font-size:14px;font-weight:600;z-index:99999;transition:transform 0.3s;pointer-events:none;white-space:nowrap;color:#fff;';
-            document.body.appendChild(t);
-            requestAnimationFrame(() => { t.style.transform = 'translateX(-50%) translateY(0)'; });
-            setTimeout(() => { t.style.transform = 'translateX(-50%) translateY(60px)'; setTimeout(() => t.remove(), 350); }, 2400);
+        function getStarclickerLifetimeAutoBonus(state = getStarclickerState()) {
+            return (state.lifetimeStars * ((state.upgrades.singularity || 0) * 0.02)) || 0;
         }
 
-        function gSwitchTab(tab) {
-            gActiveTab = tab;
-            ['cases','slots','coinflip'].forEach(t => {
-                const panel = document.getElementById('gtab-'+t);
-                const btn = document.getElementById('gtab-'+t+'-btn');
-                if (panel) panel.classList.toggle('hidden', t !== tab);
-                if (btn) {
-                    if (t === tab) { btn.classList.add('auth-btn'); btn.classList.remove('github-style-btn'); }
-                    else { btn.classList.remove('auth-btn'); btn.classList.add('github-style-btn'); }
-                    btn.style.margin = '0';
-                }
-            });
-            gRenderStats();
+        function getStarclickerPerClick(state = getStarclickerState()) {
+            const clickBase = 1 +
+                (state.upgrades.cursor || 0) * 1 +
+                (state.upgrades.flare || 0) * 8 +
+                (state.upgrades.prism || 0) * 40 +
+                (state.upgrades.comet || 0) * 220 +
+                (state.upgrades.quasar || 0) * 1200;
+            const autoContribution =
+                ((state.upgrades.drone || 0) * 1 +
+                (state.upgrades.reactor || 0) * 10 +
+                (state.upgrades.forge || 0) * 75 +
+                (state.upgrades.station || 0) * 450 +
+                (state.upgrades.harvester || 0) * 2500) *
+                ((state.upgrades.oracle || 0) * 0.01);
+            return (clickBase + autoContribution) * getStarclickerMultiplier(state) * getStarclickerBoostMultiplier(state);
         }
 
-        function gInitCases() {
-            gRenderStats();
-            if (gCasesInited) return;
-            gCasesInited = true;
-            const grid = document.getElementById('g-cases-grid');
-            if (!grid) return;
-            grid.innerHTML = G_CASES.map(c => `
-                <div class="gamble-case-card" onclick="gOpenModal('${c.id}')">
-                    <div class="flex items-start justify-between gap-3 mb-4">
-                        <div>
-                            <div style="font-size:46px;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5))">${c.emoji}</div>
-                            <div class="logo-font text-2xl font-bold mt-4">${c.name}</div>
-                        </div>
-                        <div class="gamble-chip">${gFmt(c.price)}</div>
-                    </div>
-                    <div class="gamble-case-meta">
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-white/50">Top prize</span>
-                            <span class="font-semibold">${gFmt(c.items.reduce((m, it) => Math.max(m, it.value), 0))}</span>
-                        </div>
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-white/50">Rare + above</span>
-                            <span class="font-semibold">${c.items.filter(it => ['rare','epic','legendary'].includes(it.rarity)).length} drops</span>
-                        </div>
-                    </div>
-                    <div class="gamble-case-items">
-                        ${c.items.map(it=>`<span class="gamble-item-dot" title="${it.name} - ${gFmt(it.value)}">${it.emoji}</span>`).join('')}
-                    </div>
-                </div>
-            `).join('');
+        function getStarclickerPerSecond(state = getStarclickerState()) {
+            const autoBase =
+                (state.upgrades.drone || 0) * 1 +
+                (state.upgrades.reactor || 0) * 10 +
+                (state.upgrades.forge || 0) * 75 +
+                (state.upgrades.station || 0) * 450 +
+                (state.upgrades.harvester || 0) * 2500;
+            return (autoBase + getStarclickerLifetimeAutoBonus(state)) * getStarclickerMultiplier(state) * getStarclickerBoostMultiplier(state);
         }
 
-        function gOpenModal(caseId) {
-            gSelectedCase = G_CASES.find(c => c.id === caseId);
-            document.getElementById('g-modal-title').textContent = gSelectedCase.name;
-            document.getElementById('g-open-cost').textContent = gFmt(gSelectedCase.price);
-            document.getElementById('g-open-cost-btn').textContent = gFmt(gSelectedCase.price);
-            document.getElementById('g-open-top').textContent = gFmt(gSelectedCase.items.reduce((m, it) => Math.max(m, it.value), 0));
-            const modal = document.getElementById('g-case-modal');
-            modal.classList.add('open');
-            const result = document.getElementById('g-result-panel');
-            result.classList.remove('show');
-            document.getElementById('g-open-btn').disabled = false;
-            document.getElementById('g-case-preview').innerHTML = gSelectedCase.items.map(it =>
-                `<div class="gamble-preview-card" style="background:${G_RARITY_COLORS[it.rarity]}">
-                    <div style="font-size:22px">${it.emoji}</div>
-                    <div style="font-size:10px;font-weight:700;margin-top:6px;text-transform:uppercase;letter-spacing:0.14em;color:rgba(255,255,255,0.45)">${it.rarity}</div>
-                    <div style="font-size:10px;font-weight:600;margin-top:3px;color:var(--accent)">${gFmt(it.value)}</div>
-                </div>`
-            ).join('');
-            gBuildSpinnerIdle();
+        function getStarclickerUpgradeCost(upgrade, level) {
+            return Math.floor(upgrade.baseCost * Math.pow(upgrade.growth, level));
         }
 
-        function gCloseModal() {
-            document.getElementById('g-case-modal').classList.remove('open');
-            gSelectedCase = null; gPendingItem = null;
+        function saveStarclicker() {
+            const state = getStarclickerState();
+            state.lastTick = Date.now();
+            localStorage.setItem(STARCLICKER_STORAGE_KEY, JSON.stringify(state));
         }
 
-        function gBuildSpinnerIdle() {
-            const track = document.getElementById('g-spinner-track');
-            track.style.transition = 'none';
-            track.style.transform = 'translateX(0)';
-            track.innerHTML = Array.from({length:28}, () => {
-                const it = gSelectedCase.items[Math.floor(Math.random()*gSelectedCase.items.length)];
-                return `<div class="gamble-spinner-item" style="background:${G_RARITY_COLORS[it.rarity]}"><div>${it.emoji}</div><div style="font-size:9px;font-weight:600;margin-top:4px;color:rgba(255,255,255,0.6);text-align:center;padding:0 4px">${it.name}</div></div>`;
+        function getStarclickerUpgradeSignature(state = getStarclickerState()) {
+            return STARCLICKER_UPGRADES.map(upgrade => {
+                const level = state.upgrades[upgrade.id] || 0;
+                const cost = getStarclickerUpgradeCost(upgrade, level);
+                const affordable = state.stars >= cost;
+                return `${upgrade.id}:${level}:${affordable ? 1 : 0}:${formatStarclickerNumber(cost)}`;
+            }).join('|');
+        }
+
+        function renderStarclickerUpgrades(force = false) {
+            const container = document.getElementById('starclicker-upgrades');
+            if (!container) return;
+            const state = getStarclickerState();
+            const signature = getStarclickerUpgradeSignature(state);
+            if (!force && signature === window.starclickerUpgradeSignature) return;
+            window.starclickerUpgradeSignature = signature;
+            container.innerHTML = STARCLICKER_UPGRADES.map(upgrade => {
+                const level = state.upgrades[upgrade.id] || 0;
+                const cost = getStarclickerUpgradeCost(upgrade, level);
+                const disabled = state.stars < cost ? 'disabled' : '';
+                const trackLabel = upgrade.type === 'click' ? 'Click' :
+                    upgrade.type === 'auto' ? 'Passive' :
+                    upgrade.type === 'boost' ? 'Boost' :
+                    upgrade.type === 'prestige' ? 'Supernova' :
+                    upgrade.type === 'hybrid' ? 'Hybrid' : 'Cosmic';
+                return `
+                    <button class="starclicker-upgrade rounded-2xl" type="button" onclick="window.buyStarclickerUpgrade('${upgrade.id}')" ${disabled}>
+                        <span>
+                            <span class="block text-[10px] uppercase tracking-[0.26em] text-white/35 mb-1">${trackLabel}</span>
+                            <span class="block text-lg font-semibold">${upgrade.name}</span>
+                            <span class="block text-sm text-white/55">${upgrade.desc}</span>
+                            <span class="block text-xs text-white/35 mt-1">Level ${level}</span>
+                        </span>
+                        <span class="text-right shrink-0">
+                            <span class="block text-xs uppercase tracking-[0.2em] text-white/40">Cost</span>
+                            <span class="block text-lg font-semibold">${formatStarclickerNumber(cost)}</span>
+                        </span>
+                    </button>
+                `;
             }).join('');
         }
 
-        function gRollWeighted(items) {
-            const rarityBuckets = {};
-            items.forEach((it,i) => { if(!rarityBuckets[it.rarity]) rarityBuckets[it.rarity]=[]; rarityBuckets[it.rarity].push(i); });
-            const total = Object.keys(G_WEIGHTS).reduce((s,k) => s + (rarityBuckets[k] ? G_WEIGHTS[k] : 0), 0);
-            let rand = Math.random() * total;
-            for (const k of Object.keys(G_WEIGHTS)) {
-                if (!rarityBuckets[k]) continue;
-                rand -= G_WEIGHTS[k];
-                if (rand <= 0) { const arr = rarityBuckets[k]; return arr[Math.floor(Math.random()*arr.length)]; }
-            }
-            return 0;
+        function renderStarclicker() {
+            const state = getStarclickerState();
+            const scoreEl = document.getElementById('starclicker-score');
+            if (!scoreEl) return;
+            document.getElementById('starclicker-score').textContent = formatStarclickerNumber(state.stars);
+            document.getElementById('starclicker-per-click').textContent = formatStarclickerNumber(getStarclickerPerClick(state));
+            document.getElementById('starclicker-per-second').textContent = formatStarclickerNumber(getStarclickerPerSecond(state));
+            document.getElementById('starclicker-multiplier').textContent = `x${getStarclickerMultiplier(state).toFixed(2)}`;
+            document.getElementById('starclicker-prestige-gain').textContent = `+${Math.max(0, Math.floor(Math.sqrt(state.lifetimeStars / 2500)) - state.supernovas)}`;
+            renderStarclickerUpgrades();
         }
 
-        function gOpenCase() {
-            if (!gSelectedCase) return;
-            if (gBalance < gSelectedCase.price) { gShowToast('Not enough balance!'); return; }
-            gBalance -= gSelectedCase.price;
-            gSave(); gRenderStats();
-            document.getElementById('g-open-btn').disabled = true;
-            const wonIdx = gRollWeighted(gSelectedCase.items);
-            const won = gSelectedCase.items[wonIdx];
-            gPendingItem = won;
-            const track = document.getElementById('g-spinner-track');
-            const ITEM_W = 96;
-            const TOTAL = 60;
-            const WIN_IDX = Math.floor(TOTAL * 0.72);
-            const allItems = Array.from({length:TOTAL}, (_,i) => i===WIN_IDX ? won : gSelectedCase.items[Math.floor(Math.random()*gSelectedCase.items.length)]);
-            track.style.transition = 'none';
-            track.style.transform = 'translateX(0)';
-            track.innerHTML = allItems.map(it =>
-                `<div class="gamble-spinner-item" style="background:${G_RARITY_COLORS[it.rarity]}"><div>${it.emoji}</div><div style="font-size:9px;font-weight:600;margin-top:4px;color:rgba(255,255,255,0.6);text-align:center;padding:0 4px">${it.name}</div></div>`
-            ).join('');
-            const viewCenter = 310;
-            const itemCenter = WIN_IDX * ITEM_W + ITEM_W/2;
-            const offset = itemCenter - viewCenter + (Math.random()*24-12);
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-                track.style.transition = 'transform 5s cubic-bezier(0.08,0.9,0.3,1)';
-                track.style.transform = `translateX(-${offset}px)`;
-            }));
-            setTimeout(() => {
-                document.getElementById('g-open-btn').disabled = false;
-                gShowResult(won);
-            }, 5300);
+        function applyStarclickerIncome(amount) {
+            const state = getStarclickerState();
+            state.stars += amount;
+            state.lifetimeStars += amount;
+            renderStarclicker();
+            saveStarclicker();
         }
 
-        function gShowResult(item) {
-            const panel = document.getElementById('g-result-panel');
-            panel.classList.add('show');
-            document.getElementById('g-result-emoji').textContent = item.emoji;
-            document.getElementById('g-result-name').textContent = item.name;
-            document.getElementById('g-result-val').textContent = gFmt(item.value);
-            document.getElementById('g-sell-val').textContent = gFmt(item.value);
-            const rarityEl = document.getElementById('g-result-rarity');
-            rarityEl.textContent = item.rarity;
-            rarityEl.style.background = G_RARITY_COLORS[item.rarity];
-            rarityEl.style.border = '1px solid rgba(255,255,255,0.1)';
+        function createStarclickerFloat(amount, event) {
+            const button = document.getElementById('starclicker-main-button');
+            if (!button) return;
+            const floatEl = document.createElement('div');
+            floatEl.className = 'starclicker-float';
+            floatEl.textContent = `+${formatStarclickerNumber(amount)}`;
+            const rect = button.getBoundingClientRect();
+            const x = event ? (event.clientX - rect.left) : rect.width / 2;
+            const y = event ? (event.clientY - rect.top) : rect.height / 2;
+            floatEl.style.left = `${x}px`;
+            floatEl.style.top = `${y}px`;
+            button.appendChild(floatEl);
+            setTimeout(() => floatEl.remove(), 900);
         }
 
-        function gKeepItem() {
-            if (!gPendingItem) return;
-            gInventory.push({...gPendingItem, id: Date.now()});
-            gSave();
-            gRecordOutcome('Cases', 'Kept pull', gPendingItem.value - (gSelectedCase ? gSelectedCase.price : 0), `${gPendingItem.name}`);
-            gShowToast(gPendingItem.emoji + ' added to inventory');
-            gPendingItem = null;
-            document.getElementById('g-result-panel').classList.remove('show');
-        }
+        window.clickStarclicker = function(event) {
+            const amount = getStarclickerPerClick();
+            applyStarclickerIncome(amount);
+            createStarclickerFloat(amount, event);
+        };
 
-        function gSellItem() {
-            if (!gPendingItem) return;
-            gBalance += gPendingItem.value;
-            gSave();
-            gRecordOutcome('Cases', 'Sold pull', gPendingItem.value - (gSelectedCase ? gSelectedCase.price : 0), `${gPendingItem.name}`);
-            gShowToast('Sold for ' + gFmt(gPendingItem.value) + '!');
-            gPendingItem = null;
-            document.getElementById('g-result-panel').classList.remove('show');
-        }
+        window.buyStarclickerUpgrade = function(id) {
+            const state = getStarclickerState();
+            const upgrade = STARCLICKER_UPGRADES.find(item => item.id === id);
+            if (!upgrade) return;
+            const level = state.upgrades[id] || 0;
+            const cost = getStarclickerUpgradeCost(upgrade, level);
+            if (state.stars < cost) return;
+            state.stars -= cost;
+            state.upgrades[id] = level + 1;
+            renderStarclicker();
+            saveStarclicker();
+        };
 
-        function gSpinSlots() {
-            if (gSlotsSpinning) return;
-            const bet = parseInt(document.getElementById('g-slots-bet').value) || 50;
-            if (gBalance < bet) { gShowToast('Not enough balance!'); return; }
-            gBalance -= bet; gSave(); gRenderStats();
-            gSlotsSpinning = true;
-            document.getElementById('g-slots-btn').disabled = true;
-            document.getElementById('g-slots-msg').textContent = 'Reels spinning...';
-            const reels = [document.getElementById('g-r0'),document.getElementById('g-r1'),document.getElementById('g-r2')];
-            reels.forEach(r => r.classList.add('spinning'));
-            const result = G_SLOTS_SYMS.map(() => G_SLOTS_SYMS[Math.floor(Math.random()*G_SLOTS_SYMS.length)]);
-            if (Math.random() < 0.28) result[1] = result[0];
-            [800, 1200, 1600].forEach((delay, i) => setTimeout(() => {
-                reels[i].classList.remove('spinning');
-                reels[i].textContent = result[i];
-                if (i === 2) {
-                    gSlotsSpinning = false;
-                    document.getElementById('g-slots-btn').disabled = false;
-                    const key = result.join('');
-                    const multi = G_SLOTS_PAY[key];
-                    const msgEl = document.getElementById('g-slots-msg');
-                    if (multi) {
-                        const win = bet * multi;
-                        gBalance += win; gSave();
-                        gRecordOutcome('Slots', 'Jackpot line', win - bet, `${key} · ${multi}x`);
-                        msgEl.textContent = `Winner! +${gFmt(win)} (${multi}x payout)`;
-                        msgEl.style.color = 'var(--accent)';
-                        gShowToast('Slots jackpot! +' + gFmt(win));
-                    } else {
-                        gRecordOutcome('Slots', 'Missed line', -bet, `${key}`);
-                        msgEl.textContent = 'No match - try again!';
-                        msgEl.style.color = 'rgba(255,255,255,0.4)';
+        window.resetStarclicker = function() {
+            window.starclickerState = starclickerDefaultState();
+            window.starclickerUpgradeSignature = '';
+            renderStarclicker();
+            saveStarclicker();
+        };
+
+        window.prestigeStarclicker = function() {
+            const state = getStarclickerState();
+            const gain = Math.max(0, Math.floor(Math.sqrt(state.lifetimeStars / 2500)) - state.supernovas);
+            if (gain <= 0) return;
+            window.starclickerState = {
+                stars: 0,
+                lifetimeStars: 0,
+                supernovas: state.supernovas + gain,
+                upgrades: Object.fromEntries(STARCLICKER_UPGRADES.map(upg => [upg.id, 0])),
+                lastTick: Date.now()
+            };
+            window.starclickerUpgradeSignature = '';
+            renderStarclicker();
+            saveStarclicker();
+        };
+
+        function loadStarclicker() {
+            try {
+                const raw = localStorage.getItem(STARCLICKER_STORAGE_KEY);
+                if (!raw) {
+                    window.starclickerState = starclickerDefaultState();
+                    return;
+                }
+                const parsed = JSON.parse(raw);
+                window.starclickerState = {
+                    ...starclickerDefaultState(),
+                    ...parsed,
+                    upgrades: {
+                        ...starclickerDefaultState().upgrades,
+                        ...(parsed.upgrades || {})
                     }
-                }
-            }, delay));
+                };
+            } catch {
+                window.starclickerState = starclickerDefaultState();
+            }
+            const state = getStarclickerState();
+            const elapsedSeconds = Math.max(0, Math.min(3600, (Date.now() - (state.lastTick || Date.now())) / 1000));
+            const passiveGain = getStarclickerPerSecond(state) * elapsedSeconds;
+            state.stars += passiveGain;
+            state.lifetimeStars += passiveGain;
+            state.lastTick = Date.now();
         }
 
-        function gHalfBet(id) {
-            const el = document.getElementById(id);
-            if (el) el.value = Math.max(10, Math.floor(parseInt(el.value||100)/2));
-        }
-        function gDoubleBet(id) {
-            const el = document.getElementById(id);
-            if (el) el.value = Math.min(Math.floor(gBalance), parseInt(el.value||100)*2);
-        }
-        function gMaxBet(id) {
-            const el = document.getElementById(id);
-            if (el) el.value = Math.max(10, Math.floor(gBalance));
+        function setStarclickerDebugOpen(open) {
+            const panel = document.getElementById('starclicker-debug-panel');
+            if (!panel) return;
+            panel.classList.toggle('hidden', !open);
         }
 
-        function gSelectSide(side) {
-            gCfSide = side;
-            document.getElementById('g-cf-heads').classList.toggle('g-selected', side==='heads');
-            document.getElementById('g-cf-tails').classList.toggle('g-selected', side==='tails');
-            const sideLabel = document.getElementById('g-cf-side-label');
-            if (sideLabel) sideLabel.textContent = side.charAt(0).toUpperCase() + side.slice(1);
+        window.starclickerDebugAdd = function(amount) {
+            applyStarclickerIncome(amount);
+        };
+
+        window.starclickerDebugSupernova = function() {
+            const state = getStarclickerState();
+            state.supernovas += 1;
+            renderStarclicker();
+            saveStarclicker();
+        };
+
+        window.starclickerDebugMax = function() {
+            const state = getStarclickerState();
+            STARCLICKER_UPGRADES.forEach(upgrade => {
+                state.upgrades[upgrade.id] = Math.max(state.upgrades[upgrade.id] || 0, 25);
+            });
+            state.stars = Math.max(state.stars, 5000000);
+            state.lifetimeStars = Math.max(state.lifetimeStars, state.stars);
+            window.starclickerUpgradeSignature = '';
+            renderStarclicker();
+            saveStarclicker();
+        };
+
+        function initStarclicker() {
+            loadStarclicker();
+            const mainButton = document.getElementById('starclicker-main-button');
+            const resetButton = document.getElementById('starclicker-reset');
+            const prestigeButton = document.getElementById('starclicker-prestige');
+            const debugTrigger = document.getElementById('starclicker-debug-trigger');
+            const debugClose = document.getElementById('starclicker-debug-close');
+            if (mainButton && !mainButton.dataset.bound) {
+                mainButton.addEventListener('click', window.clickStarclicker);
+                mainButton.dataset.bound = 'true';
+            }
+            if (resetButton && !resetButton.dataset.bound) {
+                resetButton.addEventListener('click', window.resetStarclicker);
+                resetButton.dataset.bound = 'true';
+            }
+            if (prestigeButton && !prestigeButton.dataset.bound) {
+                prestigeButton.addEventListener('click', window.prestigeStarclicker);
+                prestigeButton.dataset.bound = 'true';
+            }
+            if (debugTrigger && !debugTrigger.dataset.bound) {
+                debugTrigger.addEventListener('click', () => {
+                    window.starclickerDebugClicks += 1;
+                    if (window.starclickerDebugClicks >= 7) {
+                        setStarclickerDebugOpen(true);
+                        window.starclickerDebugClicks = 0;
+                    }
+                    setTimeout(() => {
+                        window.starclickerDebugClicks = 0;
+                    }, 1800);
+                });
+                debugTrigger.dataset.bound = 'true';
+            }
+            if (debugClose && !debugClose.dataset.bound) {
+                debugClose.addEventListener('click', () => setStarclickerDebugOpen(false));
+                debugClose.dataset.bound = 'true';
+            }
+            if (!window.starclickerSecretListenerBound) {
+                document.addEventListener('keydown', (event) => {
+                    if (document.getElementById('content-starclicker')?.classList.contains('hidden')) return;
+                    if (event.key.length !== 1) return;
+                    window.starclickerSecretBuffer = (window.starclickerSecretBuffer + event.key.toLowerCase()).slice(-4);
+                    if (window.starclickerSecretBuffer === 'nova') {
+                        setStarclickerDebugOpen(true);
+                        window.starclickerSecretBuffer = '';
+                    }
+                });
+                window.starclickerSecretListenerBound = true;
+            }
+            if (!window.starclickerInterval) {
+                window.starclickerInterval = setInterval(() => {
+                    const state = getStarclickerState();
+                    const income = getStarclickerPerSecond(state) / 4;
+                    if (income > 0) {
+                        state.stars += income;
+                        state.lifetimeStars += income;
+                    }
+                    renderStarclicker();
+                    saveStarclicker();
+                }, 250);
+            }
+            renderStarclickerUpgrades(true);
+            renderStarclicker();
         }
 
-        function gFlipCoin() {
-            if (gCfFlipping) return;
-            if (!gCfSide) { gShowToast('Pick Heads or Tails first!'); return; }
-            const bet = parseInt(document.getElementById('g-cf-bet').value) || 100;
-            if (gBalance < bet) { gShowToast('Not enough balance!'); return; }
-            gBalance -= bet; gSave(); gRenderStats();
-            gCfFlipping = true;
-            document.getElementById('g-cf-result').textContent = 'Coin in the air...';
-            const coin = document.getElementById('g-coin');
-            coin.style.animation = 'none';
-            coin.style.transition = 'none';
-            void coin.offsetWidth;
-            coin.style.animation = 'gCoinFlip 1.1s ease-in-out forwards';
-            const outcome = Math.random() < 0.5 ? 'heads' : 'tails';
+        function initCasinoEmbed() {
+            const frame = document.getElementById('casino-iframe');
+            const status = document.getElementById('casino-status');
+            if (!frame || !status) return;
+
+            if (!frame.dataset.bound) {
+                frame.addEventListener('load', () => {
+                    status.textContent = 'Embed loaded';
+                });
+                frame.addEventListener('error', () => {
+                    status.textContent = 'Embed blocked - open in new tab';
+                });
+                frame.dataset.bound = 'true';
+            }
+
+            if (!frame.src) {
+                frame.src = 'https://csgo.mtsl.dk/#';
+            }
+
             setTimeout(() => {
-                coin.style.animation = 'none';
-                coin.textContent = outcome === 'heads' ? '🪙' : '🌑';
-                const won = outcome === gCfSide;
-                const resultEl = document.getElementById('g-cf-result');
-                if (won) {
-                    gBalance += bet * 2; gSave();
-                    gRecordOutcome('Coin Flip', 'Called it', bet, `${outcome.toUpperCase()} landed`);
-                    resultEl.textContent = outcome.toUpperCase() + ' - You won ' + gFmt(bet) + '!';
-                    resultEl.style.color = 'var(--accent)';
-                    gShowToast('Coin flip win! +' + gFmt(bet));
-                } else {
-                    gRecordOutcome('Coin Flip', 'Missed call', -bet, `${outcome.toUpperCase()} landed`);
-                    resultEl.textContent = outcome.toUpperCase() + ' - You lost ' + gFmt(bet);
-                    resultEl.style.color = 'rgba(255,255,255,0.4)';
+                if (status.textContent === 'Loading embed...') {
+                    status.textContent = 'If blank, use new tab';
                 }
-                gCfFlipping = false;
-                setTimeout(() => { coin.textContent = '🪙'; }, 2200);
-            }, 1200);
+            }, 3500);
         }
-
-        // coin flip animation keyframe (added inline since we can't use @keyframes in inline style)
-        (function() {
-            const s = document.createElement('style');
-            s.textContent = '@keyframes gCoinFlip { 0%{transform:rotateY(0)} 50%{transform:rotateY(900deg)} 100%{transform:rotateY(1800deg)} }';
-            document.head.appendChild(s);
-        })();
 
         function initialize() {
             loadTheme();
             initStars();
-            gInitCases();
-            gSwitchTab('cases');
-            gRenderStats();
+            initCasinoEmbed();
         }
 
         window.onload = initialize;
@@ -7563,10 +6693,10 @@
             // ── GOTO ──
             if (c === 'goto') {
                 const dest=args[0]?.toLowerCase();
-                const map={home:'content-home',gambling:'content-gambling',admin:'content-admin',chat:'content-chat',settings:'content-settings',account:'content-account',credits:'content-credits'};
+const map={home:'content-home',starclicker:'content-starclicker',casino:'content-starclicker',admin:'content-admin',chat:'content-chat',settings:'content-settings',account:'content-account',credits:'content-credits'};
                 const tabIdx=(window.tabMapping||[]).findIndex(t=>t.contentId===(map[dest]||`content-${dest}`));
                 if (tabIdx>=0) { window.switchTab(tabIdx); window.closeTerminal(); ok(`Navigated to ${dest}`); }
-                else err(`Unknown tab: ${dest}. Try: home, gambling, admin, chat, settings, account, credits`);
+else err(`Unknown tab: ${dest}. Try: home, casino, admin, chat, settings, account, credits`);
                 return;
             }
 
