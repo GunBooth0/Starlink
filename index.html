@@ -274,6 +274,11 @@
             border-radius: 999px;
             background: rgba(255,255,255,0.24);
         }
+        .casino-toolbar-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
         .casino-embed {
             width: 100%;
             height: min(76vh, 980px);
@@ -444,44 +449,40 @@
                                     Embedded Casino
                                 </div>
                                 <h2 class="logo-font text-5xl md:text-6xl font-bold tracking-tight mt-5 mb-4">Casino</h2>
-                                <p class="text-white/65 text-lg max-w-3xl">This tab now loads the external casino site directly inside Starlink. If the site blocks embedding in your browser, use the launch button to open it in a new tab.</p>
+                                <p class="text-white/65 text-lg max-w-3xl">This tab now loads your replacement site inside Starlink, with fullscreen support built into the embedded view.</p>
                             </div>
-                            <a href="https://csgo.mtsl.dk/#" target="_blank" rel="noopener noreferrer" class="auth-btn mt-0" style="width:auto;padding:1rem 1.4rem;">
-                                <i class="fa-solid fa-arrow-up-right-from-square mr-2"></i> Open Casino Site
-                            </a>
                         </div>
 
-                        <div class="casino-frame-shell">
+                        <div id="casino-frame-shell" class="casino-frame-shell">
                             <div class="casino-frame-toolbar">
                                 <div class="casino-dots" aria-hidden="true">
                                     <span></span>
                                     <span></span>
                                     <span></span>
                                 </div>
-                                <div class="text-sm text-white/55 truncate">https://csgo.mtsl.dk/#</div>
-                                <div id="casino-status" class="text-sm text-white/45">Loading embed...</div>
+                                <div class="text-sm text-white/55 truncate">https://webfuse.com/s13ZlerAzuhRpCZFvSmnt7m3A</div>
+                                <div class="casino-toolbar-actions">
+                                    <div id="casino-status" class="text-sm text-white/45">Loading casino...</div>
+                                    <button type="button" onclick="toggleCasinoFullscreen()" class="github-style-btn" style="width:auto;margin:0;padding:0.7rem 0.95rem;font-size:0.85rem;">
+                                        <i class="fa-solid fa-expand mr-2"></i> Fullscreen
+                                    </button>
+                                </div>
                             </div>
                             <iframe
                                 id="casino-iframe"
                                 class="casino-embed"
                                 title="Casino"
-                                src="https://csgo.mtsl.dk/#"
+                                src="https://webfuse.com/s13ZlerAzuhRpCZFvSmnt7m3A"
                                 loading="lazy"
                                 referrerpolicy="no-referrer"
+                                allow="fullscreen"
                                 allowfullscreen
                             ></iframe>
                         </div>
 
                         <div class="casino-note mt-5 p-5">
-                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                <div>
-                                    <div class="text-xs uppercase tracking-[0.24em] text-white/40 mb-2">If the embed looks blank</div>
-                                    <p class="text-white/60 text-sm leading-relaxed">Some external sites block being shown inside another website. If that happens here, the direct-open button above will still take you to the same casino page.</p>
-                                </div>
-                                <a href="https://csgo.mtsl.dk/#" target="_blank" rel="noopener noreferrer" class="github-style-btn" style="width:auto;margin:0;padding:0.95rem 1.2rem;">
-                                    Try New Tab Instead
-                                </a>
-                            </div>
+                            <div class="text-xs uppercase tracking-[0.24em] text-white/40 mb-2">Embed note</div>
+                            <p class="text-white/60 text-sm leading-relaxed">This tab no longer exposes direct launch buttons. If the frame appears blank, that means the remote site is blocking frame access and the embed source itself will need to be changed.</p>
                         </div>
                     </div>
                 </div>
@@ -5649,24 +5650,41 @@
 
             if (!frame.dataset.bound) {
                 frame.addEventListener('load', () => {
-                    status.textContent = 'Embed loaded';
+                    status.textContent = 'Casino loaded';
                 });
                 frame.addEventListener('error', () => {
-                    status.textContent = 'Embed blocked - open in new tab';
+                    status.textContent = 'Embed blocked';
                 });
                 frame.dataset.bound = 'true';
             }
 
             if (!frame.src) {
-                frame.src = 'https://csgo.mtsl.dk/#';
+                frame.src = 'https://webfuse.com/s13ZlerAzuhRpCZFvSmnt7m3A';
             }
 
             setTimeout(() => {
-                if (status.textContent === 'Loading embed...') {
-                    status.textContent = 'If blank, use new tab';
+                if (status.textContent === 'Loading casino...') {
+                    status.textContent = 'If blank, frame is blocked';
                 }
             }, 3500);
         }
+
+        window.toggleCasinoFullscreen = async function() {
+            const shell = document.getElementById('casino-frame-shell');
+            const status = document.getElementById('casino-status');
+            if (!shell) return;
+            try {
+                if (document.fullscreenElement === shell) {
+                    await document.exitFullscreen();
+                    if (status) status.textContent = 'Exited fullscreen';
+                } else {
+                    await shell.requestFullscreen();
+                    if (status) status.textContent = 'Fullscreen enabled';
+                }
+            } catch (_) {
+                if (status) status.textContent = 'Fullscreen unavailable';
+            }
+        };
 
         function initialize() {
             loadTheme();
