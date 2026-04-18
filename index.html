@@ -215,88 +215,6 @@
             background: rgba(255,255,255,0.15);
             margin: 1.25rem 0;
         }
-        .casino-panel {
-            position: relative;
-            overflow: hidden;
-            background:
-                radial-gradient(circle at top left, rgba(255,255,255,0.12), transparent 30%),
-                radial-gradient(circle at top right, rgba(255,255,255,0.08), transparent 24%),
-                linear-gradient(180deg, rgba(8,8,12,0.98), rgba(8,8,12,0.94));
-            border: 1px solid rgba(255,255,255,0.12);
-            box-shadow: 0 24px 80px rgba(0,0,0,0.35);
-        }
-        .casino-hero {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            margin-bottom: 1.5rem;
-        }
-        .casino-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.6rem;
-            padding: 0.55rem 0.9rem;
-            border-radius: 999px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.05);
-            color: rgba(255,255,255,0.72);
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-        }
-        .casino-frame-shell {
-            border-radius: 1.75rem;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(0,0,0,0.42);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
-        }
-        .casino-frame-toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            padding: 0.9rem 1.1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-            background: rgba(255,255,255,0.04);
-        }
-        .casino-dots {
-            display: inline-flex;
-            gap: 0.45rem;
-            align-items: center;
-        }
-        .casino-dots span {
-            width: 0.7rem;
-            height: 0.7rem;
-            border-radius: 999px;
-            background: rgba(255,255,255,0.24);
-        }
-        .casino-toolbar-actions {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.7rem;
-        }
-        .casino-embed {
-            width: 100%;
-            height: min(76vh, 980px);
-            min-height: 620px;
-            border: 0;
-            background: #000;
-        }
-        .casino-note {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 1.25rem;
-        }
-        @media (max-width: 768px) {
-            .casino-embed {
-                min-height: 520px;
-                height: 72vh;
-            }
-        }
     </style>
 </head>
 <body>
@@ -437,57 +355,6 @@
                     <div class="mt-8 text-white/50 text-lg">By: Gunnar Booth</div>
                 </div>
             </div>
-
-            <!-- CASINO -->
-            <div id="content-starclicker" class="tab-content hidden">
-                <div class="max-w-7xl mx-auto py-8">
-                    <div class="casino-panel rounded-[2rem] p-6 md:p-8">
-                        <div class="casino-hero">
-                            <div>
-                                <div class="casino-pill">
-                                    <i class="fa-solid fa-landmark"></i>
-                                    Embedded Casino
-                                </div>
-                                <h2 class="logo-font text-5xl md:text-6xl font-bold tracking-tight mt-5 mb-4">Casino</h2>
-                                <p class="text-white/65 text-lg max-w-3xl">This tab now loads your replacement site inside Starlink, with fullscreen support built into the embedded view.</p>
-                            </div>
-                        </div>
-
-                        <div id="casino-frame-shell" class="casino-frame-shell">
-                            <div class="casino-frame-toolbar">
-                                <div class="casino-dots" aria-hidden="true">
-                                    <span></span>
-                                    <span></span>
-                                    <span></span>
-                                </div>
-                                <div class="text-sm text-white/55 truncate">https://webfuse.com/s13ZlerAzuhRpCZFvSmnt7m3A</div>
-                                <div class="casino-toolbar-actions">
-                                    <div id="casino-status" class="text-sm text-white/45">Loading casino...</div>
-                                    <button type="button" onclick="toggleCasinoFullscreen()" class="github-style-btn" style="width:auto;margin:0;padding:0.7rem 0.95rem;font-size:0.85rem;">
-                                        <i class="fa-solid fa-expand mr-2"></i> Fullscreen
-                                    </button>
-                                </div>
-                            </div>
-                            <iframe
-                                id="casino-iframe"
-                                class="casino-embed"
-                                title="Casino"
-                                src="https://webfuse.com/s13ZlerAzuhRpCZFvSmnt7m3A"
-                                loading="lazy"
-                                referrerpolicy="no-referrer"
-                                allow="fullscreen"
-                                allowfullscreen
-                            ></iframe>
-                        </div>
-
-                        <div class="casino-note mt-5 p-5">
-                            <div class="text-xs uppercase tracking-[0.24em] text-white/40 mb-2">Embed note</div>
-                            <p class="text-white/60 text-sm leading-relaxed">This tab no longer exposes direct launch buttons. If the frame appears blank, that means the remote site is blocking frame access and the embed source itself will need to be changed.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
 
             <!-- REQUEST ADMIN TAB -->
             <div id="content-request-admin" class="tab-content hidden">
@@ -3596,7 +3463,6 @@
 
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(mapping.contentId)?.classList.remove('hidden');
-            if (mapping.contentId === 'content-starclicker') initCasinoEmbed();
             if (mapping.contentId === 'content-request-admin') window.checkExistingAdminRequest();
             if (mapping.contentId === 'content-request-verify') window.checkExistingVerifyRequest();
             if (mapping.contentId === 'content-chat') { window.openGlobalChat(); window.startTypingListener(); window.loadFriendsList(); if (window.currentUser && window.currentDisplayName) window.registerUsername(window.currentUser.uid, window.currentDisplayName); }
@@ -5196,14 +5062,6 @@
             window.tabMapping.push({contentId: 'content-home', title: 'Home', icon: 'fa-house'});
             idx++;
 
-            html += `
-                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-landmark w-5"></i> <span>Casino</span>
-                </div>
-            `;
-            window.tabMapping.push({contentId: 'content-starclicker', title: 'Casino', icon: 'fa-landmark'});
-            idx++;
-
             (window.allCategories || []).forEach(cat => {
                 html += `
                     <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
@@ -5643,53 +5501,9 @@
             renderStarclicker();
         }
 
-        function initCasinoEmbed() {
-            const frame = document.getElementById('casino-iframe');
-            const status = document.getElementById('casino-status');
-            if (!frame || !status) return;
-
-            if (!frame.dataset.bound) {
-                frame.addEventListener('load', () => {
-                    status.textContent = 'Casino loaded';
-                });
-                frame.addEventListener('error', () => {
-                    status.textContent = 'Embed blocked';
-                });
-                frame.dataset.bound = 'true';
-            }
-
-            if (!frame.src) {
-                frame.src = 'https://webfuse.com/s13ZlerAzuhRpCZFvSmnt7m3A';
-            }
-
-            setTimeout(() => {
-                if (status.textContent === 'Loading casino...') {
-                    status.textContent = 'If blank, frame is blocked';
-                }
-            }, 3500);
-        }
-
-        window.toggleCasinoFullscreen = async function() {
-            const shell = document.getElementById('casino-frame-shell');
-            const status = document.getElementById('casino-status');
-            if (!shell) return;
-            try {
-                if (document.fullscreenElement === shell) {
-                    await document.exitFullscreen();
-                    if (status) status.textContent = 'Exited fullscreen';
-                } else {
-                    await shell.requestFullscreen();
-                    if (status) status.textContent = 'Fullscreen enabled';
-                }
-            } catch (_) {
-                if (status) status.textContent = 'Fullscreen unavailable';
-            }
-        };
-
         function initialize() {
             loadTheme();
             initStars();
-            initCasinoEmbed();
         }
 
         window.onload = initialize;
@@ -6711,10 +6525,10 @@
             // ── GOTO ──
             if (c === 'goto') {
                 const dest=args[0]?.toLowerCase();
-const map={home:'content-home',starclicker:'content-starclicker',casino:'content-starclicker',admin:'content-admin',chat:'content-chat',settings:'content-settings',account:'content-account',credits:'content-credits'};
+const map={home:'content-home',admin:'content-admin',chat:'content-chat',settings:'content-settings',account:'content-account',credits:'content-credits'};
                 const tabIdx=(window.tabMapping||[]).findIndex(t=>t.contentId===(map[dest]||`content-${dest}`));
                 if (tabIdx>=0) { window.switchTab(tabIdx); window.closeTerminal(); ok(`Navigated to ${dest}`); }
-else err(`Unknown tab: ${dest}. Try: home, casino, admin, chat, settings, account, credits`);
+else err(`Unknown tab: ${dest}. Try: home, admin, chat, settings, account, credits`);
                 return;
             }
 
