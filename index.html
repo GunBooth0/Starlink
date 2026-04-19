@@ -2813,6 +2813,11 @@
             friendRequestsListener = onSnapshot(collection(db, "friendRequests", me.uid, "incoming"), (snap) => {
                 const container = document.getElementById('friend-requests-list');
                 if (!container) return;
+
+                // Update friend request badge on Messages nav
+                window._friendRequestUnread = snap.size || 0;
+                window._updateMessagesBadge();
+
                 if (snap.empty) { container.classList.add('hidden'); return; }
                 container.classList.remove('hidden');
                 container.innerHTML = `<div class="text-xs text-white/50 mb-2 font-semibold">Friend Requests</div>` +
@@ -7376,6 +7381,7 @@ else err(`Unknown tab: ${dest}. Try: home, admin, chat, settings, account, credi
         // ── Unread DM Notification System ──
         window._unreadCounts = {};       // { friendUid: count }
         window._globalUnread = 0;            // global chat unread count
+        window._friendRequestUnread = 0;     // pending friend requests
         window._unreadListeners = {};    // { friendUid: unsubscribe fn }
         window._lastReadAt = {};         // { friendUid: Date }
 
@@ -7384,7 +7390,7 @@ else err(`Unknown tab: ${dest}. Try: home, admin, chat, settings, account, credi
             const badge = document.getElementById('messages-nav-badge');
             if (!badge) return;
             const dmTotal = Object.values(window._unreadCounts).reduce((a, b) => a + b, 0);
-            const total = dmTotal + (window._globalUnread || 0);
+            const total = dmTotal + (window._globalUnread || 0) + (window._friendRequestUnread || 0);
             if (total > 0) {
                 badge.textContent = total > 99 ? '99+' : total;
                 badge.classList.remove('hidden');
