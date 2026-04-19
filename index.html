@@ -1303,7 +1303,6 @@
                     const _pName = window.currentDisplayName || user.email.split('@')[0];
                     window.startPresence(user.uid, _pName, _pRole);
                     window.loadFriendsList(); // Start friend/request listeners immediately on login
-                    window.requestNotificationPermission();
                     document.getElementById('search-wrapper').classList.remove('hidden');
                     document.getElementById('search-wrapper').classList.add('flex');
                     window.switchTab(window.isAdminUser ? 1 : 0);
@@ -2639,6 +2638,22 @@
                     messagesEl.appendChild(div);
                 });
                 messagesEl.scrollTop = messagesEl.scrollHeight;
+
+                // Track unread global chat messages when Messages tab is not open
+                const isMsgTabOpen = (() => {
+                    const mapping = (window.tabMapping || []).find(m => m.contentId === 'content-chat');
+                    if (!mapping) return false;
+                    const chatTabIdx = (window.tabMapping || []).indexOf(mapping);
+                    const activeTab = document.querySelector('.nav-link.active-tab');
+                    return activeTab && activeTab.id === `tab-${chatTabIdx}`;
+                })();
+                if (!isMsgTabOpen) {
+                    const newGlobal = snap.docChanges().filter(c => c.type === 'added' && c.doc.data().uid !== auth.currentUser?.uid);
+                    if (newGlobal.length > 0) {
+                        window._globalUnread = (window._globalUnread || 0) + newGlobal.length;
+                        window._updateMessagesBadge();
+                    }
+                }
             });
         };
 
@@ -3534,18 +3549,23 @@
             const actingEmail = auth.currentUser?.email || window.currentUser?.email;
             if (actingEmail !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
             try {
+                // 1. Update the user document
                 await setDoc(doc(db, "users", uid), { verified: grant }, { merge: true });
-                // Update past chat messages
+            } catch(e) { alert('Error updating user: ' + e.message); return; }
+            try {
+                // 2. Update past global chat messages
                 const chatSnap = await getDocs(query(collection(db, "chat"), where("uid", "==", uid)));
                 await Promise.all(chatSnap.docs.map(d => setDoc(doc(db, "chat", d.id), { verified: grant }, { merge: true })));
-                // Update past DMs
+            } catch(_) { /* best-effort, skip if rules block */ }
+            try {
+                // 3. Update past DMs — collectionGroup may be blocked by rules, skip gracefully
                 const dmSnap = await getDocs(collectionGroup(db, "messages"));
                 await Promise.all(dmSnap.docs.filter(d => d.data().uid === uid).map(d => setDoc(d.ref, { verified: grant }, { merge: true })));
-                window.loadAdminUsers();
-                if (!silent) {
-                    alert(grant ? 'Verified badge granted ✓' : 'Verified badge revoked.');
-                }
-            } catch(e) { alert('Error: ' + e.message); }
+            } catch(_) { /* silently skip if Firestore rules block collectionGroup */ }
+            window.loadAdminUsers();
+            if (!silent) {
+                alert(grant ? 'Verified badge granted ✓' : 'Verified badge revoked.');
+            }
         };
 
         window.submitVerifyRequest = async () => {
@@ -3642,13 +3662,14 @@
 
         window.approveVerify = async (reqId, uid) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can do this.');
+            // setVerified handles its own errors internally now
+            await window.setVerified(uid, true, true);
             try {
-                await window.setVerified(uid, true, true);
                 await deleteDoc(doc(db, "verifyRequests", reqId));
-                const row = document.getElementById('vreq-row-' + reqId);
-                if (row) { row.style.opacity = '0'; row.style.transition = 'opacity 0.3s'; setTimeout(() => row.remove(), 300); }
-                window.loadVerifyRequests();
-            } catch(e) { alert('Error: ' + e.message); }
+            } catch(e) { console.warn('Could not delete verify request doc:', e.message); }
+            const row = document.getElementById('vreq-row-' + reqId);
+            if (row) { row.style.opacity = '0'; row.style.transition = 'opacity 0.3s'; setTimeout(() => row.remove(), 300); }
+            window.loadVerifyRequests();
         };
 
         window.denyVerify = async (reqId) => {
@@ -5387,10 +5408,10 @@
 
             html += `
                 <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-message w-5"></i> <span>Messages</span><span id="messages-nav-badge" class="hidden ml-auto min-w-[1.35rem] h-[1.35rem] flex items-center justify-center rounded-full text-xs font-bold text-black" style="background:var(--accent);line-height:1;padding:0 0.3rem;"></span>
+                    <i class="fa-solid fa-comments w-5"></i> <span>Messages</span><span id="messages-nav-badge" class="hidden ml-auto min-w-[1.35rem] h-[1.35rem] flex items-center justify-center rounded-full text-xs font-bold text-black" style="background:var(--accent);line-height:1;padding:0 0.3rem;"></span>
                 </div>
             `;
-            window.tabMapping.push({contentId: 'content-chat', title: 'Messages', icon: 'fa-message'});
+            window.tabMapping.push({contentId: 'content-chat', title: 'Messages', icon: 'fa-comments'});
             idx++;
 
             html += `
@@ -7354,14 +7375,16 @@ else err(`Unknown tab: ${dest}. Try: home, admin, chat, settings, account, credi
 
         // ── Unread DM Notification System ──
         window._unreadCounts = {};       // { friendUid: count }
+        window._globalUnread = 0;            // global chat unread count
         window._unreadListeners = {};    // { friendUid: unsubscribe fn }
         window._lastReadAt = {};         // { friendUid: Date }
 
-        // Update the nav badge with total unread count
+        // Update the nav badge with total unread count (DMs + global chat)
         window._updateMessagesBadge = function() {
             const badge = document.getElementById('messages-nav-badge');
             if (!badge) return;
-            const total = Object.values(window._unreadCounts).reduce((a, b) => a + b, 0);
+            const dmTotal = Object.values(window._unreadCounts).reduce((a, b) => a + b, 0);
+            const total = dmTotal + (window._globalUnread || 0);
             if (total > 0) {
                 badge.textContent = total > 99 ? '99+' : total;
                 badge.classList.remove('hidden');
@@ -7385,6 +7408,8 @@ else err(`Unknown tab: ${dest}. Try: home, admin, chat, settings, account, credi
         // Clear all unread (called when Messages tab opens)
         window.clearAllUnread = function() {
             Object.keys(window._unreadCounts).forEach(uid => window.markDMRead(uid));
+            window._globalUnread = 0;
+            window._updateMessagesBadge();
         };
 
         // Start watching a DM conversation for new messages (called after friends list loads)
@@ -7439,17 +7464,6 @@ else err(`Unknown tab: ${dest}. Try: home, admin, chat, settings, account, credi
                         }
                     }
 
-                    // Show browser notification if tab is hidden
-                    if (!isChatTabOpen && snap.docChanges().some(c => c.type === 'added' && c.doc.data().uid !== me.uid)) {
-                        const lastMsg = snap.docs[snap.docs.length - 1]?.data();
-                        if (lastMsg && Notification.permission === 'granted') {
-                            new Notification(`New message from ${lastMsg.displayName || 'someone'}`, {
-                                body: lastMsg.text?.slice(0, 80) || '',
-                                icon: 'icon-192.png',
-                                tag: `dm-${friendUid}`
-                            });
-                        }
-                    }
                 });
             } catch(e) {
                 console.warn('DM unread watch error:', e);
@@ -7466,12 +7480,6 @@ else err(`Unknown tab: ${dest}. Try: home, admin, chat, settings, account, credi
             window._updateMessagesBadge();
         };
 
-        // Request browser notification permission once user is signed in
-        window.requestNotificationPermission = function() {
-            if ('Notification' in window && Notification.permission === 'default') {
-                Notification.requestPermission();
-            }
-        };
 
         // ── Mobile sidebar ──
         window.openSidebar = function() {
