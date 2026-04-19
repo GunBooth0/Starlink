@@ -2856,6 +2856,7 @@
                         <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${isOnline?'#4ade80':'rgba(255,255,255,0.2)'}"></span>
                         <span class="truncate text-white/80">${f.displayName}</span>
                         <span id="friend-badge-${d.id}" style="display:none;margin-left:auto;min-width:1.25rem;height:1.25rem;background:var(--accent);color:#000;border-radius:999px;font-size:0.7rem;font-weight:700;align-items:center;justify-content:center;padding:0 0.3rem;line-height:1;flex-shrink:0;"></span>
+                        <button onclick="window.startCall('${d.id}','${f.displayName.replace(/'/g,"\'")}');event.stopPropagation();" style="width:auto;padding:0.2rem 0.45rem;margin:0;font-size:0.65rem;border-radius:0.4rem;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#4ade80;flex-shrink:0;" title="FaceTime"><i class="fa-solid fa-video"></i></button>
                         <button onclick="window.removeFriend('${d.id}');event.stopPropagation();" style="width:auto;padding:0.1rem 0.35rem;margin:0;font-size:0.6rem;border-radius:0.4rem;background:rgba(255,0,0,0.15);border:1px solid rgba(255,0,0,0.25);color:#f87171;opacity:0.6;" title="Remove friend">✗</button>
                     </button>`;
                 }).join('');
@@ -7504,6 +7505,416 @@ else err(`Unknown tab: ${dest}. Try: home, admin, chat, settings, account, credi
         });
 
     })();
+    </script>
+
+    <!-- ══════════════════════════════════════════════
+         INCOMING CALL OVERLAY
+    ══════════════════════════════════════════════ -->
+    <div id="incoming-call-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);align-items:center;justify-content:center;">
+        <div style="background:rgba(20,20,30,0.95);border:1px solid rgba(255,255,255,0.15);border-radius:2rem;padding:3rem 2.5rem;text-align:center;max-width:340px;width:90%;box-shadow:0 0 60px rgba(255,255,255,0.08);">
+            <div style="width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2rem;">📹</div>
+            <p style="font-size:0.85rem;color:rgba(255,255,255,0.5);margin-bottom:0.4rem;letter-spacing:0.05em;">INCOMING FACETIME</p>
+            <h2 id="incoming-call-name" style="font-size:1.8rem;font-weight:700;margin-bottom:2rem;font-family:'Space Grotesk',sans-serif;"></h2>
+            <div style="display:flex;gap:1.5rem;justify-content:center;">
+                <button onclick="window.acceptCall()" style="width:64px;height:64px;border-radius:50%;background:#22c55e;border:none;cursor:pointer;font-size:1.4rem;margin:0;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(34,197,94,0.4);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">📞</button>
+                <button onclick="window.declineCall()" style="width:64px;height:64px;border-radius:50%;background:#ef4444;border:none;cursor:pointer;font-size:1.4rem;margin:0;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(239,68,68,0.4);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">📵</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         ACTIVE CALL MODAL
+    ══════════════════════════════════════════════ -->
+    <div id="call-modal" style="display:none;position:fixed;inset:0;z-index:99998;background:#000;flex-direction:column;">
+        <!-- Videos -->
+        <div style="flex:1;position:relative;display:flex;align-items:center;justify-content:center;background:#0a0a0a;">
+            <!-- Remote video (full screen) -->
+            <video id="remote-video" autoplay playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+            <!-- Local video (picture-in-picture) -->
+            <video id="local-video" autoplay playsinline muted style="position:absolute;bottom:1.5rem;right:1.5rem;width:140px;height:100px;object-fit:cover;border-radius:1rem;border:2px solid rgba(255,255,255,0.3);cursor:move;box-shadow:0 4px 20px rgba(0,0,0,0.5);z-index:10;"></video>
+            <!-- Waiting indicator -->
+            <div id="call-waiting" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;">
+                <div style="font-size:4rem;margin-bottom:1rem;animation:pulse 2s infinite;">📹</div>
+                <p id="call-waiting-text" style="font-size:1.2rem;color:rgba(255,255,255,0.7);">Connecting...</p>
+            </div>
+        </div>
+        <!-- Controls bar -->
+        <div style="background:rgba(10,10,10,0.95);border-top:1px solid rgba(255,255,255,0.08);padding:1.25rem 2rem;display:flex;align-items:center;justify-content:center;gap:1.5rem;">
+            <span id="call-peer-name" style="position:absolute;left:2rem;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:1.1rem;color:rgba(255,255,255,0.8);"></span>
+            <span id="call-timer" style="position:absolute;left:50%;transform:translateX(-50%);font-size:0.85rem;color:rgba(255,255,255,0.4);font-variant-numeric:tabular-nums;"></span>
+            <!-- Mute -->
+            <button id="btn-mute" onclick="window.toggleMute()" title="Mute" style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;font-size:1.2rem;cursor:pointer;margin:0;padding:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;">🎙️</button>
+            <!-- Camera -->
+            <button id="btn-cam" onclick="window.toggleCamera()" title="Camera" style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;font-size:1.2rem;cursor:pointer;margin:0;padding:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;">📷</button>
+            <!-- End call -->
+            <button onclick="window.endCall()" style="width:60px;height:60px;border-radius:50%;background:#ef4444;border:none;color:white;font-size:1.4rem;cursor:pointer;margin:0;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(239,68,68,0.5);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">📵</button>
+        </div>
+    </div>
+
+    <script type="module">
+    // ══════════════════════════════════════════════
+    //  WEBRTC FACETIME — Firestore signaling
+    // ══════════════════════════════════════════════
+    import { getFirestore, doc, setDoc, getDoc, deleteDoc, onSnapshot, collection, addDoc, getDocs, serverTimestamp }
+        from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+    const db   = window.db;
+    const myUid = () => window.currentUser?.uid;
+
+    // Free TURN servers (Open Relay)
+    const ICE_SERVERS = [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        {
+            urls:       'turn:openrelay.metered.ca:80',
+            username:   'openrelayproject',
+            credential: 'openrelayproject'
+        },
+        {
+            urls:       'turn:openrelay.metered.ca:443',
+            username:   'openrelayproject',
+            credential: 'openrelayproject'
+        },
+        {
+            urls:       'turns:openrelay.metered.ca:443',
+            username:   'openrelayproject',
+            credential: 'openrelayproject'
+        }
+    ];
+
+    let pc            = null;   // RTCPeerConnection
+    let localStream   = null;
+    let callDocId     = null;   // Firestore call doc ID
+    let callRole      = null;   // 'caller' | 'callee'
+    let iceSub        = null;   // unsubscribe ICE listener
+    let callSub       = null;   // unsubscribe call doc listener
+    let incomingSub   = null;   // unsubscribe incoming call listener
+    let callStartTime = null;
+    let timerInterval = null;
+    let mutedAudio    = false;
+    let mutedVideo    = false;
+
+    // ── Helpers ──────────────────────────────────
+
+    function callDocRef(id)            { return doc(db, 'calls', id); }
+    function callerIceRef(id)          { return collection(db, 'calls', id, 'callerIce'); }
+    function calleeIceRef(id)          { return collection(db, 'calls', id, 'calleeIce'); }
+
+    function showCallModal()  { document.getElementById('call-modal').style.display = 'flex'; }
+    function hideCallModal()  { document.getElementById('call-modal').style.display = 'none'; }
+    function showIncoming()   { document.getElementById('incoming-call-overlay').style.display = 'flex'; }
+    function hideIncoming()   { document.getElementById('incoming-call-overlay').style.display = 'none'; }
+
+    function setWaiting(text) {
+        const w = document.getElementById('call-waiting');
+        const t = document.getElementById('call-waiting-text');
+        if (w) w.style.display = text ? 'flex' : 'none';
+        if (t) t.textContent = text || '';
+    }
+
+    function startTimer() {
+        callStartTime = Date.now();
+        const el = document.getElementById('call-timer');
+        timerInterval = setInterval(() => {
+            const s = Math.floor((Date.now() - callStartTime) / 1000);
+            const m = Math.floor(s / 60).toString().padStart(2,'0');
+            const ss = (s % 60).toString().padStart(2,'0');
+            if (el) el.textContent = `${m}:${ss}`;
+        }, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        const el = document.getElementById('call-timer');
+        if (el) el.textContent = '';
+    }
+
+    // ── Get local camera+mic ─────────────────────
+
+    async function getLocalStream() {
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        } catch(e) {
+            // Try audio only if camera fails
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+            } catch(e2) {
+                alert('Could not access camera/microphone: ' + e2.message);
+                return false;
+            }
+        }
+        const lv = document.getElementById('local-video');
+        if (lv) lv.srcObject = localStream;
+        return true;
+    }
+
+    // ── Create RTCPeerConnection ─────────────────
+
+    function createPC() {
+        pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+
+        // Send local ICE candidates to Firestore
+        pc.onicecandidate = async (e) => {
+            if (!e.candidate || !callDocId) return;
+            const ref = callRole === 'caller' ? callerIceRef(callDocId) : calleeIceRef(callDocId);
+            await addDoc(ref, e.candidate.toJSON()).catch(() => {});
+        };
+
+        // Show remote stream when it arrives
+        pc.ontrack = (e) => {
+            const rv = document.getElementById('remote-video');
+            if (rv && e.streams[0]) {
+                rv.srcObject = e.streams[0];
+                setWaiting(null);
+                startTimer();
+            }
+        };
+
+        pc.onconnectionstatechange = () => {
+            if (pc && (pc.connectionState === 'disconnected' || pc.connectionState === 'failed')) {
+                window.endCall();
+            }
+        };
+
+        // Add local tracks
+        if (localStream) {
+            localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
+        }
+    }
+
+    // ── Start call (caller side) ─────────────────
+
+    window.startCall = async (friendUid, friendName) => {
+        if (!myUid()) return alert('Sign in to make calls.');
+        if (pc) return alert('You are already in a call.');
+
+        const ok = await getLocalStream();
+        if (!ok) return;
+
+        createPC();
+        callRole = 'caller';
+
+        // Create call doc in Firestore
+        const callRef = doc(collection(db, 'calls'));
+        callDocId = callRef.id;
+
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        await setDoc(callRef, {
+            callerId:     myUid(),
+            callerName:   window.currentDisplayName || 'Someone',
+            calleeId:     friendUid,
+            calleeName:   friendName,
+            offer:        { type: offer.type, sdp: offer.sdp },
+            status:       'ringing',
+            createdAt:    serverTimestamp()
+        });
+
+        // Show call modal while waiting
+        document.getElementById('call-peer-name').textContent = `📹 ${friendName}`;
+        setWaiting(`Calling ${friendName}...`);
+        showCallModal();
+
+        // Listen for answer from callee
+        callSub = onSnapshot(callRef, async (snap) => {
+            if (!snap.exists()) { window.endCall(); return; }
+            const data = snap.data();
+            if (data.status === 'declined') {
+                alert(`${friendName} declined the call.`);
+                window.endCall();
+                return;
+            }
+            if (data.answer && pc.signalingState !== 'stable') {
+                await pc.setRemoteDescription(new RTCSessionDescription(data.answer)).catch(() => {});
+            }
+        });
+
+        // Listen for callee ICE candidates
+        iceSub = onSnapshot(calleeIceRef(callDocId), (snap) => {
+            snap.docChanges().forEach(change => {
+                if (change.type === 'added') {
+                    pc?.addIceCandidate(new RTCIceCandidate(change.doc.data())).catch(() => {});
+                }
+            });
+        });
+    };
+
+    // ── Accept incoming call (callee side) ───────
+
+    window.acceptCall = async () => {
+        hideIncoming();
+        if (!window._incomingCallData) return;
+        const { callId, callerName } = window._incomingCallData;
+        callDocId = callId;
+        callRole  = 'callee';
+
+        const ok = await getLocalStream();
+        if (!ok) return;
+
+        createPC();
+
+        const callRef = callDocRef(callId);
+        const snap = await getDoc(callRef);
+        if (!snap.exists()) return;
+
+        const offer = snap.data().offer;
+        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        await setDoc(callRef, { answer: { type: answer.type, sdp: answer.sdp }, status: 'active' }, { merge: true });
+
+        // Listen for caller ICE candidates
+        iceSub = onSnapshot(callerIceRef(callId), (snap) => {
+            snap.docChanges().forEach(change => {
+                if (change.type === 'added') {
+                    pc?.addIceCandidate(new RTCIceCandidate(change.doc.data())).catch(() => {});
+                }
+            });
+        });
+
+        // Watch for call end
+        callSub = onSnapshot(callRef, (snap) => {
+            if (!snap.exists() || snap.data().status === 'ended') window.endCall();
+        });
+
+        document.getElementById('call-peer-name').textContent = `📹 ${callerName}`;
+        setWaiting('Connecting...');
+        showCallModal();
+    };
+
+    // ── Decline incoming call ────────────────────
+
+    window.declineCall = async () => {
+        hideIncoming();
+        if (window._incomingCallData?.callId) {
+            await setDoc(callDocRef(window._incomingCallData.callId), { status: 'declined' }, { merge: true }).catch(() => {});
+        }
+        window._incomingCallData = null;
+    };
+
+    // ── End call ────────────────────────────────
+
+    window.endCall = async () => {
+        if (callSub) { callSub(); callSub = null; }
+        if (iceSub)  { iceSub();  iceSub  = null; }
+        stopTimer();
+
+        if (pc) { pc.close(); pc = null; }
+
+        if (localStream) {
+            localStream.getTracks().forEach(t => t.stop());
+            localStream = null;
+        }
+
+        const lv = document.getElementById('local-video');
+        const rv = document.getElementById('remote-video');
+        if (lv) lv.srcObject = null;
+        if (rv) rv.srcObject = null;
+
+        if (callDocId) {
+            await setDoc(callDocRef(callDocId), { status: 'ended' }, { merge: true }).catch(() => {});
+            // Clean up ICE sub-collections
+            try {
+                const cIce = await getDocs(callerIceRef(callDocId));
+                const eIce = await getDocs(calleeIceRef(callDocId));
+                await Promise.all([...cIce.docs, ...eIce.docs].map(d => deleteDoc(d.ref)));
+                await deleteDoc(callDocRef(callDocId));
+            } catch(_) {}
+            callDocId = null;
+        }
+
+        callRole = null;
+        mutedAudio = false;
+        mutedVideo = false;
+        document.getElementById('btn-mute').textContent = '🎙️';
+        document.getElementById('btn-cam').textContent  = '📷';
+
+        hideCallModal();
+        hideIncoming();
+        window._incomingCallData = null;
+    };
+
+    // ── Toggle mute / camera ─────────────────────
+
+    window.toggleMute = () => {
+        if (!localStream) return;
+        mutedAudio = !mutedAudio;
+        localStream.getAudioTracks().forEach(t => t.enabled = !mutedAudio);
+        document.getElementById('btn-mute').textContent = mutedAudio ? '🔇' : '🎙️';
+        document.getElementById('btn-mute').style.background = mutedAudio ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.1)';
+    };
+
+    window.toggleCamera = () => {
+        if (!localStream) return;
+        mutedVideo = !mutedVideo;
+        localStream.getVideoTracks().forEach(t => t.enabled = !mutedVideo);
+        document.getElementById('btn-cam').textContent = mutedVideo ? '🚫' : '📷';
+        document.getElementById('btn-cam').style.background = mutedVideo ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.1)';
+    };
+
+    // ── Listen for incoming calls ─────────────────
+    // Starts once user is signed in
+
+    function startIncomingCallListener(uid) {
+        if (incomingSub) return;
+        incomingSub = onSnapshot(collection(db, 'calls'), (snap) => {
+            snap.docChanges().forEach(async (change) => {
+                if (change.type !== 'added') return;
+                const data = change.doc.data();
+                // Is this call for me and still ringing?
+                if (data.calleeId !== uid) return;
+                if (data.status !== 'ringing') return;
+                if (pc) {
+                    // Already in a call — auto-decline
+                    await setDoc(change.doc.ref, { status: 'declined' }, { merge: true }).catch(() => {});
+                    return;
+                }
+                window._incomingCallData = { callId: change.doc.id, callerName: data.callerName, callerId: data.callerId };
+                document.getElementById('incoming-call-name').textContent = data.callerName;
+                showIncoming();
+
+                // Auto-dismiss if caller cancels
+                const sub = onSnapshot(change.doc.ref, (s) => {
+                    if (!s.exists() || s.data().status !== 'ringing') {
+                        hideIncoming();
+                        sub();
+                    }
+                });
+            });
+        });
+    }
+
+    // Hook into auth state — start listener when user logs in
+    const _origBuildNav = window.buildNav;
+    window.buildNav = function(...args) {
+        if (_origBuildNav) _origBuildNav.apply(this, args);
+        const uid = myUid();
+        if (uid && !incomingSub) startIncomingCallListener(uid);
+    };
+
+    // Also try immediately if already signed in
+    if (myUid()) startIncomingCallListener(myUid());
+
+    // Make draggable PiP local video
+    (() => {
+        const pip = document.getElementById('local-video');
+        let dragging = false, ox = 0, oy = 0;
+        pip.addEventListener('mousedown', e => { dragging = true; ox = e.clientX - pip.getBoundingClientRect().left; oy = e.clientY - pip.getBoundingClientRect().top; e.preventDefault(); });
+        document.addEventListener('mousemove', e => {
+            if (!dragging) return;
+            const parent = pip.parentElement.getBoundingClientRect();
+            pip.style.right = 'auto';
+            pip.style.bottom = 'auto';
+            pip.style.left = Math.min(Math.max(0, e.clientX - ox - parent.left), parent.width - pip.offsetWidth) + 'px';
+            pip.style.top  = Math.min(Math.max(0, e.clientY - oy - parent.top), parent.height - pip.offsetHeight) + 'px';
+        });
+        document.addEventListener('mouseup', () => dragging = false);
+    })();
+
     </script>
 </body>
 </html>
