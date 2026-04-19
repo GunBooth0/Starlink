@@ -775,7 +775,7 @@
                     <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
                         <!-- Chat header -->
                         <div class="flex items-center justify-between mb-4">
-                            <div id="chat-header-name" class="text-2xl font-bold logo-font tracking-tight">Live Chat</div>
+                            <div id="chat-header-name" class="text-2xl font-bold logo-font tracking-tight">Messages</div>
                             <span id="chat-online-count" class="text-xs text-white/50 flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span>
                                 <span id="chat-online-num">0</span> online
@@ -992,7 +992,7 @@
                     <div class="mb-16" id="clear-chat-section" style="display:none;">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-comments"></i> Live Chat
+                                <i class="fa-solid fa-message"></i> Messages
                             </h3>
                         </div>
                         <div class="glass rounded-3xl p-8 flex items-center justify-between" style="border:1px solid rgba(255,100,100,0.15);">
@@ -1303,6 +1303,7 @@
                     const _pName = window.currentDisplayName || user.email.split('@')[0];
                     window.startPresence(user.uid, _pName, _pRole);
                     window.loadFriendsList(); // Start friend/request listeners immediately on login
+                    window.requestNotificationPermission();
                     document.getElementById('search-wrapper').classList.remove('hidden');
                     document.getElementById('search-wrapper').classList.add('flex');
                     window.switchTab(window.isAdminUser ? 1 : 0);
@@ -2581,7 +2582,7 @@
             }
         };
 
-        // ── Live Chat ──
+        // ── Messages ──
         let chatListener = null;
         window.currentDisplayName = '';
         // uid -> isAdmin cache, built from users collection
@@ -2760,7 +2761,7 @@
             try {
                 usernameSnap = await getDoc(doc(db, "usernames", username.toLowerCase()));
             } catch(e) { return alert('Could not look up username: ' + e.message); }
-            if (!usernameSnap.exists()) return alert(`No user found with username "${username}". Have them open the Live Chat tab once to register.`);
+            if (!usernameSnap.exists()) return alert(`No user found with username "${username}". Have them open the Messages tab once to register.`);
 
             const targetUid = usernameSnap.data().uid;
             const targetDisplayName = usernameSnap.data().displayName;
@@ -2834,9 +2835,21 @@
                         style="width:100%;text-align:left;margin:0;padding:0.6rem 0.75rem;border-radius:0.75rem;background:${isActive?'rgba(255,255,255,0.12)':'transparent'};border:${isActive?'1px solid rgba(255,255,255,0.2)':'1px solid transparent'};display:flex;align-items:center;gap:0.6rem;font-size:0.85rem;cursor:pointer;transition:all 0.2s;">
                         <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${isOnline?'#4ade80':'rgba(255,255,255,0.2)'}"></span>
                         <span class="truncate text-white/80">${f.displayName}</span>
-                        <button onclick="window.removeFriend('${d.id}');event.stopPropagation();" style="width:auto;padding:0.1rem 0.35rem;margin:0;font-size:0.6rem;border-radius:0.4rem;background:rgba(255,0,0,0.15);border:1px solid rgba(255,0,0,0.25);color:#f87171;margin-left:auto;opacity:0.6;" title="Remove friend">✗</button>
+                        <span id="friend-badge-${d.id}" style="display:none;margin-left:auto;min-width:1.25rem;height:1.25rem;background:var(--accent);color:#000;border-radius:999px;font-size:0.7rem;font-weight:700;align-items:center;justify-content:center;padding:0 0.3rem;line-height:1;flex-shrink:0;"></span>
+                        <button onclick="window.removeFriend('${d.id}');event.stopPropagation();" style="width:auto;padding:0.1rem 0.35rem;margin:0;font-size:0.6rem;border-radius:0.4rem;background:rgba(255,0,0,0.15);border:1px solid rgba(255,0,0,0.25);color:#f87171;opacity:0.6;" title="Remove friend">✗</button>
                     </button>`;
                 }).join('');
+
+                // Start unread watchers for all friends & restore badge counts after re-render
+                snap.docs.forEach(d => {
+                    window.watchDMUnread(d.id);
+                    const count = window._unreadCounts[d.id] || 0;
+                    const badge = document.getElementById(`friend-badge-${d.id}`);
+                    if (badge && count > 0) {
+                        badge.textContent = count > 9 ? '9+' : count;
+                        badge.style.display = 'flex';
+                    }
+                });
             });
         };
 
@@ -2877,6 +2890,9 @@
         window.openDM = (friendUid, friendName) => {
             window.currentDMUser = { uid: friendUid, displayName: friendName };
             window.chatMode = 'dm';
+
+            // Clear unread for this friend
+            window.markDMRead(friendUid);
 
             // Update header
             const header = document.getElementById('chat-header-name');
@@ -2939,7 +2955,7 @@
             window.chatMode = 'global';
             if (dmListener) { dmListener(); dmListener = null; }
             const header = document.getElementById('chat-header-name');
-            if (header) header.textContent = 'Live Chat';
+            if (header) header.textContent = 'Messages';
             const dot = document.getElementById('global-chat-active-dot');
             if (dot) dot.classList.remove('hidden');
             window.initChat();
@@ -3751,7 +3767,10 @@
             document.getElementById(mapping.contentId)?.classList.remove('hidden');
             if (mapping.contentId === 'content-request-admin') window.checkExistingAdminRequest();
             if (mapping.contentId === 'content-request-verify') window.checkExistingVerifyRequest();
-            if (mapping.contentId === 'content-chat') { window.openGlobalChat(); window.startTypingListener(); window.loadFriendsList(); if (window.currentUser && window.currentDisplayName) window.registerUsername(window.currentUser.uid, window.currentDisplayName); }
+            if (mapping.contentId === 'content-chat') { 
+                window.clearAllUnread();
+                window.openGlobalChat(); window.startTypingListener(); window.loadFriendsList(); if (window.currentUser && window.currentDisplayName) window.registerUsername(window.currentUser.uid, window.currentDisplayName); 
+            }
             if (mapping.contentId === 'content-admin') {
                 populateAdminThemeGrid();
                 window.loadOnlineUsers();
@@ -5368,10 +5387,10 @@
 
             html += `
                 <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
-                    <i class="fa-solid fa-comments w-5"></i> <span>Live Chat</span>
+                    <i class="fa-solid fa-message w-5"></i> <span>Messages</span><span id="messages-nav-badge" class="hidden ml-auto min-w-[1.35rem] h-[1.35rem] flex items-center justify-center rounded-full text-xs font-bold text-black" style="background:var(--accent);line-height:1;padding:0 0.3rem;"></span>
                 </div>
             `;
-            window.tabMapping.push({contentId: 'content-chat', title: 'Live Chat', icon: 'fa-comments'});
+            window.tabMapping.push({contentId: 'content-chat', title: 'Messages', icon: 'fa-message'});
             idx++;
 
             html += `
@@ -7332,6 +7351,127 @@ else err(`Unknown tab: ${dest}. Try: home, admin, chat, settings, account, credi
             const t=document.getElementById('owner-terminal');
             t.classList.contains('open') ? window.closeTerminal() : window.openTerminal();
         });
+
+        // ── Unread DM Notification System ──
+        window._unreadCounts = {};       // { friendUid: count }
+        window._unreadListeners = {};    // { friendUid: unsubscribe fn }
+        window._lastReadAt = {};         // { friendUid: Date }
+
+        // Update the nav badge with total unread count
+        window._updateMessagesBadge = function() {
+            const badge = document.getElementById('messages-nav-badge');
+            if (!badge) return;
+            const total = Object.values(window._unreadCounts).reduce((a, b) => a + b, 0);
+            if (total > 0) {
+                badge.textContent = total > 99 ? '99+' : total;
+                badge.classList.remove('hidden');
+                badge.style.display = 'flex';
+            } else {
+                badge.classList.add('hidden');
+                badge.style.display = '';
+            }
+        };
+
+        // Mark a friend's DM as read (called when opening that DM or the Messages tab)
+        window.markDMRead = function(friendUid) {
+            window._lastReadAt[friendUid] = new Date();
+            window._unreadCounts[friendUid] = 0;
+            window._updateMessagesBadge();
+            // Also clear friend-row badge if visible
+            const friendBadge = document.getElementById(`friend-badge-${friendUid}`);
+            if (friendBadge) { friendBadge.textContent = ''; friendBadge.style.display = 'none'; }
+        };
+
+        // Clear all unread (called when Messages tab opens)
+        window.clearAllUnread = function() {
+            Object.keys(window._unreadCounts).forEach(uid => window.markDMRead(uid));
+        };
+
+        // Start watching a DM conversation for new messages (called after friends list loads)
+        window.watchDMUnread = async function(friendUid) {
+            // Already watching
+            if (window._unreadListeners[friendUid]) return;
+            const me = window.currentUser;
+            if (!me) return;
+
+            try {
+                const fb = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
+                const convoId = [me.uid, friendUid].sort().join('_');
+                const msgsRef = fb.collection(window.db, 'dms', convoId, 'messages');
+
+                // Only listen to messages from now on (or after our last-read mark)
+                const since = window._lastReadAt[friendUid] || new Date();
+                const q = fb.query(msgsRef, fb.where('sentAt', '>', fb.Timestamp.fromDate(since)), fb.orderBy('sentAt', 'asc'));
+
+                window._unreadListeners[friendUid] = fb.onSnapshot(q, (snap) => {
+                    // Only count messages not sent by me, and only if messages tab is not active
+                    const isChatTabOpen = (() => {
+                        const mapping = (window.tabMapping || []).find(m => m.contentId === 'content-chat');
+                        if (!mapping) return false;
+                        const chatTabIdx = (window.tabMapping || []).indexOf(mapping);
+                        const activeTab = document.querySelector('.nav-link.active-tab');
+                        return activeTab && activeTab.id === `tab-${chatTabIdx}`;
+                    })();
+
+                    // If currently viewing this specific DM, don't count
+                    const isViewingThisDM = isChatTabOpen && window.currentDMUser?.uid === friendUid;
+
+                    if (isViewingThisDM) {
+                        window._lastReadAt[friendUid] = new Date();
+                        window._unreadCounts[friendUid] = 0;
+                    } else {
+                        const newMsgs = snap.docs.filter(d => d.data().uid !== me.uid);
+                        window._unreadCounts[friendUid] = newMsgs.length;
+                    }
+
+                    window._updateMessagesBadge();
+
+                    // Update per-friend row badge
+                    const friendBadge = document.getElementById(`friend-badge-${friendUid}`);
+                    const count = window._unreadCounts[friendUid] || 0;
+                    if (friendBadge) {
+                        if (count > 0) {
+                            friendBadge.textContent = count > 9 ? '9+' : count;
+                            friendBadge.style.display = 'flex';
+                        } else {
+                            friendBadge.textContent = '';
+                            friendBadge.style.display = 'none';
+                        }
+                    }
+
+                    // Show browser notification if tab is hidden
+                    if (!isChatTabOpen && snap.docChanges().some(c => c.type === 'added' && c.doc.data().uid !== me.uid)) {
+                        const lastMsg = snap.docs[snap.docs.length - 1]?.data();
+                        if (lastMsg && Notification.permission === 'granted') {
+                            new Notification(`New message from ${lastMsg.displayName || 'someone'}`, {
+                                body: lastMsg.text?.slice(0, 80) || '',
+                                icon: 'icon-192.png',
+                                tag: `dm-${friendUid}`
+                            });
+                        }
+                    }
+                });
+            } catch(e) {
+                console.warn('DM unread watch error:', e);
+            }
+        };
+
+        // Stop watching a friend's DMs (e.g. after unfriend)
+        window.stopWatchDMUnread = function(friendUid) {
+            if (window._unreadListeners[friendUid]) {
+                window._unreadListeners[friendUid]();
+                delete window._unreadListeners[friendUid];
+            }
+            delete window._unreadCounts[friendUid];
+            window._updateMessagesBadge();
+        };
+
+        // Request browser notification permission once user is signed in
+        window.requestNotificationPermission = function() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        };
 
         // ── Mobile sidebar ──
         window.openSidebar = function() {
