@@ -243,69 +243,157 @@
                 transform: translateX(0);
             }
 
-            /* Main content: full width on mobile */
+            /* Main content: full width */
             .main-content {
                 margin-left: 0 !important;
-                padding-top: 4rem;
+                padding-top: 4.5rem;
             }
 
-            /* Top header: full width on mobile */
+            /* Top header: full width */
             #top-header {
                 width: 100% !important;
                 left: 0 !important;
+                height: 4rem;
             }
 
-            /* Show hamburger button */
+            /* Show hamburger button — large tap target */
             #mobile-menu-btn {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: rgba(255,255,255,0.08);
-                border: 1px solid rgba(255,255,255,0.2);
-                border-radius: 0.6rem;
+                background: rgba(255,255,255,0.1);
+                border: 1px solid rgba(255,255,255,0.25);
+                border-radius: 0.75rem;
                 color: white;
                 cursor: pointer;
                 width: auto;
-                padding: 0.4rem 0.6rem;
+                min-width: 44px;
+                min-height: 44px;
+                padding: 0.6rem 0.8rem;
                 margin: 0;
-                font-size: 1rem;
+                font-size: 1.15rem;
                 order: -1;
                 flex-shrink: 0;
             }
 
-            /* Compact header on mobile */
+            /* Header inner: comfortable spacing */
             #top-header .h-full {
-                padding-left: 0.75rem;
-                padding-right: 0.75rem;
-                gap: 0.5rem;
+                padding-left: 1rem;
+                padding-right: 1rem;
+                gap: 0.75rem;
             }
 
-            /* Current tab label: hide on very small screens */
             #current-tab {
                 font-size: 1.1rem;
             }
             #current-tab-icon {
-                font-size: 1.2rem;
+                font-size: 1.15rem;
             }
 
-            /* Main content padding */
+            /* Main content: generous side padding */
             .main-content > .pt-0 {
                 padding-left: 1rem;
                 padding-right: 1rem;
             }
 
-            /* Chat layout: stack vertically on mobile */
+            /* Prevent overflow */
+            body {
+                overflow-x: hidden;
+            }
+
+            /* Bigger, finger-friendly buttons globally on mobile */
+            button {
+                min-height: 48px;
+                font-size: 1.05rem;
+                padding: 0.9rem 1.5rem;
+            }
+
+            /* Inputs: more padding so they feel spacious */
+            input[type="email"],
+            input[type="password"],
+            input[type="text"],
+            textarea,
+            select {
+                padding: 1rem 1.25rem;
+                font-size: 1rem;
+                margin-bottom: 1rem;
+                border-radius: 0.9rem;
+            }
+
+            /* Auth form: a bit more room */
+            #auth-form {
+                padding: 1.75rem 1.5rem;
+            }
+
+            /* Account action buttons: more gap */
+            #user-info button {
+                margin: 0.5rem 0;
+            }
+
+            /* Glass containers: breathable padding */
+            .glass.p-12 { padding: 2rem 1.5rem; }
+            .glass.p-10 { padding: 1.75rem 1.25rem; }
+            .glass.p-8  { padding: 1.5rem 1.25rem; }
+            .glass.p-6  { padding: 1.25rem 1rem; }
+
+            /* Home hero */
+            .logo-font.text-7xl,
+            .logo-font.text-8xl {
+                font-size: 3rem !important;
+                line-height: 1.1;
+            }
+            #content-home .text-2xl {
+                font-size: 1.1rem;
+                line-height: 1.6;
+            }
+            #content-home .pt-12 {
+                padding-top: 2rem;
+            }
+            #content-home svg {
+                width: 110px;
+                height: 110px;
+            }
+
+            /* Credits page */
+            #content-credits svg {
+                width: 80px;
+                height: 80px;
+            }
+            #content-credits .text-6xl {
+                font-size: 2.5rem !important;
+            }
+            #content-credits .text-2xl {
+                font-size: 1rem;
+            }
+            #content-credits .py-20 {
+                padding-top: 2rem;
+                padding-bottom: 2rem;
+            }
+
+            /* github-style buttons: larger tap target */
+            .github-style-btn {
+                min-height: 52px;
+                font-size: 1rem;
+                padding: 0.9rem 1.25rem;
+                margin: 0.35rem 0;
+            }
+
+            /* Chat layout: stack vertically */
             #content-chat > div[style*="display:flex"] {
                 flex-direction: column !important;
                 height: auto !important;
+                gap: 1rem !important;
             }
             #content-chat .glass[style*="width:260px"] {
                 width: 100% !important;
                 min-width: 0 !important;
-                max-height: 220px;
+                max-height: 240px;
             }
             #chat-messages {
-                min-height: 220px !important;
+                min-height: 260px !important;
+            }
+            #chat-input {
+                font-size: 1rem;
             }
 
             /* Tables: horizontal scroll */
@@ -315,87 +403,96 @@
                 width: 100%;
             }
 
-            /* Prevent overflow */
-            body {
-                overflow-x: hidden;
+            /* Site grid: 2 cols on mobile */
+            #search-results-grid,
+            [class*="grid-cols"] {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             }
 
-            /* Grid fixes */
-            .grid-cols-6, .xl\:grid-cols-6 {
+            /* Theme color grid stays 3 cols */
+            #theme-grid {
                 grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
             }
 
-            /* Home page text scaling */
-            .logo-font.text-7xl, .logo-font.text-8xl {
-                font-size: 3.5rem !important;
-            }
-            .text-2xl {
-                font-size: 1.2rem;
-            }
-
-            /* Glass cards: no hover transform on mobile (avoids layout jitter) */
+            /* Cards: no hover transform jitter */
             .card:hover {
                 transform: none;
             }
 
-            /* PWA install btn */
-            #pwa-install-btn span:not(.fa-solid) {
-                display: none;
-            }
-
-            /* Online counter */
-            #online-counter {
-                font-size: 0.7rem;
-            }
-
-            /* Refresh modal */
-            #refresh-content {
-                padding: 2rem 1.25rem;
-                margin: 1rem;
-            }
-
-            /* Admin panel */
-            #content-admin .glass {
-                padding: 1.25rem;
-            }
-
-            /* Buttons in admin: stack */
+            /* Admin panel: stack action rows */
             #content-admin .flex.gap-4 {
                 flex-direction: column;
             }
+            #content-admin .glass {
+                padding: 1.25rem 1rem;
+            }
 
-            /* Search input */
+            /* Search wrapper */
             #search-wrapper {
                 max-width: 100% !important;
                 margin: 0 !important;
             }
 
-            /* user-status: hide on mobile to save space */
-            #user-status {
+            /* Online counter, user status: compact */
+            #user-status { display: none; }
+            #online-counter { font-size: 0.75rem; gap: 0.35rem; }
+
+            /* Refresh modal */
+            #refresh-content {
+                padding: 2rem 1.5rem;
+                margin: 1rem;
+            }
+
+            /* Settings sections */
+            #content-settings .glass {
+                padding: 1.5rem 1.25rem;
+            }
+            #content-settings h3 {
+                font-size: 1.15rem;
+            }
+
+            /* Request forms: generous vertical spacing */
+            #content-request-admin .glass,
+            #content-request-category .glass,
+            #content-request-site .glass,
+            #content-request-verify .glass {
+                padding: 1.75rem 1.25rem;
+            }
+            #content-request-admin .py-12,
+            #content-request-category .py-12,
+            #content-request-site .py-12,
+            #content-request-verify .py-12 {
+                padding-top: 1.5rem;
+                padding-bottom: 1.5rem;
+            }
+
+            /* Announcement banner */
+            #global-announcement {
+                padding: 1rem 1.25rem;
+                margin-bottom: 1rem;
+            }
+
+            /* PWA install btn: just icon on mobile */
+            #pwa-install-btn span:last-child {
                 display: none;
             }
         }
 
-        @media (max-width: 480px) {
-            .logo-font.text-7xl, .logo-font.text-8xl {
-                font-size: 2.8rem !important;
+        @media (max-width: 420px) {
+            .logo-font.text-7xl,
+            .logo-font.text-8xl {
+                font-size: 2.4rem !important;
             }
-            .main-content > div {
-                padding-left: 0.5rem;
-                padding-right: 0.5rem;
-            }
-            .glass.p-12 {
-                padding: 1.5rem;
-            }
-            .glass.p-10 {
-                padding: 1.25rem;
-            }
-            .glass.p-8 {
-                padding: 1rem;
+            #top-header .h-full {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
             }
             button {
                 font-size: 1rem;
-                padding: 1rem 1.25rem;
+            }
+            /* Single column site grid on very small phones */
+            #search-results-grid {
+                grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
             }
         }
     </style>
