@@ -3789,7 +3789,6 @@
             document.getElementById(mapping.contentId)?.classList.remove('hidden');
             if (mapping.contentId === 'content-request-admin') window.checkExistingAdminRequest();
             if (mapping.contentId === 'content-request-verify') window.checkExistingVerifyRequest();
-            }
             if (mapping.contentId === 'content-chat') { 
                 window.clearAllUnread();
                 window.openGlobalChat(); window.startTypingListener(); window.loadFriendsList(); if (window.currentUser && window.currentDisplayName) window.registerUsername(window.currentUser.uid, window.currentDisplayName); 
