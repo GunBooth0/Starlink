@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -301,6 +301,54 @@
             max-width: 480px;
             text-align: center;
             box-shadow: 0 30px 80px rgba(0,0,0,0.45), var(--shadow-glow);
+        }
+
+        /* ── Hard block screens (banned / pending / removed) ── */
+        #block-screen {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            backdrop-filter: blur(12px);
+            z-index: 999999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 2rem;
+        }
+        #block-screen.show {
+            display: flex;
+        }
+        #block-screen-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+        #block-screen-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+        #block-screen-msg {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.65);
+            max-width: 420px;
+            line-height: 1.7;
+            margin-bottom: 2rem;
+        }
+        #block-screen-btn {
+            background: linear-gradient(135deg, #ffffff 0%, #d9d9d9 100%);
+            color: #000;
+            border: none;
+            padding: 0.9rem 2.5rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            width: auto;
+            margin: 0;
         }
         #sidebar {
             background: linear-gradient(180deg, rgba(10, 10, 10, 0.94), rgba(6, 6, 6, 0.78)) !important;
@@ -1273,6 +1321,14 @@
     </div>
 
     <!-- REFRESH MODAL -->
+    <!-- Hard block screen: banned / pending / removed -->
+    <div id="block-screen">
+        <div id="block-screen-icon">🚫</div>
+        <div id="block-screen-title">Access Denied</div>
+        <div id="block-screen-msg">Your account has been banned. Please contact the administrator if you believe this is a mistake.</div>
+        <button id="block-screen-btn" onclick="firebaseAuth.signOut(firebaseAuth.auth).then(()=>{ document.getElementById('block-screen').classList.remove('show'); })">Sign Out</button>
+    </div>
+
     <div id="refresh-modal">
         <div id="refresh-content">
             <h2 class="text-3xl font-bold logo-font mb-6 text-[var(--accent)]">Update Available</h2>
@@ -1353,7 +1409,13 @@
 
                 if (userDocData.banned === true) {
                     await signOut(auth);
-                    alert("Your account has been banned. Please contact the administrator.");
+                    const bs = document.getElementById('block-screen');
+                    document.getElementById('block-screen-icon').textContent = '🚫';
+                    document.getElementById('block-screen-title').textContent = 'Account Banned';
+                    document.getElementById('block-screen-msg').textContent = 'Your account has been banned. Please contact the administrator if you believe this is a mistake.';
+                    document.getElementById('block-screen-btn').textContent = 'Back to Sign In';
+                    document.getElementById('block-screen-btn').onclick = () => { bs.classList.remove('show'); };
+                    bs.classList.add('show');
                     return;
                 }
 
@@ -1362,7 +1424,13 @@
                     window._signingUp = true;
                     await signOut(auth);
                     window._signingUp = false;
-                    alert("Your account is pending approval by the owner. You will be able to log in once approved.");
+                    const bs = document.getElementById('block-screen');
+                    document.getElementById('block-screen-icon').textContent = '⏳';
+                    document.getElementById('block-screen-title').textContent = 'Pending Approval';
+                    document.getElementById('block-screen-msg').textContent = 'Your account is pending approval by the owner. You\'ll receive access once approved.';
+                    document.getElementById('block-screen-btn').textContent = 'Back to Sign In';
+                    document.getElementById('block-screen-btn').onclick = () => { bs.classList.remove('show'); };
+                    bs.classList.add('show');
                     return;
                 }
 
@@ -1515,13 +1583,26 @@
                     if (!snap.exists()) {
                         if (window._signingUp || !window.initialLoadComplete) return;
                         await signOut(auth);
-                        alert("Your account has been removed by the owner.");
+                        const bs = document.getElementById('block-screen');
+                        document.getElementById('block-screen-icon').textContent = '🗑️';
+                        document.getElementById('block-screen-title').textContent = 'Account Removed';
+                        document.getElementById('block-screen-msg').textContent = 'Your account has been removed by the owner. Please contact them if you believe this is a mistake.';
+                        document.getElementById('block-screen-btn').textContent = 'Back to Sign In';
+                        document.getElementById('block-screen-btn').onclick = () => { bs.classList.remove('show'); };
+                        bs.classList.add('show');
                         return;
                     }
                     const data = snap.data();
                     // Banned  ?" show refresh modal; ban check on reload will sign them out
                     if (data.banned === true && window.initialLoadComplete) {
-                        document.getElementById('refresh-modal').classList.add('show');
+                        await signOut(auth);
+                        const bs = document.getElementById('block-screen');
+                        document.getElementById('block-screen-icon').textContent = '🚫';
+                        document.getElementById('block-screen-title').textContent = 'Account Banned';
+                        document.getElementById('block-screen-msg').textContent = 'Your account has been banned. Please contact the administrator if you believe this is a mistake.';
+                        document.getElementById('block-screen-btn').textContent = 'Back to Sign In';
+                        document.getElementById('block-screen-btn').onclick = () => { bs.classList.remove('show'); };
+                        bs.classList.add('show');
                         return;
                     }
                     // Admin revoked or granted  ?" silently update nav and permissions
@@ -1616,12 +1697,27 @@
             setTimeout(() => loader.remove(), 320);
         }
 
+        // ── Rate limiting: max 5 failed login attempts, 60s lockout ──────────
+        let _loginFailCount = 0;
+        let _loginLockUntil = 0;
+
         document.getElementById('auth-btn')?.addEventListener('click', async () => {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const authMsg = document.getElementById('auth-message');
+            const authBtn = document.getElementById('auth-btn');
+
+            // Rate limit check
+            if (Date.now() < _loginLockUntil) {
+                const secsLeft = Math.ceil((_loginLockUntil - Date.now()) / 1000);
+                if (authMsg) { authMsg.textContent = `Too many failed attempts. Try again in ${secsLeft}s.`; authMsg.className = 'error'; }
+                return;
+            }
+
             try {
                 if (document.getElementById('form-title').textContent === 'Sign In') {
                     const cred = await signInWithEmailAndPassword(auth, email, password);
+                    _loginFailCount = 0; // reset on success
                     updateUIForAuth(cred.user);
                 } else {
                     const signupUsername = document.getElementById('signup-username').value.trim();
@@ -1660,7 +1756,30 @@
                     alert("Account created! Your signup is pending approval by the owner. You will be notified when approved.");
                 }
             } catch (e) {
-                alert(e.message);
+                // Rate limiting: count failed sign-in attempts only
+                if (document.getElementById('form-title').textContent === 'Sign In') {
+                    _loginFailCount++;
+                    if (_loginFailCount >= 5) {
+                        _loginLockUntil = Date.now() + 60000; // 60s lockout
+                        _loginFailCount = 0;
+                        if (authMsg) { authMsg.textContent = 'Too many failed attempts. Please wait 60 seconds before trying again.'; authMsg.className = 'error'; }
+                        if (authBtn) { authBtn.disabled = true; authBtn.style.opacity = '0.5'; }
+                        setTimeout(() => {
+                            if (authBtn) { authBtn.disabled = false; authBtn.style.opacity = ''; }
+                            if (authMsg) { authMsg.textContent = ''; }
+                        }, 60000);
+                        return;
+                    }
+                    // Show remaining attempts warning after 3 fails
+                    if (_loginFailCount >= 3) {
+                        const remaining = 5 - _loginFailCount;
+                        if (authMsg) { authMsg.textContent = `Incorrect credentials. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining before lockout.`; authMsg.className = 'error'; }
+                    } else {
+                        alert(e.message);
+                    }
+                } else {
+                    alert(e.message);
+                }
             }
         });
 
