@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Starlink</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><path d=%22M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z%22 fill=%22%23ffffff%22/></svg>" type="image/svg+xml">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><path d=%22M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z%22 fill=%22%2300ff88%22/></svg>" type="image/svg+xml">
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
@@ -16,79 +16,60 @@
     <meta name="application-name" content="Starlink">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
-     
         :root {
-            --accent: #ffffff;
+            --accent: #00ff88;
+            --accent-dim: rgba(0,255,136,0.15);
+            --accent-border: rgba(0,255,136,0.3);
+            --bg: #050505;
+            --surface: #0d0d0d;
+            --surface2: #141414;
+            --border: rgba(255,255,255,0.07);
+            --text: #e8e8e8;
+            --text-muted: rgba(255,255,255,0.35);
+            --sidebar-w: 260px;
         }
+
+        * { box-sizing: border-box; }
+
         body {
-            background: #000000;
-            color: #ffffff;
-            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
             margin: 0;
             height: 100vh;
             overflow: hidden;
         }
-     
-        .logo-font {
-            font-family: 'Space Grotesk', sans-serif;
-        }
-        .star-svg {
-            animation: pulse 4s infinite ease-in-out;
-            filter: drop-shadow(0 0 20px var(--accent));
-        }
-        @keyframes pulse {
-            0%, 100% { filter: drop-shadow(0 0 20px var(--accent)); }
-            50% { filter: drop-shadow(0 0 45px var(--accent)); }
-        }
-        .nav-link {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            color: #ffffff;
-        }
-     
-        .nav-link:hover,
-        .nav-link.active-tab {
-            color: var(--accent) !important;
-            background: rgba(255,255,255,0.08);
-        }
-        .nav-link i {
-            color: inherit;
-        }
-        #current-tab-icon,
-        #current-tab {
-            color: var(--accent);
-            transition: color 0.4s ease;
-        }
-        .card {
-            transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.12);
-        }
-     
-        .card:hover {
-            transform: translateY(-8px) scale(1.03);
-            border-color: var(--accent);
-            background: rgba(255,255,255,0.06);
-        }
-        .glass {
-            background: rgba(255,255,255,0.04);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.15);
-        }
-        
 
-        .tail-container {
-            max-width: 1280px;
-            margin-left: auto;
-            margin-right: auto;
+        /* Scanline overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.08) 2px,
+                rgba(0,0,0,0.08) 4px
+            );
+            pointer-events: none;
+            z-index: 9998;
         }
+
+        /* Grid background */
         #star-bg {
             position: fixed;
             inset: 0;
             z-index: -1;
             pointer-events: auto;
+            background-image:
+                linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
         }
+
         #matrix-bg {
             position: fixed;
             inset: 0;
@@ -96,532 +77,590 @@
             pointer-events: none;
             display: none;
         }
+
         .star {
             position: absolute;
             background: var(--accent);
             border-radius: 50%;
-            box-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent);
+            box-shadow: 0 0 6px var(--accent);
             pointer-events: none;
             animation: floatUp linear infinite;
         }
         @keyframes floatUp {
             0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-300vh); opacity: 0.3; }
+            100% { transform: translateY(-300vh); opacity: 0; }
         }
-        .main-content {
-            overflow-y: auto;
+
+        /* LOGO/STAR */
+        .logo-font { font-family: 'Syne', sans-serif; }
+
+        .star-svg {
+            animation: starGlow 4s infinite ease-in-out;
+            filter: drop-shadow(0 0 12px var(--accent));
+        }
+        @keyframes starGlow {
+            0%, 100% { filter: drop-shadow(0 0 12px var(--accent)); }
+            50% { filter: drop-shadow(0 0 28px var(--accent)) drop-shadow(0 0 8px #fff); }
+        }
+
+        /* SIDEBAR */
+        #sidebar {
+            width: var(--sidebar-w);
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
             height: 100vh;
-            padding-top: 4rem;
+            z-index: 100;
         }
-        input[type="email"], input[type="password"], input[type="text"], textarea, select {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.25);
-            color: white;
-            padding: 1rem 1.25rem;
-            border-radius: 1rem;
+
+        .sidebar-logo {
+            padding: 1.5rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+
+        .sidebar-logo h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--accent);
+            margin: 0;
+            line-height: 1;
+        }
+
+        .sidebar-logo p {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        #nav-links {
+            flex: 1;
+            padding: 1rem 0.75rem;
+            overflow-y: auto;
+        }
+
+        /* NAV LINKS */
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0.85rem;
+            border-radius: 0;
+            border-left: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            user-select: none;
             width: 100%;
-            margin-bottom: 1.25rem;
-            font-size: 1rem;
-            transition: all 0.3s ease;
+            background: none;
+            border-top: none;
+            border-right: none;
+            border-bottom: none;
+            margin: 0.1rem 0;
         }
+
+        .nav-link:hover {
+            color: var(--text) !important;
+            background: rgba(255,255,255,0.04);
+            border-left-color: rgba(255,255,255,0.2);
+        }
+
+        .nav-link.active-tab {
+            color: var(--accent) !important;
+            background: var(--accent-dim);
+            border-left-color: var(--accent);
+        }
+
+        .nav-link i {
+            width: 14px;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        .sidebar-separator {
+            height: 1px;
+            background: var(--border);
+            margin: 0.5rem 0.75rem;
+        }
+
+        /* TOP HEADER */
+        #top-header {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-w);
+            right: 0;
+            height: 52px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            gap: 1rem;
+        }
+
+        #current-tab-icon {
+            color: var(--accent);
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        #current-tab {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            transition: color 0.3s;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: var(--sidebar-w);
+            height: 100vh;
+            overflow-y: auto;
+            padding-top: 52px;
+        }
+
+        .tail-container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        /* GLASS → sharp panel style */
+        .glass {
+            background: var(--surface);
+            border: 1px solid var(--border);
+        }
+
+        /* CARDS */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            background: var(--accent-dim);
+            transform: translateY(-3px);
+        }
+
+        /* INPUTS */
+        input[type="email"],
+        input[type="password"],
+        input[type="text"],
+        textarea,
+        select {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.75rem 1rem;
+            border-radius: 0;
+            width: 100%;
+            margin-bottom: 0.75rem;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+            transition: border-color 0.2s ease;
+        }
+
         input:focus, textarea:focus, select:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
-            background: rgba(255,255,255,0.12);
+            box-shadow: 0 0 0 2px rgba(0,255,136,0.1);
+            background: rgba(0,255,136,0.04);
         }
+
         input::placeholder, textarea::placeholder {
-            color: rgba(255,255,255,0.5);
+            color: var(--text-muted);
         }
+
+        /* BUTTONS */
         button {
-            padding: 1.25rem 2rem;
-            border-radius: 1rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 1rem 0;
+            transition: all 0.2s ease;
+            margin: 0.5rem 0;
             width: 100%;
-            font-size: 1.2rem;
+            font-size: 0.82rem;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border: 1px solid transparent;
         }
+
         .auth-btn {
             background: var(--accent);
             color: #000;
+            font-weight: 700;
+            border-color: var(--accent);
         }
+
         .auth-btn:hover {
-            background: white;
-            transform: translateY(-2px);
+            background: #fff;
+            border-color: #fff;
+            color: #000;
         }
+
         .github-style-btn {
-            background: black;
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 1rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.65rem 1rem;
+            font-family: 'JetBrains Mono', monospace;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.6rem;
             width: 100%;
             justify-content: center;
-            font-size: 1.1rem;
+            font-size: 0.78rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
+
         .github-style-btn:hover {
             border-color: var(--accent);
-            transform: translateY(-2px);
+            color: var(--accent);
+            background: var(--accent-dim);
         }
+
         #auth-message {
-            margin-top: 1.5rem;
+            margin-top: 1rem;
             text-align: center;
-            font-size: 1.1rem;
+            font-size: 0.82rem;
         }
-        .success { color: #10b981; }
-        .error { color: #ef4444; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 1rem;
-            text-align: left;
-        }
-        /* Blocking refresh modal */
+
+        .success { color: #00ff88; }
+        .error { color: #ff4444; }
+
+        /* TABLE */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.75rem 1rem; text-align: left; font-size: 0.8rem; }
+        th { color: var(--text-muted); border-bottom: 1px solid var(--border); letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.7rem; }
+        tr:not(:last-child) td { border-bottom: 1px solid var(--border); }
+
+        /* REFRESH MODAL */
         #refresh-modal {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.92);
+            background: rgba(0,0,0,0.94);
             backdrop-filter: blur(8px);
             z-index: 9999;
             display: none;
             align-items: center;
             justify-content: center;
         }
-        #refresh-modal.show {
-            display: flex;
-        }
+
+        #refresh-modal.show { display: flex; }
+
         #refresh-content {
-            background: rgba(20,20,30,0.85);
-            border: 2px solid var(--accent);
-            border-radius: 1.5rem;
+            background: var(--surface);
+            border: 1px solid var(--accent);
             padding: 3rem 2.5rem;
-            max-width: 480px;
+            max-width: 420px;
             text-align: center;
-            box-shadow: 0 0 60px rgba(255,255,255,0.2);
-        }
-        /* Sidebar separator line */
-        .sidebar-separator {
-            height: 1px;
-            background: rgba(255,255,255,0.15);
-            margin: 1.25rem 0;
+            box-shadow: 0 0 60px rgba(0,255,136,0.15);
         }
 
-        /* ── MOBILE RESPONSIVE ── */
-        #mobile-menu-btn {
-            display: none;
+        /* SIDEBAR SEPARATOR */
+        .sidebar-separator {
+            height: 1px;
+            background: var(--border);
+            margin: 0.5rem 0;
         }
+
+        /* MOBILE */
+        #mobile-menu-btn { display: none; }
+
         #sidebar-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7);
             z-index: 99;
-            backdrop-filter: blur(2px);
-        }
-        #sidebar-overlay.show {
-            display: block;
         }
 
+        #sidebar-overlay.show { display: block; }
+
+        /* Online counter */
+        #online-counter { font-size: 0.7rem; gap: 0.35rem; }
+
+        /* SEARCH */
+        #search-wrapper .relative input {
+            border-radius: 0;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            font-size: 0.8rem;
+        }
+
+        /* ANNOUNCEMENT */
+        #global-announcement {
+            border: 1px solid var(--accent);
+            border-left-width: 3px;
+            background: rgba(0,255,136,0.05);
+        }
+
+        /* ─── ROUNDED OVERRIDES: remove rounded-3xl, rounded-2xl etc ─── */
+        .rounded-3xl, .rounded-2xl, .rounded-xl, .rounded-lg, .rounded-full { border-radius: 0 !important; }
+        /* keep small inline badges slightly rounded */
+        .rounded-full[style], span.rounded-full { border-radius: 4px !important; }
+
+        /* ROLE BADGES stay rounded */
+        [style*="border-radius:99px"] { border-radius: 3px !important; }
+
+        /* PWA button */
+        #pwa-install-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 0 !important;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            padding: 0.3rem 0.75rem;
+            margin: 0;
+            width: auto;
+            letter-spacing: 0.04em;
+        }
+
+        #pwa-install-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* AUTH LOADER */
+        #auth-loader {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s ease;
+        }
+
+        /* MOBILE RESPONSIVE */
         @media (max-width: 768px) {
-            /* Sidebar: off-canvas by default */
+            :root { --sidebar-w: 0px; }
+
             #sidebar {
+                width: 260px;
                 transform: translateX(-100%);
-                transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+                transition: transform 0.25s ease;
                 z-index: 200;
             }
-            #sidebar.open {
-                transform: translateX(0);
-            }
+            #sidebar.open { transform: translateX(0); }
 
-            /* Main content: full width */
             .main-content {
                 margin-left: 0 !important;
-                padding-top: 4.5rem;
+                padding-top: 52px;
             }
 
-            /* Top header: full width */
             #top-header {
-                width: 100% !important;
                 left: 0 !important;
-                height: 4rem;
+                width: 100% !important;
             }
 
-            /* Show hamburger button — large tap target */
             #mobile-menu-btn {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: rgba(255,255,255,0.1);
-                border: 1px solid rgba(255,255,255,0.25);
-                border-radius: 0.75rem;
-                color: white;
+                background: var(--surface2);
+                border: 1px solid var(--border);
+                color: var(--text);
                 cursor: pointer;
                 width: auto;
-                min-width: 44px;
-                min-height: 44px;
-                padding: 0.6rem 0.8rem;
+                min-width: 36px;
+                min-height: 36px;
+                padding: 0.4rem 0.7rem;
                 margin: 0;
-                font-size: 1.15rem;
+                font-size: 0.9rem;
                 order: -1;
                 flex-shrink: 0;
             }
 
-            /* Header inner: comfortable spacing */
-            #top-header .h-full {
-                padding-left: 1rem;
-                padding-right: 1rem;
-                gap: 0.75rem;
-            }
+            button { min-height: 44px; }
 
-            #current-tab {
-                font-size: 1.1rem;
-            }
-            #current-tab-icon {
-                font-size: 1.15rem;
-            }
+            .glass.p-12 { padding: 1.5rem 1rem; }
+            .glass.p-10 { padding: 1.25rem 1rem; }
+            .glass.p-8  { padding: 1rem; }
 
-            /* Main content: generous side padding */
-            .main-content > .pt-0 {
-                padding-left: 1rem;
-                padding-right: 1rem;
-            }
+            #content-home .pt-12 { padding-top: 2rem; }
+            #content-home svg { width: 80px; height: 80px; }
 
-            /* Prevent overflow */
-            body {
-                overflow-x: hidden;
-            }
+            #search-wrapper { max-width: 100% !important; margin: 0 !important; }
+            #user-status { display: none; }
 
-            /* Bigger, finger-friendly buttons globally on mobile */
-            button {
-                min-height: 48px;
-                font-size: 1.05rem;
-                padding: 0.9rem 1.5rem;
-            }
-
-            /* Inputs: more padding so they feel spacious */
-            input[type="email"],
-            input[type="password"],
-            input[type="text"],
-            textarea,
-            select {
-                padding: 1rem 1.25rem;
-                font-size: 1rem;
-                margin-bottom: 1rem;
-                border-radius: 0.9rem;
-            }
-
-            /* Auth form: a bit more room */
-            #auth-form {
-                padding: 1.75rem 1.5rem;
-            }
-
-            /* Account action buttons: more gap */
-            #user-info button {
-                margin: 0.5rem 0;
-            }
-
-            /* Glass containers: breathable padding */
-            .glass.p-12 { padding: 2rem 1.5rem; }
-            .glass.p-10 { padding: 1.75rem 1.25rem; }
-            .glass.p-8  { padding: 1.5rem 1.25rem; }
-            .glass.p-6  { padding: 1.25rem 1rem; }
-
-            /* Home hero */
-            .logo-font.text-7xl,
-            .logo-font.text-8xl {
-                font-size: 3rem !important;
-                line-height: 1.1;
-            }
-            #content-home .text-2xl {
-                font-size: 1.1rem;
-                line-height: 1.6;
-            }
-            #content-home .pt-12 {
-                padding-top: 2rem;
-            }
-            #content-home svg {
-                width: 110px;
-                height: 110px;
-            }
-
-            /* Credits page */
-            #content-credits svg {
-                width: 80px;
-                height: 80px;
-            }
-            #content-credits .text-6xl {
-                font-size: 2.5rem !important;
-            }
-            #content-credits .text-2xl {
-                font-size: 1rem;
-            }
-            #content-credits .py-20 {
-                padding-top: 2rem;
-                padding-bottom: 2rem;
-            }
-
-            /* github-style buttons: larger tap target */
-            .github-style-btn {
-                min-height: 52px;
-                font-size: 1rem;
-                padding: 0.9rem 1.25rem;
-                margin: 0.35rem 0;
-            }
-
-            /* Chat layout: stack vertically */
             #content-chat > div[style*="display:flex"] {
                 flex-direction: column !important;
-                height: auto !important;
-                gap: 1rem !important;
-            }
-            #content-chat .glass[style*="width:260px"] {
-                width: 100% !important;
-                min-width: 0 !important;
-                max-height: 240px;
-            }
-            #chat-messages {
-                min-height: 260px !important;
-            }
-            #chat-input {
-                font-size: 1rem;
             }
 
-            /* Tables: horizontal scroll */
-            .overflow-x-auto, table {
-                overflow-x: auto;
-                display: block;
-                width: 100%;
-            }
-
-            /* Site grid: 2 cols on mobile */
-            #search-results-grid,
-            [class*="grid-cols"] {
-                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            }
-
-            /* Theme color grid stays 3 cols */
-            #theme-grid {
-                grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-            }
-
-            /* Cards: no hover transform jitter */
-            .card:hover {
-                transform: none;
-            }
-
-            /* Admin panel: stack action rows */
-            #content-admin .flex.gap-4 {
-                flex-direction: column;
-            }
-            #content-admin .glass {
-                padding: 1.25rem 1rem;
-            }
-
-            /* Search wrapper */
-            #search-wrapper {
-                max-width: 100% !important;
-                margin: 0 !important;
-            }
-
-            /* Online counter, user status: compact */
-            #user-status { display: none; }
-            #online-counter { font-size: 0.75rem; gap: 0.35rem; }
-
-            /* Refresh modal */
-            #refresh-content {
-                padding: 2rem 1.5rem;
-                margin: 1rem;
-            }
-
-            /* Settings sections */
-            #content-settings .glass {
-                padding: 1.5rem 1.25rem;
-            }
-            #content-settings h3 {
-                font-size: 1.15rem;
-            }
-
-            /* Request forms: generous vertical spacing */
-            #content-request-admin .glass,
-            #content-request-category .glass,
-            #content-request-site .glass,
-            #content-request-verify .glass {
-                padding: 1.75rem 1.25rem;
-            }
-            #content-request-admin .py-12,
-            #content-request-category .py-12,
-            #content-request-site .py-12,
-            #content-request-verify .py-12 {
-                padding-top: 1.5rem;
-                padding-bottom: 1.5rem;
-            }
-
-            /* Announcement banner */
-            #global-announcement {
-                padding: 1rem 1.25rem;
-                margin-bottom: 1rem;
-            }
-
-            /* PWA install btn: just icon on mobile */
-            #pwa-install-btn span:last-child {
-                display: none;
-            }
-        }
-
-        @media (max-width: 420px) {
-            .logo-font.text-7xl,
-            .logo-font.text-8xl {
-                font-size: 2.4rem !important;
-            }
-            #top-header .h-full {
-                padding-left: 0.75rem;
-                padding-right: 0.75rem;
-            }
-            button {
-                font-size: 1rem;
-            }
-            /* Single column site grid on very small phones */
             #search-results-grid {
                 grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
             }
+
+            #refresh-content { padding: 2rem 1.25rem; margin: 1rem; }
         }
+
+        @media (max-width: 420px) {
+            #top-header { padding-left: 0.75rem; padding-right: 0.75rem; gap: 0.6rem; }
+            button { font-size: 0.78rem; }
+        }
+
+        /* Accent color var overrides so JS theme switcher still works */
+        #current-tab-icon, #current-tab { color: var(--accent); transition: color 0.3s; }
     </style>
 </head>
 <body>
-    <!-- Auth loader — covers UI until Firebase confirms auth state -->
+    <!-- Auth loader -->
     <div id="auth-loader" style="position:fixed;inset:0;background:#000;z-index:99999;display:flex;align-items:center;justify-content:center;transition:opacity 0.3s ease;">
-        <svg width="48" height="48" viewBox="0 0 200 200" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg" style="animation:pulse 1.5s infinite ease-in-out;">
-            <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+        <svg width="40" height="40" viewBox="0 0 200 200" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg" style="animation:starGlow 1.5s infinite ease-in-out;">
+            <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z"/>
         </svg>
     </div>
+
     <div id="star-bg"></div>
     <canvas id="matrix-bg"></canvas>
 
-    <!-- Mobile sidebar overlay -->
+    <!-- Mobile overlay -->
     <div id="sidebar-overlay" onclick="window.closeSidebar()"></div>
 
     <!-- SIDEBAR -->
-    <div id="sidebar" class="w-72 bg-black border-r border-white/10 flex flex-col fixed h-screen z-[100]">
-        <div class="p-8 flex items-center gap-x-4 border-b border-white/10">
-            <svg width="48" height="48" viewBox="0 0 200 200" class="star-svg" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
-                <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+    <div id="sidebar">
+        <div class="sidebar-logo">
+            <svg width="32" height="32" viewBox="0 0 200 200" class="star-svg" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
+                <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z"/>
             </svg>
             <div>
-                <h1 class="logo-font text-4xl font-semibold tracking-tighter text-white">Starlink</h1>
-                <p class="text-xs text-white/70 tracking-wide -mt-1">By: Gunnar Booth</p>
+                <h1 class="logo-font">Starlink</h1>
+                <p>By: Gunnar Booth</p>
             </div>
         </div>
-        <div class="flex-1 px-6 py-8 overflow-y-auto" id="nav-links"></div>
+        <div id="nav-links" style="flex:1;padding:1rem 0.75rem;overflow-y:auto;"></div>
     </div>
 
-    <!-- MAIN CONTENT -->
-    <div class="flex-1 ml-72 main-content" id="main-content">
-        <div id="top-header" class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-[100] top-0">
-            <div class="h-full px-10 flex items-center gap-4">
-                <button id="mobile-menu-btn" onclick="window.openSidebar()" aria-label="Open menu">
-                    <i class="fa-solid fa-bars"></i>
+    <!-- MAIN -->
+    <div class="flex-1 main-content" id="main-content">
+        <!-- TOP HEADER -->
+        <div id="top-header">
+            <button id="mobile-menu-btn" onclick="window.openSidebar()" aria-label="Open menu" style="border-radius:0;">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <i id="current-tab-icon" class="fa-solid fa-lock" style="font-size:0.85rem;"></i>
+            <div id="current-tab" class="logo-font">Sign In Required</div>
+            <div id="search-wrapper" class="hidden flex-1 max-w-sm mx-4">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-xs pointer-events-none"></i>
+                    <input id="search-input" type="text" placeholder="Search sites..." autocomplete="off"
+                        style="margin:0;padding:0.4rem 0.75rem 0.4rem 2rem;font-size:0.8rem;width:100%;"
+                        oninput="window.handleSearch(this.value)">
+                    <button id="search-clear" onclick="window.clearSearch()" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white" style="width:auto;padding:0;margin:0;background:transparent;border:none;font-size:0.8rem;min-height:0;text-transform:none;letter-spacing:0;">✕</button>
+                </div>
+            </div>
+            <div class="ml-auto flex items-center gap-3">
+                <span id="user-status" class="text-xs" style="color:var(--text-muted);"></span>
+                <span id="online-counter" class="hidden items-center gap-2 text-xs" style="color:var(--text-muted);">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block animate-pulse"></span>
+                    <span id="online-count">0</span> online
+                </span>
+                <button id="pwa-install-btn" onclick="window.installPWA()" class="hidden items-center gap-2" style="text-transform:uppercase;letter-spacing:0.04em;">
+                    <i class="fa-solid fa-download text-xs"></i> Install
                 </button>
-                <i id="current-tab-icon" class="text-3xl fa-solid fa-lock"></i>
-                <div id="current-tab" class="text-2xl font-semibold logo-font tracking-tight">Sign In Required</div>
-                <div id="search-wrapper" class="hidden flex-1 max-w-md mx-6">
-                    <div class="relative">
-                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-white/40 text-sm pointer-events-none"></i>
-                        <input id="search-input" type="text" placeholder="Search sites..." autocomplete="off"
-                            style="margin:0;padding:0.55rem 1rem 0.55rem 2.5rem;border-radius:0.75rem;font-size:0.95rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);width:100%;"
-                            oninput="window.handleSearch(this.value)">
-                        <button id="search-clear" onclick="window.clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white" style="width:auto;padding:0;margin:0;background:transparent;border:none;font-size:0.85rem;">✕</button>
-                    </div>
-                </div>
-                <div class="ml-auto flex items-center gap-4">
-                    <span id="user-status" class="text-sm text-white/70"></span>
-                    <span id="online-counter" class="hidden items-center gap-2 text-sm text-white/60"><span class="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span><span id="online-count">0</span> online</span><button id="pwa-install-btn" onclick="window.installPWA()" class="hidden items-center gap-2 text-sm text-white/60 hover:text-white transition-colors" style="width:auto;padding:0.35rem 0.85rem;margin:0;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:0.6rem;font-size:0.8rem;"><i class="fa-solid fa-download text-xs"></i> Install App</button>
-                </div>
             </div>
         </div>
 
-        <div class="pt-0 pb-20 px-10 tail-container">
+        <div class="pt-0 pb-20 px-6 tail-container">
 
             <!-- GLOBAL ANNOUNCEMENT -->
-            <div id="global-announcement" class="hidden max-w-4xl mx-auto mb-8 p-6 glass rounded-3xl border-l-4 border-[var(--accent)]">
+            <div id="global-announcement" class="hidden max-w-4xl mx-auto mb-6 p-4 glass" style="margin-top:1.5rem;">
                 <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-bullhorn text-2xl text-[var(--accent)]"></i>
-                    <span id="announcement-text-display" class="text-lg font-medium"></span>
+                    <i class="fa-solid fa-terminal text-sm" style="color:var(--accent);"></i>
+                    <span id="announcement-text-display" class="text-sm font-medium"></span>
                 </div>
             </div>
-
 
             <!-- SEARCH RESULTS -->
             <div id="content-search" class="tab-content hidden">
-                <div class="max-w-5xl mx-auto glass rounded-3xl p-8">
-                    <h2 class="text-2xl font-semibold mb-6 text-white/70">Search results for: <span id="search-query-label" class="text-[var(--accent)]"></span></h2>
-                    <div id="search-results-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6"></div>
-                    <p id="search-no-results" class="hidden text-center text-white/40 text-xl mt-20">No sites found</p>
+                <div class="max-w-5xl mx-auto glass p-6" style="margin-top:1.5rem;">
+                    <p class="text-xs mb-4" style="color:var(--text-muted);">// results for: <span id="search-query-label" style="color:var(--accent);"></span></p>
+                    <div id="search-results-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4"></div>
+                    <p id="search-no-results" class="hidden text-center text-sm mt-16" style="color:var(--text-muted);">No sites found</p>
                 </div>
             </div>
 
             <!-- ACCOUNT TAB -->
             <div id="content-account" class="tab-content">
-                <div class="max-w-md mx-auto py-12">
-                    <h2 class="text-3xl font-bold text-center mb-8" id="account-title">Sign In Required</h2>
-                    <div id="auth-form" class="glass p-8 rounded-3xl">
-                        <h3 class="text-xl font-semibold mb-6 text-center" id="form-title">Sign In</h3>
-                        <input type="email" id="email" placeholder="Email address" required autocomplete="email">
-                        <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
-                        <input type="text" id="signup-username" placeholder="Choose a username..." maxlength="24" class="hidden">
-<button id="auth-btn" class="auth-btn mt-6">Sign In</button>
-                        <p class="text-center mt-6 text-white/70 text-sm">
-                            <span id="toggle-link" class="text-[var(--accent)] cursor-pointer hover:underline">Don't have an account? Sign Up</span>
+                <div class="max-w-md mx-auto py-8">
+                    <h2 class="logo-font text-2xl font-bold text-center mb-6" id="account-title">Sign In Required</h2>
+                    <div id="auth-form" class="glass p-6">
+                        <p class="text-xs mb-4" style="color:var(--text-muted);">// <span id="form-title">sign_in</span></p>
+                        <input type="email" id="email" placeholder="email_address" required autocomplete="email">
+                        <input type="password" id="password" placeholder="password" required autocomplete="current-password">
+                        <input type="text" id="signup-username" placeholder="choose_username..." maxlength="24" class="hidden">
+                        <button id="auth-btn" class="auth-btn mt-2">→ Sign In</button>
+                        <p class="text-center mt-4 text-xs" style="color:var(--text-muted);">
+                            <span id="toggle-link" style="color:var(--accent);cursor:pointer;">Don't have an account? Sign Up</span>
                         </p>
                     </div>
-                    <div id="user-info" class="hidden text-center mt-8">
-                        <!-- Role badge -->
-                        <div id="account-role-badge" class="inline-block mb-4 px-5 py-1.5 rounded-full text-sm font-bold tracking-wide"></div>
-                        <!-- Display name -->
-                        <div class="flex items-center justify-center gap-2"><div id="account-username" class="text-4xl font-bold logo-font tracking-tight mb-1"></div><span id="account-verified-badge" class="hidden" style="color:#3b82f6;font-size:1.8rem;" title="Verified">✓</span></div>
-                        <p class="text-white/50 text-sm mb-8"><span id="user-email" class="text-[var(--accent)]"></span></p>
-
+                    <div id="user-info" class="hidden text-center mt-6">
+                        <div id="account-role-badge" class="inline-block mb-3 px-3 py-1 text-xs font-bold tracking-widest" style="border:1px solid var(--border);"></div>
+                        <div class="flex items-center justify-center gap-2">
+                            <div id="account-username" class="logo-font text-3xl font-bold tracking-tight mb-1"></div>
+                            <span id="account-verified-badge" class="hidden" style="color:#3b82f6;font-size:1.4rem;" title="Verified">✓</span>
+                        </div>
+                        <p class="text-xs mb-6" style="color:var(--text-muted);"><span id="user-email" style="color:var(--accent);"></span></p>
                         <button onclick="changeEmail()" class="github-style-btn"><i class="fa-solid fa-envelope"></i> Change Email</button>
                         <button onclick="changePassword()" class="github-style-btn"><i class="fa-solid fa-key"></i> Change Password</button>
                         <button onclick="deleteAccount()" class="github-style-btn"><i class="fa-solid fa-trash-can"></i> Delete Account</button>
                         <button onclick="firebaseAuth.signOut(firebaseAuth.auth)" class="github-style-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-                        <p id="auth-message" class="mt-6"></p>
-                        <!-- Roles -->
-                        <div class="glass rounded-2xl p-6 mt-8 text-left">
-                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-shield-halved text-[var(--accent)]"></i> Roles</h3>
-                            <div class="space-y-4">
-                                <div class="flex items-center gap-4 p-4 rounded-2xl bg-black/30">
-                                    <span style="padding:0.25rem 0.9rem;border-radius:99px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;font-weight:700;font-size:0.8rem;white-space:nowrap;">★ Owner</span>
-                                    <p class="text-white/70 text-sm">The site creator. Full control over everything.</p>
+                        <p id="auth-message" class="mt-4"></p>
+                        <div class="glass p-5 mt-6 text-left">
+                            <h3 class="text-sm font-bold mb-3 flex items-center gap-2" style="letter-spacing:0.08em;text-transform:uppercase;"><i class="fa-solid fa-shield-halved text-xs" style="color:var(--accent);"></i> Roles</h3>
+                            <div class="space-y-2">
+                                <div class="flex items-center gap-3 p-3" style="background:rgba(0,0,0,0.3);">
+                                    <span style="padding:0.15rem 0.7rem;background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;font-weight:700;font-size:0.7rem;white-space:nowrap;letter-spacing:0.05em;">★ OWNER</span>
+                                    <p class="text-xs" style="color:var(--text-muted);">The site creator. Full control over everything.</p>
                                 </div>
-                                <div class="flex items-center gap-4 p-4 rounded-2xl bg-black/30">
-                                    <span style="padding:0.25rem 0.9rem;border-radius:99px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;font-weight:700;font-size:0.8rem;white-space:nowrap;">⚡ Admin</span>
-                                    <p class="text-white/70 text-sm">Trusted users granted by the owner. Full access to the Admin Panel.</p>
+                                <div class="flex items-center gap-3 p-3" style="background:rgba(0,0,0,0.3);">
+                                    <span style="padding:0.15rem 0.7rem;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;font-weight:700;font-size:0.7rem;white-space:nowrap;letter-spacing:0.05em;">⚡ ADMIN</span>
+                                    <p class="text-xs" style="color:var(--text-muted);">Trusted users. Full access to Admin Panel.</p>
                                 </div>
-                                <div class="flex items-center gap-4 p-4 rounded-2xl bg-black/30">
-                                    <span style="padding:0.25rem 0.9rem;border-radius:99px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);font-weight:700;font-size:0.8rem;white-space:nowrap;">● User</span>
-                                    <p class="text-white/70 text-sm">Regular members. Can browse all content, use the chat, and submit requests.</p>
+                                <div class="flex items-center gap-3 p-3" style="background:rgba(0,0,0,0.3);">
+                                    <span style="padding:0.15rem 0.7rem;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-weight:700;font-size:0.7rem;white-space:nowrap;letter-spacing:0.05em;">● USER</span>
+                                    <p class="text-xs" style="color:var(--text-muted);">Regular members. Browse, chat, submit requests.</p>
                                 </div>
                             </div>
                         </div>
-                        <!-- Verification Badge -->
-                        <div id="account-verify-section" class="glass rounded-2xl p-6 mt-6 text-left">
-                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-circle-check" style="color:#3b82f6"></i> Verification Badge</h3>
-                            <div class="flex items-start gap-4 p-4 rounded-2xl bg-black/30 mb-3">
-                                <span style="font-size:1.5rem;color:#3b82f6;flex-shrink:0;">✓</span>
-                                <p class="text-white/70 text-sm">A verification badge is a blue checkmark granted by the owner to trusted and notable members of Starlink. It appears next to your name in global chat, DMs, and the online users list. It is not something you can earn automatically — it is manually awarded by the owner.</p>
+                        <div id="account-verify-section" class="glass p-5 mt-4 text-left">
+                            <h3 class="text-sm font-bold mb-3 flex items-center gap-2" style="letter-spacing:0.08em;text-transform:uppercase;"><i class="fa-solid fa-circle-check text-xs" style="color:#3b82f6;"></i> Verification Badge</h3>
+                            <div class="flex items-start gap-3 p-3 mb-2" style="background:rgba(0,0,0,0.3);">
+                                <span style="color:#3b82f6;flex-shrink:0;">✓</span>
+                                <p class="text-xs" style="color:var(--text-muted);">A blue checkmark granted by the owner to trusted members. Appears next to your name in chat, DMs, and the online users list.</p>
                             </div>
-                            <div id="account-verify-status" class="text-sm text-center py-2 rounded-2xl hidden"></div>
-                        </div>
+                            <div id="account-verify-status" class="text-xs text-center py-2 hidden"></div>
                         </div>
                     </div>
                 </div>
@@ -629,205 +668,191 @@
 
             <!-- HOME -->
             <div id="content-home" class="tab-content">
-                <div class="max-w-4xl mx-auto text-center pt-12 glass rounded-3xl p-12">
-                    <svg width="180" height="180" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+                <div class="max-w-3xl mx-auto text-center pt-10 glass p-10" style="margin-top:1.5rem;">
+                    <svg width="80" height="80" viewBox="0 0 200 200" class="star-svg mx-auto mb-8" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z"/>
                     </svg>
-                    <h1 class="logo-font text-7xl md:text-8xl font-bold tracking-tight mb-6">Starlink</h1>
-                    <p class="text-2xl text-white/70 max-w-3xl mx-auto leading-relaxed">
-                        Welcome to Starlink — your personal gateway to unblocked games, AI tools, streaming, music, proxies, and more.
-                        Fast, clean, and always available.
+                    <h1 class="logo-font text-6xl md:text-7xl font-bold tracking-tight mb-4" style="color:var(--accent);text-shadow:0 0 40px rgba(0,255,136,0.4);">STARLINK</h1>
+                    <p class="text-sm leading-relaxed max-w-xl mx-auto" style="color:var(--text-muted);">
+                        Your gateway to unblocked games, AI tools, streaming, music, proxies, and more. Fast, clean, always available.
                     </p>
-                    <div class="mt-8 text-white/50 text-lg">By: Gunnar Booth</div>
+                    <div class="mt-6 text-xs tracking-widest" style="color:var(--text-muted);">// BY GUNNAR BOOTH</div>
                 </div>
             </div>
 
             <!-- REQUEST ADMIN TAB -->
             <div id="content-request-admin" class="tab-content hidden">
-                <div class="max-w-xl mx-auto py-12">
-                    <div class="glass rounded-3xl p-10">
-                        <div class="text-center mb-8">
-                            <i class="fa-solid fa-crown text-5xl mb-4" style="color:var(--accent)"></i>
-                            <h2 class="text-3xl font-bold logo-font tracking-tight mb-2">Request Admin Access</h2>
-                            <p class="text-white/60 text-sm">Tell the owner why you'd like admin access. They'll review your request and get back to you.</p>
+                <div class="max-w-lg mx-auto py-8">
+                    <div class="glass p-8">
+                        <div class="text-center mb-6">
+                            <i class="fa-solid fa-crown text-3xl mb-3" style="color:var(--accent);"></i>
+                            <h2 class="logo-font text-2xl font-bold tracking-tight mb-2">Request Admin Access</h2>
+                            <p class="text-xs" style="color:var(--text-muted);">Tell the owner why you'd like admin access.</p>
                         </div>
                         <div id="admin-req-already" class="hidden text-center py-6">
-                            <i class="fa-solid fa-clock text-4xl text-yellow-400 mb-4"></i>
-                            <p class="text-xl font-semibold text-yellow-400 mb-2">Request Pending</p>
-                            <p class="text-white/60 text-sm">You already have a pending request. The owner will review it shortly.</p>
-                            <button onclick="window.cancelAdminRequest()" class="github-style-btn mt-6" style="width:auto;padding:0.75rem 2rem;">Cancel Request</button>
+                            <i class="fa-solid fa-clock text-2xl text-yellow-400 mb-3"></i>
+                            <p class="text-sm font-semibold text-yellow-400 mb-2">Request Pending</p>
+                            <p class="text-xs" style="color:var(--text-muted);">You already have a pending request. The owner will review it shortly.</p>
+                            <button onclick="window.cancelAdminRequest()" class="github-style-btn mt-4" style="width:auto;padding:0.5rem 1.5rem;">Cancel Request</button>
                         </div>
                         <div id="admin-req-form">
-                            <textarea id="admin-req-reason" rows="5" placeholder="Why do you want admin access? Be specific — the more detail, the better." class="w-full" style="resize:vertical;"></textarea>
-                            <button onclick="window.submitAdminRequest()" class="auth-btn w-full mt-2">Submit Request</button>
+                            <textarea id="admin-req-reason" rows="5" placeholder="// Why do you want admin access? Be specific." style="resize:vertical;"></textarea>
+                            <button onclick="window.submitAdminRequest()" class="auth-btn w-full mt-2">→ Submit Request</button>
                         </div>
-                        <p id="admin-req-message" class="text-center text-sm mt-4 hidden"></p>
+                        <p id="admin-req-message" class="text-center text-xs mt-3 hidden"></p>
                     </div>
                 </div>
             </div>
 
-
             <!-- REQUEST CATEGORY TAB -->
             <div id="content-request-category" class="tab-content hidden">
-                <div class="max-w-xl mx-auto py-12">
-                    <div class="glass rounded-3xl p-10">
-                        <div class="text-center mb-8">
-                            <i class="fa-solid fa-list text-5xl mb-4" style="color:var(--accent)"></i>
-                            <h2 class="text-3xl font-bold logo-font tracking-tight mb-2">Request a Category</h2>
-                            <p class="text-white/60 text-sm">Suggest a new category to add to Starlink. The owner will review your request.</p>
+                <div class="max-w-lg mx-auto py-8">
+                    <div class="glass p-8">
+                        <div class="text-center mb-6">
+                            <i class="fa-solid fa-list text-3xl mb-3" style="color:var(--accent);"></i>
+                            <h2 class="logo-font text-2xl font-bold tracking-tight mb-2">Request a Category</h2>
+                            <p class="text-xs" style="color:var(--text-muted);">Suggest a new category to add to Starlink.</p>
                         </div>
-                        <input id="cat-req-label" type="text" placeholder="Category name (e.g. Sports)" class="w-full">
-                        <input id="cat-req-icon" type="text" placeholder="Font Awesome icon (e.g. fa-futbol)" class="w-full">
-                        <textarea id="cat-req-reason" rows="4" placeholder="Why should this category be added? What sites would go in it?" class="w-full" style="resize:vertical;"></textarea>
-                        <button onclick="window.submitCategoryRequest()" class="auth-btn w-full mt-2">Submit Request</button>
-                        <p id="cat-req-message" class="text-center text-sm mt-4 hidden"></p>
+                        <input id="cat-req-label" type="text" placeholder="category_name (e.g. Sports)">
+                        <input id="cat-req-icon" type="text" placeholder="font_awesome_icon (e.g. fa-futbol)">
+                        <textarea id="cat-req-reason" rows="4" placeholder="// Why should this category be added?" style="resize:vertical;"></textarea>
+                        <button onclick="window.submitCategoryRequest()" class="auth-btn w-full mt-2">→ Submit Request</button>
+                        <p id="cat-req-message" class="text-center text-xs mt-3 hidden"></p>
                     </div>
                 </div>
             </div>
 
             <!-- REQUEST A SITE TAB -->
             <div id="content-request-site" class="tab-content hidden">
-                <div class="max-w-xl mx-auto py-12">
-                    <div class="glass rounded-3xl p-10">
-                        <div class="text-center mb-8">
-                            <i class="fa-solid fa-paper-plane text-5xl mb-4" style="color:var(--accent)"></i>
-                            <h2 class="text-3xl font-bold logo-font tracking-tight mb-2">Request a Site</h2>
-                            <p class="text-white/60 text-sm">Suggest a site to add to Starlink. The admin will review your request.</p>
+                <div class="max-w-lg mx-auto py-8">
+                    <div class="glass p-8">
+                        <div class="text-center mb-6">
+                            <i class="fa-solid fa-paper-plane text-3xl mb-3" style="color:var(--accent);"></i>
+                            <h2 class="logo-font text-2xl font-bold tracking-tight mb-2">Request a Site</h2>
+                            <p class="text-xs" style="color:var(--text-muted);">Suggest a site to add to Starlink.</p>
                         </div>
-                        <input id="req-name" type="text" placeholder="Site name" class="w-full">
-                        <input id="req-url" type="text" placeholder="URL (e.g. https://example.com)" class="w-full">
-                        <select id="req-category" class="w-full" style="font-size:1.1rem;padding:1rem 1.25rem;"></select>
-                        <div class="flex gap-4">
-                            <input id="req-icon" type="text" placeholder="Icon (emoji) – optional" maxlength="2" style="flex:1">
-                            <input id="req-desc" type="text" placeholder="Short description (optional)" style="flex:3">
+                        <input id="req-name" type="text" placeholder="site_name">
+                        <input id="req-url" type="text" placeholder="url (e.g. https://example.com)">
+                        <select id="req-category" style="font-size:0.82rem;padding:0.75rem 1rem;"></select>
+                        <div class="flex gap-3 mt-1">
+                            <input id="req-icon" type="text" placeholder="emoji (opt)" maxlength="2" style="flex:1;margin-bottom:0;">
+                            <input id="req-desc" type="text" placeholder="short description (opt)" style="flex:3;margin-bottom:0;">
                         </div>
-                        <button onclick="window.submitSiteRequest()" class="auth-btn w-full mt-2">Submit Request</button>
-                        <p id="req-message" class="text-center text-sm mt-4 hidden"></p>
+                        <button onclick="window.submitSiteRequest()" class="auth-btn w-full mt-4">→ Submit Request</button>
+                        <p id="req-message" class="text-center text-xs mt-3 hidden"></p>
                     </div>
                 </div>
             </div>
 
-
-
             <!-- REQUEST VERIFICATION TAB -->
             <div id="content-request-verify" class="tab-content hidden">
-                <div class="max-w-xl mx-auto py-12">
-                    <div class="glass rounded-3xl p-10">
-                        <div class="text-center mb-8">
-                            <i class="fa-solid fa-circle-check text-5xl mb-4" style="color:#3b82f6"></i>
-                            <h2 class="text-3xl font-bold logo-font tracking-tight mb-2">Request Verification</h2>
-                            <p class="text-white/60 text-sm">Request a verified badge ✓ shown next to your name everywhere on Starlink. The owner reviews all requests.</p>
+                <div class="max-w-lg mx-auto py-8">
+                    <div class="glass p-8">
+                        <div class="text-center mb-6">
+                            <i class="fa-solid fa-circle-check text-3xl mb-3" style="color:#3b82f6;"></i>
+                            <h2 class="logo-font text-2xl font-bold tracking-tight mb-2">Request Verification</h2>
+                            <p class="text-xs" style="color:var(--text-muted);">Request a verified badge ✓ shown next to your name everywhere on Starlink.</p>
                         </div>
                         <div id="verify-req-already" class="hidden text-center py-6">
-                            <i class="fa-solid fa-clock text-4xl text-blue-400 mb-4"></i>
-                            <p class="text-xl font-semibold text-blue-400 mb-2">Request Pending</p>
-                            <p class="text-white/60 text-sm">Your verification request is being reviewed by the owner.</p>
-                            <button onclick="window.cancelVerifyRequest()" class="github-style-btn mt-6" style="width:auto;padding:0.75rem 2rem;">Cancel Request</button>
+                            <i class="fa-solid fa-clock text-2xl text-blue-400 mb-3"></i>
+                            <p class="text-sm font-semibold text-blue-400 mb-2">Request Pending</p>
+                            <p class="text-xs" style="color:var(--text-muted);">Your verification request is being reviewed by the owner.</p>
+                            <button onclick="window.cancelVerifyRequest()" class="github-style-btn mt-4" style="width:auto;padding:0.5rem 1.5rem;">Cancel Request</button>
                         </div>
                         <div id="verify-req-verified" class="hidden text-center py-6">
-                            <i class="fa-solid fa-circle-check text-4xl text-blue-400 mb-4"></i>
-                            <p class="text-xl font-semibold text-blue-400 mb-2">Already Verified ✓</p>
-                            <p class="text-white/60 text-sm">You already have a verified badge on your account.</p>
+                            <i class="fa-solid fa-circle-check text-2xl text-blue-400 mb-3"></i>
+                            <p class="text-sm font-semibold text-blue-400 mb-2">Already Verified ✓</p>
+                            <p class="text-xs" style="color:var(--text-muted);">You already have a verified badge on your account.</p>
                         </div>
                         <div id="verify-req-form">
-                            <textarea id="verify-req-reason" rows="5" placeholder="Why do you want a verified badge? What makes you notable on Starlink?" class="w-full" style="resize:vertical;"></textarea>
-                            <button onclick="window.submitVerifyRequest()" class="auth-btn w-full mt-2">Submit Request</button>
+                            <textarea id="verify-req-reason" rows="5" placeholder="// Why do you want a verified badge? What makes you notable?" style="resize:vertical;"></textarea>
+                            <button onclick="window.submitVerifyRequest()" class="auth-btn w-full mt-2">→ Submit Request</button>
                         </div>
-                        <p id="verify-req-message" class="text-center text-sm mt-4 hidden"></p>
+                        <p id="verify-req-message" class="text-center text-xs mt-3 hidden"></p>
                     </div>
                 </div>
             </div>
 
             <!-- LIVE CHAT TAB -->
             <div id="content-chat" class="tab-content hidden">
-                <div style="display:flex;gap:1.5rem;height:calc(100vh - 10rem);">
-
+                <div style="display:flex;gap:1rem;height:calc(100vh - 8rem);">
                     <!-- LEFT: Friends panel -->
-                    <div class="glass rounded-3xl" style="width:260px;min-width:260px;display:flex;flex-direction:column;overflow:hidden;">
-                        <div style="padding:1.25rem 1.25rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.1);">
-                            <div class="text-lg font-bold logo-font mb-3">Friends</div>
-                            <!-- Add friend input -->
-                            <div style="display:flex;gap:0.5rem;">
-                                <input id="friend-search-input" type="text" placeholder="Username..." maxlength="24"
-                                    style="flex:1;margin:0;padding:0.5rem 0.75rem;font-size:0.8rem;border-radius:0.75rem;">
-                                <button onclick="window.sendFriendRequest()" style="width:auto;margin:0;padding:0.5rem 0.75rem;font-size:0.8rem;border-radius:0.75rem;" class="auth-btn">
+                    <div class="glass" style="width:240px;min-width:240px;display:flex;flex-direction:column;overflow:hidden;">
+                        <div style="padding:0.85rem;border-bottom:1px solid var(--border);">
+                            <div class="text-xs font-bold mb-2" style="letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);">// Friends</div>
+                            <div style="display:flex;gap:0.4rem;">
+                                <input id="friend-search-input" type="text" placeholder="username..." maxlength="24"
+                                    style="flex:1;margin:0;padding:0.4rem 0.6rem;font-size:0.75rem;">
+                                <button onclick="window.sendFriendRequest()" style="width:auto;margin:0;padding:0.4rem 0.6rem;font-size:0.75rem;min-height:0;" class="auth-btn">
                                     <i class="fa-solid fa-user-plus"></i>
                                 </button>
                             </div>
                         </div>
-                        <!-- Friend requests -->
-                        <div id="friend-requests-list" class="hidden" style="padding:0.75rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.08);"></div>
-                        <!-- Friends list -->
-                        <div id="friends-list" style="flex:1;overflow-y:auto;padding:0.75rem 0.5rem;">
-                            <p class="text-xs text-white/30 text-center mt-4">No friends yet</p>
+                        <div id="friend-requests-list" class="hidden" style="padding:0.6rem 0.85rem;border-bottom:1px solid var(--border);"></div>
+                        <div id="friends-list" style="flex:1;overflow-y:auto;padding:0.5rem 0.4rem;">
+                            <p class="text-xs text-center mt-4" style="color:var(--text-muted);">No friends yet</p>
                         </div>
-                        <!-- Global chat button -->
-                        <div style="padding:0.75rem;border-top:1px solid rgba(255,255,255,0.08);">
+                        <div style="padding:0.6rem;border-top:1px solid var(--border);">
                             <button onclick="window.openGlobalChat()" id="global-chat-btn"
-                                style="width:100%;margin:0;padding:0.6rem 1rem;font-size:0.85rem;border-radius:0.75rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:white;text-align:left;display:flex;align-items:center;gap:0.5rem;">
+                                style="width:100%;margin:0;padding:0.5rem 0.85rem;font-size:0.75rem;background:var(--surface2);border:1px solid var(--border);color:var(--text);text-align:left;display:flex;align-items:center;gap:0.5rem;text-transform:none;letter-spacing:0;min-height:0;">
                                 <i class="fa-solid fa-globe text-xs"></i> Global Chat
-                                <span id="global-chat-active-dot" class="w-2 h-2 rounded-full bg-[var(--accent)] ml-auto hidden"></span>
+                                <span id="global-chat-active-dot" class="w-2 h-2 rounded-full ml-auto hidden" style="background:var(--accent);"></span>
                             </button>
                         </div>
                     </div>
-
                     <!-- RIGHT: Chat area -->
                     <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
-                        <!-- Chat header -->
-                        <div class="flex items-center justify-between mb-4">
-                            <div id="chat-header-name" class="text-2xl font-bold logo-font tracking-tight">Messages</div>
-
+                        <div class="flex items-center justify-between mb-3">
+                            <div id="chat-header-name" class="logo-font text-lg font-bold tracking-tight">Messages</div>
                         </div>
-                        <!-- Messages -->
-                        <div id="chat-messages" class="flex-1 overflow-y-auto glass rounded-3xl p-6 mb-4 space-y-3" style="min-height:0;border:1px solid rgba(255,255,255,0.12);">
-                            <p class="text-center text-white/30 text-sm">Loading messages...</p>
+                        <div id="chat-messages" class="flex-1 overflow-y-auto glass p-4 mb-3 space-y-2" style="min-height:0;">
+                            <p class="text-center text-xs" style="color:var(--text-muted);">Loading messages...</p>
                         </div>
-                        <!-- Typing indicator -->
-                        <div id="typing-indicator" class="text-xs text-white/40 italic mb-2 h-4 px-1"></div>
-                        <!-- Input -->
-                        <div class="flex gap-3">
-                            <input id="chat-input" type="text" placeholder="Say something..." maxlength="300"
+                        <div id="typing-indicator" class="text-xs italic mb-2 h-4 px-1" style="color:var(--text-muted);"></div>
+                        <div class="flex gap-2">
+                            <input id="chat-input" type="text" placeholder="say_something..." maxlength="300"
                                 style="flex:1;margin:0;"
                                 onkeydown="if(event.key==='Enter')window.sendChatMessage()"
                                 oninput="window.handleTyping()">
-                            <button onclick="window.sendChatMessage()" class="auth-btn" style="width:auto;padding:0.9rem 1.75rem;margin:0;font-size:1rem;">
+                            <button onclick="window.sendChatMessage()" class="auth-btn" style="width:auto;padding:0.65rem 1.25rem;margin:0;font-size:0.85rem;min-height:0;">
                                 <i class="fa-solid fa-paper-plane"></i>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
+
             <!-- DYNAMIC CATEGORY CONTENTS -->
             <div id="dynamic-category-contents"></div>
 
             <!-- SETTINGS -->
             <div id="content-settings" class="tab-content hidden">
-                <div class="glass rounded-3xl p-10 max-w-4xl mx-auto">
-                    <h3 class="text-2xl font-semibold mb-6">Appearance • Choose Theme</h3>
-                    <p class="text-white/70 mb-8">Click a color to instantly change the accent, stars, glow, and sidebar highlights</p>
-                    <div id="theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div>
-                    <div class="glass rounded-3xl p-8 mt-8">
-                        <h3 class="text-2xl font-semibold mb-6 text-red-400">Danger Zone</h3>
-                        <button onclick="resetEverything()" class="bg-red-600 hover:bg-red-700 text-white font-medium py-4 px-8 rounded-xl transition-colors text-lg">
+                <div class="glass p-8 max-w-4xl mx-auto" style="margin-top:1.5rem;">
+                    <h3 class="text-sm font-bold mb-2" style="letter-spacing:0.1em;text-transform:uppercase;">// Appearance · Choose Theme</h3>
+                    <p class="text-xs mb-6" style="color:var(--text-muted);">Click a color to change the accent, stars, glow, and highlights.</p>
+                    <div id="theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-4"></div>
+                    <div class="glass p-6 mt-6" style="border-color:rgba(255,68,68,0.2);">
+                        <h3 class="text-sm font-bold mb-3 text-red-400" style="letter-spacing:0.1em;text-transform:uppercase;">// Danger Zone</h3>
+                        <button onclick="resetEverything()" style="background:#dc2626;color:#fff;border-color:#dc2626;width:auto;padding:0.6rem 1.5rem;font-size:0.78rem;">
                             Reset Everything (theme, preferences & sign out)
                         </button>
-                        <p id="reset-message" class="text-sm text-white/60 mt-3 hidden">Reset complete! Signing out and refreshing...</p>
+                        <p id="reset-message" class="text-xs mt-2 hidden" style="color:var(--text-muted);">Reset complete! Signing out and refreshing...</p>
                     </div>
                 </div>
             </div>
 
             <!-- CREDITS -->
             <div id="content-credits" class="tab-content hidden">
-                <div class="max-w-3xl mx-auto text-center py-20 glass rounded-3xl p-12">
-                    <svg width="120" height="120" viewBox="0 0 200 200" class="star-svg mx-auto mb-10" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+                <div class="max-w-2xl mx-auto text-center py-16 glass p-10" style="margin-top:1.5rem;">
+                    <svg width="80" height="80" viewBox="0 0 200 200" class="star-svg mx-auto mb-8" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z"/>
                     </svg>
-                    <h1 class="logo-font text-6xl font-bold tracking-tight mb-8">Credits</h1>
-                    <p class="text-2xl text-white/80 mb-6">
-                        Created, designed, and built entirely by <span class="font-semibold text-[var(--accent)]">Gunnar Booth</span>
+                    <h1 class="logo-font text-5xl font-bold tracking-tight mb-6">CREDITS</h1>
+                    <p class="text-sm mb-6" style="color:var(--text-muted);">
+                        Created, designed, and built entirely by <span class="font-bold" style="color:var(--accent);">Gunnar Booth</span>
                     </p>
-                    <a href="https://github.com/GunBooth0/Starlink" target="_blank" rel="noopener noreferrer" class="github-style-btn inline-flex">
-                        <i class="fa-brands fa-github text-3xl"></i>
+                    <a href="https://github.com/GunBooth0/Starlink" target="_blank" rel="noopener noreferrer" class="github-style-btn inline-flex" style="width:auto;padding:0.75rem 2rem;">
+                        <i class="fa-brands fa-github"></i>
                         View Source on GitHub
                     </a>
                 </div>
@@ -835,261 +860,244 @@
 
             <!-- ADMIN PANEL -->
             <div id="content-admin" class="tab-content hidden">
-                <div class="glass rounded-3xl p-10 max-w-6xl mx-auto">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-4xl font-bold logo-font tracking-tighter" id="main-panel-title">Admin Panel</h2>
-                        <div class="text-xs bg-white/10 px-4 py-2 rounded-2xl font-mono" id="panel-badge-label">Admin only</div>
+                <div class="glass p-8 max-w-6xl mx-auto" style="margin-top:1.5rem;">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="logo-font text-3xl font-bold tracking-tighter" id="main-panel-title">Admin Panel</h2>
+                        <div class="text-xs px-3 py-1" style="background:var(--surface2);border:1px solid var(--border);letter-spacing:0.08em;" id="panel-badge-label">Admin only</div>
                     </div>
-                    <div id="terminal-hint" class="hidden mb-8 flex items-center gap-2 text-white/40 text-xs">
-                        <kbd style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:0.35rem;padding:0.15rem 0.5rem;font-family:monospace;color:rgba(255,255,255,0.6);">/</kbd>
+                    <div id="terminal-hint" class="hidden mb-6 flex items-center gap-2 text-xs" style="color:var(--text-muted);">
+                        <kbd style="background:var(--surface2);border:1px solid var(--border);padding:0.1rem 0.4rem;font-family:'JetBrains Mono',monospace;color:var(--accent);">/</kbd>
                         <span>to open the owner terminal</span>
                     </div>
 
-
                     <!-- Online Users -->
-                    <div class="mb-16" id="online-users-section">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-circle text-green-400" style="font-size:0.7rem;"></i> Online Users
-                                <span id="panel-online-count" class="text-sm text-white/50 font-normal"></span>
+                    <div class="mb-12" id="online-users-section">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-bold flex items-center gap-2" style="letter-spacing:0.1em;text-transform:uppercase;">
+                                <i class="fa-solid fa-circle text-green-400" style="font-size:0.5rem;"></i> Online Users
+                                <span id="panel-online-count" class="text-xs font-normal" style="color:var(--text-muted);text-transform:none;letter-spacing:0;"></span>
                             </h3>
-                            <button onclick="window.loadOnlineUsers()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
+                            <button onclick="window.loadOnlineUsers()" class="github-style-btn text-xs px-3 py-2" style="width:auto;margin:0;min-height:0;">Refresh</button>
                         </div>
-                        <div id="online-users-list" class="glass rounded-3xl p-4">
-                            <p class="text-center text-white/40 text-sm py-4">Click Refresh to see who is online</p>
+                        <div id="online-users-list" class="glass p-4">
+                            <p class="text-center text-xs py-3" style="color:var(--text-muted);">Click Refresh to see who is online</p>
                         </div>
                     </div>
 
                     <!-- Announcement -->
-                    <div class="mb-16">
-                        <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
-                            <i class="fa-solid fa-bullhorn"></i> Global Announcement
-                        </h3>
-                        <textarea id="announcement-input" rows="3" class="w-full p-6 bg-white/5 backdrop-blur-md border border-white/20 rounded-3xl text-white text-lg resize-y focus:border-[var(--accent)]" placeholder="Message visible to ALL logged-in users..."></textarea>
-                        <div class="flex gap-4 mt-4">
+                    <div class="mb-12">
+                        <h3 class="text-sm font-bold mb-4" style="letter-spacing:0.1em;text-transform:uppercase;">// Global Announcement</h3>
+                        <textarea id="announcement-input" rows="3" class="w-full" placeholder="// Message visible to ALL logged-in users..." style="resize:y;"></textarea>
+                        <div class="flex gap-3 mt-2">
                             <button onclick="saveGlobalAnnouncement()" class="auth-btn flex-1">Publish</button>
                             <button onclick="clearAnnouncement()" class="github-style-btn flex-1">Clear</button>
                         </div>
                     </div>
 
                     <!-- Users -->
-                    <div class="mb-16">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-users"></i> Registered Users
+                    <div class="mb-12">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-bold flex items-center gap-2" style="letter-spacing:0.1em;text-transform:uppercase;">
+                                <i class="fa-solid fa-users text-xs"></i> Registered Users
                             </h3>
-                            <div class="flex gap-4">
-                                <button onclick="loadAdminUsers()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
-
-                            </div>
+                            <button onclick="loadAdminUsers()" class="github-style-btn text-xs px-3 py-2" style="width:auto;margin:0;min-height:0;">Refresh List</button>
                         </div>
-                        <div id="users-table" class="glass rounded-3xl p-2 max-h-[420px] overflow-auto"></div>
-                        <p class="text-xs text-white/50 mt-4 text-center">Delete removes the user from this list.<br>Full auth deletion still required in Firebase Console → Authentication</p>
+                        <div id="users-table" class="glass p-2" style="max-height:400px;overflow:auto;"></div>
+                        <p class="text-xs mt-3 text-center" style="color:var(--text-muted);">Delete removes user from this list. Full auth deletion still required in Firebase Console → Authentication</p>
                     </div>
 
-                    <!-- Site Requests (owner only) -->
-                    <div class="mb-16" id="site-requests-section" style="display:none;">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-paper-plane"></i> Site Requests
-                                <span id="requests-badge" class="hidden text-xs bg-[var(--accent)] text-black px-3 py-1 rounded-full font-bold"></span>
+                    <!-- Site Requests -->
+                    <div class="mb-12" id="site-requests-section" style="display:none;">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-bold flex items-center gap-2" style="letter-spacing:0.1em;text-transform:uppercase;">
+                                <i class="fa-solid fa-paper-plane text-xs"></i> Site Requests
+                                <span id="requests-badge" class="hidden text-xs px-2 py-0.5 font-bold" style="background:var(--accent);color:#000;"></span>
                             </h3>
-                            <button onclick="window.loadSiteRequests()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
+                            <button onclick="window.loadSiteRequests()" class="github-style-btn text-xs px-3 py-2" style="width:auto;margin:0;min-height:0;">Refresh</button>
                         </div>
-                        <div id="site-requests-list" class="glass rounded-3xl p-2 max-h-[480px] overflow-auto">
-                            <p class="p-8 text-center text-white/50">Click Refresh to load requests</p>
+                        <div id="site-requests-list" class="glass p-2" style="max-height:440px;overflow:auto;">
+                            <p class="p-6 text-center text-xs" style="color:var(--text-muted);">Click Refresh to load requests</p>
                         </div>
                     </div>
 
-
-
-
-                    <!-- Verification Requests (owner only) -->
-                    <div class="mb-16" id="verify-requests-section" style="display:none;">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-circle-check text-blue-400"></i> Verification Requests
-                                <span id="verify-req-badge" class="hidden text-xs bg-blue-500 text-white px-3 py-1 rounded-full font-bold"></span>
+                    <!-- Verification Requests -->
+                    <div class="mb-12" id="verify-requests-section" style="display:none;">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-bold flex items-center gap-2" style="letter-spacing:0.1em;text-transform:uppercase;">
+                                <i class="fa-solid fa-circle-check text-xs text-blue-400"></i> Verification Requests
+                                <span id="verify-req-badge" class="hidden text-xs px-2 py-0.5 font-bold" style="background:#3b82f6;color:#fff;"></span>
                             </h3>
-                            <button onclick="window.loadVerifyRequests()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
+                            <button onclick="window.loadVerifyRequests()" class="github-style-btn text-xs px-3 py-2" style="width:auto;margin:0;min-height:0;">Refresh</button>
                         </div>
-                        <div id="verify-requests-list" class="glass rounded-3xl p-2 max-h-[480px] overflow-auto">
-                            <p class="p-8 text-center text-white/50">Click Refresh to load verification requests</p>
+                        <div id="verify-requests-list" class="glass p-2" style="max-height:440px;overflow:auto;">
+                            <p class="p-6 text-center text-xs" style="color:var(--text-muted);">Click Refresh to load verification requests</p>
                         </div>
                     </div>
 
-                    <!-- Signup Requests (owner only) -->
-                    <div class="mb-16" id="signup-requests-section" style="display:none;">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-user-plus"></i> Signup Requests
-                                <span id="signup-req-badge" class="hidden text-xs bg-[var(--accent)] text-black px-3 py-1 rounded-full font-bold"></span>
+                    <!-- Signup Requests -->
+                    <div class="mb-12" id="signup-requests-section" style="display:none;">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-bold flex items-center gap-2" style="letter-spacing:0.1em;text-transform:uppercase;">
+                                <i class="fa-solid fa-user-plus text-xs"></i> Signup Requests
+                                <span id="signup-req-badge" class="hidden text-xs px-2 py-0.5 font-bold" style="background:var(--accent);color:#000;"></span>
                             </h3>
-                            <button onclick="window.loadSignupRequests()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
+                            <button onclick="window.loadSignupRequests()" class="github-style-btn text-xs px-3 py-2" style="width:auto;margin:0;min-height:0;">Refresh</button>
                         </div>
-                        <div id="signup-requests-list" class="glass rounded-3xl p-2 max-h-[480px] overflow-auto">
-                            <p class="p-8 text-center text-white/50">Click Refresh to load pending signups</p>
+                        <div id="signup-requests-list" class="glass p-2" style="max-height:440px;overflow:auto;">
+                            <p class="p-6 text-center text-xs" style="color:var(--text-muted);">Click Refresh to load pending signups</p>
                         </div>
                     </div>
 
-                    <!-- Admin Access Requests (owner only) -->
-                    <div class="mb-16" id="admin-requests-section" style="display:none;">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-crown"></i> Admin Access Requests
-                                <span id="admin-req-badge" class="hidden text-xs bg-[var(--accent)] text-black px-3 py-1 rounded-full font-bold"></span>
+                    <!-- Admin Access Requests -->
+                    <div class="mb-12" id="admin-requests-section" style="display:none;">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-bold flex items-center gap-2" style="letter-spacing:0.1em;text-transform:uppercase;">
+                                <i class="fa-solid fa-crown text-xs"></i> Admin Access Requests
+                                <span id="admin-req-badge" class="hidden text-xs px-2 py-0.5 font-bold" style="background:var(--accent);color:#000;"></span>
                             </h3>
-                            <button onclick="window.loadAdminRequests()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
+                            <button onclick="window.loadAdminRequests()" class="github-style-btn text-xs px-3 py-2" style="width:auto;margin:0;min-height:0;">Refresh</button>
                         </div>
-                        <div id="admin-requests-list" class="glass rounded-3xl p-2 max-h-[480px] overflow-auto">
-                            <p class="p-8 text-center text-white/50">Click Refresh to load requests</p>
+                        <div id="admin-requests-list" class="glass p-2" style="max-height:440px;overflow:auto;">
+                            <p class="p-6 text-center text-xs" style="color:var(--text-muted);">Click Refresh to load requests</p>
                         </div>
                     </div>
 
-                    <!-- DMs Viewer (owner only) -->
-                    <div class="mb-16" id="dms-admin-section" style="display:none;">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-envelope"></i> Direct Messages
+                    <!-- DMs Viewer -->
+                    <div class="mb-12" id="dms-admin-section" style="display:none;">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-bold flex items-center gap-2" style="letter-spacing:0.1em;text-transform:uppercase;">
+                                <i class="fa-solid fa-envelope text-xs"></i> Direct Messages
                             </h3>
-                            <button onclick="window.loadAdminDMs()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
+                            <button onclick="window.loadAdminDMs()" class="github-style-btn text-xs px-3 py-2" style="width:auto;margin:0;min-height:0;">Refresh</button>
                         </div>
-                        <div id="dms-admin-list" class="glass rounded-3xl p-2 max-h-[480px] overflow-auto">
-                            <p class="p-8 text-center text-white/50">Click Refresh to load conversations</p>
+                        <div id="dms-admin-list" class="glass p-2" style="max-height:440px;overflow:auto;">
+                            <p class="p-6 text-center text-xs" style="color:var(--text-muted);">Click Refresh to load conversations</p>
                         </div>
                     </div>
 
-                    <!-- Category Requests (owner only) -->
-                    <div class="mb-16" id="cat-requests-section" style="display:none;">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-list"></i> Category Requests
-                                <span id="cat-req-badge" class="hidden text-xs bg-[var(--accent)] text-black px-3 py-1 rounded-full font-bold"></span>
+                    <!-- Category Requests -->
+                    <div class="mb-12" id="cat-requests-section" style="display:none;">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-bold flex items-center gap-2" style="letter-spacing:0.1em;text-transform:uppercase;">
+                                <i class="fa-solid fa-list text-xs"></i> Category Requests
+                                <span id="cat-req-badge" class="hidden text-xs px-2 py-0.5 font-bold" style="background:var(--accent);color:#000;"></span>
                             </h3>
-                            <button onclick="window.loadCategoryRequests()" class="github-style-btn text-sm px-4 py-3">Refresh</button>
+                            <button onclick="window.loadCategoryRequests()" class="github-style-btn text-xs px-3 py-2" style="width:auto;margin:0;min-height:0;">Refresh</button>
                         </div>
-                        <div id="category-requests-list" class="glass rounded-3xl p-2 max-h-[480px] overflow-auto">
-                            <p class="p-8 text-center text-white/50">Click Refresh to load requests</p>
+                        <div id="category-requests-list" class="glass p-2" style="max-height:440px;overflow:auto;">
+                            <p class="p-6 text-center text-xs" style="color:var(--text-muted);">Click Refresh to load requests</p>
                         </div>
                     </div>
 
-
-                    <!-- Clear Chat (owner only) -->
-                    <!-- Broadcast Refresh (owner only) -->
-                    <div class="mb-8" id="broadcast-refresh-section" style="display:none;">
-                        <div class="glass rounded-3xl p-8 flex items-center justify-between" style="border:1px solid rgba(99,102,241,0.2);">
+                    <!-- Broadcast Refresh -->
+                    <div class="mb-6" id="broadcast-refresh-section" style="display:none;">
+                        <div class="glass p-6 flex items-center justify-between" style="border-color:rgba(99,102,241,0.2);">
                             <div>
-                                <p class="font-semibold text-lg mb-1"><i class="fa-solid fa-rotate mr-2 text-indigo-400"></i>Push Refresh to All Users</p>
-                                <p class="text-white/50 text-sm">Forces a full page reload on every online user's screen. Use only when a change requires a hard reload.</p>
+                                <p class="text-sm font-semibold mb-1"><i class="fa-solid fa-rotate mr-2 text-indigo-400"></i>Push Refresh to All Users</p>
+                                <p class="text-xs" style="color:var(--text-muted);">Forces a full reload on every online user's screen.</p>
                             </div>
-                            <button onclick="if(confirm('Push a refresh prompt to all online users?')) window.broadcastRefresh()" class="text-white font-semibold py-3 px-8 rounded-2xl transition-colors" style="width:auto;margin:0;font-size:1rem;background:#6366f1;">Push Refresh</button>
+                            <button onclick="if(confirm('Push refresh to all online users?')) window.broadcastRefresh()" style="width:auto;margin:0;font-size:0.78rem;background:#6366f1;color:#fff;border-color:#6366f1;padding:0.6rem 1.25rem;">Push Refresh</button>
                         </div>
                     </div>
 
-                    <div class="mb-16" id="clear-chat-section" style="display:none;">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-message"></i> Messages
-                            </h3>
-                        </div>
-                        <div class="glass rounded-3xl p-8 flex items-center justify-between" style="border:1px solid rgba(255,100,100,0.15);">
+                    <!-- Clear Chat -->
+                    <div class="mb-12" id="clear-chat-section" style="display:none;">
+                        <h3 class="text-sm font-bold mb-4" style="letter-spacing:0.1em;text-transform:uppercase;">// Messages</h3>
+                        <div class="glass p-6 flex items-center justify-between" style="border-color:rgba(255,68,68,0.15);">
                             <div>
-                                <p class="font-semibold text-lg mb-1">Clear All Messages</p>
-                                <p class="text-white/50 text-sm">Permanently deletes every message in the live chat and all DMs for all users.</p>
+                                <p class="text-sm font-semibold mb-1">Clear All Messages</p>
+                                <p class="text-xs" style="color:var(--text-muted);">Permanently deletes every message in live chat and all DMs.</p>
                             </div>
-                            <button onclick="window.clearChat()" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-8 rounded-2xl transition-colors" style="width:auto;margin:0;font-size:1rem;">Clear Chat</button>
+                            <button onclick="window.clearChat()" style="width:auto;margin:0;font-size:0.78rem;background:#dc2626;color:#fff;border-color:#dc2626;padding:0.6rem 1.25rem;">Clear Chat</button>
                         </div>
                     </div>
 
                     <!-- Admin Only Themes -->
-                    <div class="mb-16">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-crown text-yellow-400"></i> Admin Only Themes
-                            </h3>
-                        </div>
-                        <p class="text-white/50 text-sm mb-6">Exclusive themes only available to admins and the owner. Selecting one applies it immediately.</p>
-                        <div class="glass rounded-3xl p-6 mb-2"><div id="admin-theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5"></div></div>
+                    <div class="mb-12">
+                        <h3 class="text-sm font-bold mb-4 flex items-center gap-2" style="letter-spacing:0.1em;text-transform:uppercase;">
+                            <i class="fa-solid fa-crown text-xs text-yellow-400"></i> Admin Only Themes
+                        </h3>
+                        <p class="text-xs mb-4" style="color:var(--text-muted);">Exclusive themes only available to admins and the owner.</p>
+                        <div class="glass p-5"><div id="admin-theme-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-4"></div></div>
                     </div>
 
                     <!-- Reset Orders -->
-                    <div class="mb-8">
-                        <div class="glass rounded-3xl p-6 flex items-center justify-between" style="border:1px solid rgba(255,165,0,0.2);">
+                    <div class="mb-6">
+                        <div class="glass p-5 flex items-center justify-between" style="border-color:rgba(255,165,0,0.15);">
                             <div>
-                                <p class="font-semibold mb-1">Reset Category & Site Orders</p>
-                                <p class="text-white/50 text-sm">Fixes arrow reordering bugs by resetting all orders to clean sequential numbers.</p>
+                                <p class="text-sm font-semibold mb-1">Reset Category & Site Orders</p>
+                                <p class="text-xs" style="color:var(--text-muted);">Fixes arrow reordering bugs by resetting all orders to sequential numbers.</p>
                             </div>
-                            <button onclick="window.resetOrders()" class="github-style-btn text-sm px-6 py-3" style="width:auto;margin:0;white-space:nowrap;">Reset Orders</button>
+                            <button onclick="window.resetOrders()" class="github-style-btn text-xs px-4 py-2" style="width:auto;margin:0;white-space:nowrap;min-height:0;">Reset Orders</button>
                         </div>
                     </div>
 
                     <!-- Categories Management -->
-                    <div class="mb-16">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-list"></i> Manage Categories
+                    <div class="mb-12">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-bold flex items-center gap-2" style="letter-spacing:0.1em;text-transform:uppercase;">
+                                <i class="fa-solid fa-list text-xs"></i> Manage Categories
                             </h3>
-                            <button onclick="reloadAdminCategories()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
+                            <button onclick="reloadAdminCategories()" class="github-style-btn text-xs px-3 py-2" style="width:auto;margin:0;min-height:0;">Refresh List</button>
                         </div>
-                        <div class="glass p-8 rounded-3xl mb-10">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div id="admin-categories-list" class="space-y-3 mb-6"></div>
+                        <div class="glass p-6">
+                            <p class="text-xs mb-4" style="color:var(--text-muted);">// add or edit category</p>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 <div>
-                                    <label class="text-xs text-white/50 block mb-2">Key (unique lowercase, no spaces)</label>
-                                    <input id="new-cat-key" type="text" placeholder="newcat" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                    <label class="text-xs mb-1 block" style="color:var(--text-muted);">Key (unique lowercase, no spaces)</label>
+                                    <input id="new-cat-key" type="text" placeholder="newcat" style="margin-bottom:0;">
                                 </div>
                                 <div>
-                                    <label class="text-xs text-white/50 block mb-2">Display Label</label>
-                                    <input id="new-cat-label" type="text" placeholder="New Category" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                    <label class="text-xs mb-1 block" style="color:var(--text-muted);">Display Label</label>
+                                    <input id="new-cat-label" type="text" placeholder="New Category" style="margin-bottom:0;">
                                 </div>
                                 <div>
-                                    <label class="text-xs text-white/50 block mb-2">Font Awesome Icon (e.g. fa-gamepad)</label>
-                                    <input id="new-cat-icon" type="text" placeholder="fa-gamepad" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                    <label class="text-xs mb-1 block" style="color:var(--text-muted);">Icon (e.g. fa-gamepad)</label>
+                                    <input id="new-cat-icon" type="text" placeholder="fa-gamepad" style="margin-bottom:0;">
                                 </div>
                             </div>
-                            <button id="cat-action-btn" onclick="addOrUpdateCategory()" class="auth-btn mt-8 py-6 text-lg w-full">Add Category</button>
+                            <button id="cat-action-btn" onclick="addOrUpdateCategory()" class="auth-btn mt-4 w-full">Add Category</button>
                         </div>
-                        <div id="admin-categories-list" class="space-y-4"></div>
                     </div>
 
                     <!-- Sites Management -->
-                    <div>
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-2xl font-semibold flex items-center gap-3">
-                                <i class="fa-solid fa-globe"></i> Manage Sites
+                    <div class="mb-12">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-bold mb-0 flex items-center gap-2" style="letter-spacing:0.1em;text-transform:uppercase;">
+                                <i class="fa-solid fa-globe text-xs"></i> Manage Sites
                             </h3>
-                            <button onclick="reloadAdminSites()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
+                            <button onclick="reloadAdminSites()" class="github-style-btn text-xs px-3 py-2" style="width:auto;margin:0;min-height:0;">Refresh List</button>
                         </div>
-                        <div class="glass p-8 rounded-3xl mb-10" id="admin-sites-management">
-                            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <div class="glass p-6 mb-6">
+                            <p class="text-xs mb-4" style="color:var(--text-muted);">// add or edit site</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
-                                    <label class="text-xs text-white/50 block mb-2">Category</label>
-                                    <select id="admin-cat-select" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
-                                        <!-- Populated dynamically -->
-                                    </select>
+                                    <label class="text-xs mb-1 block" style="color:var(--text-muted);">Category</label>
+                                    <select id="admin-cat-select" style="font-size:0.8rem;padding:0.65rem 0.85rem;margin-bottom:0;"></select>
+                                </div>
+                                <div class="md:col-span-1">
+                                    <label class="text-xs mb-1 block" style="color:var(--text-muted);">Site Name</label>
+                                    <input id="new-site-name" type="text" placeholder="site_name" style="margin-bottom:0;">
                                 </div>
                                 <div class="md:col-span-2">
-                                    <label class="text-xs text-white/50 block mb-2">Site Name</label>
-                                    <input id="new-site-name" type="text" placeholder="Site Name" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="text-xs text-white/50 block mb-2">URL</label>
-                                    <input id="new-site-url" type="text" placeholder="https://example.com" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                    <label class="text-xs mb-1 block" style="color:var(--text-muted);">URL</label>
+                                    <input id="new-site-url" type="text" placeholder="https://example.com" style="margin-bottom:0;">
                                 </div>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                                 <div>
-                                    <label class="text-xs text-white/50 block mb-2">Icon (emoji) – optional</label>
-                                    <input id="new-site-icon" type="text" placeholder="Leave blank for no icon" maxlength="2" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                    <label class="text-xs mb-1 block" style="color:var(--text-muted);">Icon (emoji) – optional</label>
+                                    <input id="new-site-icon" type="text" placeholder="Leave blank for no icon" maxlength="2" style="margin-bottom:0;">
                                 </div>
                                 <div>
-                                    <label class="text-xs text-white/50 block mb-2">Description (optional)</label>
-                                    <input id="new-site-desc" type="text" placeholder="Short description" class="w-full p-4 bg-black border border-white/30 rounded-2xl text-white">
+                                    <label class="text-xs mb-1 block" style="color:var(--text-muted);">Description (optional)</label>
+                                    <input id="new-site-desc" type="text" placeholder="Short description" style="margin-bottom:0;">
                                 </div>
                             </div>
-                            <button id="add-update-site-btn" onclick="addNewSiteFromAdmin()" class="auth-btn mt-8 py-6 text-lg w-full">Add New Site</button>
+                            <button id="add-update-site-btn" onclick="addNewSiteFromAdmin()" class="auth-btn mt-4 w-full">→ Add New Site</button>
                         </div>
-
-                        <div id="admin-sites-list" class="space-y-10"></div>
+                        <div id="admin-sites-list" class="space-y-8"></div>
                     </div>
                 </div>
             </div>
@@ -1097,17 +1105,16 @@
     </div>
 
     <!-- OWNER TERMINAL -->
-    <!-- OWNER TERMINAL — bottom bar style -->
     <style>
         #owner-terminal {
             position: fixed;
             bottom: 0;
-            left: 288px; /* sidebar width */
+            left: 260px;
             right: 0;
             z-index: 99999;
-            font-family: monospace;
+            font-family: 'JetBrains Mono', monospace;
             transform: translateY(100%);
-            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.2s ease;
             pointer-events: none;
         }
         #owner-terminal.open {
@@ -1115,48 +1122,45 @@
             pointer-events: all;
         }
         #terminal-output {
-            max-height: 280px;
+            max-height: 260px;
             overflow-y: auto;
-            padding: 1rem 1.5rem 0.5rem;
-            font-size: 0.82rem;
+            padding: 0.85rem 1.25rem 0.4rem;
+            font-size: 0.78rem;
             line-height: 1.7;
-            background: rgba(0,0,0,0.75);
-            backdrop-filter: blur(16px);
-            border-top: 1px solid rgba(0,255,65,0.2);
+            background: rgba(0,0,0,0.92);
+            border-top: 1px solid rgba(0,255,136,0.25);
         }
         #terminal-output:empty { display: none; }
         #terminal-inputbar {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.65rem 1.5rem;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(16px);
-            border-top: 1px solid rgba(0,255,65,0.35);
+            gap: 0.6rem;
+            padding: 0.5rem 1.25rem;
+            background: rgba(0,0,0,0.95);
+            border-top: 1px solid rgba(0,255,136,0.4);
         }
     </style>
     <div id="owner-terminal">
         <div id="terminal-output"></div>
         <div id="terminal-inputbar">
-            <span style="color:#00ff41;font-size:0.82rem;white-space:nowrap;opacity:0.8;">Gunnar Booth $</span>
+            <span style="color:#00ff88;font-size:0.78rem;white-space:nowrap;opacity:0.9;">Gunnar Booth $</span>
             <input id="terminal-input" type="text" autocomplete="off" spellcheck="false"
-                style="flex:1;background:transparent;border:none;outline:none;color:#00ff41;font-family:monospace;font-size:0.82rem;caret-color:#00ff41;margin:0;padding:0;"
+                style="flex:1;background:transparent;border:none;outline:none;color:#00ff88;font-family:'JetBrains Mono',monospace;font-size:0.78rem;caret-color:#00ff88;margin:0;padding:0;"
                 placeholder="type a command or 'help'..."
                 onkeydown="window.handleTerminalKey(event)">
-            <span style="color:rgba(255,255,255,0.25);font-size:0.7rem;">ESC to close</span>
+            <span style="font-size:0.65rem;color:rgba(255,255,255,0.2);">ESC to close</span>
         </div>
     </div>
 
     <!-- REFRESH MODAL -->
     <div id="refresh-modal">
         <div id="refresh-content">
-            <h2 class="text-3xl font-bold logo-font mb-6 text-[var(--accent)]">Update Available</h2>
-            <p class="text-lg mb-8 text-white/80 leading-relaxed">
-                The admin just made a change (new site, category, or announcement).<br>
-                Refresh the page to see the latest version.
+            <h2 class="logo-font text-2xl font-bold mb-4" style="color:var(--accent);">Update Available</h2>
+            <p class="text-sm mb-6" style="color:var(--text-muted);line-height:1.7;">
+                The admin just made a change.<br>Refresh to see the latest version.
             </p>
-            <button onclick="location.reload(true)" class="auth-btn text-xl py-5 px-12 w-auto mx-auto block">
-                Refresh Now
+            <button onclick="location.reload(true)" class="auth-btn text-sm py-3 px-8 w-auto mx-auto block">
+                → Refresh Now
             </button>
         </div>
     </div>
