@@ -1200,6 +1200,15 @@
         let categoriesListener = null;
         let userDocListener = null;
 
+        async function updateUIForAuth(user) {
+            const statusEl = document.getElementById('user-status');
+            const currentTabEl = document.getElementById('current-tab');
+            const currentIconEl = document.getElementById('current-tab-icon');
+            const userInfo = document.getElementById('user-info');
+            const authForm = document.getElementById('auth-form');
+            const accountTitle = document.getElementById('account-title');
+            const navLinks = document.getElementById('nav-links');
+
             if (user) {
                 // Check banned + isAdmin from Firestore before showing UI
                 let userDocData = {};
