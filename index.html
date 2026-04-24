@@ -1679,45 +1679,48 @@
                     _loginFailCount = 0; // reset on success
                     updateUIForAuth(cred.user);
                 } else {
+                    // No Firebase Auth or users doc created until owner approves
                     const signupUsername = document.getElementById('signup-username').value.trim();
                     if (!signupUsername) { alert('Please choose a username before signing up.'); return; }
-                    window._signingUp = true;
                     const normalizedSignupUsername = signupUsername.toLowerCase();
-                    const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+                    // Check username not already taken
                     const takenSnap = await getDoc(doc(db, "usernames", normalizedSignupUsername));
                     if (takenSnap.exists()) {
-                        await deleteUser(cred.user);
-                        window._signingUp = false;
                         alert(`Username "${signupUsername}" is already taken. Please choose a different one.`);
                         return;
                     }
-                    // Create user doc with pending status
-                    await setDoc(doc(db, "users", cred.user.uid), {
-                        email,
-                        displayName: signupUsername,
-                        displayNameLower: normalizedSignupUsername,
-                        createdAt: serverTimestamp(),
-                        status: 'pending'
-                    });
-                    // Also write to signupRequests collection for owner review
-                    await setDoc(doc(db, "signupRequests", cred.user.uid), {
-                        uid: cred.user.uid,
+                    // Check no pending signup with same username
+                    const pendingUsernameQ = query(collection(db, "pendingSignups"), where("displayNameLower", "==", normalizedSignupUsername), where("status", "==", "pending"));
+                    const pendingUsernameSnap = await getDocs(pendingUsernameQ);
+                    if (!pendingUsernameSnap.empty) {
+                        alert(`Username "${signupUsername}" is already reserved by another pending signup. Please choose a different one.`);
+                        return;
+                    }
+                    // Check no pending signup with same email
+                    const pendingEmailQ = query(collection(db, "pendingSignups"), where("email", "==", email), where("status", "==", "pending"));
+                    const pendingEmailSnap = await getDocs(pendingEmailQ);
+                    if (!pendingEmailSnap.empty) {
+                        alert("An account with this email is already pending approval.");
+                        return;
+                    }
+
+                    // Write only to pendingSignups — no Firebase Auth account yet
+                    const pendingRef = await addDoc(collection(db, "pendingSignups"), {
                         email,
                         displayName: signupUsername,
                         displayNameLower: normalizedSignupUsername,
                         requestedAt: serverTimestamp(),
                         status: 'pending'
                     });
-                    // Store credentials for auto sign-in on approval
+
+                    // Store credentials in memory for auto sign-in after approval
                     window._pendingApprovalEmail = email;
                     window._pendingApprovalPassword = password;
-                    window._pendingApprovalUID = cred.user.uid;
-                    window._signingUp = true;
-                    await signOut(auth);
-                    window._signingUp = false;
-                    updateUIForAuth(null);
-                    // Show the pending approval screen and start listening for approval
-                    window.showPendingApprovalScreen(cred.user.uid);
+                    window._pendingDocId = pendingRef.id;
+
+                    // Show pending screen and listen for approval
+                    window.showPendingApprovalScreen(pendingRef.id);
                 }
             } catch (e) {
                 // Rate limiting: count failed sign-in attempts only
@@ -1760,62 +1763,111 @@
         // ── Pending approval screen ──
         let _pendingApprovalListener = null;
 
-        window.showPendingApprovalScreen = function(uid) {
+        window.showPendingApprovalScreen = function(pendingDocId) {
             const screen = document.getElementById('pending-screen');
             if (screen) screen.style.display = 'flex';
+
+            // Reset status indicator
+            const statusText = document.getElementById('pending-status-text');
+            if (statusText) statusText.textContent = 'Waiting for owner to review…';
+            const dot = statusText?.previousElementSibling;
+            if (dot) { dot.style.background = '#facc15'; dot.style.boxShadow = '0 0 8px #facc15'; }
 
             // Clean up any existing listener
             if (_pendingApprovalListener) { _pendingApprovalListener(); _pendingApprovalListener = null; }
 
-            // Listen for status change in Firestore
-            _pendingApprovalListener = onSnapshot(doc(db, "users", uid), async (snap) => {
-                if (!snap.exists()) return; // deleted/denied
+            // Listen to the pendingSignups doc for status changes
+            _pendingApprovalListener = onSnapshot(doc(db, "pendingSignups", pendingDocId), async (snap) => {
+                if (!snap.exists()) return;
                 const data = snap.data();
+
                 if (data.status === 'approved') {
-                    // Clean up listener
                     if (_pendingApprovalListener) { _pendingApprovalListener(); _pendingApprovalListener = null; }
 
-                    // Update pending screen to show "approved!" before signing in
-                    const statusText = document.getElementById('pending-status-text');
+                    // Show approved state
                     if (statusText) statusText.textContent = '✓ Approved! Signing you in…';
-                    const dot = statusText?.previousElementSibling;
-                    if (dot) dot.style.background = '#4ade80';
+                    if (dot) { dot.style.background = '#4ade80'; dot.style.boxShadow = '0 0 8px #4ade80'; }
 
-                    // Short delay so the user sees the approved state
                     await new Promise(r => setTimeout(r, 900));
 
-                    // Auto sign-in with stored credentials
+                    // Create Firebase Auth account + users doc now that approval is confirmed
                     const storedEmail = window._pendingApprovalEmail;
                     const storedPass = window._pendingApprovalPassword;
+                    const storedDocId = window._pendingDocId;
                     window._pendingApprovalEmail = null;
                     window._pendingApprovalPassword = null;
-                    window._pendingApprovalUID = null;
+                    window._pendingDocId = null;
 
                     const pendingScreen = document.getElementById('pending-screen');
                     if (pendingScreen) pendingScreen.style.display = 'none';
 
                     if (storedEmail && storedPass) {
                         try {
-                            await signInWithEmailAndPassword(auth, storedEmail, storedPass);
-                            // updateUIForAuth will be triggered by onAuthStateChanged
+                            // Now actually create the Firebase Auth account
+                            const cred = await createUserWithEmailAndPassword(auth, storedEmail, storedPass);
+                            const pendingData = data; // already have it from the snapshot
+                            // Create the users doc
+                            await setDoc(doc(db, "users", cred.user.uid), {
+                                email: storedEmail,
+                                displayName: pendingData.displayName,
+                                displayNameLower: pendingData.displayNameLower,
+                                createdAt: serverTimestamp(),
+                                status: 'approved'
+                            });
+                            // Register username
+                            await setDoc(doc(db, "usernames", pendingData.displayNameLower), {
+                                uid: cred.user.uid,
+                                displayName: pendingData.displayName
+                            });
+                            // Clean up the pendingSignups doc
+                            if (storedDocId) {
+                                try { await deleteDoc(doc(db, "pendingSignups", storedDocId)); } catch(_) {}
+                            }
+                            // onAuthStateChanged will fire and sign them in via updateUIForAuth
                         } catch(e) {
-                            // Credentials may have expired — just prompt user to sign in
-                            alert('Your account has been approved! Please sign in.');
+                            alert('Your account was approved but sign-in failed: ' + e.message + '\nPlease try signing in manually.');
                         }
                     } else {
                         alert('Your account has been approved! Please sign in.');
                     }
+
+                } else if (data.status === 'denied') {
+                    if (_pendingApprovalListener) { _pendingApprovalListener(); _pendingApprovalListener = null; }
+
+                    // Show denied state
+                    if (statusText) statusText.textContent = 'Request denied by owner.';
+                    if (dot) { dot.style.background = '#f87171'; dot.style.boxShadow = '0 0 8px #f87171'; }
+
+                    const msgEl = document.getElementById('pending-screen-msg');
+                    if (msgEl) msgEl.textContent = 'Your signup request was denied by the owner. Please contact them if you believe this is a mistake.';
+
+                    window._pendingApprovalEmail = null;
+                    window._pendingApprovalPassword = null;
+                    window._pendingDocId = null;
+
+                    // Change cancel button to just "Close"
+                    const cancelBtn = document.getElementById('pending-cancel-btn');
+                    if (cancelBtn) { cancelBtn.textContent = 'Close'; cancelBtn.style.borderColor = 'rgba(248,113,113,0.4)'; cancelBtn.style.color = '#f87171'; }
                 }
             });
         };
 
         window.cancelPendingSignup = async () => {
             if (_pendingApprovalListener) { _pendingApprovalListener(); _pendingApprovalListener = null; }
+            // Delete the pendingSignups doc so it doesn't linger
+            if (window._pendingDocId) {
+                try { await deleteDoc(doc(db, "pendingSignups", window._pendingDocId)); } catch(_) {}
+            }
             window._pendingApprovalEmail = null;
             window._pendingApprovalPassword = null;
-            window._pendingApprovalUID = null;
+            window._pendingDocId = null;
             const screen = document.getElementById('pending-screen');
             if (screen) screen.style.display = 'none';
+            // Reset message for next time
+            const msgEl = document.getElementById('pending-screen-msg');
+            if (msgEl) msgEl.innerHTML = "Your account is awaiting approval by the owner.<br>You'll be signed in automatically once approved — no need to refresh!";
+            const cancelBtn = document.getElementById('pending-cancel-btn');
+            if (cancelBtn) { cancelBtn.textContent = 'Cancel & Sign Out'; cancelBtn.style.borderColor = ''; cancelBtn.style.color = ''; }
         };
 
         window.deleteAccount = async () => {
@@ -3522,7 +3574,7 @@
             if (!container) return;
             container.innerHTML = '<p class="p-8 text-center text-white/50">Loading...</p>';
             try {
-                const q = query(collection(db, "signupRequests"), orderBy("requestedAt", "desc"));
+                const q = query(collection(db, "pendingSignups"), orderBy("requestedAt", "desc"));
                 const snap = await getDocs(q);
                 const pending = snap.docs.filter(d => d.data().status === 'pending');
                 const badge = document.getElementById('signup-req-badge');
@@ -3535,7 +3587,7 @@
                 let html = '<div class="divide-y divide-white/10">';
                 pending.forEach(d => {
                     const r = d.data();
-                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : '�?"';
+                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : '–';
                     html += `<div id="signup-req-row-${d.id}" class="p-6 hover:bg-white/5 transition-all">
                         <div class="flex justify-between items-center gap-6">
                             <div>
@@ -3544,8 +3596,8 @@
                                 <div class="text-xs text-white/30 mt-1">${date}</div>
                             </div>
                             <div class="flex gap-2 shrink-0">
-                                <button onclick="window.approveSignup('${d.id}','${r.uid}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-green-900/60 hover:bg-green-900 text-green-400 rounded-2xl transition-colors">Approve</button>
-                                <button onclick="window.denySignup('${d.id}','${r.uid}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Deny</button>
+                                <button onclick="window.approveSignup('${d.id}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-green-900/60 hover:bg-green-900 text-green-400 rounded-2xl transition-colors">Approve</button>
+                                <button onclick="window.denySignup('${d.id}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-red-900/60 hover:bg-red-900 text-red-400 rounded-2xl transition-colors">Deny</button>
                             </div>
                         </div>
                     </div>`;
@@ -3555,26 +3607,24 @@
             } catch(e) { container.innerHTML = `<p class="p-8 text-red-400">Error: ${e.message}</p>`; }
         };
 
-        window.approveSignup = async (reqId, uid, silent) => {
+        // Approve: just mark pendingSignups as 'approved' — the user's browser creates their own account
+        window.approveSignup = async (pendingDocId, silent) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
             try {
-                const userSnap = await getDoc(doc(db, "users", uid));
-                if (!userSnap.exists()) throw new Error('User record not found.');
-                const userData = userSnap.data();
-                if (!userData.displayName) throw new Error('User has no username to approve.');
-                const existingUsernameSnap = await getDoc(doc(db, "usernames", userData.displayName.toLowerCase()));
-                if (existingUsernameSnap.exists() && existingUsernameSnap.data().uid !== uid) {
-                    throw new Error(`Username "${userData.displayName}" is already taken. Rename the user before approving.`);
+                const pendingSnap = await getDoc(doc(db, "pendingSignups", pendingDocId));
+                if (!pendingSnap.exists()) throw new Error('Pending signup not found.');
+                const pending = pendingSnap.data();
+
+                // Check username not taken since request was submitted
+                const existingUsernameSnap = await getDoc(doc(db, "usernames", pending.displayNameLower));
+                if (existingUsernameSnap.exists()) {
+                    throw new Error(`Username "${pending.displayName}" was taken since this request was submitted. Deny it and ask the user to sign up again with a different username.`);
                 }
-                await setDoc(doc(db, "usernames", userData.displayName.toLowerCase()), {
-                    uid,
-                    displayName: userData.displayName
-                });
-                // Remove pending status from user doc
-                await setDoc(doc(db, "users", uid), { status: 'approved' }, { merge: true });
-                // Remove from signupRequests
-                await deleteDoc(doc(db, "signupRequests", reqId));
-                const row = document.getElementById('signup-req-row-' + reqId);
+
+                // Signal approval — the waiting user's onSnapshot will create their Firebase Auth account
+                await setDoc(doc(db, "pendingSignups", pendingDocId), { status: 'approved' }, { merge: true });
+
+                const row = document.getElementById('signup-req-row-' + pendingDocId);
                 if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
                 const remaining = document.querySelectorAll('[id^="signup-req-row-"]').length - 1;
                 const badge = document.getElementById('signup-req-badge');
@@ -3583,18 +3633,17 @@
             } catch(e) { if (!silent) alert('Error: ' + e.message); else throw e; }
         };
 
-        window.denySignup = async (reqId, uid, silent) => {
+        window.denySignup = async (pendingDocId, silent) => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
-            if (!silent && !confirm('Deny and delete this signup?')) return;
+            if (!silent && !confirm('Deny this signup request?')) return;
             try {
-                const userSnap = await getDoc(doc(db, "users", uid));
-                const name = userSnap.exists() ? userSnap.data().displayName : '';
-                // Delete user doc and signup request
-                await deleteDoc(doc(db, "users", uid));
-                await deleteDoc(doc(db, "signupRequests", reqId));
-                // Also delete username reservation
-                if (name) await deleteDoc(doc(db, "usernames", name.toLowerCase()));
-                const row = document.getElementById('signup-req-row-' + reqId);
+                // Mark as denied so the waiting user\'s pending screen shows rejection
+                await setDoc(doc(db, "pendingSignups", pendingDocId), { status: 'denied' }, { merge: true });
+                // Delete after a delay so user\'s listener can fire
+                setTimeout(async () => {
+                    try { await deleteDoc(doc(db, "pendingSignups", pendingDocId)); } catch(_) {}
+                }, 15000);
+                const row = document.getElementById('signup-req-row-' + pendingDocId);
                 if (row) { row.style.transition = 'opacity 0.3s'; row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }
                 const remaining = document.querySelectorAll('[id^="signup-req-row-"]').length - 1;
                 const badge = document.getElementById('signup-req-badge');
