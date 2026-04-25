@@ -1889,20 +1889,26 @@
                 return alert("Incorrect password. Account not deleted.");
             }
             try {
-                // Fetch Firestore data BEFORE deleting auth (while user is still valid)
-                const userSnap = await getDoc(doc(db, "users", user.uid));
-                const displayName = userSnap.exists() ? userSnap.data().displayName : '';
                 const uid = user.uid;
-                // Delete Firebase Auth account FIRST — must happen while user object is still live
-                await deleteUser(user);
-                // Now clean up Firestore (auth is gone, do these best-effort)
+                // Fetch display name while still authenticated
+                const userSnap = await getDoc(doc(db, "users", uid));
+                const displayName = userSnap.exists() ? userSnap.data().displayName : '';
+                // Suppress the userDocListener from signing us out when we delete the users doc
+                window._signingUp = true;
+                // Delete Firestore docs FIRST while still authenticated
+                // (security rules require auth — deleting auth first would block these)
                 await deleteDoc(doc(db, "users", uid)).catch(() => {});
                 await deleteDoc(doc(db, "signupRequests", uid)).catch(() => {});
                 if (displayName) {
                     await deleteDoc(doc(db, "usernames", displayName.toLowerCase())).catch(() => {});
                 }
+                // Delete Firebase Auth account last — user object is still valid because
+                // reauthenticateWithCredential refreshed the session above
+                await deleteUser(user);
+                window._signingUp = false;
                 alert("Account fully deleted.");
             } catch (e) {
+                window._signingUp = false;
                 alert("Error: " + e.message);
             }
         };
