@@ -1890,23 +1890,35 @@
             }
             try {
                 const uid = user.uid;
-                // Get both fields from Firestore — displayNameLower is the exact key used in usernames collection
+                // Fetch Firestore data first while auth is definitely valid
                 const userSnap = await getDoc(doc(db, "users", uid));
                 const userData = userSnap.exists() ? userSnap.data() : {};
                 const usernameKey = userData.displayNameLower
                     || (userData.displayName ? userData.displayName.toLowerCase() : null)
                     || (window.currentDisplayName ? window.currentDisplayName.toLowerCase() : null);
-                // Suppress the userDocListener from interfering during deletion
+
+                // Tear down ALL listeners before touching anything —
+                // prevents permission-denied errors and auth invalidation mid-delete
                 window._signingUp = true;
-                // Delete Firestore docs FIRST while still authenticated
-                await deleteDoc(doc(db, "users", uid)).catch(() => {});
+                if (sitesListener) { sitesListener(); sitesListener = null; }
+                if (announcementListener) { announcementListener(); announcementListener = null; }
+                if (categoriesListener) { categoriesListener(); categoriesListener = null; }
+                if (userDocListener) { userDocListener(); userDocListener = null; }
+                window.stopPresence();
+                window.stopChat();
+                window.stopTypingListener();
+                window.stopDMListeners();
+
+                // Delete Firestore docs while still authenticated
+                await deleteDoc(doc(db, "users", uid));
                 await deleteDoc(doc(db, "signupRequests", uid)).catch(() => {});
                 if (usernameKey) {
-                    await deleteDoc(doc(db, "usernames", usernameKey)).catch(() => {});
+                    await deleteDoc(doc(db, "usernames", usernameKey));
                 }
-                // Delete Firebase Auth account
+
+                // Delete Firebase Auth account last
                 await deleteUser(user);
-                // Manually update the UI to logged-out state
+
                 window._signingUp = false;
                 alert("Account fully deleted.");
                 await updateUIForAuth(null);
