@@ -1891,33 +1891,35 @@
             try {
                 const uid = user.uid;
 
-                // Fetch Firestore data first
+                // Read Firestore data synchronously before anything else
                 const userSnap = await getDoc(doc(db, "users", uid));
                 const userData = userSnap.exists() ? userSnap.data() : {};
                 const usernameKey = userData.displayNameLower
                     || (userData.displayName ? userData.displayName.toLowerCase() : null)
                     || (window.currentDisplayName ? window.currentDisplayName.toLowerCase() : null);
 
-                // Tear down ALL listeners
+                // Stop listeners synchronously (no async Firestore calls yet)
                 window._signingUp = true;
                 if (sitesListener) { sitesListener(); sitesListener = null; }
                 if (announcementListener) { announcementListener(); announcementListener = null; }
                 if (categoriesListener) { categoriesListener(); categoriesListener = null; }
                 if (userDocListener) { userDocListener(); userDocListener = null; }
-                window.stopPresence();
+                // Stop intervals/listeners only — skip the async deleteDoc inside stopPresence
+                if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
+                if (presenceListener) { presenceListener(); presenceListener = null; }
                 window.stopChat();
                 window.stopTypingListener();
                 window.stopDMListeners();
 
-                // Delete Firebase Auth account IMMEDIATELY after reauth — token is freshest right now
-                await deleteUser(user);
-
-                // Now clean up Firestore (use admin-style writes with the uid we already have)
+                // Delete Firestore docs while auth is valid
                 await deleteDoc(doc(db, "users", uid)).catch(() => {});
                 await deleteDoc(doc(db, "signupRequests", uid)).catch(() => {});
                 if (usernameKey) {
                     await deleteDoc(doc(db, "usernames", usernameKey)).catch(() => {});
                 }
+
+                // Delete Firebase Auth account last
+                await deleteUser(user);
 
                 window._signingUp = false;
                 alert("Account fully deleted.");
