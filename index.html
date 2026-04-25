@@ -2008,7 +2008,7 @@
                 if (docSnap.exists() && docSnap.data().message?.trim()) {
                     const d = docSnap.data();
                     const byLine = d.publisherName
-                        ? ` �?" ${d.publisherName} (${d.publisherRole || 'Admin'})`
+                        ? ` — ${d.publisherName} (${d.publisherRole || 'Admin'})`
                         : '';
                     document.getElementById('announcement-text-display').textContent = d.message + byLine;
                     banner.classList.remove('hidden');
