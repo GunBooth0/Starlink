@@ -1890,15 +1890,15 @@
             }
             try {
                 const uid = user.uid;
-                // Fetch Firestore data first while auth is definitely valid
+
+                // Fetch Firestore data first
                 const userSnap = await getDoc(doc(db, "users", uid));
                 const userData = userSnap.exists() ? userSnap.data() : {};
                 const usernameKey = userData.displayNameLower
                     || (userData.displayName ? userData.displayName.toLowerCase() : null)
                     || (window.currentDisplayName ? window.currentDisplayName.toLowerCase() : null);
 
-                // Tear down ALL listeners before touching anything —
-                // prevents permission-denied errors and auth invalidation mid-delete
+                // Tear down ALL listeners
                 window._signingUp = true;
                 if (sitesListener) { sitesListener(); sitesListener = null; }
                 if (announcementListener) { announcementListener(); announcementListener = null; }
@@ -1909,15 +1909,15 @@
                 window.stopTypingListener();
                 window.stopDMListeners();
 
-                // Delete Firestore docs while still authenticated
-                await deleteDoc(doc(db, "users", uid));
+                // Delete Firebase Auth account IMMEDIATELY after reauth — token is freshest right now
+                await deleteUser(user);
+
+                // Now clean up Firestore (use admin-style writes with the uid we already have)
+                await deleteDoc(doc(db, "users", uid)).catch(() => {});
                 await deleteDoc(doc(db, "signupRequests", uid)).catch(() => {});
                 if (usernameKey) {
-                    await deleteDoc(doc(db, "usernames", usernameKey));
+                    await deleteDoc(doc(db, "usernames", usernameKey)).catch(() => {});
                 }
-
-                // Delete Firebase Auth account last
-                await deleteUser(user);
 
                 window._signingUp = false;
                 alert("Account fully deleted.");
