@@ -1890,23 +1890,23 @@
             }
             try {
                 const uid = user.uid;
-                // Fetch display name while still authenticated
+                // Use in-memory displayName first (most reliable), fall back to Firestore
                 const userSnap = await getDoc(doc(db, "users", uid));
-                const displayName = userSnap.exists() ? userSnap.data().displayName : '';
-                // Suppress the userDocListener from signing us out when we delete the users doc
+                const displayName = (userSnap.exists() ? userSnap.data().displayName : '') || window.currentDisplayName || '';
+                // Suppress the userDocListener from interfering during deletion
                 window._signingUp = true;
                 // Delete Firestore docs FIRST while still authenticated
-                // (security rules require auth — deleting auth first would block these)
                 await deleteDoc(doc(db, "users", uid)).catch(() => {});
                 await deleteDoc(doc(db, "signupRequests", uid)).catch(() => {});
                 if (displayName) {
                     await deleteDoc(doc(db, "usernames", displayName.toLowerCase())).catch(() => {});
                 }
-                // Delete Firebase Auth account last — user object is still valid because
-                // reauthenticateWithCredential refreshed the session above
+                // Delete Firebase Auth account
                 await deleteUser(user);
+                // Now manually update the UI to logged-out state
                 window._signingUp = false;
                 alert("Account fully deleted.");
+                await updateUIForAuth(null);
             } catch (e) {
                 window._signingUp = false;
                 alert("Error: " + e.message);
