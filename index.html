@@ -1803,6 +1803,8 @@
 
                     if (storedEmail && storedPass) {
                         try {
+                            // Suppress intermediate onAuthStateChanged during account creation
+                            window._signingUp = true;
                             // Now actually create the Firebase Auth account
                             const cred = await createUserWithEmailAndPassword(auth, storedEmail, storedPass);
                             const pendingData = data; // already have it from the snapshot
@@ -1823,8 +1825,11 @@
                             if (storedDocId) {
                                 try { await deleteDoc(doc(db, "pendingSignups", storedDocId)); } catch(_) {}
                             }
-                            // onAuthStateChanged will fire and sign them in via updateUIForAuth
+                            // Now let updateUIForAuth run fully and land on the home tab
+                            window._signingUp = false;
+                            await updateUIForAuth(cred.user);
                         } catch(e) {
+                            window._signingUp = false;
                             alert('Your account was approved but sign-in failed: ' + e.message + '\nPlease try signing in manually.');
                         }
                     } else {
@@ -1874,6 +1879,15 @@
             if (!confirm("Delete account permanently? This cannot be undone.")) return;
             const user = auth.currentUser;
             if (!user) return alert("Not logged in.");
+            // Re-authenticate first so Firebase allows the Auth account deletion
+            const pass = prompt("Enter your password to confirm account deletion:");
+            if (!pass) return;
+            try {
+                const cred = EmailAuthProvider.credential(user.email, pass);
+                await reauthenticateWithCredential(user, cred);
+            } catch (e) {
+                return alert("Incorrect password. Account not deleted.");
+            }
             try {
                 const userSnap = await getDoc(doc(db, "users", user.uid));
                 const displayName = userSnap.exists() ? userSnap.data().displayName : '';
