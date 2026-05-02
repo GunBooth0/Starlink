@@ -294,13 +294,15 @@
             display: flex;
         }
         #refresh-content {
-            background: linear-gradient(180deg, rgba(19, 31, 52, 0.92), rgba(8, 14, 27, 0.9));
-            border: 1px solid rgba(255, 255, 255, 0.22);
+            background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(10,10,10,0.95));
+            border: 1px solid rgba(255, 255, 255, 0.16);
             border-radius: 1.5rem;
             padding: 3rem 2.5rem;
             max-width: 480px;
             text-align: center;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.45), var(--shadow-glow);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6), var(--shadow-glow);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
         /* ── Hard block screens (banned / pending / removed) ── */
@@ -758,17 +760,14 @@
                 <div class="max-w-md mx-auto py-12">
                     <h2 class="text-3xl font-bold text-center mb-8" id="account-title">Sign In Required</h2>
                     <div id="auth-form" class="glass p-8 rounded-3xl">
-                        <!-- hidden state tracker for JS compatibility -->
-                        <h3 id="form-title" style="display:none;">Sign In</h3>
-                        <!-- Mode toggle buttons -->
-                        <div class="flex gap-3 mb-8">
-                            <button id="toggle-signin-btn" onclick="window.switchAuthMode('signin')" class="auth-btn flex-1" style="margin:0;padding:0.85rem 1rem;font-size:1rem;">Sign In</button>
-                            <button id="toggle-signup-btn" onclick="window.switchAuthMode('signup')" class="github-style-btn flex-1" style="margin:0;padding:0.85rem 1rem;font-size:1rem;">Sign Up</button>
-                        </div>
+                        <h3 class="text-xl font-semibold mb-6 text-center" id="form-title">Sign In</h3>
                         <input type="email" id="email" placeholder="Email address" required autocomplete="email">
                         <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
                         <input type="text" id="signup-username" placeholder="Choose a username..." maxlength="24" class="hidden">
-                        <button id="auth-btn" class="auth-btn mt-2">Sign In</button>
+<button id="auth-btn" class="auth-btn mt-6">Sign In</button>
+                        <p class="text-center mt-6 text-white/70 text-sm">
+                            <span id="toggle-link" class="text-[var(--accent)] cursor-pointer hover:underline">Don't have an account? Sign Up</span>
+                        </p>
                     </div>
                     <div id="user-info" class="hidden text-center mt-8">
                         <!-- Role badge -->
@@ -1753,29 +1752,6 @@
             }
         });
 
-        window.switchAuthMode = function(mode) {
-            const isSignIn = mode === 'signin';
-            const formTitle = document.getElementById('form-title');
-            if (formTitle) formTitle.textContent = isSignIn ? 'Sign In' : 'Sign Up';
-            document.getElementById('auth-btn').textContent = isSignIn ? 'Sign In' : 'Sign Up';
-            const usernameField = document.getElementById('signup-username');
-            if (usernameField) usernameField.classList.toggle('hidden', isSignIn);
-
-            // Swap button styles: active = auth-btn (white filled), inactive = github-style-btn (ghost)
-            const signinBtn = document.getElementById('toggle-signin-btn');
-            const signupBtn = document.getElementById('toggle-signup-btn');
-            if (signinBtn && signupBtn) {
-                signinBtn.className = isSignIn
-                    ? 'auth-btn flex-1'
-                    : 'github-style-btn flex-1';
-                signinBtn.style.cssText = 'margin:0;padding:0.85rem 1rem;font-size:1rem;';
-                signupBtn.className = isSignIn
-                    ? 'github-style-btn flex-1'
-                    : 'auth-btn flex-1';
-                signupBtn.style.cssText = 'margin:0;padding:0.85rem 1rem;font-size:1rem;';
-            }
-        };
-
         document.getElementById('toggle-link')?.addEventListener('click', e => {
             e.preventDefault();
             const isSignIn = document.getElementById('form-title').textContent === 'Sign In';
@@ -1824,16 +1800,15 @@
                     window._pendingApprovalPassword = null;
                     window._pendingDocId = null;
 
-                    const pendingScreen = document.getElementById('pending-screen');
-                    if (pendingScreen) pendingScreen.style.display = 'none';
-
                     if (storedEmail && storedPass) {
                         try {
-                            // Suppress intermediate onAuthStateChanged during account creation
+                            // Keep _signingUp true the whole time so updateUIForAuth stays suppressed
                             window._signingUp = true;
-                            // Now actually create the Firebase Auth account
+
+                            // Create the Firebase Auth account
                             const cred = await createUserWithEmailAndPassword(auth, storedEmail, storedPass);
-                            const pendingData = data; // already have it from the snapshot
+                            const pendingData = data;
+
                             // Create the users doc
                             await setDoc(doc(db, "users", cred.user.uid), {
                                 email: storedEmail,
@@ -1851,14 +1826,57 @@
                             if (storedDocId) {
                                 try { await deleteDoc(doc(db, "pendingSignups", storedDocId)); } catch(_) {}
                             }
-                            // Now let updateUIForAuth run fully and land on the home tab
+
+                            // Do ALL the UI setup behind the scenes while pending screen still covers everything
+                            window.currentUser = cred.user;
+                            const userDocData = { displayName: pendingData.displayName, displayNameLower: pendingData.displayNameLower, status: 'approved' };
+                            window.isAdminUser = false;
+                            window.isVerifiedUser = false;
+                            window.currentDisplayName = pendingData.displayName || '';
+                            window.registerUsername(cred.user.uid, pendingData.displayName || storedEmail.split('@')[0]);
+
+                            const statusEl2 = document.getElementById('user-status');
+                            if (statusEl2) statusEl2.textContent = `Logged in as ${storedEmail.split('@')[0]}`;
+
+                            window.updateAccountTab(cred.user, userDocData);
+                            document.getElementById('user-info')?.classList.remove('hidden');
+                            document.getElementById('user-email').textContent = storedEmail;
+                            document.getElementById('auth-form')?.classList.add('hidden');
+                            document.getElementById('account-title').textContent = 'Account';
+
+                            populateThemeGrid();
+                            await window.loadCategories();
+                            window.createCategoryContents();
+                            await window.loadAllSites();
+                            window.populateAllGrids();
+                            window.populateCategorySelect();
+                            await window.showGlobalAnnouncement();
+                            window.buildNav();
+
+                            const _pName = pendingData.displayName || storedEmail.split('@')[0];
+                            window.startPresence(cred.user.uid, _pName, 'User');
+                            window.loadFriendsList();
+                            document.getElementById('search-wrapper').classList.remove('hidden');
+                            document.getElementById('search-wrapper').classList.add('flex');
+
+                            window.initialLoadComplete = true;
+
+                            // Everything is ready — now dismiss pending screen and auth loader together, switch tab cleanly
                             window._signingUp = false;
-                            await updateUIForAuth(cred.user);
+                            const pendingScreen = document.getElementById('pending-screen');
+                            if (pendingScreen) pendingScreen.style.display = 'none';
+                            dismissAuthLoader();
+                            window.switchTab(0);
+
                         } catch(e) {
                             window._signingUp = false;
+                            const pendingScreen2 = document.getElementById('pending-screen');
+                            if (pendingScreen2) pendingScreen2.style.display = 'none';
                             alert('Your account was approved but sign-in failed: ' + e.message + '\nPlease try signing in manually.');
                         }
                     } else {
+                        const pendingScreen3 = document.getElementById('pending-screen');
+                        if (pendingScreen3) pendingScreen3.style.display = 'none';
                         alert('Your account has been approved! Please sign in.');
                     }
 
