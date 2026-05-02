@@ -1059,7 +1059,7 @@
                             </h3>
                             <div class="flex gap-4">
                                 <button onclick="loadAdminUsers()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
-
+                                <button onclick="window.openAddUserModal()" class="auth-btn text-sm px-4 py-3" style="width:auto;margin:0;font-size:0.9rem;padding:0.6rem 1.25rem;"><i class="fa-solid fa-user-plus mr-2"></i>Add User</button>
                             </div>
                         </div>
                         <div id="users-table" class="glass rounded-3xl p-2 max-h-[420px] overflow-auto"></div>
@@ -1262,6 +1262,25 @@
                         <div id="admin-sites-list" class="space-y-10"></div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ADD USER MODAL -->
+    <div id="add-user-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:9998;display:none;align-items:center;justify-content:center;" onclick="if(event.target===this)window.closeAddUserModal()">
+        <div class="glass rounded-3xl p-10 max-w-md w-full mx-4" style="border:1px solid rgba(255,255,255,0.18);box-shadow:0 30px 80px rgba(0,0,0,0.5);">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-2xl font-bold logo-font tracking-tight flex items-center gap-3"><i class="fa-solid fa-user-plus"></i> Add New User</h3>
+                <button onclick="window.closeAddUserModal()" style="width:auto;margin:0;padding:0.4rem 0.75rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:0.6rem;font-size:0.9rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <input type="email" id="add-user-email" placeholder="Email address" style="margin-bottom:1rem;">
+            <input type="text" id="add-user-username" placeholder="Username (optional)" maxlength="24" style="margin-bottom:1rem;">
+            <input type="password" id="add-user-password" placeholder="Password (min 6 chars)" style="margin-bottom:1.5rem;">
+            <div id="add-user-msg" class="text-sm text-center mb-4" style="display:none;"></div>
+            <div class="flex gap-3">
+                <button onclick="window.closeAddUserModal()" class="github-style-btn flex-1" style="margin:0;">Cancel</button>
+                <button onclick="window.submitAddUser()" class="auth-btn flex-1" style="margin:0;" id="add-user-submit-btn">Create User</button>
             </div>
         </div>
     </div>
@@ -2199,6 +2218,97 @@
             } catch (e) {
                 if (!silent) alert("Error: " + e.message);
                 else throw e;
+            }
+        };
+
+        // ── Add User Modal ──
+        window.openAddUserModal = () => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can add users.');
+            document.getElementById('add-user-email').value = '';
+            document.getElementById('add-user-username').value = '';
+            document.getElementById('add-user-password').value = '';
+            const msg = document.getElementById('add-user-msg');
+            msg.style.display = 'none';
+            msg.textContent = '';
+            document.getElementById('add-user-submit-btn').disabled = false;
+            const modal = document.getElementById('add-user-modal');
+            modal.style.display = 'flex';
+        };
+
+        window.closeAddUserModal = () => {
+            document.getElementById('add-user-modal').style.display = 'none';
+        };
+
+        window.submitAddUser = async () => {
+            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can add users.');
+            const email = document.getElementById('add-user-email').value.trim();
+            const username = document.getElementById('add-user-username').value.trim();
+            const password = document.getElementById('add-user-password').value;
+            const msg = document.getElementById('add-user-msg');
+            const btn = document.getElementById('add-user-submit-btn');
+
+            const showMsg = (text, isError) => {
+                msg.textContent = text;
+                msg.style.display = 'block';
+                msg.style.color = isError ? '#f87171' : '#34d399';
+            };
+
+            if (!email) return showMsg('Email is required.', true);
+            if (password.length < 6) return showMsg('Password must be at least 6 characters.', true);
+
+            btn.disabled = true;
+            btn.textContent = 'Creating...';
+
+            try {
+                // Use a secondary Firebase app instance so the admin stays signed in
+                const { initializeApp, getApp, deleteApp } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js");
+                const { getAuth: getAuth2, createUserWithEmailAndPassword: createUser2 } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js");
+
+                const secondaryApp = initializeApp(firebaseConfig, 'addUserTemp_' + Date.now());
+                const secondaryAuth = getAuth2(secondaryApp);
+
+                let newUid;
+                try {
+                    const cred = await createUser2(secondaryAuth, email, password);
+                    newUid = cred.user.uid;
+                    await secondaryAuth.signOut();
+                } finally {
+                    await deleteApp(secondaryApp);
+                }
+
+                // Write Firestore user doc
+                const userData = {
+                    email,
+                    createdAt: serverTimestamp(),
+                    isAdmin: false,
+                    banned: false,
+                    verified: false,
+                };
+                if (username) {
+                    // Check username availability
+                    const unameLower = username.toLowerCase();
+                    const unameSnap = await getDoc(doc(db, 'usernames', unameLower));
+                    if (unameSnap.exists()) {
+                        showMsg('Username already taken. User was created but has no username.', false);
+                    } else {
+                        userData.displayName = username;
+                        await setDoc(doc(db, 'usernames', unameLower), { uid: newUid });
+                    }
+                }
+                await setDoc(doc(db, 'users', newUid), userData);
+
+                showMsg(`✓ User "${email}" created successfully!`, false);
+                btn.textContent = 'Create User';
+                btn.disabled = false;
+                window.loadAdminUsers();
+
+                // Auto-close after 2 seconds
+                setTimeout(() => window.closeAddUserModal(), 2000);
+
+            } catch (e) {
+                showMsg('Error: ' + (e.message || 'Unknown error'), true);
+                btn.textContent = 'Create User';
+                btn.disabled = false;
             }
         };
 
