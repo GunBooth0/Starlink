@@ -779,6 +779,22 @@
                         <button onclick="deleteAccount()" class="github-style-btn"><i class="fa-solid fa-trash-can"></i> Delete Account</button>
                         <button onclick="firebaseAuth.signOut(firebaseAuth.auth)" class="github-style-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
                         <p id="auth-message" class="mt-6"></p>
+
+                        <!-- Saved Accounts -->
+                        <div class="glass rounded-2xl p-6 mt-6 text-left">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-users text-[var(--accent)]"></i> Your Accounts</h3>
+                            <div id="saved-accounts-list" class="space-y-2 mb-4"></div>
+                            <button onclick="window.showAddAccountForm()" class="github-style-btn" style="margin:0;font-size:0.95rem;padding:0.75rem 1.25rem;"><i class="fa-solid fa-plus mr-2"></i>Add Another Account</button>
+                            <div id="add-account-form" class="hidden mt-4 space-y-3">
+                                <input type="email" id="save-acct-email" placeholder="Email address" style="margin:0;">
+                                <input type="password" id="save-acct-password" placeholder="Password" style="margin:0;">
+                                <div class="flex gap-3 mt-2">
+                                    <button onclick="window.hideAddAccountForm()" class="github-style-btn flex-1" style="margin:0;font-size:0.9rem;padding:0.6rem;">Cancel</button>
+                                    <button onclick="window.saveAccount()" class="auth-btn flex-1" style="margin:0;font-size:0.9rem;padding:0.6rem;">Save Account</button>
+                                </div>
+                                <p id="save-acct-msg" class="text-xs text-center text-white/50 hidden"></p>
+                            </div>
+                        </div>
                         <!-- Roles -->
                         <div class="glass rounded-2xl p-6 mt-8 text-left">
                             <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-shield-halved text-[var(--accent)]"></i> Roles</h3>
@@ -1059,11 +1075,11 @@
                             </h3>
                             <div class="flex gap-4">
                                 <button onclick="loadAdminUsers()" class="github-style-btn text-sm px-4 py-3">Refresh List</button>
-                                <button onclick="window.openAddUserModal()" class="auth-btn text-sm px-4 py-3" style="width:auto;margin:0;font-size:0.9rem;padding:0.6rem 1.25rem;"><i class="fa-solid fa-user-plus mr-2"></i>Add User</button>
+
                             </div>
                         </div>
                         <div id="users-table" class="glass rounded-3xl p-2 max-h-[420px] overflow-auto"></div>
-                        <p class="text-xs text-white/50 mt-4 text-center">Delete removes the user from this list.<br>Full auth deletion still required in Firebase Console &rarr; Authentication</p>
+                        <p class="text-xs text-white/50 mt-4 text-center">Delete removes all Firestore data instantly. After deleting, a prompt will open the Firebase Console so you can remove their auth login too (browser security prevents doing this automatically).</p>
                     </div>
 
                     <!-- Site Requests (owner only) -->
@@ -1266,25 +1282,6 @@
         </div>
     </div>
 
-
-    <!-- ADD USER MODAL -->
-    <div id="add-user-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:9998;display:none;align-items:center;justify-content:center;" onclick="if(event.target===this)window.closeAddUserModal()">
-        <div class="glass rounded-3xl p-10 max-w-md w-full mx-4" style="border:1px solid rgba(255,255,255,0.18);box-shadow:0 30px 80px rgba(0,0,0,0.5);">
-            <div class="flex items-center justify-between mb-8">
-                <h3 class="text-2xl font-bold logo-font tracking-tight flex items-center gap-3"><i class="fa-solid fa-user-plus"></i> Add New User</h3>
-                <button onclick="window.closeAddUserModal()" style="width:auto;margin:0;padding:0.4rem 0.75rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:0.6rem;font-size:0.9rem;"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <input type="email" id="add-user-email" placeholder="Email address" style="margin-bottom:1rem;">
-            <input type="text" id="add-user-username" placeholder="Username (optional)" maxlength="24" style="margin-bottom:1rem;">
-            <input type="password" id="add-user-password" placeholder="Password (min 6 chars)" style="margin-bottom:1.5rem;">
-            <div id="add-user-msg" class="text-sm text-center mb-4" style="display:none;"></div>
-            <div class="flex gap-3">
-                <button onclick="window.closeAddUserModal()" class="github-style-btn flex-1" style="margin:0;">Cancel</button>
-                <button onclick="window.submitAddUser()" class="auth-btn flex-1" style="margin:0;" id="add-user-submit-btn">Create User</button>
-            </div>
-        </div>
-    </div>
-
     <!-- REFRESH MODAL -->
     <!-- Hard block screen: banned / pending / removed -->
     <div id="block-screen">
@@ -1457,6 +1454,7 @@
                 document.getElementById('user-email').textContent = user.email;
                 authForm?.classList.add('hidden');
                 accountTitle.textContent = 'Account';
+                if (window.renderSavedAccounts) window.renderSavedAccounts();
 
                 setTimeout(async () => {
                     populateThemeGrid();
@@ -1696,6 +1694,7 @@
                 if (document.getElementById('form-title').textContent === 'Sign In') {
                     const cred = await signInWithEmailAndPassword(auth, email, password);
                     _loginFailCount = 0; // reset on success
+                    if (window._maybeSaveCurrentAccount) window._maybeSaveCurrentAccount(email, password);
                     updateUIForAuth(cred.user);
                 } else {
                     // No Firebase Auth or users doc created until owner approves
@@ -1946,6 +1945,116 @@
             } catch (e) {
                 window._signingUp = false;
                 alert("Error: " + e.message);
+            }
+        };
+
+        // ── Saved Accounts (multi-account switching) ──
+        const SAVED_ACCOUNTS_KEY = 'starlink_saved_accounts';
+
+        function getSavedAccounts() {
+            try { return JSON.parse(localStorage.getItem(SAVED_ACCOUNTS_KEY) || '[]'); } catch { return []; }
+        }
+        function setSavedAccounts(list) {
+            localStorage.setItem(SAVED_ACCOUNTS_KEY, JSON.stringify(list));
+        }
+
+        window.renderSavedAccounts = function() {
+            const list = getSavedAccounts();
+            const container = document.getElementById('saved-accounts-list');
+            if (!container) return;
+            const currentEmail = auth.currentUser?.email || '';
+            if (list.length === 0) {
+                container.innerHTML = '<p class="text-white/40 text-sm text-center py-2">No saved accounts yet. Add one below.</p>';
+                return;
+            }
+            container.innerHTML = list.map((acct, i) => {
+                const isActive = acct.email.toLowerCase() === currentEmail.toLowerCase();
+                return `<div class="flex items-center gap-3 p-3 rounded-2xl ${isActive ? 'bg-white/10 border border-white/20' : 'bg-black/30'}">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium truncate">${acct.email}</p>
+                        ${isActive ? '<p class="text-xs text-green-400">Active</p>' : ''}
+                    </div>
+                    <div class="flex gap-2 flex-shrink-0">
+                        ${!isActive ? `<button onclick="window.switchToAccount(${i})" class="px-3 py-1 text-xs rounded-xl bg-white/10 hover:bg-white/20 transition-colors" style="width:auto;margin:0;padding:0.35rem 0.85rem;font-size:0.78rem;">Switch</button>` : ''}
+                        <button onclick="window.removeSavedAccount(${i})" class="px-3 py-1 text-xs rounded-xl bg-red-900/50 hover:bg-red-900/80 text-red-400 transition-colors" style="width:auto;margin:0;padding:0.35rem 0.85rem;font-size:0.78rem;">Remove</button>
+                    </div>
+                </div>`;
+            }).join('');
+        };
+
+        window.showAddAccountForm = function() {
+            document.getElementById('add-account-form').classList.remove('hidden');
+            document.getElementById('save-acct-email').value = '';
+            document.getElementById('save-acct-password').value = '';
+            const msg = document.getElementById('save-acct-msg');
+            msg.classList.add('hidden');
+        };
+        window.hideAddAccountForm = function() {
+            document.getElementById('add-account-form').classList.add('hidden');
+        };
+
+        window.saveAccount = async function() {
+            const email = document.getElementById('save-acct-email').value.trim();
+            const password = document.getElementById('save-acct-password').value;
+            const msg = document.getElementById('save-acct-msg');
+            const showMsg = (t, ok) => { msg.textContent = t; msg.className = `text-xs text-center mt-1 ${ok ? 'text-green-400' : 'text-red-400'}`; msg.classList.remove('hidden'); };
+
+            if (!email || !password) return showMsg('Email and password are required.', false);
+            const list = getSavedAccounts();
+            if (list.find(a => a.email.toLowerCase() === email.toLowerCase())) return showMsg('This account is already saved.', false);
+
+            // Verify credentials actually work before saving
+            showMsg('Verifying...', true);
+            try {
+                const { initializeApp, deleteApp } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js");
+                const { getAuth: getAuth2, signInWithEmailAndPassword: signIn2 } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js");
+                const tempApp = initializeApp(firebaseConfig, 'verifyAcct_' + Date.now());
+                const tempAuth = getAuth2(tempApp);
+                try {
+                    await signIn2(tempAuth, email, password);
+                    await tempAuth.signOut();
+                } finally {
+                    await deleteApp(tempApp);
+                }
+            } catch(e) {
+                return showMsg('Could not verify: ' + (e.code === 'auth/invalid-credential' ? 'Wrong email or password.' : e.message), false);
+            }
+
+            list.push({ email, password });
+            setSavedAccounts(list);
+            window.renderSavedAccounts();
+            window.hideAddAccountForm();
+        };
+
+        window.switchToAccount = async function(index) {
+            const list = getSavedAccounts();
+            const acct = list[index];
+            if (!acct) return;
+            if (!confirm(`Switch to ${acct.email}?`)) return;
+            try {
+                await signOut(auth);
+                await signInWithEmailAndPassword(auth, acct.email, acct.password);
+            } catch(e) {
+                alert('Switch failed: ' + e.message + '\nThe saved password may be outdated — remove and re-add this account.');
+            }
+        };
+
+        window.removeSavedAccount = function(index) {
+            const list = getSavedAccounts();
+            const acct = list[index];
+            if (!confirm(`Remove "${acct?.email}" from saved accounts?`)) return;
+            list.splice(index, 1);
+            setSavedAccounts(list);
+            window.renderSavedAccounts();
+        };
+
+        // Auto-save current account when signing in (if not already saved)
+        window._maybeSaveCurrentAccount = function(email, password) {
+            if (!email || !password) return;
+            const list = getSavedAccounts();
+            if (!list.find(a => a.email.toLowerCase() === email.toLowerCase())) {
+                list.push({ email, password });
+                setSavedAccounts(list);
             }
         };
 
@@ -2203,7 +2312,7 @@
                 targetData = targetSnap.exists() ? targetSnap.data() : {};
                 if (targetData.email === ADMIN_EMAIL || targetData.isAdmin === true) { if (!silent) alert('You cannot delete admins or the owner.'); return; }
             } catch(_) {}
-            if (!silent && !confirm("Delete this user's record from the list?\n\n(Auth account must still be deleted manually in Firebase Console)")) return;
+            if (!silent && !confirm(`Fully delete ${targetData.email || 'this user'}?\n\nThis will remove all their Firestore data.\n\nNote: Their Firebase Auth login also needs to be deleted in the Firebase Console → Authentication (browser security prevents doing this automatically).`)) return;
             try {
                 // Delete user doc
                 await deleteDoc(doc(db, "users", uid));
@@ -2213,102 +2322,16 @@
                 }
                 // Delete signup request if pending
                 try { await deleteDoc(doc(db, "signupRequests", uid)); } catch(_) {}
-                if (!silent) alert("User removed from list.");
+                try { await deleteDoc(doc(db, "pendingSignups", uid)); } catch(_) {}
+                if (!silent) {
+                    const authUrl = `https://console.firebase.google.com/project/starlink-42031/authentication/users`;
+                    const openConsole = confirm(`✓ Firestore data deleted for ${targetData.email || uid}.\n\nTo also remove their login account, go to Firebase Console → Authentication and delete UID: ${uid}\n\nOpen Firebase Console now?`);
+                    if (openConsole) window.open(authUrl, '_blank');
+                }
                 window.loadAdminUsers();
             } catch (e) {
                 if (!silent) alert("Error: " + e.message);
                 else throw e;
-            }
-        };
-
-        // ── Add User Modal ──
-        window.openAddUserModal = () => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can add users.');
-            document.getElementById('add-user-email').value = '';
-            document.getElementById('add-user-username').value = '';
-            document.getElementById('add-user-password').value = '';
-            const msg = document.getElementById('add-user-msg');
-            msg.style.display = 'none';
-            msg.textContent = '';
-            document.getElementById('add-user-submit-btn').disabled = false;
-            const modal = document.getElementById('add-user-modal');
-            modal.style.display = 'flex';
-        };
-
-        window.closeAddUserModal = () => {
-            document.getElementById('add-user-modal').style.display = 'none';
-        };
-
-        window.submitAddUser = async () => {
-            if (auth.currentUser?.email !== ADMIN_EMAIL) return alert('Only the owner can add users.');
-            const email = document.getElementById('add-user-email').value.trim();
-            const username = document.getElementById('add-user-username').value.trim();
-            const password = document.getElementById('add-user-password').value;
-            const msg = document.getElementById('add-user-msg');
-            const btn = document.getElementById('add-user-submit-btn');
-
-            const showMsg = (text, isError) => {
-                msg.textContent = text;
-                msg.style.display = 'block';
-                msg.style.color = isError ? '#f87171' : '#34d399';
-            };
-
-            if (!email) return showMsg('Email is required.', true);
-            if (password.length < 6) return showMsg('Password must be at least 6 characters.', true);
-
-            btn.disabled = true;
-            btn.textContent = 'Creating...';
-
-            try {
-                // Use a secondary Firebase app instance so the admin stays signed in
-                const { initializeApp, getApp, deleteApp } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js");
-                const { getAuth: getAuth2, createUserWithEmailAndPassword: createUser2 } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js");
-
-                const secondaryApp = initializeApp(firebaseConfig, 'addUserTemp_' + Date.now());
-                const secondaryAuth = getAuth2(secondaryApp);
-
-                let newUid;
-                try {
-                    const cred = await createUser2(secondaryAuth, email, password);
-                    newUid = cred.user.uid;
-                    await secondaryAuth.signOut();
-                } finally {
-                    await deleteApp(secondaryApp);
-                }
-
-                // Write Firestore user doc
-                const userData = {
-                    email,
-                    createdAt: serverTimestamp(),
-                    isAdmin: false,
-                    banned: false,
-                    verified: false,
-                };
-                if (username) {
-                    // Check username availability
-                    const unameLower = username.toLowerCase();
-                    const unameSnap = await getDoc(doc(db, 'usernames', unameLower));
-                    if (unameSnap.exists()) {
-                        showMsg('Username already taken. User was created but has no username.', false);
-                    } else {
-                        userData.displayName = username;
-                        await setDoc(doc(db, 'usernames', unameLower), { uid: newUid });
-                    }
-                }
-                await setDoc(doc(db, 'users', newUid), userData);
-
-                showMsg(`✓ User "${email}" created successfully!`, false);
-                btn.textContent = 'Create User';
-                btn.disabled = false;
-                window.loadAdminUsers();
-
-                // Auto-close after 2 seconds
-                setTimeout(() => window.closeAddUserModal(), 2000);
-
-            } catch (e) {
-                showMsg('Error: ' + (e.message || 'Unknown error'), true);
-                btn.textContent = 'Create User';
-                btn.disabled = false;
             }
         };
 
