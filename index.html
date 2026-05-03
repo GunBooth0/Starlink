@@ -39,11 +39,7 @@
             scroll-behavior: smooth;
         }
         body {
-            background:
-                radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.1), transparent 26%),
-                radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.05), transparent 22%),
-                radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.08), transparent 32%),
-                linear-gradient(160deg, var(--bg-top) 0%, var(--bg-base) 42%, var(--bg-bottom) 100%);
+            background: #000;
             color: var(--text-main);
             font-family: 'Inter', system-ui, sans-serif;
             margin: 0;
@@ -51,31 +47,7 @@
             overflow: hidden;
             position: relative;
         }
-        body::before,
-        body::after {
-            content: "";
-            position: fixed;
-            inset: auto;
-            border-radius: 999px;
-            filter: blur(90px);
-            pointer-events: none;
-            z-index: -2;
-            opacity: 0.65;
-        }
-        body::before {
-            width: 28rem;
-            height: 28rem;
-            top: -8rem;
-            right: -5rem;
-            background: rgba(255, 255, 255, 0.08);
-        }
-        body::after {
-            width: 22rem;
-            height: 22rem;
-            bottom: -7rem;
-            left: -4rem;
-            background: rgba(255, 255, 255, 0.05);
-        }
+
      
         .logo-font {
             font-family: 'Space Grotesk', sans-serif;
@@ -155,7 +127,27 @@
             inset: 0;
             z-index: -1;
             pointer-events: auto;
-            opacity: 0.55;
+        }
+        /* Global glow bloom — bottom center, same as landing */
+        #global-glow {
+            position: fixed;
+            bottom: -30%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140vw;
+            height: 70vh;
+            background: radial-gradient(ellipse at 50% 60%,
+                rgba(255,255,255,1.0) 0%,
+                rgba(255,255,255,0.85) 4%,
+                rgba(255,255,255,0.55) 12%,
+                rgba(255,255,255,0.25) 25%,
+                rgba(255,255,255,0.08) 45%,
+                transparent 65%
+            );
+            border-radius: 50%;
+            filter: blur(55px);
+            pointer-events: none;
+            z-index: -1;
         }
         #matrix-bg {
             position: fixed;
@@ -164,18 +156,7 @@
             pointer-events: none;
             display: none;
         }
-        .star {
-            position: absolute;
-            background: var(--accent);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent);
-            pointer-events: none;
-            animation: floatUp linear infinite;
-        }
-        @keyframes floatUp {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-300vh); opacity: 0.3; }
-        }
+
         .main-content {
             overflow-y: auto;
             height: 100vh;
@@ -819,7 +800,8 @@
         </div>
     </div>
 
-    <div id="star-bg"></div>
+    <canvas id="star-bg"></canvas>
+    <div id="global-glow"></div>
     <canvas id="matrix-bg"></canvas>
 
     <!-- Mobile sidebar overlay -->
@@ -5540,40 +5522,47 @@
             stopLava();
         }
 
-        function createStar(x, y) {
-            const s = document.createElement('div');
-            s.className = 'star';
-            s.style.left = `${x}px`;
-            s.style.top = `${y}px`;
-            const size = Math.random() * 4 + 2;
-            s.style.width = s.style.height = `${size}px`;
-            const dur = Math.random() * 25 + 15;
-            s.style.animationDuration = `${dur}s`;
-            const drift = (Math.random() - 0.5) * 100;
-            s.style.transform = `translateX(${drift}px)`;
-            document.getElementById('star-bg').appendChild(s);
-
-            const check = setInterval(() => {
-                const rect = s.getBoundingClientRect();
-                if (rect.top < -window.innerHeight * 4) {
-                    s.remove();
-                    clearInterval(check);
-                }
-            }, 8000);
-        }
+        function createStar() {} // legacy stub — canvas handles stars now
 
         function initStars() {
-            for (let i = 0; i < 100; i++) {
-                const x = Math.random() * window.innerWidth;
-                const y = Math.random() * window.innerHeight * 1.5;
-                createStar(x, y);
-            }
+            const canvas = document.getElementById('star-bg');
+            if (!canvas || canvas.tagName !== 'CANVAS') return;
+            const ctx = canvas.getContext('2d');
+            let stars = [];
 
-            setInterval(() => {
-                const x = Math.random() * window.innerWidth;
-                const y = window.innerHeight + 80;
-                createStar(x, y);
-            }, 5000 + Math.random() * 5000);
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            function makeStars() {
+                stars = [];
+                const count = Math.floor((canvas.width * canvas.height) / 6000);
+                for (let i = 0; i < count; i++) {
+                    stars.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        r: Math.random() * 1.1 + 0.15,
+                        o: Math.random() * 0.8 + 0.1,
+                        speed: (Math.random() - 0.5) * 0.012
+                    });
+                }
+            }
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                stars.forEach(s => {
+                    s.o += s.speed;
+                    if (s.o > 0.95 || s.o < 0.05) s.speed *= -1;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255,255,255,${s.o.toFixed(2)})`;
+                    ctx.fill();
+                });
+                requestAnimationFrame(draw);
+            }
+            resize();
+            makeStars();
+            draw();
+            window.addEventListener('resize', () => { resize(); makeStars(); });
         }
 
         document.addEventListener('click', e => {
