@@ -399,121 +399,6 @@
             margin: 1.25rem 0;
         }
 
-        /* ── LANDING SCREEN ── */
-        #landing-screen {
-            position: fixed;
-            inset: 0;
-            z-index: 9998;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            background:
-                radial-gradient(circle at 15% 20%, rgba(255,255,255,0.10), transparent 26%),
-                radial-gradient(circle at 85% 18%, rgba(255,255,255,0.05), transparent 22%),
-                radial-gradient(circle at 50% 100%, rgba(255,255,255,0.08), transparent 32%),
-                linear-gradient(160deg, #121212 0%, #080808 42%, #000 100%);
-            transition: opacity 0.5s ease, transform 0.5s ease;
-        }
-        #landing-screen.hide {
-            opacity: 0;
-            pointer-events: none;
-            transform: scale(1.04);
-        }
-        .landing-inner {
-            text-align: center;
-            padding: 2rem;
-            max-width: 680px;
-            width: 100%;
-        }
-        .landing-welcome {
-            font-family: 'Inter', sans-serif;
-            font-size: clamp(1.1rem, 3vw, 1.4rem);
-            color: rgba(255,255,255,0.55);
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            margin-bottom: 0.35rem;
-        }
-        .landing-title {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: clamp(3.5rem, 10vw, 7rem);
-            font-weight: 700;
-            color: #fff;
-            line-height: 1;
-            margin-bottom: 0;
-            letter-spacing: -0.02em;
-        }
-        .landing-typed-wrap {
-            min-height: clamp(3.5rem, 10vw, 7rem);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-        }
-        .landing-typed {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: clamp(3.5rem, 10vw, 7rem);
-            font-weight: 700;
-            line-height: 1;
-            letter-spacing: -0.02em;
-            color: var(--accent);
-            filter: drop-shadow(0 0 28px rgba(255,255,255,0.35));
-            position: relative;
-        }
-        .landing-typed::after {
-            content: '';
-            display: inline-block;
-            width: 3px;
-            height: 0.85em;
-            background: var(--accent);
-            margin-left: 4px;
-            vertical-align: middle;
-            animation: blink 0.9s step-end infinite;
-            border-radius: 2px;
-        }
-        .landing-typed.no-cursor::after {
-            display: none;
-        }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-        .landing-sub {
-            font-size: clamp(1rem, 2.5vw, 1.2rem);
-            color: rgba(255,255,255,0.5);
-            margin-bottom: 2.5rem;
-            line-height: 1.7;
-        }
-        .landing-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.6rem;
-            background: linear-gradient(135deg, #ffffff 0%, #d9d9d9 100%);
-            color: #000;
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.15rem;
-            font-weight: 700;
-            padding: 1rem 2.5rem;
-            border-radius: 1rem;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 16px 40px rgba(255,255,255,0.18);
-            transition: all 0.28s cubic-bezier(0.4,0,0.2,1);
-            width: auto;
-            margin: 0;
-            letter-spacing: 0.02em;
-        }
-        .landing-btn:hover {
-            transform: translateY(-3px) scale(1.03);
-            box-shadow: 0 24px 50px rgba(255,255,255,0.26);
-            background: linear-gradient(135deg, #fff 0%, #ececec 100%);
-        }
-        .landing-star {
-            animation: pulse 4s infinite ease-in-out;
-            filter: drop-shadow(0 0 28px rgba(255,255,255,0.3));
-            margin-bottom: 2rem;
-        }
-
         /* �"?�"? MOBILE RESPONSIVE �"?�"? */
         #mobile-menu-btn {
             display: none;
@@ -796,6 +681,113 @@
                 grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
             }
         }
+
+        /* ── LANDING SCREEN ── */
+        #landing-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            overflow: hidden;
+            transition: opacity 0.6s ease;
+        }
+        #landing-screen.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #landing-stars {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+        .landing-center {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+        }
+        .landing-headline {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.4rem, 6vw, 4.2rem);
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+            line-height: 1.1;
+            margin-bottom: 1.1rem;
+            letter-spacing: -0.01em;
+        }
+        .landing-typed-word {
+            color: #fff;
+            position: relative;
+            display: inline;
+        }
+        .landing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 0.85em;
+            background: #fff;
+            margin-left: 2px;
+            vertical-align: middle;
+            border-radius: 1px;
+            animation: lcursor 0.9s step-end infinite;
+        }
+        @keyframes lcursor {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        .landing-sub {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(0.9rem, 2vw, 1.05rem);
+            color: rgba(255,255,255,0.55);
+            margin-bottom: 2rem;
+            letter-spacing: 0.01em;
+        }
+        .landing-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.22);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.97rem;
+            font-weight: 600;
+            padding: 0.7rem 1.75rem;
+            border-radius: 999px;
+            cursor: pointer;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.25s ease;
+            width: auto;
+            margin: 0;
+            letter-spacing: 0.02em;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset;
+        }
+        .landing-btn:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.38);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(255,255,255,0.08);
+        }
+        .landing-glow {
+            position: absolute;
+            bottom: -10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 520px;
+            height: 260px;
+            background: radial-gradient(ellipse, rgba(255,255,255,0.07) 0%, transparent 70%);
+            pointer-events: none;
+            border-radius: 50%;
+            filter: blur(8px);
+        }
     </style>
 </head>
 <body>
@@ -807,18 +799,15 @@
     </div>
     <!-- LANDING SCREEN -->
     <div id="landing-screen">
-        <div class="landing-inner">
-            <svg width="110" height="110" viewBox="0 0 200 200" class="landing-star mx-auto" fill="white" xmlns="http://www.w3.org/2000/svg">
-                <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
-            </svg>
-            <div class="landing-welcome">Welcome to</div>
-            <div class="landing-title">Starlink</div>
-            <div class="landing-typed-wrap">
-                <span class="landing-typed" id="landing-typed-word"></span>
+        <canvas id="landing-stars"></canvas>
+        <div class="landing-glow"></div>
+        <div class="landing-center">
+            <div class="landing-headline">
+                Welcome to <span id="landing-typed-word" class="landing-typed-word"></span><span class="landing-cursor"></span>
             </div>
-            <p class="landing-sub">Your personal gateway to unblocked games, AI tools,<br>streaming, music, proxies, and more.</p>
+            <p class="landing-sub">Start your unblocking journey today!</p>
             <button class="landing-btn" onclick="window.landingGetStarted()">
-                Get Started <i class="fa-solid fa-arrow-right" style="font-size:1rem;"></i>
+                Get Started ✦
             </button>
         </div>
     </div>
@@ -6111,50 +6100,88 @@
 
 
         // ── LANDING SCREEN ──────────────────────────────────────────────────
-        (function() {
-            const WORDS = ['Games', 'Freedom', 'Proxies', 'Music', 'Streaming', 'AI Tools', 'More'];
-            let wordIdx = 0, charIdx = 0, deleting = false, paused = false;
+        (function initLanding() {
+            // Starfield
+            const canvas = document.getElementById('landing-stars');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                let stars = [];
+                function resizeCanvas() {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                }
+                function makeStars(n) {
+                    stars = [];
+                    for (let i = 0; i < n; i++) {
+                        stars.push({
+                            x: Math.random() * canvas.width,
+                            y: Math.random() * canvas.height,
+                            r: Math.random() * 1.2 + 0.2,
+                            o: Math.random() * 0.7 + 0.15,
+                            speed: Math.random() * 0.4 + 0.05
+                        });
+                    }
+                }
+                function drawStars() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    stars.forEach(s => {
+                        s.o += (Math.random() - 0.5) * 0.04;
+                        s.o = Math.max(0.05, Math.min(0.9, s.o));
+                        ctx.beginPath();
+                        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255,255,255,${s.o.toFixed(2)})`;
+                        ctx.fill();
+                    });
+                    if (document.getElementById('landing-screen')) requestAnimationFrame(drawStars);
+                }
+                resizeCanvas();
+                makeStars(220);
+                drawStars();
+                window.addEventListener('resize', () => { resizeCanvas(); makeStars(220); });
+            }
+
+            // Typing animation — only "Starlink" types/deletes, text stays "Welcome to [word]"
+            const WORDS = ['Starlink', 'Freedom', 'Starlink', 'Games', 'Starlink', 'More'];
+            // Actually just cycle back to Starlink each time so it feels like a name reveal
+            const TYPE_WORDS = ['Starlink'];
+            let charIdx = 0, deleting = false, pauseTimer = null;
             const el = document.getElementById('landing-typed-word');
 
-            function typeLoop() {
+            const CYCLE = ['Starlink', 'Freedom', 'Starlink', 'Games', 'Starlink', 'AI Tools'];
+            let wordIdx = 0, charIdx2 = 0, isDeleting = false;
+
+            function type() {
                 if (!el) return;
-                const word = WORDS[wordIdx];
-                if (paused) {
-                    setTimeout(typeLoop, 1400);
-                    paused = false;
-                    return;
-                }
-                if (!deleting) {
-                    charIdx++;
-                    el.textContent = word.slice(0, charIdx);
-                    if (charIdx === word.length) {
-                        paused = true;
-                        deleting = true;
-                        setTimeout(typeLoop, 80);
+                const word = CYCLE[wordIdx];
+                if (!isDeleting) {
+                    charIdx2++;
+                    el.textContent = word.slice(0, charIdx2);
+                    if (charIdx2 === word.length) {
+                        isDeleting = true;
+                        setTimeout(type, 1600); // pause before deleting
                         return;
                     }
-                    setTimeout(typeLoop, 90);
+                    setTimeout(type, 95);
                 } else {
-                    charIdx--;
-                    el.textContent = word.slice(0, charIdx);
-                    if (charIdx === 0) {
-                        deleting = false;
-                        wordIdx = (wordIdx + 1) % WORDS.length;
-                        setTimeout(typeLoop, 220);
+                    charIdx2--;
+                    el.textContent = word.slice(0, charIdx2);
+                    if (charIdx2 === 0) {
+                        isDeleting = false;
+                        wordIdx = (wordIdx + 1) % CYCLE.length;
+                        setTimeout(type, 200);
                         return;
                     }
-                    setTimeout(typeLoop, 48);
+                    setTimeout(type, 45);
                 }
             }
-            setTimeout(typeLoop, 600);
+            setTimeout(type, 500);
         })();
 
         window.landingGetStarted = function() {
             const landing = document.getElementById('landing-screen');
             if (!landing) return;
             landing.classList.add('hide');
-            setTimeout(() => landing.remove(), 520);
-            // Already signed in -> go to home tab; otherwise -> account/sign-in tab
+            setTimeout(() => { if (landing.parentNode) landing.parentNode.removeChild(landing); }, 650);
             if (window.currentUser) {
                 const homeIdx = (window.tabMapping || []).findIndex(t => t.contentId === 'content-home');
                 if (homeIdx >= 0) window.switchTab(homeIdx);
