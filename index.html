@@ -26,14 +26,14 @@
             --bg-base: #080808;
             --bg-top: #121212;
             --bg-bottom: #000000;
-            --glass-bg: rgba(14, 14, 14, 0.58);
-            --glass-bg-strong: rgba(10, 10, 10, 0.82);
-            --glass-border: rgba(255,255,255,0.16);
-            --glass-highlight: rgba(255,255,255,0.08);
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-bg-strong: rgba(255, 255, 255, 0.09);
+            --glass-border: rgba(255,255,255,0.22);
+            --glass-highlight: rgba(255,255,255,0.13);
             --text-main: #f7fbff;
             --text-muted: rgba(255, 255, 255, 0.64);
-            --shadow-soft: 0 20px 60px rgba(0, 0, 0, 0.35);
-            --shadow-glow: 0 0 36px rgba(255, 255, 255, 0.08);
+            --shadow-soft: 0 20px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+            --shadow-glow: 0 0 40px rgba(255, 255, 255, 0.10);
         }
         html {
             scroll-behavior: smooth;
@@ -98,9 +98,17 @@
         .nav-link:hover,
         .nav-link.active-tab {
             color: var(--text-main) !important;
-            background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05));
-            border-color: rgba(255,255,255,0.12);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 12px 26px rgba(0,0,0,0.22);
+            background: linear-gradient(145deg,
+                rgba(255,255,255,0.16) 0%,
+                rgba(255,255,255,0.05) 100%);
+            border-color: rgba(255,255,255,0.22);
+            border-top-color: rgba(255,255,255,0.35);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.18),
+                inset 0 -1px 0 rgba(0,0,0,0.15),
+                0 8px 24px rgba(0,0,0,0.28);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
         .nav-link i {
             color: inherit;
@@ -110,38 +118,72 @@
             color: var(--text-main);
             transition: color 0.4s ease;
         }
-        .card {
-            transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--shadow-soft);
-            backdrop-filter: blur(20px) saturate(140%);
-            -webkit-backdrop-filter: blur(20px) saturate(140%);
-        }
-     
-        .card:hover {
-            transform: translateY(-8px) scale(1.02);
-            border-color: rgba(255, 255, 255, 0.24);
-            background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05));
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.34), var(--shadow-glow);
-        }
-        .glass {
+        /* ── LIQUID GLASS ── */
+        .card, .glass {
             position: relative;
-            background: linear-gradient(180deg, rgba(255,255,255,0.09), var(--glass-bg));
-            backdrop-filter: blur(22px) saturate(140%);
-            -webkit-backdrop-filter: blur(22px) saturate(140%);
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--shadow-soft);
             overflow: hidden;
+            /* Nearly transparent so background bleeds through */
+            background: rgba(255,255,255,0.06);
+            /* Heavy blur creates the wet glass refraction */
+            backdrop-filter: blur(60px) saturate(220%) brightness(1.15) contrast(0.9);
+            -webkit-backdrop-filter: blur(60px) saturate(220%) brightness(1.15) contrast(0.9);
+            /* Crisp bright rim like light catching a glass edge */
+            border: 1px solid rgba(255,255,255,0.0);
+            outline: 1px solid rgba(255,255,255,0.28);
+            outline-offset: -1px;
+            box-shadow:
+                /* Outer glow */
+                0 0 0 1px rgba(255,255,255,0.06),
+                /* Drop shadow */
+                0 16px 48px rgba(0,0,0,0.55),
+                /* Top specular — the bright wet shine */
+                inset 0 1.5px 0 rgba(255,255,255,0.55),
+                /* Bottom dark rim */
+                inset 0 -1px 0 rgba(0,0,0,0.4),
+                /* Left specular */
+                inset 1.5px 0 0 rgba(255,255,255,0.18),
+                /* Right dark */
+                inset -1px 0 0 rgba(0,0,0,0.15);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .glass::before {
+        /* Bright gloss sweep across the top — like a curved glass surface */
+        .card::before, .glass::before {
             content: "";
             position: absolute;
-            inset: 0;
+            top: 0; left: 0; right: 0;
+            height: 38%;
             border-radius: inherit;
-            background: linear-gradient(180deg, rgba(255,255,255,0.14), transparent 28%);
+            background: linear-gradient(180deg,
+                rgba(255,255,255,0.22) 0%,
+                rgba(255,255,255,0.06) 55%,
+                transparent 100%);
             pointer-events: none;
-            opacity: 0.75;
+            z-index: 1;
+        }
+        /* Subtle lens distortion shadow at bottom */
+        .card::after, .glass::after {
+            content: "";
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 25%;
+            border-radius: inherit;
+            background: linear-gradient(0deg,
+                rgba(0,0,0,0.22) 0%,
+                transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .card:hover {
+            transform: translateY(-8px) scale(1.02);
+            background: rgba(255,255,255,0.10);
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.10),
+                0 28px 64px rgba(0,0,0,0.60),
+                inset 0 1.5px 0 rgba(255,255,255,0.70),
+                inset 0 -1px 0 rgba(0,0,0,0.4),
+                inset 1.5px 0 0 rgba(255,255,255,0.25),
+                inset -1px 0 0 rgba(0,0,0,0.15);
+            outline-color: rgba(255,255,255,0.42);
         }
         
 
