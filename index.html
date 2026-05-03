@@ -194,18 +194,107 @@
             background-clip: padding-box;
         }
         .proxy-browser-shell {
-            min-height: 68vh;
-            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-            border: 1px solid rgba(255,255,255,0.12);
-            box-shadow: var(--shadow-soft);
+            min-height: 72vh;
+            background: linear-gradient(180deg, rgba(24, 28, 38, 0.96), rgba(10, 12, 19, 0.96));
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 30px 90px rgba(0,0,0,0.45);
+            padding: 0;
         }
-        .proxy-browser-frame {
-            width: 100%;
-            min-height: 60vh;
-            height: 100%;
+        .proxy-browser-chrome {
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            background:
+                radial-gradient(circle at top left, rgba(255,255,255,0.09), transparent 30%),
+                linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+        }
+        .proxy-tab-strip {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.75rem;
+            padding: 1rem 1rem 0;
+        }
+        .proxy-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.65rem;
+            min-width: 15rem;
+            max-width: 18rem;
+            padding: 0.8rem 1rem;
+            border-radius: 1.1rem 1.1rem 0 0;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 0;
+            color: rgba(255,255,255,0.8);
+        }
+        .proxy-dot-row {
+            display: inline-flex;
+            gap: 0.45rem;
+            margin-right: 0.25rem;
+        }
+        .proxy-dot {
+            width: 0.78rem;
+            height: 0.78rem;
+            border-radius: 999px;
+        }
+        .proxy-dot.red { background: #ff5f57; }
+        .proxy-dot.yellow { background: #febc2e; }
+        .proxy-dot.green { background: #28c840; }
+        .proxy-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 1rem;
+        }
+        .proxy-nav-btn {
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.82);
+            margin: 0;
+            padding: 0;
+            font-size: 1rem;
+        }
+        .proxy-nav-btn:hover {
+            background: rgba(255,255,255,0.11);
+            transform: translateY(-1px);
+        }
+        .proxy-nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .proxy-address-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex: 1;
+            padding: 0.4rem 0.55rem 0.4rem 1rem;
+            border-radius: 1.15rem;
+            background: rgba(7, 10, 18, 0.88);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+        .proxy-address-wrap input {
+            margin: 0;
+            background: transparent;
             border: 0;
-            border-radius: 1.25rem;
-            background: rgba(0,0,0,0.45);
+            box-shadow: none;
+            padding: 0.8rem 0.2rem;
+        }
+        .proxy-address-wrap input:focus {
+            background: transparent;
+            box-shadow: none;
+        }
+        .proxy-action-btn {
+            width: auto;
+            margin: 0;
+            padding: 0.9rem 1.15rem;
+            font-size: 0.95rem;
+            border-radius: 0.95rem;
         }
         .proxy-pill {
             display: inline-flex;
@@ -217,6 +306,46 @@
             border: 1px solid rgba(255,255,255,0.12);
             color: rgba(255,255,255,0.78);
             font-size: 0.9rem;
+        }
+        .proxy-bookmarks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            padding: 0 1rem 1rem;
+        }
+        .proxy-bookmark {
+            width: auto;
+            margin: 0;
+            padding: 0.7rem 0.95rem;
+            font-size: 0.9rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.84);
+        }
+        .proxy-browser-stage {
+            padding: 1rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+        .proxy-browser-frame {
+            width: 100%;
+            min-height: 60vh;
+            height: 100%;
+            border: 0;
+            border-radius: 1.35rem;
+            background: #0b0f17;
+        }
+        .proxy-browser-footer {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            color: rgba(255,255,255,0.55);
+            font-size: 0.88rem;
         }
         input[type="email"], input[type="password"], input[type="text"], textarea, select {
             background: rgba(255,255,255,0.07);
@@ -856,76 +985,88 @@
 
             <!-- PROXY -->
             <div id="content-proxy" class="tab-content hidden">
-                <div class="max-w-7xl mx-auto py-6 space-y-6">
-                    <div class="glass rounded-3xl p-8">
-                        <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
-                            <div class="max-w-3xl">
-                                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm text-white/70 mb-4">
-                                    <i class="fa-solid fa-shield-halved text-[var(--accent)]"></i>
-                                    Built-in proxy workspace
-                                </div>
-                                <h2 class="text-4xl font-bold logo-font tracking-tight mb-3">Proxy Browser</h2>
-                                <p class="text-white/65 text-lg leading-relaxed">
-                                    Browse through your own proxy endpoint directly inside Starlink. If you leave the endpoint blank, Starlink will try a direct iframe load, but many sites will block that.
-                                </p>
-                            </div>
-                            <div class="grid gap-3 text-sm">
-                                <div class="proxy-pill"><i class="fa-solid fa-link"></i> Supports direct URLs or searches</div>
-                                <div class="proxy-pill"><i class="fa-solid fa-sliders"></i> Saves proxy settings locally</div>
-                                <div class="proxy-pill"><i class="fa-solid fa-up-right-from-square"></i> Can open proxied pages in a new tab</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 xl:grid-cols-[1.05fr_1.7fr] gap-6">
-                        <div class="glass rounded-3xl p-8">
-                            <h3 class="text-2xl font-bold mb-5 flex items-center gap-3">
-                                <i class="fa-solid fa-route text-[var(--accent)]"></i>
-                                Proxy Setup
-                            </h3>
-                            <label class="block text-sm text-white/60 mb-2" for="proxy-template-input">Proxy endpoint or template</label>
-                            <input id="proxy-template-input" type="text" placeholder="Example: https://your-domain.example/?url=%s">
-                            <p class="text-xs text-white/45 -mt-2 mb-4">
-                                Use `%s` or `{url}` where the target URL should go. If you leave it blank, the page falls back to a direct iframe.
-                            </p>
-
-                            <label class="block text-sm text-white/60 mb-2" for="proxy-search-engine">Search engine</label>
-                            <select id="proxy-search-engine">
-                                <option value="duckduckgo">DuckDuckGo</option>
-                                <option value="google">Google</option>
-                                <option value="bing">Bing</option>
-                                <option value="yahoo">Yahoo</option>
-                            </select>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-                                <button onclick="window.saveProxySettings()" class="auth-btn" style="margin:0;">Save Settings</button>
-                                <button onclick="window.resetProxySettings()" class="github-style-btn" style="margin:0;">Reset</button>
-                            </div>
-
-                            <div class="mt-6 p-4 rounded-2xl bg-black/25 border border-white/10">
-                                <div class="text-sm font-semibold text-white/80 mb-2">How this works</div>
-                                <p class="text-sm text-white/55 leading-relaxed">
-                                    This front end needs a working proxy backend URL if you want the same kind of behavior as a full unblocking site. The browser UI is built in here; the routing still depends on your endpoint.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="proxy-browser-shell glass rounded-3xl p-5 flex flex-col">
-                            <div class="flex flex-col lg:flex-row gap-4 mb-4">
-                                <input id="proxy-url-input" type="text" placeholder="Enter a URL or search term">
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:min-w-[25rem]">
-                                    <button onclick="window.launchProxy()" class="auth-btn" style="margin:0;padding:1rem 1.25rem;font-size:1rem;">Open</button>
-                                    <button onclick="window.openProxyInNewTab()" class="github-style-btn" style="margin:0;padding:1rem 1.25rem;font-size:1rem;">New Tab</button>
-                                    <button onclick="window.clearProxyFrame()" class="github-style-btn" style="margin:0;padding:1rem 1.25rem;font-size:1rem;">Clear</button>
+                <div class="max-w-7xl mx-auto py-6">
+                    <div class="proxy-browser-shell glass rounded-[2rem]">
+                        <div class="proxy-browser-chrome">
+                            <div class="proxy-tab-strip">
+                                <div class="proxy-tab">
+                                    <span class="proxy-dot-row">
+                                        <span class="proxy-dot red"></span>
+                                        <span class="proxy-dot yellow"></span>
+                                        <span class="proxy-dot green"></span>
+                                    </span>
+                                    <i class="fa-solid fa-globe text-sm text-white/60"></i>
+                                    <span class="truncate">Starlink Browser</span>
                                 </div>
                             </div>
-                            <div class="flex flex-wrap items-center gap-3 mb-4 text-sm text-white/60">
+
+                            <div class="proxy-toolbar">
+                                <button id="proxy-back-btn" onclick="window.proxyBack()" class="proxy-nav-btn" title="Back">
+                                    <i class="fa-solid fa-arrow-left"></i>
+                                </button>
+                                <button id="proxy-forward-btn" onclick="window.proxyForward()" class="proxy-nav-btn" title="Forward">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                                <button onclick="window.proxyReload()" class="proxy-nav-btn" title="Reload">
+                                    <i class="fa-solid fa-rotate-right"></i>
+                                </button>
+                                <button onclick="window.proxyHome()" class="proxy-nav-btn" title="Home">
+                                    <i class="fa-solid fa-house"></i>
+                                </button>
+
+                                <div class="proxy-address-wrap">
+                                    <i class="fa-solid fa-lock text-white/35"></i>
+                                    <input id="proxy-url-input" type="text" placeholder="Search Starlink Browser or enter address">
+                                    <button onclick="window.launchProxy()" class="auth-btn proxy-action-btn">Go</button>
+                                </div>
+
+                                <button onclick="window.openProxyInNewTab()" class="github-style-btn proxy-action-btn" title="Open in new tab">
+                                    <i class="fa-solid fa-up-right-from-square"></i>
+                                </button>
+                            </div>
+
+                            <div class="proxy-bookmarks">
+                                <button onclick="window.fillProxyExample('https://example.com'); window.launchProxy();" class="proxy-bookmark">Example</button>
+                                <button onclick="window.fillProxyExample('https://wikipedia.org'); window.launchProxy();" class="proxy-bookmark">Wikipedia</button>
+                                <button onclick="window.fillProxyExample('music'); window.launchProxy();" class="proxy-bookmark">Music Search</button>
+                                <button onclick="window.fillProxyExample('games'); window.launchProxy();" class="proxy-bookmark">Games Search</button>
                                 <span id="proxy-status" class="proxy-pill">Ready</span>
-                                <button onclick="window.fillProxyExample('https://example.com')" class="github-style-btn" style="width:auto;margin:0;padding:0.65rem 0.95rem;font-size:0.9rem;">Example URL</button>
-                                <button onclick="window.fillProxyExample('chatgpt')" class="github-style-btn" style="width:auto;margin:0;padding:0.65rem 0.95rem;font-size:0.9rem;">Example Search</button>
                             </div>
+                        </div>
+
+                        <div class="proxy-browser-stage">
+                            <div class="glass rounded-3xl p-6">
+                                <div class="grid grid-cols-1 xl:grid-cols-[1.15fr_0.85fr] gap-5 items-end">
+                                    <div>
+                                        <label class="block text-sm text-white/60 mb-2" for="proxy-template-input">Browser gateway template</label>
+                                        <input id="proxy-template-input" type="text" placeholder="Example: https://your-domain.example/?url=%s">
+                                        <p class="text-xs text-white/45 -mt-2">
+                                            `%s` or `{url}` gets replaced with the address you type above.
+                                        </p>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-3 items-end">
+                                        <div>
+                                            <label class="block text-sm text-white/60 mb-2" for="proxy-search-engine">Search engine</label>
+                                            <select id="proxy-search-engine">
+                                                <option value="duckduckgo">DuckDuckGo</option>
+                                                <option value="google">Google</option>
+                                                <option value="bing">Bing</option>
+                                                <option value="yahoo">Yahoo</option>
+                                            </select>
+                                        </div>
+                                        <button onclick="window.saveProxySettings()" class="auth-btn proxy-action-btn">Save</button>
+                                        <button onclick="window.resetProxySettings()" class="github-style-btn proxy-action-btn">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="flex-1 min-h-[60vh] rounded-[1.5rem] p-3 bg-black/20 border border-white/10">
-                                <iframe id="proxy-frame" class="proxy-browser-frame" referrerpolicy="no-referrer" title="Starlink Proxy Browser"></iframe>
+                                <iframe id="proxy-frame" class="proxy-browser-frame" referrerpolicy="no-referrer" title="Starlink Browser"></iframe>
+                            </div>
+
+                            <div class="proxy-browser-footer">
+                                <span id="proxy-current-destination">No page loaded</span>
+                                <span>Browser-style shell ready. Some sites may still block iframe embeds.</span>
                             </div>
                         </div>
                     </div>
@@ -4252,6 +4393,8 @@
             bing: 'https://www.bing.com/search?q=%s',
             yahoo: 'https://search.yahoo.com/search?p=%s'
         };
+        window.proxyHistory = [];
+        window.proxyHistoryIndex = -1;
 
         function getProxySettings() {
             try {
@@ -4272,6 +4415,47 @@
             };
             el.textContent = message;
             el.style.cssText = tones[tone] || tones.neutral;
+        }
+
+        function setProxyDestinationLabel(text) {
+            const el = document.getElementById('proxy-current-destination');
+            if (el) el.textContent = text;
+        }
+
+        function updateProxyNavButtons() {
+            const backBtn = document.getElementById('proxy-back-btn');
+            const forwardBtn = document.getElementById('proxy-forward-btn');
+            if (backBtn) backBtn.disabled = window.proxyHistoryIndex <= 0;
+            if (forwardBtn) forwardBtn.disabled = window.proxyHistoryIndex < 0 || window.proxyHistoryIndex >= window.proxyHistory.length - 1;
+        }
+
+        function renderProxyLocation(rawTarget, result) {
+            const input = document.getElementById('proxy-url-input');
+            const normalized = normalizeProxyTarget(rawTarget);
+            if (input && normalized) input.value = normalized;
+            setProxyDestinationLabel(result?.proxied ? `Gateway: ${result.url}` : `Direct: ${result?.url || 'No page loaded'}`);
+        }
+
+        function commitProxyNavigation(rawTarget, options = {}) {
+            const frame = document.getElementById('proxy-frame');
+            const result = buildProxyDestination(rawTarget);
+
+            if (!result?.url) {
+                setProxyStatus('Enter a URL or search term first', 'error');
+                return null;
+            }
+            if (!frame) return null;
+
+            frame.src = result.url;
+            renderProxyLocation(rawTarget, result);
+            if (!options.skipHistory) {
+                window.proxyHistory = window.proxyHistory.slice(0, window.proxyHistoryIndex + 1);
+                window.proxyHistory.push(rawTarget);
+                window.proxyHistoryIndex = window.proxyHistory.length - 1;
+            }
+            updateProxyNavButtons();
+            setProxyStatus(result.proxied ? 'Loading through saved gateway' : 'Loading directly. Some sites may refuse to embed', result.proxied ? 'success' : 'warn');
+            return result;
         }
 
         function normalizeProxyTarget(rawValue) {
@@ -4326,11 +4510,12 @@
                 });
                 urlInput.dataset.bound = 'true';
             }
+            updateProxyNavButtons();
 
             if (!settings.template) {
-                setProxyStatus('Add a proxy endpoint for full proxy mode', 'warn');
+                setProxyStatus('Browser shell ready. Add a gateway for full proxy mode', 'warn');
             } else {
-                setProxyStatus('Proxy settings loaded', 'success');
+                setProxyStatus('Browser settings loaded', 'success');
             }
         };
 
@@ -4359,22 +4544,16 @@
             const input = document.getElementById('proxy-url-input');
             if (frame) frame.removeAttribute('src');
             if (input) input.value = '';
-            setProxyStatus('Proxy view cleared', 'neutral');
+            window.proxyHistory = [];
+            window.proxyHistoryIndex = -1;
+            updateProxyNavButtons();
+            setProxyDestinationLabel('No page loaded');
+            setProxyStatus('Browser cleared', 'neutral');
         };
 
         window.launchProxy = function() {
             const rawValue = document.getElementById('proxy-url-input')?.value || '';
-            const frame = document.getElementById('proxy-frame');
-            const result = buildProxyDestination(rawValue);
-
-            if (!result?.url) {
-                setProxyStatus('Enter a URL or search term first', 'error');
-                return;
-            }
-            if (!frame) return;
-
-            frame.src = result.url;
-            setProxyStatus(result.proxied ? 'Loading through your proxy endpoint' : 'Loading directly. Some sites may refuse to embed', result.proxied ? 'success' : 'warn');
+            commitProxyNavigation(rawValue);
         };
 
         window.openProxyInNewTab = function() {
@@ -4386,6 +4565,33 @@
             }
             window.open(result.url, '_blank', 'noopener');
             setProxyStatus(result.proxied ? 'Opened proxied page in a new tab' : 'Opened direct page in a new tab', 'success');
+        };
+
+        window.proxyBack = function() {
+            if (window.proxyHistoryIndex <= 0) return;
+            window.proxyHistoryIndex -= 1;
+            const target = window.proxyHistory[window.proxyHistoryIndex];
+            commitProxyNavigation(target, { skipHistory: true });
+        };
+
+        window.proxyForward = function() {
+            if (window.proxyHistoryIndex >= window.proxyHistory.length - 1) return;
+            window.proxyHistoryIndex += 1;
+            const target = window.proxyHistory[window.proxyHistoryIndex];
+            commitProxyNavigation(target, { skipHistory: true });
+        };
+
+        window.proxyReload = function() {
+            const current = window.proxyHistory[window.proxyHistoryIndex] || document.getElementById('proxy-url-input')?.value || '';
+            if (!current) {
+                setProxyStatus('Nothing to reload yet', 'error');
+                return;
+            }
+            commitProxyNavigation(current, { skipHistory: true });
+        };
+
+        window.proxyHome = function() {
+            window.clearProxyFrame();
         };
 
 
