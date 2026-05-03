@@ -153,8 +153,8 @@
         #star-bg {
             position: fixed;
             inset: 0;
-            z-index: -1;
-            pointer-events: auto;
+            z-index: 9997;
+            pointer-events: none;
             opacity: 0.55;
         }
         #matrix-bg {
@@ -687,17 +687,24 @@
             position: fixed;
             inset: 0;
             z-index: 9998;
-            background:
-                radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.1), transparent 26%),
-                radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.05), transparent 22%),
-                radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.08), transparent 32%),
-                linear-gradient(160deg, #121212 0%, #080808 42%, #000 100%);
+            background: transparent;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
             overflow: hidden;
             transition: opacity 0.6s ease;
+        }
+        #landing-screen::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.1), transparent 26%),
+                radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.05), transparent 22%),
+                radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.08), transparent 32%),
+                linear-gradient(160deg, #121212 0%, #080808 42%, #000 100%);
         }
         #landing-screen.hide {
             opacity: 0;
@@ -706,7 +713,7 @@
 
         .landing-center {
             position: relative;
-            z-index: 2;
+            z-index: 9999;
             text-align: center;
             display: flex;
             flex-direction: column;
