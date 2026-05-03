@@ -395,18 +395,18 @@
             margin: 0;
         }
         #sidebar {
-            background: #000 !important;
+            background: transparent !important;
             border-right-color: rgba(255,255,255,0.08) !important;
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
-            box-shadow: 18px 0 50px rgba(0,0,0,0.6);
+            box-shadow: none;
         }
         #top-header {
-            background: #000 !important;
+            background: transparent !important;
             border-bottom-color: rgba(255,255,255,0.08) !important;
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            box-shadow: none;
         }
         #global-announcement {
             background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04));
@@ -842,7 +842,7 @@
     <div id="sidebar-overlay" onclick="window.closeSidebar()"></div>
 
     <!-- SIDEBAR -->
-    <div id="sidebar" class="w-72 bg-black border-r border-white/10 flex flex-col fixed h-screen z-[100]">
+    <div id="sidebar" class="w-72 border-r border-white/10 flex flex-col fixed h-screen z-[100]">
         <div class="p-8 flex items-center gap-x-4 border-b border-white/10">
             <svg width="48" height="48" viewBox="0 0 200 200" class="star-svg" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
                 <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
@@ -857,7 +857,7 @@
 
     <!-- MAIN CONTENT -->
     <div class="flex-1 ml-72 main-content" id="main-content">
-        <div id="top-header" class="h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl fixed w-[calc(100%-288px)] z-[100] top-0">
+        <div id="top-header" class="h-16 border-b border-white/10  fixed w-[calc(100%-288px)] z-[100] top-0">
             <div class="h-full px-10 flex items-center gap-4">
                 <button id="mobile-menu-btn" onclick="window.openSidebar()" aria-label="Open menu">
                     <i class="fa-solid fa-bars"></i>
