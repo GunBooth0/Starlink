@@ -687,12 +687,7 @@
             position: fixed;
             inset: 0;
             z-index: 9998;
-            /* Same background as the main site */
-            background:
-                radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.1), transparent 26%),
-                radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.05), transparent 22%),
-                radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.08), transparent 32%),
-                linear-gradient(160deg, #121212 0%, #080808 42%, #000 100%);
+            background: transparent;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -704,12 +699,7 @@
             opacity: 0;
             pointer-events: none;
         }
-        #landing-stars {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-        }
+
         .landing-center {
             position: relative;
             z-index: 2;
@@ -788,7 +778,6 @@
     </div>
     <!-- LANDING SCREEN -->
     <div id="landing-screen">
-        <canvas id="landing-stars"></canvas>
         <div class="landing-center">
             <div class="landing-headline">
                 Welcome to <span id="landing-typed-word" class="landing-typed-word"></span><span class="landing-cursor"></span>
@@ -6089,47 +6078,6 @@
 
         // ── LANDING SCREEN ──────────────────────────────────────────────────
         (function initLanding() {
-            // Mirror the main site's floating star effect on the landing canvas
-            const canvas = document.getElementById('landing-stars');
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-                let stars = [];
-                function resize() {
-                    canvas.width = window.innerWidth;
-                    canvas.height = window.innerHeight;
-                }
-                function makeStars() {
-                    stars = [];
-                    const count = Math.floor((canvas.width * canvas.height) / 6000);
-                    for (let i = 0; i < count; i++) {
-                        stars.push({
-                            x: Math.random() * canvas.width,
-                            y: Math.random() * canvas.height,
-                            r: Math.random() * 1.1 + 0.15,
-                            o: Math.random() * 0.7 + 0.1,
-                            speed: (Math.random() - 0.5) * 0.012
-                        });
-                    }
-                }
-                function draw() {
-                    if (!document.getElementById('landing-screen')) return;
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    stars.forEach(s => {
-                        s.o += s.speed;
-                        if (s.o > 0.9 || s.o < 0.05) s.speed *= -1;
-                        ctx.beginPath();
-                        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-                        ctx.fillStyle = `rgba(255,255,255,${s.o.toFixed(2)})`;
-                        ctx.fill();
-                    });
-                    requestAnimationFrame(draw);
-                }
-                resize();
-                makeStars();
-                draw();
-                window.addEventListener('resize', () => { resize(); makeStars(); });
-            }
-
             // Typing animation — "Starlink" is the word that types and cycles
             const CYCLE = ['Starlink', 'Freedom', 'Starlink', 'Games', 'Starlink', 'AI Tools'];
             let wordIdx = 0, charIdx = 0, isDeleting = false;
