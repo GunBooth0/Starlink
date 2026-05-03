@@ -399,6 +399,121 @@
             margin: 1.25rem 0;
         }
 
+        /* ── LANDING SCREEN ── */
+        #landing-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(255,255,255,0.10), transparent 26%),
+                radial-gradient(circle at 85% 18%, rgba(255,255,255,0.05), transparent 22%),
+                radial-gradient(circle at 50% 100%, rgba(255,255,255,0.08), transparent 32%),
+                linear-gradient(160deg, #121212 0%, #080808 42%, #000 100%);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        #landing-screen.hide {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.04);
+        }
+        .landing-inner {
+            text-align: center;
+            padding: 2rem;
+            max-width: 680px;
+            width: 100%;
+        }
+        .landing-welcome {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(1.1rem, 3vw, 1.4rem);
+            color: rgba(255,255,255,0.55);
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
+        .landing-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(3.5rem, 10vw, 7rem);
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+            margin-bottom: 0;
+            letter-spacing: -0.02em;
+        }
+        .landing-typed-wrap {
+            min-height: clamp(3.5rem, 10vw, 7rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        .landing-typed {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(3.5rem, 10vw, 7rem);
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.02em;
+            color: var(--accent);
+            filter: drop-shadow(0 0 28px rgba(255,255,255,0.35));
+            position: relative;
+        }
+        .landing-typed::after {
+            content: '';
+            display: inline-block;
+            width: 3px;
+            height: 0.85em;
+            background: var(--accent);
+            margin-left: 4px;
+            vertical-align: middle;
+            animation: blink 0.9s step-end infinite;
+            border-radius: 2px;
+        }
+        .landing-typed.no-cursor::after {
+            display: none;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        .landing-sub {
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 2.5rem;
+            line-height: 1.7;
+        }
+        .landing-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: linear-gradient(135deg, #ffffff 0%, #d9d9d9 100%);
+            color: #000;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            padding: 1rem 2.5rem;
+            border-radius: 1rem;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 16px 40px rgba(255,255,255,0.18);
+            transition: all 0.28s cubic-bezier(0.4,0,0.2,1);
+            width: auto;
+            margin: 0;
+            letter-spacing: 0.02em;
+        }
+        .landing-btn:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 24px 50px rgba(255,255,255,0.26);
+            background: linear-gradient(135deg, #fff 0%, #ececec 100%);
+        }
+        .landing-star {
+            animation: pulse 4s infinite ease-in-out;
+            filter: drop-shadow(0 0 28px rgba(255,255,255,0.3));
+            margin-bottom: 2rem;
+        }
+
         /* �"?�"? MOBILE RESPONSIVE �"?�"? */
         #mobile-menu-btn {
             display: none;
@@ -690,6 +805,24 @@
             <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
         </svg>
     </div>
+    <!-- LANDING SCREEN -->
+    <div id="landing-screen">
+        <div class="landing-inner">
+            <svg width="110" height="110" viewBox="0 0 200 200" class="landing-star mx-auto" fill="white" xmlns="http://www.w3.org/2000/svg">
+                <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
+            </svg>
+            <div class="landing-welcome">Welcome to</div>
+            <div class="landing-title">Starlink</div>
+            <div class="landing-typed-wrap">
+                <span class="landing-typed" id="landing-typed-word"></span>
+            </div>
+            <p class="landing-sub">Your personal gateway to unblocked games, AI tools,<br>streaming, music, proxies, and more.</p>
+            <button class="landing-btn" onclick="window.landingGetStarted()">
+                Get Started <i class="fa-solid fa-arrow-right" style="font-size:1rem;"></i>
+            </button>
+        </div>
+    </div>
+
     <div id="star-bg"></div>
     <canvas id="matrix-bg"></canvas>
 
@@ -5975,6 +6108,60 @@
             renderStarclickerUpgrades(true);
             renderStarclicker();
         }
+
+
+        // ── LANDING SCREEN ──────────────────────────────────────────────────
+        (function() {
+            const WORDS = ['Games', 'Freedom', 'Proxies', 'Music', 'Streaming', 'AI Tools', 'More'];
+            let wordIdx = 0, charIdx = 0, deleting = false, paused = false;
+            const el = document.getElementById('landing-typed-word');
+
+            function typeLoop() {
+                if (!el) return;
+                const word = WORDS[wordIdx];
+                if (paused) {
+                    setTimeout(typeLoop, 1400);
+                    paused = false;
+                    return;
+                }
+                if (!deleting) {
+                    charIdx++;
+                    el.textContent = word.slice(0, charIdx);
+                    if (charIdx === word.length) {
+                        paused = true;
+                        deleting = true;
+                        setTimeout(typeLoop, 80);
+                        return;
+                    }
+                    setTimeout(typeLoop, 90);
+                } else {
+                    charIdx--;
+                    el.textContent = word.slice(0, charIdx);
+                    if (charIdx === 0) {
+                        deleting = false;
+                        wordIdx = (wordIdx + 1) % WORDS.length;
+                        setTimeout(typeLoop, 220);
+                        return;
+                    }
+                    setTimeout(typeLoop, 48);
+                }
+            }
+            setTimeout(typeLoop, 600);
+        })();
+
+        window.landingGetStarted = function() {
+            const landing = document.getElementById('landing-screen');
+            if (!landing) return;
+            landing.classList.add('hide');
+            setTimeout(() => landing.remove(), 520);
+            // Already signed in -> go to home tab; otherwise -> account/sign-in tab
+            if (window.currentUser) {
+                const homeIdx = (window.tabMapping || []).findIndex(t => t.contentId === 'content-home');
+                if (homeIdx >= 0) window.switchTab(homeIdx);
+            } else {
+                window.switchTab(0);
+            }
+        };
 
         function initialize() {
             loadTheme();
