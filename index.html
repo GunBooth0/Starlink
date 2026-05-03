@@ -353,18 +353,18 @@
             margin: 0;
         }
         #sidebar {
-            background: linear-gradient(180deg, rgba(10, 10, 10, 0.94), rgba(6, 6, 6, 0.78)) !important;
+            background: #000 !important;
             border-right-color: rgba(255,255,255,0.08) !important;
-            backdrop-filter: blur(24px) saturate(130%);
-            -webkit-backdrop-filter: blur(24px) saturate(130%);
-            box-shadow: 18px 0 50px rgba(0,0,0,0.24);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            box-shadow: 18px 0 50px rgba(0,0,0,0.6);
         }
         #top-header {
-            background: rgba(8, 8, 8, 0.6) !important;
+            background: #000 !important;
             border-bottom-color: rgba(255,255,255,0.08) !important;
-            backdrop-filter: blur(24px) saturate(140%);
-            -webkit-backdrop-filter: blur(24px) saturate(140%);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
         }
         #global-announcement {
             background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04));
@@ -681,6 +681,102 @@
                 grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
             }
         }
+
+        /* ── LANDING SCREEN ── */
+        #landing-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            /* Same background as the main site */
+            background:
+                radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.1), transparent 26%),
+                radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.05), transparent 22%),
+                radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.08), transparent 32%),
+                linear-gradient(160deg, #121212 0%, #080808 42%, #000 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            overflow: hidden;
+            transition: opacity 0.6s ease;
+        }
+        #landing-screen.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #landing-stars {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .landing-center {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .landing-headline {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.4rem, 6vw, 4.2rem);
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+            line-height: 1.1;
+            margin-bottom: 1.1rem;
+            letter-spacing: -0.01em;
+        }
+        .landing-typed-word {
+            color: var(--accent, #fff);
+        }
+        .landing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 0.85em;
+            background: var(--accent, #fff);
+            margin-left: 2px;
+            vertical-align: middle;
+            border-radius: 1px;
+            animation: lcursor 0.9s step-end infinite;
+        }
+        @keyframes lcursor {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        .landing-sub {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(0.9rem, 2vw, 1.05rem);
+            color: rgba(255,255,255,0.55);
+            margin-bottom: 2rem;
+            letter-spacing: 0.01em;
+        }
+        .landing-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.22);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.97rem;
+            font-weight: 600;
+            padding: 0.7rem 1.75rem;
+            border-radius: 999px;
+            cursor: pointer;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.25s ease;
+            width: auto;
+            margin: 0;
+            letter-spacing: 0.02em;
+        }
+        .landing-btn:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.38);
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -690,6 +786,20 @@
             <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
         </svg>
     </div>
+    <!-- LANDING SCREEN -->
+    <div id="landing-screen">
+        <canvas id="landing-stars"></canvas>
+        <div class="landing-center">
+            <div class="landing-headline">
+                Welcome to <span id="landing-typed-word" class="landing-typed-word"></span><span class="landing-cursor"></span>
+            </div>
+            <p class="landing-sub">Start your unblocking journey today!</p>
+            <button class="landing-btn" onclick="window.landingGetStarted()">
+                Get Started ✦
+            </button>
+        </div>
+    </div>
+
     <div id="star-bg"></div>
     <canvas id="matrix-bg"></canvas>
 
@@ -5975,6 +6085,95 @@
             renderStarclickerUpgrades(true);
             renderStarclicker();
         }
+
+
+        // ── LANDING SCREEN ──────────────────────────────────────────────────
+        (function initLanding() {
+            // Mirror the main site's floating star effect on the landing canvas
+            const canvas = document.getElementById('landing-stars');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                let stars = [];
+                function resize() {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                }
+                function makeStars() {
+                    stars = [];
+                    const count = Math.floor((canvas.width * canvas.height) / 6000);
+                    for (let i = 0; i < count; i++) {
+                        stars.push({
+                            x: Math.random() * canvas.width,
+                            y: Math.random() * canvas.height,
+                            r: Math.random() * 1.1 + 0.15,
+                            o: Math.random() * 0.7 + 0.1,
+                            speed: (Math.random() - 0.5) * 0.012
+                        });
+                    }
+                }
+                function draw() {
+                    if (!document.getElementById('landing-screen')) return;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    stars.forEach(s => {
+                        s.o += s.speed;
+                        if (s.o > 0.9 || s.o < 0.05) s.speed *= -1;
+                        ctx.beginPath();
+                        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255,255,255,${s.o.toFixed(2)})`;
+                        ctx.fill();
+                    });
+                    requestAnimationFrame(draw);
+                }
+                resize();
+                makeStars();
+                draw();
+                window.addEventListener('resize', () => { resize(); makeStars(); });
+            }
+
+            // Typing animation — "Starlink" is the word that types and cycles
+            const CYCLE = ['Starlink', 'Freedom', 'Starlink', 'Games', 'Starlink', 'AI Tools'];
+            let wordIdx = 0, charIdx = 0, isDeleting = false;
+            const el = document.getElementById('landing-typed-word');
+
+            function type() {
+                if (!el) return;
+                const word = CYCLE[wordIdx];
+                if (!isDeleting) {
+                    charIdx++;
+                    el.textContent = word.slice(0, charIdx);
+                    if (charIdx === word.length) {
+                        isDeleting = true;
+                        setTimeout(type, 1600);
+                        return;
+                    }
+                    setTimeout(type, 95);
+                } else {
+                    charIdx--;
+                    el.textContent = word.slice(0, charIdx);
+                    if (charIdx === 0) {
+                        isDeleting = false;
+                        wordIdx = (wordIdx + 1) % CYCLE.length;
+                        setTimeout(type, 200);
+                        return;
+                    }
+                    setTimeout(type, 45);
+                }
+            }
+            setTimeout(type, 500);
+        })();
+
+        window.landingGetStarted = function() {
+            const landing = document.getElementById('landing-screen');
+            if (!landing) return;
+            landing.classList.add('hide');
+            setTimeout(() => { if (landing.parentNode) landing.parentNode.removeChild(landing); }, 650);
+            if (window.currentUser) {
+                const homeIdx = (window.tabMapping || []).findIndex(t => t.contentId === 'content-home');
+                if (homeIdx >= 0) window.switchTab(homeIdx);
+            } else {
+                window.switchTab(0);
+            }
+        };
 
         function initialize() {
             loadTheme();
