@@ -193,6 +193,31 @@
             border: 2px solid transparent;
             background-clip: padding-box;
         }
+        .proxy-browser-shell {
+            min-height: 68vh;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: var(--shadow-soft);
+        }
+        .proxy-browser-frame {
+            width: 100%;
+            min-height: 60vh;
+            height: 100%;
+            border: 0;
+            border-radius: 1.25rem;
+            background: rgba(0,0,0,0.45);
+        }
+        .proxy-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.55rem 0.9rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.78);
+            font-size: 0.9rem;
+        }
         input[type="email"], input[type="password"], input[type="text"], textarea, select {
             background: rgba(255,255,255,0.07);
             border: 1px solid rgba(255,255,255,0.14);
@@ -399,7 +424,7 @@
             margin: 1.25rem 0;
         }
 
-        /* �"?�"? MOBILE RESPONSIVE �"?�"? */
+        /*  "? "? MOBILE RESPONSIVE  "? "? */
         #mobile-menu-btn {
             display: none;
         }
@@ -439,7 +464,7 @@
                 height: 4rem;
             }
 
-            /* Show hamburger button �?" large tap target */
+            /* Show hamburger button  ?" large tap target */
             #mobile-menu-btn {
                 display: flex;
                 align-items: center;
@@ -684,7 +709,7 @@
     </style>
 </head>
 <body>
-    <!-- Auth loader �?" covers UI until Firebase confirms auth state -->
+    <!-- Auth loader  ?" covers UI until Firebase confirms auth state -->
     <div id="auth-loader" style="position:fixed;inset:0;background:#000;z-index:99999;display:flex;align-items:center;justify-content:center;transition:opacity 0.3s ease;">
         <svg width="48" height="48" viewBox="0 0 200 200" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg" style="animation:pulse 1.5s infinite ease-in-out;">
             <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
@@ -826,6 +851,84 @@
                         Fast, clean, and always available.
                     </p>
                     <div class="mt-8 text-white/50 text-lg">By: Gunnar Booth</div>
+                </div>
+            </div>
+
+            <!-- PROXY -->
+            <div id="content-proxy" class="tab-content hidden">
+                <div class="max-w-7xl mx-auto py-6 space-y-6">
+                    <div class="glass rounded-3xl p-8">
+                        <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
+                            <div class="max-w-3xl">
+                                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm text-white/70 mb-4">
+                                    <i class="fa-solid fa-shield-halved text-[var(--accent)]"></i>
+                                    Built-in proxy workspace
+                                </div>
+                                <h2 class="text-4xl font-bold logo-font tracking-tight mb-3">Proxy Browser</h2>
+                                <p class="text-white/65 text-lg leading-relaxed">
+                                    Browse through your own proxy endpoint directly inside Starlink. If you leave the endpoint blank, Starlink will try a direct iframe load, but many sites will block that.
+                                </p>
+                            </div>
+                            <div class="grid gap-3 text-sm">
+                                <div class="proxy-pill"><i class="fa-solid fa-link"></i> Supports direct URLs or searches</div>
+                                <div class="proxy-pill"><i class="fa-solid fa-sliders"></i> Saves proxy settings locally</div>
+                                <div class="proxy-pill"><i class="fa-solid fa-up-right-from-square"></i> Can open proxied pages in a new tab</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 xl:grid-cols-[1.05fr_1.7fr] gap-6">
+                        <div class="glass rounded-3xl p-8">
+                            <h3 class="text-2xl font-bold mb-5 flex items-center gap-3">
+                                <i class="fa-solid fa-route text-[var(--accent)]"></i>
+                                Proxy Setup
+                            </h3>
+                            <label class="block text-sm text-white/60 mb-2" for="proxy-template-input">Proxy endpoint or template</label>
+                            <input id="proxy-template-input" type="text" placeholder="Example: https://your-domain.example/?url=%s">
+                            <p class="text-xs text-white/45 -mt-2 mb-4">
+                                Use `%s` or `{url}` where the target URL should go. If you leave it blank, the page falls back to a direct iframe.
+                            </p>
+
+                            <label class="block text-sm text-white/60 mb-2" for="proxy-search-engine">Search engine</label>
+                            <select id="proxy-search-engine">
+                                <option value="duckduckgo">DuckDuckGo</option>
+                                <option value="google">Google</option>
+                                <option value="bing">Bing</option>
+                                <option value="yahoo">Yahoo</option>
+                            </select>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                                <button onclick="window.saveProxySettings()" class="auth-btn" style="margin:0;">Save Settings</button>
+                                <button onclick="window.resetProxySettings()" class="github-style-btn" style="margin:0;">Reset</button>
+                            </div>
+
+                            <div class="mt-6 p-4 rounded-2xl bg-black/25 border border-white/10">
+                                <div class="text-sm font-semibold text-white/80 mb-2">How this works</div>
+                                <p class="text-sm text-white/55 leading-relaxed">
+                                    This front end needs a working proxy backend URL if you want the same kind of behavior as a full unblocking site. The browser UI is built in here; the routing still depends on your endpoint.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="proxy-browser-shell glass rounded-3xl p-5 flex flex-col">
+                            <div class="flex flex-col lg:flex-row gap-4 mb-4">
+                                <input id="proxy-url-input" type="text" placeholder="Enter a URL or search term">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:min-w-[25rem]">
+                                    <button onclick="window.launchProxy()" class="auth-btn" style="margin:0;padding:1rem 1.25rem;font-size:1rem;">Open</button>
+                                    <button onclick="window.openProxyInNewTab()" class="github-style-btn" style="margin:0;padding:1rem 1.25rem;font-size:1rem;">New Tab</button>
+                                    <button onclick="window.clearProxyFrame()" class="github-style-btn" style="margin:0;padding:1rem 1.25rem;font-size:1rem;">Clear</button>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-3 mb-4 text-sm text-white/60">
+                                <span id="proxy-status" class="proxy-pill">Ready</span>
+                                <button onclick="window.fillProxyExample('https://example.com')" class="github-style-btn" style="width:auto;margin:0;padding:0.65rem 0.95rem;font-size:0.9rem;">Example URL</button>
+                                <button onclick="window.fillProxyExample('chatgpt')" class="github-style-btn" style="width:auto;margin:0;padding:0.65rem 0.95rem;font-size:0.9rem;">Example Search</button>
+                            </div>
+                            <div class="flex-1 min-h-[60vh] rounded-[1.5rem] p-3 bg-black/20 border border-white/10">
+                                <iframe id="proxy-frame" class="proxy-browser-frame" referrerpolicy="no-referrer" title="Starlink Proxy Browser"></iframe>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1307,9 +1410,9 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        // �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+        //  "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "?
         //   All Firebase / auth / data logic stays here
-        // �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+        //  "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "? "?
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser, sendPasswordResetEmail, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
@@ -1501,7 +1604,7 @@
                     if (window.isAdminUser && !document.getElementById('content-admin').classList.contains('hidden')) {
                         window.reloadAdminSites();
                     }
-                    // Silent update for all users �?" no refresh modal needed
+                    // Silent update for all users  ?" no refresh modal needed
                 });
 
                 // Listen for owner broadcast refresh
@@ -1509,7 +1612,7 @@
                 onSnapshot(doc(db, "config", "broadcastRefresh"), (snap) => {
                     if (!snap.exists()) return;
                     const t = snap.data().triggeredAt?.toMillis() || null;
-                    // Always store timestamp on first fire �?" never show modal on initial load
+                    // Always store timestamp on first fire  ?" never show modal on initial load
                     if (_lastBroadcast === null) {
                         _lastBroadcast = t;
                         return;
@@ -1522,7 +1625,7 @@
                 });
 
                 announcementListener = onSnapshot(doc(db, "config", "announcement"), () => {
-                    // Silently update announcement for everyone �?" no refresh modal needed
+                    // Silently update announcement for everyone  ?" no refresh modal needed
                     window.showGlobalAnnouncement();
                 });
 
@@ -1536,12 +1639,12 @@
                     if (window.isAdminUser && !document.getElementById('content-admin').classList.contains('hidden')) {
                         window.reloadAdminCategories();
                     }
-                    // Silent update for all users �?" no refresh modal needed
+                    // Silent update for all users  ?" no refresh modal needed
                 });
 
                 // Watch this user's own doc for ban or admin changes made by the owner
                 userDocListener = onSnapshot(doc(db, "users", user.uid), async (snap) => {
-                    // Doc deleted �?" ignore during signup or before load completes
+                    // Doc deleted  ?" ignore during signup or before load completes
                     if (!snap.exists()) {
                         if (window._signingUp || !window.initialLoadComplete) return;
                         await signOut(auth);
@@ -1555,7 +1658,7 @@
                         return;
                     }
                     const data = snap.data();
-                    // Banned �?" show refresh modal; ban check on reload will sign them out
+                    // Banned  ?" show refresh modal; ban check on reload will sign them out
                     if (data.banned === true && window.initialLoadComplete) {
                         await signOut(auth);
                         const bs = document.getElementById('block-screen');
@@ -1567,7 +1670,7 @@
                         bs.classList.add('show');
                         return;
                     }
-                    // Admin revoked or granted �?" silently update nav and permissions
+                    // Admin revoked or granted  ?" silently update nav and permissions
                     if (window.initialLoadComplete) {
                         const newIsAdmin = data.isAdmin === true || user.email === ADMIN_EMAIL;
                         if (newIsAdmin !== window.isAdminUser) {
@@ -1589,7 +1692,7 @@
                             // Update account tab role badge
                             window.updateAccountTab(user, data);
                         }
-                        // Verified badge changed �?" silently update badge, no refresh needed
+                        // Verified badge changed  ?" silently update badge, no refresh needed
                         const newVerified = data.verified === true || user.email === ADMIN_EMAIL;
                         if (newVerified !== window.isVerifiedUser) {
                             window.isVerifiedUser = newVerified;
@@ -1613,7 +1716,7 @@
                                 }
                             }
                         }
-                        // Display name changed �?" silently update everywhere, no refresh needed
+                        // Display name changed  ?" silently update everywhere, no refresh needed
                         const newName = data.displayName || user.email.split('@')[0];
                         window.currentDisplayName = newName;
                         // Always directly update the account tab username element
@@ -2126,7 +2229,7 @@
                 const actingIsOwner = actingEmail === ADMIN_EMAIL;
                 snap.forEach(d => {
                     const data = d.data();
-                    const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '�?"';
+                    const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : ' ?"';
                     const isBanned = data.banned === true;
                     const isOwner = data.email === ADMIN_EMAIL || (actingIsOwner && d.id === actingUid);
                     const isUserAdmin = data.isAdmin === true || isOwner;
@@ -2141,14 +2244,14 @@
                                 : `<span class="px-3 py-1 bg-white/10 text-white/60 rounded-xl text-xs font-semibold">User</span>`;
 
                     // Only the hardcoded owner can take actions
-                    // Actions are only shown for plain users �?" not for the owner, not for other admins
+                    // Actions are only shown for plain users  ?" not for the owner, not for other admins
                     const canAct = actingIsOwner && !isOwner && !isUserAdmin;
 
                     const banBtn = !canAct ? '' : isBanned
                         ? `<button onclick="window.setBanUser('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-green-900/60 hover:bg-green-900 text-green-400 rounded-2xl transition-colors">Unban</button>`
                         : `<button onclick="window.setBanUser('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-orange-900/60 hover:bg-orange-900 text-orange-400 rounded-2xl transition-colors">Ban</button>`;
 
-                    // Make Admin / Revoke Admin �?" owner only, but can act on both users AND admins (to revoke)
+                    // Make Admin / Revoke Admin  ?" owner only, but can act on both users AND admins (to revoke)
                     const adminBtn = !actingIsOwner || isOwner ? '' : isUserAdmin
                         ? `<button onclick="window.setAdminUser('${d.id}', false); event.stopPropagation();" class="px-4 py-2 text-xs bg-purple-900/60 hover:bg-purple-900 text-purple-400 rounded-2xl transition-colors">Revoke Admin</button>`
                         : `<button onclick="window.setAdminUser('${d.id}', true); event.stopPropagation();" class="px-4 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">Make Admin</button>`;
@@ -2458,7 +2561,7 @@
                     html += '<p class="text-white/40 pl-2">No sites yet</p>';
                 } else {
                     sites.forEach(s => {
-                        const iconDisplay = s.icon ? `<div class="text-5xl">${s.icon}</div>` : '<div class="text-5xl opacity-30">�?"</div>';
+                        const iconDisplay = s.icon ? `<div class="text-5xl">${s.icon}</div>` : '<div class="text-5xl opacity-30"> ?"</div>';
                         html += `
                             <div class="flex justify-between items-center bg-black/50 hover:bg-black/70 p-6 rounded-2xl group transition-all">
                                 <div class="flex items-center gap-6">
@@ -2470,8 +2573,8 @@
                                     </div>
                                 </div>
                                 <div class="flex gap-3">
-                                    <button onclick="window.moveSiteUp('${s.id}', '${s.category}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl transition-colors">�?'</button>
-                                    <button onclick="window.moveSiteDown('${s.id}', '${s.category}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl transition-colors">�?"</button>
+                                    <button onclick="window.moveSiteUp('${s.id}', '${s.category}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl transition-colors"> ?'</button>
+                                    <button onclick="window.moveSiteDown('${s.id}', '${s.category}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-2xl transition-colors"> ?"</button>
                                     <button onclick="window.editSite('${s.id}', '${s.category}', '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}', '${s.icon || ''}', '${(s.desc || '').replace(/'/g, "\\'")}'); event.stopPropagation();" 
                                             class="px-5 py-2 text-xs bg-blue-900/60 hover:bg-blue-900 text-blue-400 rounded-2xl transition-colors">
                                         Edit
@@ -2532,7 +2635,7 @@
         };
 
 
-        // �"?�"? Presence tracking �"?�"?
+        //  "? "? Presence tracking  "? "?
         let presenceRef = null;
         let presenceListener = null;
         let heartbeatInterval = null;
@@ -2564,7 +2667,7 @@
             // Write presence with guaranteed correct name and role
             await setDoc(presenceRef, { uid, lastSeen: serverTimestamp(), displayName: _presenceName, role: _presenceRole });
 
-            // Heartbeat �?" keep lastSeen fresh so we're not counted as stale
+            // Heartbeat  ?" keep lastSeen fresh so we're not counted as stale
             if (heartbeatInterval) clearInterval(heartbeatInterval);
             // Store name/role for heartbeat reuse
             const _storedName = _presenceName;
@@ -2599,7 +2702,7 @@
             if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
         };
 
-        // �"?�"? Site requests �"?�"?
+        //  "? "? Site requests  "? "?
         window.submitSiteRequest = async () => {
             const name = document.getElementById('req-name').value.trim();
             const url = document.getElementById('req-url').value.trim();
@@ -2642,7 +2745,7 @@
                 let html = '<div class="divide-y divide-white/10">';
                 pending.forEach(d => {
                     const r = d.data();
-                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : '�?"';
+                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : ' ?"';
                     const iconPrev = r.icon ? `<span class="text-2xl mr-2">${r.icon}</span>` : '';
                     const actions = isOwner
                         ? `<button onclick="window.approveSiteRequest('${d.id}', '${(r.name||'').replace(/'/g, "\\'")}', '${(r.url||'').replace(/'/g, "\\'")}', '${r.category||''}', '${(r.icon||'').replace(/'/g, "\\'")}', '${(r.desc||'').replace(/'/g, "\\'")}'); event.stopPropagation();" class="px-4 py-2 text-xs bg-green-900/60 hover:bg-green-900 text-green-400 rounded-2xl transition-colors">Approve</button>
@@ -2699,7 +2802,7 @@
         };
 
 
-        // �"?�"? Admin Access Requests �"?�"?
+        //  "? "? Admin Access Requests  "? "?
 
         window.submitAdminRequest = async () => {
             const reason = document.getElementById('admin-req-reason').value.trim();
@@ -2712,7 +2815,7 @@
             }
             try {
                 const uid = auth.currentUser.uid;
-                // Write directly using UID as doc ID �?" no read needed
+                // Write directly using UID as doc ID  ?" no read needed
                 await setDoc(doc(db, "adminRequests", uid), {
                     uid,
                     email: auth.currentUser.email,
@@ -2741,7 +2844,7 @@
         };
 
         window.checkExistingAdminRequest = async () => {
-            // Silently check �?" no error shown if it fails
+            // Silently check  ?" no error shown if it fails
             try {
                 const existing = await getDoc(doc(db, "adminRequests", auth.currentUser.uid));
                 if (existing.exists()) {
@@ -2773,7 +2876,7 @@
                 let html = '<div class="divide-y divide-white/10">';
                 pending.forEach(d => {
                     const r = d.data();
-                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : '�?"';
+                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : ' ?"';
                     html += `<div id="admin-req-row-${d.id}" class="p-6 hover:bg-white/5 transition-all">
                         <div class="flex justify-between items-start gap-6">
                             <div class="flex-1 min-w-0">
@@ -2826,7 +2929,7 @@
         };
 
 
-        // �"?�"? Category Requests �"?�"?
+        //  "? "? Category Requests  "? "?
 
         window.submitCategoryRequest = async () => {
             const label = document.getElementById('cat-req-label').value.trim();
@@ -2882,7 +2985,7 @@
                 let html = '<div class="divide-y divide-white/10">';
                 pending.forEach(d => {
                     const r = d.data();
-                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : '�?"';
+                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : ' ?"';
                     html += `<div id="cat-req-row-${d.id}" class="p-6 hover:bg-white/5 transition-all">
                         <div class="flex justify-between items-start gap-6">
                             <div class="flex-1 min-w-0">
@@ -2944,7 +3047,7 @@
         };
 
 
-        // �"?�"? Account tab: role badge + username �"?�"?
+        //  "? "? Account tab: role badge + username  "? "?
         window.updateAccountTab = (user, docData) => {
             const isOwner = user.email === ADMIN_EMAIL;
             const isUserAdmin = docData?.isAdmin === true || isOwner;
@@ -2977,7 +3080,7 @@
                 else verifiedBadgeEl.classList.add('hidden');
             }
 
-            // Verification badge section �?" always visible, status changes
+            // Verification badge section  ?" always visible, status changes
             const verifySection = document.getElementById('account-verify-section');
             if (verifySection) verifySection.classList.remove('hidden');
             const verifyStatus = document.getElementById('account-verify-status');
@@ -2994,7 +3097,7 @@
             }
         };
 
-        // �"?�"? Messages �"?�"?
+        //  "? "? Messages  "? "?
         let chatListener = null;
         window.currentDisplayName = '';
         // uid -> isAdmin cache, built from users collection
@@ -3071,7 +3174,7 @@
         };
 
 
-        // �"?�"? Typing indicator �"?�"?
+        //  "? "? Typing indicator  "? "?
         let typingTimeout = null;
         let typingListener = null;
 
@@ -3162,9 +3265,9 @@
         };
 
 
-        // �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.�
+        //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 
         // FRIENDS & DMs
-        // �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.�
+        //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 
         let dmListener = null;
         let friendsListener = null;
         let friendRequestsListener = null;
@@ -3176,7 +3279,7 @@
             return [uid1, uid2].sort().join('_');
         }
 
-        // �"?�"? Send friend request by username �"?�"?
+        //  "? "? Send friend request by username  "? "?
         window.sendFriendRequest = async () => {
             const input = document.getElementById('friend-search-input');
             const username = input?.value.trim();
@@ -3195,7 +3298,7 @@
             const targetDisplayName = usernameSnap.data().displayName;
             if (targetUid === me.uid) return alert("You can't add yourself.");
 
-            // Step 2: check if already friends (read own list �?" always allowed)
+            // Step 2: check if already friends (read own list  ?" always allowed)
             try {
                 const existingFriend = await getDoc(doc(db, "friends", me.uid, "list", targetUid));
                 if (existingFriend.exists()) return alert('You are already friends with this user.');
@@ -3215,7 +3318,7 @@
             alert(`Friend request sent to ${targetDisplayName}!`);
         };
 
-        // �"?�"? Load friends list in sidebar �"?�"?
+        //  "? "? Load friends list in sidebar  "? "?
         window.loadFriendsList = () => {
             if (friendsListener) friendsListener();
             if (friendRequestsListener) friendRequestsListener();
@@ -3286,22 +3389,22 @@
             });
         };
 
-        // �"?�"? Accept friend request �"?�"?
+        //  "? "? Accept friend request  "? "?
         window.acceptFriendRequest = async (fromUid, fromName) => {
             const me = auth.currentUser;
             if (!me) return;
             try {
                 const myName = window.currentDisplayName || me.email.split('@')[0];
-                // Write YOUR side (allowed �?" your own list)
+                // Write YOUR side (allowed  ?" your own list)
                 await setDoc(doc(db, "friends", me.uid, "list", fromUid), { displayName: fromName, addedAt: serverTimestamp() });
-                // Write THEIR side �?" rules allow this because friendId == me.uid
+                // Write THEIR side  ?" rules allow this because friendId == me.uid
                 await setDoc(doc(db, "friends", fromUid, "list", me.uid), { displayName: myName, addedAt: serverTimestamp() });
                 // Remove the incoming request
                 await deleteDoc(doc(db, "friendRequests", me.uid, "incoming", fromUid));
             } catch(e) { alert('Error accepting: ' + e.message); }
         };
 
-        // �"?�"? Decline friend request �"?�"?
+        //  "? "? Decline friend request  "? "?
         window.declineFriendRequest = async (fromUid) => {
             const me = auth.currentUser;
             if (!me) return;
@@ -3309,7 +3412,7 @@
             catch(e) { alert('Error: ' + e.message); }
         };
 
-        // �"?�"? Remove friend �"?�"?
+        //  "? "? Remove friend  "? "?
         window.removeFriend = async (friendUid) => {
             const me = auth.currentUser;
             try {
@@ -3319,7 +3422,7 @@
             } catch(e) { alert('Error: ' + e.message); }
         };
 
-        // �"?�"? Open a DM conversation �"?�"?
+        //  "? "? Open a DM conversation  "? "?
         window.openDM = (friendUid, friendName) => {
             window.currentDMUser = { uid: friendUid, displayName: friendName };
             window.chatMode = 'dm';
@@ -3382,7 +3485,7 @@
             window.loadFriendsList();
         };
 
-        // �"?�"? Open global chat �"?�"?
+        //  "? "? Open global chat  "? "?
         window.openGlobalChat = () => {
             window.currentDMUser = null;
             window.chatMode = 'global';
@@ -3395,7 +3498,7 @@
             window.loadFriendsList();
         };
 
-        // �"?�"? Send message (global or DM) �"?�"?
+        //  "? "? Send message (global or DM)  "? "?
         // Override sendChatMessage to handle DM mode
         const _originalSendChat = window.sendChatMessage;
         window.sendChatMessage = async () => {
@@ -3424,13 +3527,13 @@
             }
         };
 
-        // �"?�"? Delete DM message �"?�"?
+        //  "? "? Delete DM message  "? "?
         window.deleteDMMessage = async (convoId, msgId) => {
             try { await deleteDoc(doc(db, "dms", convoId, "messages", msgId)); }
             catch(e) { alert('Error: ' + e.message); }
         };
 
-        // �"?�"? Stop DM listener �"?�"?
+        //  "? "? Stop DM listener  "? "?
         window.stopDMListeners = () => {
             if (dmListener) { dmListener(); dmListener = null; }
             if (friendsListener) { friendsListener(); friendsListener = null; }
@@ -3439,7 +3542,7 @@
             window.chatMode = 'global';
         };
 
-        // �"?�"? Load DMs for owner panel �"?�"?
+        //  "? "? Load DMs for owner panel  "? "?
         window.loadAdminDMs = async () => {
             if (auth.currentUser?.email !== ADMIN_EMAIL) return;
             const container = document.getElementById('dms-admin-list');
@@ -3462,7 +3565,7 @@
                     const msgs = convos[convoId].sort((a, b) => (a.data().sentAt?.seconds||0) - (b.data().sentAt?.seconds||0));
                     const last = msgs[msgs.length - 1].data();
                     const count = msgs.length;
-                    const time = last.sentAt ? new Date(last.sentAt.toDate()).toLocaleDateString() : '�?"';
+                    const time = last.sentAt ? new Date(last.sentAt.toDate()).toLocaleDateString() : ' ?"';
                     // Try to show usernames from message data
                     const names = [...new Set(msgs.map(m => m.data().displayName).filter(Boolean))].join(' & ');
                     html += `<div class="p-4 hover:bg-white/5 cursor-pointer" onclick="window.viewAdminDM('${convoId}')">
@@ -3483,7 +3586,7 @@
             container.innerHTML = '<p class="p-4 text-center text-white/50">Loading messages...</p>';
             try {
                 const snap = await getDocs(query(collection(db, "dms", convoId, "messages"), orderBy("sentAt", "asc")));
-                let html = `<div class="p-4"><button onclick="window.loadAdminDMs()" style="width:auto;padding:0.4rem 1rem;margin:0 0 1rem;font-size:0.8rem;border-radius:0.75rem;" class="github-style-btn">�?� Back</button><div class="space-y-2">`;
+                let html = `<div class="p-4"><button onclick="window.loadAdminDMs()" style="width:auto;padding:0.4rem 1rem;margin:0 0 1rem;font-size:0.8rem;border-radius:0.75rem;" class="github-style-btn"> ?  Back</button><div class="space-y-2">`;
                 snap.docs.forEach(d => {
                     const m = d.data();
                     const time = m.sentAt ? new Date(m.sentAt.toDate()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
@@ -3510,7 +3613,7 @@
                     });
                 }
             } catch(e) {
-                // Silently fail �?" will retry next login
+                // Silently fail  ?" will retry next login
             }
         };
 
@@ -3527,7 +3630,7 @@
                 const globalSnap = await getDocs(collection(db, "chat"));
                 await Promise.all(globalSnap.docs.map(d => deleteDoc(doc(db, "chat", d.id))));
 
-                // Clear all DM messages �?" query collectionGroup for all messages across all convos
+                // Clear all DM messages  ?" query collectionGroup for all messages across all convos
                 const allDMsSnap = await getDocs(collectionGroup(db, "messages"));
                 await Promise.all(allDMsSnap.docs
                     .filter(d => d.ref.parent.parent?.parent?.id === "dms")
@@ -3554,7 +3657,7 @@
             } catch(e) { alert('Error: ' + e.message); }
         };
 
-        // Admin panel (limited) wiring �?" mirrors owner panel functions but for -p element IDs
+        // Admin panel (limited) wiring  ?" mirrors owner panel functions but for -p element IDs
         window.addOrUpdateCategoryPanel = async () => {
             const key = document.getElementById('new-cat-key-p').value.trim().toLowerCase().replace(/\s+/g, '');
             const label = document.getElementById('new-cat-label-p').value.trim();
@@ -3612,7 +3715,7 @@
         };
 
 
-        // �"?�"? Cascade username update across friends lists, chat, and DMs �"?�"?
+        //  "? "? Cascade username update across friends lists, chat, and DMs  "? "?
         window.cascadeUsernameUpdate = async (uid, oldName, newName) => {
             if (!newName || newName === oldName) return;
             try {
@@ -3623,7 +3726,7 @@
                     try { await deleteDoc(doc(db, "usernames", oldName.toLowerCase())); } catch(_) {}
                 }
 
-                // 2. Update friends lists �?" find all users who have this person as a friend
+                // 2. Update friends lists  ?" find all users who have this person as a friend
                 const allUsersSnap = await getDocs(collection(db, "users"));
                 for (const userDoc of allUsersSnap.docs) {
                     if (userDoc.id === uid) continue;
@@ -3648,7 +3751,7 @@
             } catch(e) { console.error('Cascade username error:', e.message); }
         };
 
-        // �"?�"? Cascade role update across chat and DMs �"?�"?
+        //  "? "? Cascade role update across chat and DMs  "? "?
         window.cascadeRoleUpdate = async (uid, newRole) => {
             try {
                 // Update global chat messages
@@ -3762,7 +3865,7 @@
                     container.innerHTML = '<p class="text-center text-white/40 text-sm py-4">Nobody online right now</p>';
                     return;
                 }
-                // Always look up name+role from users collection �?" never trust presence doc
+                // Always look up name+role from users collection  ?" never trust presence doc
                 const enriched = await Promise.all(online.map(async d => {
                     const uid = d.id;
                     let name = '?', role = 'User';
@@ -3840,7 +3943,7 @@
         };
 
 
-        // �"?�"? Verified badge �"?�"?
+        //  "? "? Verified badge  "? "?
         window.setVerified = async (uid, grant, silent) => {
             const actingEmail = auth.currentUser?.email || window.currentUser?.email;
             if (actingEmail !== ADMIN_EMAIL) { if (!silent) alert('Only the owner can do this.'); return; }
@@ -3854,7 +3957,7 @@
                 await Promise.all(chatSnap.docs.map(d => setDoc(doc(db, "chat", d.id), { verified: grant }, { merge: true })));
             } catch(_) { /* best-effort, skip if rules block */ }
             try {
-                // 3. Update past DMs �?" collectionGroup may be blocked by rules, skip gracefully
+                // 3. Update past DMs  ?" collectionGroup may be blocked by rules, skip gracefully
                 const dmSnap = await getDocs(collectionGroup(db, "messages"));
                 await Promise.all(dmSnap.docs.filter(d => d.data().uid === uid).map(d => setDoc(d.ref, { verified: grant }, { merge: true })));
             } catch(_) { /* silently skip if Firestore rules block collectionGroup */ }
@@ -3936,7 +4039,7 @@
                 let html = '<div class="divide-y divide-white/10">';
                 pending.forEach(d => {
                     const r = d.data();
-                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : '�?"';
+                    const date = r.requestedAt ? new Date(r.requestedAt.toDate()).toLocaleDateString() : ' ?"';
                     html += `<div id="vreq-row-${d.id}" class="p-6 hover:bg-white/5 transition-all">
                         <div class="flex justify-between items-start gap-6">
                             <div class="flex-1 min-w-0">
@@ -4082,6 +4185,11 @@
 
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(mapping.contentId)?.classList.remove('hidden');
+            if (mapping.contentId === 'content-proxy') {
+                window.initializeProxyUI();
+                const proxyInput = document.getElementById('proxy-url-input');
+                if (proxyInput) setTimeout(() => proxyInput.focus(), 50);
+            }
             if (mapping.contentId === 'content-request-admin') window.checkExistingAdminRequest();
             if (mapping.contentId === 'content-request-verify') window.checkExistingVerifyRequest();
             if (mapping.contentId === 'content-chat') { 
@@ -4135,6 +4243,149 @@
             localStorage.clear();
             document.documentElement.style.setProperty('--accent', '#ffffff');
             firebaseAuth.signOut(firebaseAuth.auth).then(() => location.reload());
+        };
+
+        const PROXY_STORAGE_KEY = 'starlinkProxySettings';
+        const PROXY_SEARCH_ENGINES = {
+            duckduckgo: 'https://duckduckgo.com/?q=%s',
+            google: 'https://www.google.com/search?q=%s',
+            bing: 'https://www.bing.com/search?q=%s',
+            yahoo: 'https://search.yahoo.com/search?p=%s'
+        };
+
+        function getProxySettings() {
+            try {
+                return JSON.parse(localStorage.getItem(PROXY_STORAGE_KEY)) || {};
+            } catch (_) {
+                return {};
+            }
+        }
+
+        function setProxyStatus(message, tone = 'neutral') {
+            const el = document.getElementById('proxy-status');
+            if (!el) return;
+            const tones = {
+                neutral: 'background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.78);border-color:rgba(255,255,255,0.12);',
+                success: 'background:rgba(34,197,94,0.12);color:#86efac;border-color:rgba(34,197,94,0.22);',
+                warn: 'background:rgba(245,158,11,0.12);color:#fcd34d;border-color:rgba(245,158,11,0.22);',
+                error: 'background:rgba(248,113,113,0.12);color:#fca5a5;border-color:rgba(248,113,113,0.22);'
+            };
+            el.textContent = message;
+            el.style.cssText = tones[tone] || tones.neutral;
+        }
+
+        function normalizeProxyTarget(rawValue) {
+            const value = (rawValue || '').trim();
+            if (!value) return '';
+            if (/^https?:\/\//i.test(value)) return value;
+            if (/^[a-z0-9-]+\.[a-z]{2,}(?:\/.*)?$/i.test(value)) return `https://${value}`;
+            const engine = PROXY_SEARCH_ENGINES[getProxySettings().searchEngine || 'duckduckgo'] || PROXY_SEARCH_ENGINES.duckduckgo;
+            return engine.replace('%s', encodeURIComponent(value));
+        }
+
+        function buildProxyDestination(rawTarget) {
+            const target = normalizeProxyTarget(rawTarget);
+            if (!target) return '';
+
+            const settings = getProxySettings();
+            const template = (settings.template || '').trim();
+            if (!template) {
+                return { url: target, proxied: false };
+            }
+            if (template.includes('%s')) {
+                return { url: template.replace('%s', encodeURIComponent(target)), proxied: true };
+            }
+            if (template.includes('{url}')) {
+                return { url: template.replace('{url}', encodeURIComponent(target)), proxied: true };
+            }
+            if (template.endsWith('/')) {
+                return { url: `${template}${encodeURIComponent(target)}`, proxied: true };
+            }
+            const joiner = template.includes('?') ? '&' : '?';
+            return { url: `${template}${joiner}url=${encodeURIComponent(target)}`, proxied: true };
+        }
+
+        window.initializeProxyUI = function() {
+            const settings = getProxySettings();
+            const templateInput = document.getElementById('proxy-template-input');
+            const engineSelect = document.getElementById('proxy-search-engine');
+            const urlInput = document.getElementById('proxy-url-input');
+
+            if (templateInput && document.activeElement !== templateInput) {
+                templateInput.value = settings.template || '';
+            }
+            if (engineSelect) {
+                engineSelect.value = settings.searchEngine || 'duckduckgo';
+            }
+            if (urlInput && !urlInput.dataset.bound) {
+                urlInput.addEventListener('keydown', event => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        window.launchProxy();
+                    }
+                });
+                urlInput.dataset.bound = 'true';
+            }
+
+            if (!settings.template) {
+                setProxyStatus('Add a proxy endpoint for full proxy mode', 'warn');
+            } else {
+                setProxyStatus('Proxy settings loaded', 'success');
+            }
+        };
+
+        window.saveProxySettings = function() {
+            const template = document.getElementById('proxy-template-input')?.value?.trim() || '';
+            const searchEngine = document.getElementById('proxy-search-engine')?.value || 'duckduckgo';
+            localStorage.setItem(PROXY_STORAGE_KEY, JSON.stringify({ template, searchEngine }));
+            setProxyStatus(template ? 'Proxy settings saved' : 'Saved. Direct iframe fallback only', template ? 'success' : 'warn');
+        };
+
+        window.resetProxySettings = function() {
+            localStorage.removeItem(PROXY_STORAGE_KEY);
+            window.initializeProxyUI();
+            setProxyStatus('Proxy settings reset', 'neutral');
+        };
+
+        window.fillProxyExample = function(value) {
+            const input = document.getElementById('proxy-url-input');
+            if (!input) return;
+            input.value = value;
+            input.focus();
+        };
+
+        window.clearProxyFrame = function() {
+            const frame = document.getElementById('proxy-frame');
+            const input = document.getElementById('proxy-url-input');
+            if (frame) frame.removeAttribute('src');
+            if (input) input.value = '';
+            setProxyStatus('Proxy view cleared', 'neutral');
+        };
+
+        window.launchProxy = function() {
+            const rawValue = document.getElementById('proxy-url-input')?.value || '';
+            const frame = document.getElementById('proxy-frame');
+            const result = buildProxyDestination(rawValue);
+
+            if (!result?.url) {
+                setProxyStatus('Enter a URL or search term first', 'error');
+                return;
+            }
+            if (!frame) return;
+
+            frame.src = result.url;
+            setProxyStatus(result.proxied ? 'Loading through your proxy endpoint' : 'Loading directly. Some sites may refuse to embed', result.proxied ? 'success' : 'warn');
+        };
+
+        window.openProxyInNewTab = function() {
+            const rawValue = document.getElementById('proxy-url-input')?.value || '';
+            const result = buildProxyDestination(rawValue);
+            if (!result?.url) {
+                setProxyStatus('Enter a URL or search term first', 'error');
+                return;
+            }
+            window.open(result.url, '_blank', 'noopener');
+            setProxyStatus(result.proxied ? 'Opened proxied page in a new tab' : 'Opened direct page in a new tab', 'success');
         };
 
 
@@ -4203,7 +4454,7 @@
             const clearBtn = document.getElementById('search-clear');
             if (input) input.value = '';
             if (clearBtn) clearBtn.classList.add('hidden');
-            // Return to previous tab state �?" just go home
+            // Return to previous tab state  ?" just go home
             const homeIdx = (window.tabMapping || []).findIndex(t => t.contentId === 'content-home');
             if (homeIdx >= 0) window.switchTab(homeIdx);
         };
@@ -4266,8 +4517,8 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.font = '15px monospace';
                 drops.forEach((y, i) => {
-                    // Red rain �?" mix of kanji and latin for a darker feel
-                    const chars = '�.��.��.��.��.��.��.��.��.��.��?��?��~��s"�>��?�o^死';
+                    // Red rain  ?" mix of kanji and latin for a darker feel
+                    const chars = ' .  .  .  .  .  .  .  .  .  .  ?  ?  ~  s" >  ? o^死';
                     const char = chars[Math.floor(Math.random() * chars.length)];
                     const brightness = Math.random() > 0.92 ? '#ff2222' : '#8b0000';
                     ctx.fillStyle = brightness;
@@ -4360,7 +4611,7 @@
             canvas.height = window.innerHeight;
             const ctx = canvas.getContext('2d');
 
-            // Nebula cloud blobs �?" each has a position, radius, color, drift speed
+            // Nebula cloud blobs  ?" each has a position, radius, color, drift speed
             const blobs = Array.from({length: 18}, () => ({
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
@@ -4452,7 +4703,7 @@
             const rows = Math.ceil(canvas.height / 8);
 
             // Marquee text sprites
-            const marqueeChars = '�~.STARLINK�~. INSERT COIN �~. PRESS START �~. HIGH SCORE �~. PLAYER ONE �~. LEVEL UP �~. ';
+            const marqueeChars = ' ~.STARLINK ~. INSERT COIN  ~. PRESS START  ~. HIGH SCORE  ~. PLAYER ONE  ~. LEVEL UP  ~. ';
             let marqueeX = canvas.width;
 
             // Random pixel sprite positions for background color bursts
@@ -4498,7 +4749,7 @@
                     ctx.fill();
                 });
 
-                // Pixel grid random flicker �?" sparse colored pixels
+                // Pixel grid random flicker  ?" sparse colored pixels
                 const numPixels = 40;
                 for (let i = 0; i < numPixels; i++) {
                     const px = Math.floor(Math.random() * cols) * 8;
@@ -4559,7 +4810,7 @@
             canvas.height = window.innerHeight;
             const ctx = canvas.getContext('2d');
 
-            // Prismatic light shards �?" each is a thin rotated rectangle refracting light
+            // Prismatic light shards  ?" each is a thin rotated rectangle refracting light
             const shards = Array.from({length: 28}, () => ({
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
@@ -4650,7 +4901,7 @@
                     ctx.restore();
                 });
 
-                // Draw sparkles �?" 4-pointed star cross shape
+                // Draw sparkles  ?" 4-pointed star cross shape
                 sparkles.forEach(s => {
                     s.life += s.speed;
                     const alpha = (Math.sin(s.life) + 1) / 2;
@@ -5078,7 +5329,7 @@
                     ctx.stroke();
                 });
 
-                // Solar prominences �?" curved arcs shooting out
+                // Solar prominences  ?" curved arcs shooting out
                 prominences.forEach(p => {
                     p.angle += p.speed;
                     p.alpha += p.alphaDir;
@@ -5155,7 +5406,7 @@
                 bx += w + Math.random() * 4;
             }
 
-            // Windows �?" each has a twinkle timer
+            // Windows  ?" each has a twinkle timer
             const windows = [];
             buildings.forEach(b => {
                 for (let row = 0; row < b.floors; row++) {
@@ -5265,7 +5516,7 @@
             canvas.height = window.innerHeight;
             const ctx = canvas.getContext('2d');
 
-            // Lava blobs �?" slow drifting circles that merge visually
+            // Lava blobs  ?" slow drifting circles that merge visually
             const blobs = Array.from({ length: 14 }, () => ({
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
@@ -5537,6 +5788,14 @@
             window.tabMapping.push({contentId: 'content-home', title: 'Home', icon: 'fa-house'});
             idx++;
 
+            html += `
+                <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
+                    <i class="fa-solid fa-globe w-5"></i> <span>Proxy</span>
+                </div>
+            `;
+            window.tabMapping.push({contentId: 'content-proxy', title: 'Proxy', icon: 'fa-globe'});
+            idx++;
+
             (window.allCategories || []).forEach(cat => {
                 html += `
                     <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
@@ -5605,7 +5864,7 @@
                 idx++;
             }
 
-            // Request Verification �?" show only if not owner and not already verified
+            // Request Verification  ?" show only if not owner and not already verified
             if (window.currentUser?.email !== ADMIN_EMAIL && !window.isVerifiedUser) {
                 html += `
                     <div onclick="window.switchTab(${idx})" class="nav-link flex items-center gap-x-3 px-6 py-4 rounded-2xl text-lg font-medium cursor-pointer mb-1" id="tab-${idx}">
@@ -5979,6 +6238,7 @@
         function initialize() {
             loadTheme();
             initStars();
+            window.initializeProxyUI();
         }
 
         window.onload = initialize;
@@ -5996,7 +6256,7 @@
                             const newWorker = reg.installing;
                             newWorker.addEventListener('statechange', () => {
                                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // New version available �?" could show update toast here
+                                    // New version available  ?" could show update toast here
                                 }
                             });
                         });
