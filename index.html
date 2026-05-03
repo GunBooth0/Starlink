@@ -39,7 +39,11 @@
             scroll-behavior: smooth;
         }
         body {
-            background: #000;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.1), transparent 26%),
+                radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.05), transparent 22%),
+                radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.08), transparent 32%),
+                linear-gradient(160deg, var(--bg-top) 0%, var(--bg-base) 42%, var(--bg-bottom) 100%);
             color: var(--text-main);
             font-family: 'Inter', system-ui, sans-serif;
             margin: 0;
@@ -47,7 +51,31 @@
             overflow: hidden;
             position: relative;
         }
-
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            inset: auto;
+            border-radius: 999px;
+            filter: blur(90px);
+            pointer-events: none;
+            z-index: -2;
+            opacity: 0.65;
+        }
+        body::before {
+            width: 28rem;
+            height: 28rem;
+            top: -8rem;
+            right: -5rem;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        body::after {
+            width: 22rem;
+            height: 22rem;
+            bottom: -7rem;
+            left: -4rem;
+            background: rgba(255, 255, 255, 0.05);
+        }
      
         .logo-font {
             font-family: 'Space Grotesk', sans-serif;
@@ -127,27 +155,7 @@
             inset: 0;
             z-index: -1;
             pointer-events: auto;
-        }
-        /* Global glow bloom — bottom center, same as landing */
-        #global-glow {
-            position: fixed;
-            bottom: -30%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 140vw;
-            height: 70vh;
-            background: radial-gradient(ellipse at 50% 60%,
-                rgba(255,255,255,1.0) 0%,
-                rgba(255,255,255,0.85) 4%,
-                rgba(255,255,255,0.55) 12%,
-                rgba(255,255,255,0.25) 25%,
-                rgba(255,255,255,0.08) 45%,
-                transparent 65%
-            );
-            border-radius: 50%;
-            filter: blur(55px);
-            pointer-events: none;
-            z-index: -1;
+            opacity: 0.55;
         }
         #matrix-bg {
             position: fixed;
@@ -156,7 +164,18 @@
             pointer-events: none;
             display: none;
         }
-
+        .star {
+            position: absolute;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent);
+            pointer-events: none;
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-300vh); opacity: 0.3; }
+        }
         .main-content {
             overflow-y: auto;
             height: 100vh;
@@ -662,120 +681,6 @@
                 grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
             }
         }
-
-        /* ── LANDING SCREEN ── */
-        #landing-screen {
-            position: fixed;
-            inset: 0;
-            z-index: 9998;
-            background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            overflow: hidden;
-            transition: opacity 0.6s ease;
-        }
-        #landing-screen.hide {
-            opacity: 0;
-            pointer-events: none;
-        }
-        #landing-stars {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-        }
-        .landing-center {
-            position: relative;
-            z-index: 2;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0;
-        }
-        .landing-headline {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: clamp(2.4rem, 6vw, 4.2rem);
-            font-weight: 700;
-            color: #fff;
-            white-space: nowrap;
-            line-height: 1.1;
-            margin-bottom: 1.1rem;
-            letter-spacing: -0.01em;
-        }
-        .landing-typed-word {
-            color: #fff;
-            position: relative;
-            display: inline;
-        }
-        .landing-cursor {
-            display: inline-block;
-            width: 2px;
-            height: 0.85em;
-            background: #fff;
-            margin-left: 2px;
-            vertical-align: middle;
-            border-radius: 1px;
-            animation: lcursor 0.9s step-end infinite;
-        }
-        @keyframes lcursor {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-        .landing-sub {
-            font-family: 'Inter', sans-serif;
-            font-size: clamp(0.9rem, 2vw, 1.05rem);
-            color: rgba(255,255,255,0.55);
-            margin-bottom: 2rem;
-            letter-spacing: 0.01em;
-        }
-        .landing-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.22);
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.97rem;
-            font-weight: 600;
-            padding: 0.7rem 1.75rem;
-            border-radius: 999px;
-            cursor: pointer;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            transition: all 0.25s ease;
-            width: auto;
-            margin: 0;
-            letter-spacing: 0.02em;
-            box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset;
-        }
-        .landing-btn:hover {
-            background: rgba(255,255,255,0.2);
-            border-color: rgba(255,255,255,0.38);
-            transform: translateY(-1px);
-            box-shadow: 0 8px 24px rgba(255,255,255,0.08);
-        }
-        .landing-glow {
-            position: absolute;
-            bottom: -30%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 140vw;
-            height: 70vh;
-            background: radial-gradient(ellipse at 50% 60%,
-                rgba(255,255,255,1.0) 0%,
-                rgba(255,255,255,0.85) 4%,
-                rgba(255,255,255,0.55) 12%,
-                rgba(255,255,255,0.25) 25%,
-                rgba(255,255,255,0.08) 45%,
-                transparent 65%
-            );
-            pointer-events: none;
-            border-radius: 50%;
-            filter: blur(55px);
-        }
     </style>
 </head>
 <body>
@@ -785,23 +690,7 @@
             <path d="M100 20 L120 80 L180 80 L135 115 L155 175 L100 140 L45 175 L65 115 L20 80 L80 80 Z" stroke="none"/>
         </svg>
     </div>
-    <!-- LANDING SCREEN -->
-    <div id="landing-screen">
-        <canvas id="landing-stars"></canvas>
-        <div class="landing-glow"></div>
-        <div class="landing-center">
-            <div class="landing-headline">
-                Welcome to <span id="landing-typed-word" class="landing-typed-word"></span><span class="landing-cursor"></span>
-            </div>
-            <p class="landing-sub">Start your unblocking journey today!</p>
-            <button class="landing-btn" onclick="window.landingGetStarted()">
-                Get Started ✦
-            </button>
-        </div>
-    </div>
-
-    <canvas id="star-bg"></canvas>
-    <div id="global-glow"></div>
+    <div id="star-bg"></div>
     <canvas id="matrix-bg"></canvas>
 
     <!-- Mobile sidebar overlay -->
@@ -5522,47 +5411,40 @@
             stopLava();
         }
 
-        function createStar() {} // legacy stub — canvas handles stars now
+        function createStar(x, y) {
+            const s = document.createElement('div');
+            s.className = 'star';
+            s.style.left = `${x}px`;
+            s.style.top = `${y}px`;
+            const size = Math.random() * 4 + 2;
+            s.style.width = s.style.height = `${size}px`;
+            const dur = Math.random() * 25 + 15;
+            s.style.animationDuration = `${dur}s`;
+            const drift = (Math.random() - 0.5) * 100;
+            s.style.transform = `translateX(${drift}px)`;
+            document.getElementById('star-bg').appendChild(s);
+
+            const check = setInterval(() => {
+                const rect = s.getBoundingClientRect();
+                if (rect.top < -window.innerHeight * 4) {
+                    s.remove();
+                    clearInterval(check);
+                }
+            }, 8000);
+        }
 
         function initStars() {
-            const canvas = document.getElementById('star-bg');
-            if (!canvas || canvas.tagName !== 'CANVAS') return;
-            const ctx = canvas.getContext('2d');
-            let stars = [];
+            for (let i = 0; i < 100; i++) {
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight * 1.5;
+                createStar(x, y);
+            }
 
-            function resize() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            }
-            function makeStars() {
-                stars = [];
-                const count = Math.floor((canvas.width * canvas.height) / 6000);
-                for (let i = 0; i < count; i++) {
-                    stars.push({
-                        x: Math.random() * canvas.width,
-                        y: Math.random() * canvas.height,
-                        r: Math.random() * 1.1 + 0.15,
-                        o: Math.random() * 0.8 + 0.1,
-                        speed: (Math.random() - 0.5) * 0.012
-                    });
-                }
-            }
-            function draw() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                stars.forEach(s => {
-                    s.o += s.speed;
-                    if (s.o > 0.95 || s.o < 0.05) s.speed *= -1;
-                    ctx.beginPath();
-                    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(255,255,255,${s.o.toFixed(2)})`;
-                    ctx.fill();
-                });
-                requestAnimationFrame(draw);
-            }
-            resize();
-            makeStars();
-            draw();
-            window.addEventListener('resize', () => { resize(); makeStars(); });
+            setInterval(() => {
+                const x = Math.random() * window.innerWidth;
+                const y = window.innerHeight + 80;
+                createStar(x, y);
+            }, 5000 + Math.random() * 5000);
         }
 
         document.addEventListener('click', e => {
@@ -6093,98 +5975,6 @@
             renderStarclickerUpgrades(true);
             renderStarclicker();
         }
-
-
-        // ── LANDING SCREEN ──────────────────────────────────────────────────
-        (function initLanding() {
-            // Starfield
-            const canvas = document.getElementById('landing-stars');
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-                let stars = [];
-                function resizeCanvas() {
-                    canvas.width = window.innerWidth;
-                    canvas.height = window.innerHeight;
-                }
-                function makeStars(n) {
-                    stars = [];
-                    for (let i = 0; i < n; i++) {
-                        stars.push({
-                            x: Math.random() * canvas.width,
-                            y: Math.random() * canvas.height,
-                            r: Math.random() * 1.2 + 0.2,
-                            o: Math.random() * 0.7 + 0.15,
-                            speed: Math.random() * 0.4 + 0.05
-                        });
-                    }
-                }
-                function drawStars() {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    stars.forEach(s => {
-                        s.o += (Math.random() - 0.5) * 0.04;
-                        s.o = Math.max(0.05, Math.min(0.9, s.o));
-                        ctx.beginPath();
-                        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-                        ctx.fillStyle = `rgba(255,255,255,${s.o.toFixed(2)})`;
-                        ctx.fill();
-                    });
-                    if (document.getElementById('landing-screen')) requestAnimationFrame(drawStars);
-                }
-                resizeCanvas();
-                makeStars(220);
-                drawStars();
-                window.addEventListener('resize', () => { resizeCanvas(); makeStars(220); });
-            }
-
-            // Typing animation — only "Starlink" types/deletes, text stays "Welcome to [word]"
-            const WORDS = ['Starlink', 'Freedom', 'Starlink', 'Games', 'Starlink', 'More'];
-            // Actually just cycle back to Starlink each time so it feels like a name reveal
-            const TYPE_WORDS = ['Starlink'];
-            let charIdx = 0, deleting = false, pauseTimer = null;
-            const el = document.getElementById('landing-typed-word');
-
-            const CYCLE = ['Starlink', 'Freedom', 'Starlink', 'Games', 'Starlink', 'AI Tools'];
-            let wordIdx = 0, charIdx2 = 0, isDeleting = false;
-
-            function type() {
-                if (!el) return;
-                const word = CYCLE[wordIdx];
-                if (!isDeleting) {
-                    charIdx2++;
-                    el.textContent = word.slice(0, charIdx2);
-                    if (charIdx2 === word.length) {
-                        isDeleting = true;
-                        setTimeout(type, 1600); // pause before deleting
-                        return;
-                    }
-                    setTimeout(type, 95);
-                } else {
-                    charIdx2--;
-                    el.textContent = word.slice(0, charIdx2);
-                    if (charIdx2 === 0) {
-                        isDeleting = false;
-                        wordIdx = (wordIdx + 1) % CYCLE.length;
-                        setTimeout(type, 200);
-                        return;
-                    }
-                    setTimeout(type, 45);
-                }
-            }
-            setTimeout(type, 500);
-        })();
-
-        window.landingGetStarted = function() {
-            const landing = document.getElementById('landing-screen');
-            if (!landing) return;
-            landing.classList.add('hide');
-            setTimeout(() => { if (landing.parentNode) landing.parentNode.removeChild(landing); }, 650);
-            if (window.currentUser) {
-                const homeIdx = (window.tabMapping || []).findIndex(t => t.contentId === 'content-home');
-                if (homeIdx >= 0) window.switchTab(homeIdx);
-            } else {
-                window.switchTab(0);
-            }
-        };
 
         function initialize() {
             loadTheme();
