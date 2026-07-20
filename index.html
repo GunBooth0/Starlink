@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Starlink</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===== AUTH ===== -->
+  <section id="view-auth" class="view">
+    <div class="auth-card">
+      <div class="brand">
+        <span class="brand-mark">✦</span>
+        <h1>Starlink</h1>
+      </div>
+      <p class="tagline">A private network. Approved crew only.</p>
+
+      <div id="auth-error" class="alert alert-danger hidden"></div>
+
+      <form id="form-login" class="auth-form">
+        <label>Email
+          <input type="email" id="login-email" required autocomplete="email">
+        </label>
+        <label>Password
+          <input type="password" id="login-password" required autocomplete="current-password">
+        </label>
+        <button type="submit" class="btn btn-primary">Sign in</button>
+      </form>
+
+      <form id="form-signup" class="auth-form hidden">
+        <label>Email
+          <input type="email" id="signup-email" required autocomplete="email">
+        </label>
+        <label>Password
+          <input type="password" id="signup-password" required minlength="6" autocomplete="new-password">
+        </label>
+        <button type="submit" class="btn btn-primary">Request access</button>
+      </form>
+
+      <button id="toggle-auth-mode" class="link-btn" type="button">Need an account? Request access</button>
+    </div>
+  </section>
+
+  <!-- ===== PENDING ===== -->
+  <section id="view-pending" class="view hidden">
+    <div class="auth-card">
+      <span class="signal-dot signal-pending"></span>
+      <h2>Access pending</h2>
+      <p>Your request is waiting on the owner to approve it. This page updates automatically once you're in.</p>
+      <button id="btn-signout-pending" class="btn btn-ghost" type="button">Sign out</button>
+    </div>
+  </section>
+
+  <!-- ===== REJECTED ===== -->
+  <section id="view-rejected" class="view hidden">
+    <div class="auth-card">
+      <span class="signal-dot signal-danger"></span>
+      <h2>Access denied</h2>
+      <p>The owner didn't approve this account for Starlink.</p>
+      <button id="btn-signout-rejected" class="btn btn-ghost" type="button">Sign out</button>
+    </div>
+  </section>
+
+  <!-- ===== APP ===== -->
+  <div id="view-app" class="view hidden">
+    <header class="topbar">
+      <div class="brand brand-sm"><span class="brand-mark">✦</span><span>Starlink</span></div>
+      <div class="topbar-right">
+        <span class="pill"><span class="signal-dot signal-live"></span>SIGNAL: LIVE</span>
+        <span class="role-badge" id="role-badge">MEMBER</span>
+        <button id="btn-owner-panel" class="btn btn-secondary hidden" type="button">Owner panel</button>
+        <button id="btn-admin-panel" class="btn btn-secondary hidden" type="button">Admin panel</button>
+        <button id="btn-signout" class="btn btn-ghost" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <div class="app-body">
+      <nav class="sidebar">
+        <div class="sidebar-label">Categories</div>
+        <div class="orbit-list" id="category-list"></div>
+      </nav>
+
+      <main class="content">
+        <div class="content-header">
+          <h2 id="content-title">All sites</h2>
+        </div>
+        <div class="site-grid" id="site-grid"></div>
+        <div class="empty-state hidden" id="empty-state">
+          <p>No sites here yet.</p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ===== OWNER PANEL ===== -->
+  <div id="panel-owner" class="side-panel hidden">
+    <div class="panel-backdrop" data-close-panel></div>
+    <div class="panel-sheet">
+      <div class="panel-head">
+        <h2>Owner panel</h2>
+        <button class="icon-btn" data-close-panel type="button">✕</button>
+      </div>
+      <div class="panel-tabs" data-tabgroup="owner">
+        <button class="tab-btn active" data-tab="requests">Access requests</button>
+        <button class="tab-btn" data-tab="crew">Crew</button>
+        <button class="tab-btn" data-tab="categories">Categories</button>
+        <button class="tab-btn" data-tab="sites">Sites</button>
+      </div>
+
+      <div class="tab-panel" data-owner-tab-panel="requests">
+        <div class="row-list" id="requests-list"></div>
+      </div>
+
+      <div class="tab-panel hidden" data-owner-tab-panel="crew">
+        <div class="row-list" id="crew-list"></div>
+      </div>
+
+      <div class="tab-panel hidden" data-owner-tab-panel="categories">
+        <form id="form-add-category-owner" class="inline-form">
+          <input type="text" id="new-category-name-owner" placeholder="Category name" required>
+          <button class="btn btn-primary" type="submit">Add</button>
+        </form>
+        <div class="row-list" id="owner-category-list"></div>
+      </div>
+
+      <div class="tab-panel hidden" data-owner-tab-panel="sites">
+        <form id="form-add-site-owner" class="inline-form">
+          <select id="new-site-category-owner" required></select>
+          <input type="text" id="new-site-name-owner" placeholder="Site name" required>
+          <input type="url" id="new-site-url-owner" placeholder="https://example.com" required>
+          <button class="btn btn-primary" type="submit">Add site</button>
+        </form>
+        <div class="row-list" id="owner-site-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ADMIN PANEL ===== -->
+  <div id="panel-admin" class="side-panel hidden">
+    <div class="panel-backdrop" data-close-panel></div>
+    <div class="panel-sheet">
+      <div class="panel-head">
+        <h2>Admin panel</h2>
+        <button class="icon-btn" data-close-panel type="button">✕</button>
+      </div>
+      <div class="panel-tabs" data-tabgroup="admin">
+        <button class="tab-btn active" data-tab="categories">Categories</button>
+        <button class="tab-btn" data-tab="sites">Sites</button>
+      </div>
+
+      <div class="tab-panel" data-admin-tab-panel="categories">
+        <form id="form-add-category-admin" class="inline-form">
+          <input type="text" id="new-category-name-admin" placeholder="Category name" required>
+          <button class="btn btn-primary" type="submit">Add</button>
+        </form>
+        <div class="row-list" id="admin-category-list"></div>
+      </div>
+
+      <div class="tab-panel hidden" data-admin-tab-panel="sites">
+        <form id="form-add-site-admin" class="inline-form">
+          <select id="new-site-category-admin" required></select>
+          <input type="text" id="new-site-name-admin" placeholder="Site name" required>
+          <input type="url" id="new-site-url-admin" placeholder="https://example.com" required>
+          <button class="btn btn-primary" type="submit">Add site</button>
+        </form>
+        <div class="row-list" id="admin-site-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
