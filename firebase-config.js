@@ -13,12 +13,13 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-aut
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyB86FEjEuuO-vm_9YMEwCN5cKMa4XuULTY",
+  authDomain: "starlink-9398b.firebaseapp.com",
+  projectId: "starlink-9398b",
+  storageBucket: "starlink-9398b.firebasestorage.app",
+  messagingSenderId: "168571485561",
+  appId: "1:168571485561:web:9c64652b03648b1d9943a8",
+  measurementId: "G-E1E09WRXQY"
 };
 
 export const app = initializeApp(firebaseConfig);
