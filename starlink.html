@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Starlink</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ===== Starlink — design tokens ===== */
+:root {
+  --bg: #0B0F1A;
+  --bg-elevated: #121A2E;
+  --bg-panel: #161F38;
+  --bg-input: #0E1526;
+  --border: #262F4D;
+  --border-soft: #1C2440;
+  --text: #E7ECF7;
+  --text-dim: #8B93AC;
+  --text-faint: #5B657F;
+  --accent: #FFB454;
+  --accent-soft: rgba(255, 180, 84, 0.14);
+  --accent-strong: #FFC97A;
+  --success: #6EE7B7;
+  --success-soft: rgba(110, 231, 183, 0.14);
+  --danger: #F2707A;
+  --danger-soft: rgba(242, 112, 122, 0.14);
+  --radius: 10px;
+  --radius-lg: 16px;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+}
+
+body {
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.35) 0, transparent 100%),
+    radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.25) 0, transparent 100%),
+    radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,0.3) 0, transparent 100%),
+    radial-gradient(1px 1px at 30% 85%, rgba(255,255,255,0.2) 0, transparent 100%),
+    radial-gradient(1px 1px at 90% 60%, rgba(255,255,255,0.25) 0, transparent 100%),
+    radial-gradient(ellipse at top, #131B33 0%, var(--bg) 55%);
+  background-attachment: fixed;
+}
+
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; }
+p { color: var(--text-dim); line-height: 1.5; }
+a { color: inherit; }
+.hidden { display: none !important; }
+
+button { font-family: var(--font-body); cursor: pointer; }
+input, select {
+  font-family: var(--font-body);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 14px;
+  width: 100%;
+}
+input:focus, select:focus, button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* ===== Buttons ===== */
+.btn {
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+  white-space: nowrap;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--accent); color: #22160A; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-strong); }
+.btn-secondary { background: var(--bg-panel); color: var(--text); border-color: var(--border); }
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.btn-ghost { background: transparent; color: var(--text-dim); border-color: var(--border); }
+.btn-ghost:hover { color: var(--text); border-color: var(--text-dim); }
+.btn-danger { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+.btn-danger:hover { background: var(--danger); color: #2A0E10; }
+.btn-success { background: var(--success-soft); color: var(--success); border-color: transparent; }
+.btn-success:hover { background: var(--success); color: #0B2A1D; }
+.btn-sm { padding: 6px 10px; font-size: 12px; }
+.link-btn {
+  background: none; border: none; color: var(--text-dim);
+  font-size: 13px; text-decoration: underline; text-underline-offset: 3px;
+  margin-top: 18px;
+}
+.link-btn:hover { color: var(--accent); }
+.icon-btn {
+  background: none; border: 1px solid var(--border); color: var(--text-dim);
+  width: 32px; height: 32px; border-radius: 8px; font-size: 14px;
+}
+.icon-btn:hover { color: var(--text); border-color: var(--text-dim); }
+
+/* ===== Views (full screen states) ===== */
+.view {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px;
+  text-align: center;
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+}
+
+.brand { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px; }
+.brand-mark { color: var(--accent); font-size: 22px; }
+.brand h1 { font-size: 24px; }
+.tagline { font-size: 13px; margin-bottom: 26px; }
+
+.auth-form { display: flex; flex-direction: column; gap: 14px; text-align: left; }
+.auth-form label { font-size: 12px; color: var(--text-dim); display: flex; flex-direction: column; gap: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+.auth-form .btn { margin-top: 6px; }
+
+.alert {
+  font-size: 13px;
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+.alert-danger { background: var(--danger-soft); color: var(--danger); }
+
+.signal-dot {
+  display: inline-block;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.signal-live { background: var(--success); box-shadow: 0 0 8px var(--success); animation: pulse 2s infinite; }
+.signal-pending { background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: pulse 2s infinite; display: block; margin: 0 auto 16px; width: 12px; height: 12px; }
+.signal-danger { background: var(--danger); box-shadow: 0 0 8px var(--danger); display: block; margin: 0 auto 16px; width: 12px; height: 12px; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ===== App shell ===== */
+#view-app { min-height: 100vh; display: block; padding: 0; }
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  border-bottom: 1px solid var(--border-soft);
+  background: rgba(11, 15, 26, 0.85);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.brand-sm { font-family: var(--font-display); font-size: 16px; font-weight: 600; gap: 8px; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+
+.pill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+}
+.role-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid transparent;
+}
+
+.app-body { display: flex; min-height: calc(100vh - 61px); }
+
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-soft);
+  padding: 24px 18px;
+}
+.sidebar-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 14px;
+  padding-left: 18px;
+}
+
+.orbit-list { position: relative; display: flex; flex-direction: column; }
+.orbit-list::before {
+  content: "";
+  position: absolute;
+  left: 4px; top: 6px; bottom: 6px;
+  width: 1px;
+  background: var(--border);
+}
+.orbit-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px 9px 18px;
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.orbit-item::before {
+  content: "";
+  position: absolute;
+  left: 0px;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--bg-panel);
+  border: 1px solid var(--text-faint);
+}
+.orbit-item:hover { color: var(--text); background: var(--bg-elevated); }
+.orbit-item.active { color: var(--accent); background: var(--accent-soft); }
+.orbit-item.active::before { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.orbit-count { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); }
+
+.content { flex: 1; padding: 28px 32px; }
+.content-header { margin-bottom: 20px; }
+.content-header h2 { font-size: 20px; }
+
+.site-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+}
+.site-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.site-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.site-card-top { display: flex; align-items: center; justify-content: space-between; }
+.signal-bars { display: flex; align-items: flex-end; gap: 2px; height: 12px; }
+.signal-bars span { width: 3px; background: var(--border); border-radius: 1px; }
+.signal-bars span:nth-child(1) { height: 40%; }
+.signal-bars span:nth-child(2) { height: 70%; }
+.signal-bars span:nth-child(3) { height: 100%; }
+.site-card:hover .signal-bars span { background: var(--accent); }
+.site-card-name { font-weight: 600; font-size: 14.5px; }
+.site-card-url { font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); word-break: break-all; }
+
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-faint); }
+
+/* ===== Side panels (Owner / Admin) ===== */
+.side-panel { position: fixed; inset: 0; z-index: 50; }
+.panel-backdrop { position: absolute; inset: 0; background: rgba(5, 8, 16, 0.6); backdrop-filter: blur(2px); }
+.panel-sheet {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: min(520px, 100%);
+  background: var(--bg-elevated);
+  border-left: 1px solid var(--border);
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.panel-tabs { display: flex; gap: 6px; margin-bottom: 20px; border-bottom: 1px solid var(--border-soft); flex-wrap: wrap; }
+.tab-btn {
+  background: none; border: none; color: var(--text-dim);
+  padding: 8px 4px 12px; font-size: 13px; font-weight: 600;
+  border-bottom: 2px solid transparent; margin-right: 14px;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn:hover { color: var(--text); }
+
+.inline-form { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+.inline-form input, .inline-form select { flex: 1; min-width: 120px; }
+
+.row-list { display: flex; flex-direction: column; gap: 8px; }
+.row-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+}
+.row-main { flex: 1; min-width: 0; }
+.row-title { font-size: 13.5px; font-weight: 600; }
+.row-sub { font-size: 11.5px; color: var(--text-faint); font-family: var(--font-mono); word-break: break-all; }
+.row-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.status-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 7px;
+  border-radius: 999px;
+}
+.status-pending { background: var(--accent-soft); color: var(--accent); }
+.status-approved { background: var(--success-soft); color: var(--success); }
+.status-rejected { background: var(--danger-soft); color: var(--danger); }
+.status-owner { background: var(--accent-soft); color: var(--accent); }
+.status-admin { background: rgba(139, 147, 172, 0.18); color: var(--text); }
+.status-member { background: rgba(139, 147, 172, 0.12); color: var(--text-dim); }
+
+.empty-note { color: var(--text-faint); font-size: 13px; padding: 20px 4px; text-align: center; }
+
+@media (max-width: 760px) {
+  .app-body { flex-direction: column; }
+  .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-soft); }
+  .orbit-list { flex-direction: row; flex-wrap: wrap; }
+  .orbit-list::before { display: none; }
+  .orbit-item::before { display: none; }
+  .orbit-item { padding-left: 12px; }
+  .topbar { flex-wrap: wrap; gap: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signal-dot, .signal-live, .signal-pending { animation: none; }
+  .site-card:hover { transform: none; }
+}
+
+</style>
+</head>
+<body>
+
+  <!-- ===== AUTH ===== -->
+  <section id="view-auth" class="view">
+    <div class="auth-card">
+      <div class="brand">
+        <span class="brand-mark">✦</span>
+        <h1>Starlink</h1>
+      </div>
+      <p class="tagline">A private network. Approved crew only.</p>
+
+      <div id="auth-error" class="alert alert-danger hidden"></div>
+
+      <form id="form-login" class="auth-form">
+        <label>Email
+          <input type="email" id="login-email" required autocomplete="email">
+        </label>
+        <label>Password
+          <input type="password" id="login-password" required autocomplete="current-password">
+        </label>
+        <button type="submit" class="btn btn-primary">Sign in</button>
+      </form>
+
+      <form id="form-signup" class="auth-form hidden">
+        <label>Email
+          <input type="email" id="signup-email" required autocomplete="email">
+        </label>
+        <label>Password
+          <input type="password" id="signup-password" required minlength="6" autocomplete="new-password">
+        </label>
+        <button type="submit" class="btn btn-primary">Request access</button>
+      </form>
+
+      <button id="toggle-auth-mode" class="link-btn" type="button">Need an account? Request access</button>
+    </div>
+  </section>
+
+  <!-- ===== PENDING ===== -->
+  <section id="view-pending" class="view hidden">
+    <div class="auth-card">
+      <span class="signal-dot signal-pending"></span>
+      <h2>Access pending</h2>
+      <p>Your request is waiting on the owner to approve it. This page updates automatically once you're in.</p>
+      <button id="btn-signout-pending" class="btn btn-ghost" type="button">Sign out</button>
+    </div>
+  </section>
+
+  <!-- ===== REJECTED ===== -->
+  <section id="view-rejected" class="view hidden">
+    <div class="auth-card">
+      <span class="signal-dot signal-danger"></span>
+      <h2>Access denied</h2>
+      <p>The owner didn't approve this account for Starlink.</p>
+      <button id="btn-signout-rejected" class="btn btn-ghost" type="button">Sign out</button>
+    </div>
+  </section>
+
+  <!-- ===== APP ===== -->
+  <div id="view-app" class="view hidden">
+    <header class="topbar">
+      <div class="brand brand-sm"><span class="brand-mark">✦</span><span>Starlink</span></div>
+      <div class="topbar-right">
+        <span class="pill"><span class="signal-dot signal-live"></span>SIGNAL: LIVE</span>
+        <span class="role-badge" id="role-badge">MEMBER</span>
+        <button id="btn-owner-panel" class="btn btn-secondary hidden" type="button">Owner panel</button>
+        <button id="btn-admin-panel" class="btn btn-secondary hidden" type="button">Admin panel</button>
+        <button id="btn-signout" class="btn btn-ghost" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <div class="app-body">
+      <nav class="sidebar">
+        <div class="sidebar-label">Categories</div>
+        <div class="orbit-list" id="category-list"></div>
+      </nav>
+
+      <main class="content">
+        <div class="content-header">
+          <h2 id="content-title">All sites</h2>
+        </div>
+        <div class="site-grid" id="site-grid"></div>
+        <div class="empty-state hidden" id="empty-state">
+          <p>No sites here yet.</p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ===== OWNER PANEL ===== -->
+  <div id="panel-owner" class="side-panel hidden">
+    <div class="panel-backdrop" data-close-panel></div>
+    <div class="panel-sheet">
+      <div class="panel-head">
+        <h2>Owner panel</h2>
+        <button class="icon-btn" data-close-panel type="button">✕</button>
+      </div>
+      <div class="panel-tabs" data-tabgroup="owner">
+        <button class="tab-btn active" data-tab="requests">Access requests</button>
+        <button class="tab-btn" data-tab="crew">Crew</button>
+        <button class="tab-btn" data-tab="categories">Categories</button>
+        <button class="tab-btn" data-tab="sites">Sites</button>
+      </div>
+
+      <div class="tab-panel" data-owner-tab-panel="requests">
+        <div class="row-list" id="requests-list"></div>
+      </div>
+
+      <div class="tab-panel hidden" data-owner-tab-panel="crew">
+        <div class="row-list" id="crew-list"></div>
+      </div>
+
+      <div class="tab-panel hidden" data-owner-tab-panel="categories">
+        <form id="form-add-category-owner" class="inline-form">
+          <input type="text" id="new-category-name-owner" placeholder="Category name" required>
+          <button class="btn btn-primary" type="submit">Add</button>
+        </form>
+        <div class="row-list" id="owner-category-list"></div>
+      </div>
+
+      <div class="tab-panel hidden" data-owner-tab-panel="sites">
+        <form id="form-add-site-owner" class="inline-form">
+          <select id="new-site-category-owner" required></select>
+          <input type="text" id="new-site-name-owner" placeholder="Site name" required>
+          <input type="url" id="new-site-url-owner" placeholder="https://example.com" required>
+          <button class="btn btn-primary" type="submit">Add site</button>
+        </form>
+        <div class="row-list" id="owner-site-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ADMIN PANEL ===== -->
+  <div id="panel-admin" class="side-panel hidden">
+    <div class="panel-backdrop" data-close-panel></div>
+    <div class="panel-sheet">
+      <div class="panel-head">
+        <h2>Admin panel</h2>
+        <button class="icon-btn" data-close-panel type="button">✕</button>
+      </div>
+      <div class="panel-tabs" data-tabgroup="admin">
+        <button class="tab-btn active" data-tab="categories">Categories</button>
+        <button class="tab-btn" data-tab="sites">Sites</button>
+      </div>
+
+      <div class="tab-panel" data-admin-tab-panel="categories">
+        <form id="form-add-category-admin" class="inline-form">
+          <input type="text" id="new-category-name-admin" placeholder="Category name" required>
+          <button class="btn btn-primary" type="submit">Add</button>
+        </form>
+        <div class="row-list" id="admin-category-list"></div>
+      </div>
+
+      <div class="tab-panel hidden" data-admin-tab-panel="sites">
+        <form id="form-add-site-admin" class="inline-form">
+          <select id="new-site-category-admin" required></select>
+          <input type="text" id="new-site-name-admin" placeholder="Site name" required>
+          <input type="url" id="new-site-url-admin" placeholder="https://example.com" required>
+          <button class="btn btn-primary" type="submit">Add site</button>
+        </form>
+        <div class="row-list" id="admin-site-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+// ===== Starlink — Firebase configuration =====
+// 1. Go to https://console.firebase.google.com, create a project.
+// 2. Add a "Web app" to the project (</> icon) and copy the config object
+//    it gives you, then paste the values in below.
+// 3. In the Firebase console, enable Authentication -> Sign-in method -> Email/Password.
+// 4. In the Firebase console, create a Firestore database (production mode)
+//    and paste the contents of firestore.rules into Firestore -> Rules.
+// See README.md for the full setup walkthrough, including how to make
+// your own account the owner.
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ===== Starlink — app logic =====
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  doc, setDoc, updateDoc, onSnapshot,
+  collection, addDoc, deleteDoc, query, orderBy, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+// ---------- DOM ----------
+const views = {
+  auth: document.getElementById("view-auth"),
+  pending: document.getElementById("view-pending"),
+  rejected: document.getElementById("view-rejected"),
+  app: document.getElementById("view-app")
+};
+
+const el = (id) => document.getElementById(id);
+
+const authError = el("auth-error");
+const formLogin = el("form-login");
+const formSignup = el("form-signup");
+const toggleAuthModeBtn = el("toggle-auth-mode");
+
+const roleBadge = el("role-badge");
+const btnOwnerPanel = el("btn-owner-panel");
+const btnAdminPanel = el("btn-admin-panel");
+
+const categoryListEl = el("category-list");
+const siteGridEl = el("site-grid");
+const emptyStateEl = el("empty-state");
+const contentTitleEl = el("content-title");
+
+const panelOwner = el("panel-owner");
+const panelAdmin = el("panel-admin");
+
+// ---------- State ----------
+let currentUid = null;
+let currentUserData = null;
+let unsubUserDoc = null;
+let unsubUsers = null;
+let unsubCategories = null;
+let unsubSites = null;
+
+let allUsers = [];       // only populated for owner
+let categories = [];
+let sites = [];
+let selectedCategoryId = null; // null = "All sites"
+
+// ---------- View switching ----------
+function showView(name) {
+  Object.entries(views).forEach(([key, node]) => node.classList.toggle("hidden", key !== name));
+}
+
+// ---------- Auth mode toggle ----------
+let signupMode = false;
+toggleAuthModeBtn.addEventListener("click", () => {
+  signupMode = !signupMode;
+  formLogin.classList.toggle("hidden", signupMode);
+  formSignup.classList.toggle("hidden", !signupMode);
+  toggleAuthModeBtn.textContent = signupMode
+    ? "Already approved? Sign in"
+    : "Need an account? Request access";
+  authError.classList.add("hidden");
+});
+
+function showAuthError(message) {
+  authError.textContent = message;
+  authError.classList.remove("hidden");
+}
+
+// ---------- Sign in / sign up / sign out ----------
+formLogin.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  authError.classList.add("hidden");
+  try {
+    await signInWithEmailAndPassword(auth, el("login-email").value.trim(), el("login-password").value);
+  } catch (err) {
+    showAuthError(friendlyAuthError(err));
+  }
+});
+
+formSignup.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  authError.classList.add("hidden");
+  try {
+    const cred = await createUserWithEmailAndPassword(
+      auth, el("signup-email").value.trim(), el("signup-password").value
+    );
+    await setDoc(doc(db, "users", cred.user.uid), {
+      email: cred.user.email,
+      status: "pending",
+      role: "member",
+      requestedAt: serverTimestamp()
+    });
+  } catch (err) {
+    showAuthError(friendlyAuthError(err));
+  }
+});
+
+function friendlyAuthError(err) {
+  const code = err && err.code ? err.code : "";
+  if (code.includes("email-already-in-use")) return "An account with that email already exists.";
+  if (code.includes("invalid-email")) return "That email address doesn't look right.";
+  if (code.includes("weak-password")) return "Password should be at least 6 characters.";
+  if (code.includes("invalid-credential") || code.includes("wrong-password") || code.includes("user-not-found")) {
+    return "Email or password is incorrect.";
+  }
+  return "Something went wrong. Try again.";
+}
+
+[el("btn-signout-pending"), el("btn-signout-rejected"), el("btn-signout")].forEach((btn) => {
+  btn.addEventListener("click", () => signOut(auth));
+});
+
+// ---------- Auth state ----------
+onAuthStateChanged(auth, (user) => {
+  cleanupListeners();
+
+  if (!user) {
+    currentUid = null;
+    currentUserData = null;
+    showView("auth");
+    return;
+  }
+
+  currentUid = user.uid;
+  unsubUserDoc = onSnapshot(doc(db, "users", user.uid), (snap) => {
+    if (!snap.exists()) {
+      // Shouldn't normally happen (doc is created at signup), but handle gracefully.
+      showView("pending");
+      return;
+    }
+    currentUserData = snap.data();
+    handleUserDataChange();
+  }, () => {
+    // Read was denied or failed — treat as signed out of the app view.
+    showView("pending");
+  });
+});
+
+function cleanupListeners() {
+  [unsubUserDoc, unsubUsers, unsubCategories, unsubSites].forEach((fn) => fn && fn());
+  unsubUserDoc = unsubUsers = unsubCategories = unsubSites = null;
+}
+
+function handleUserDataChange() {
+  const status = currentUserData.status;
+  const role = currentUserData.role;
+
+  if (status === "rejected") {
+    showView("rejected");
+    return;
+  }
+  if (status !== "approved") {
+    showView("pending");
+    return;
+  }
+
+  showView("app");
+  roleBadge.textContent = role.toUpperCase();
+  btnOwnerPanel.classList.toggle("hidden", role !== "owner");
+  btnAdminPanel.classList.toggle("hidden", role !== "admin" && role !== "owner");
+  if (role !== "owner") panelOwner.classList.add("hidden");
+  if (role !== "admin" && role !== "owner") panelAdmin.classList.add("hidden");
+
+  if (!unsubCategories) subscribeCategories();
+  if (!unsubSites) subscribeSites();
+  if (role === "owner" && !unsubUsers) subscribeAllUsers();
+}
+
+// ---------- Firestore subscriptions ----------
+function subscribeCategories() {
+  const q = query(collection(db, "categories"), orderBy("createdAt", "asc"));
+  unsubCategories = onSnapshot(q, (snap) => {
+    categories = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    renderSidebar();
+    renderSiteGrid();
+    renderCategoryManagers();
+    populateCategorySelects();
+  });
+}
+
+function subscribeSites() {
+  const q = query(collection(db, "sites"), orderBy("createdAt", "asc"));
+  unsubSites = onSnapshot(q, (snap) => {
+    sites = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    renderSidebar();
+    renderSiteGrid();
+    renderSiteManagers();
+  });
+}
+
+function subscribeAllUsers() {
+  unsubUsers = onSnapshot(collection(db, "users"), (snap) => {
+    allUsers = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    renderRequests();
+    renderCrew();
+  });
+}
+
+// ---------- Sidebar + site grid ----------
+function renderSidebar() {
+  categoryListEl.innerHTML = "";
+
+  const allItem = document.createElement("div");
+  allItem.className = "orbit-item" + (selectedCategoryId === null ? " active" : "");
+  allItem.innerHTML = `<span>All sites</span><span class="orbit-count">${sites.length}</span>`;
+  allItem.addEventListener("click", () => { selectedCategoryId = null; renderSidebar(); renderSiteGrid(); });
+  categoryListEl.appendChild(allItem);
+
+  categories.forEach((cat) => {
+    const count = sites.filter((s) => s.categoryId === cat.id).length;
+    const item = document.createElement("div");
+    item.className = "orbit-item" + (selectedCategoryId === cat.id ? " active" : "");
+    item.innerHTML = `<span>${escapeHtml(cat.name)}</span><span class="orbit-count">${count}</span>`;
+    item.addEventListener("click", () => { selectedCategoryId = cat.id; renderSidebar(); renderSiteGrid(); });
+    categoryListEl.appendChild(item);
+  });
+}
+
+function renderSiteGrid() {
+  const visibleSites = selectedCategoryId === null
+    ? sites
+    : sites.filter((s) => s.categoryId === selectedCategoryId);
+
+  const activeCategory = categories.find((c) => c.id === selectedCategoryId);
+  contentTitleEl.textContent = activeCategory ? activeCategory.name : "All sites";
+
+  siteGridEl.innerHTML = "";
+  emptyStateEl.classList.toggle("hidden", visibleSites.length !== 0);
+
+  visibleSites.forEach((site) => {
+    const card = document.createElement("a");
+    card.href = site.url;
+    card.target = "_blank";
+    card.rel = "noopener noreferrer";
+    card.className = "site-card";
+    card.innerHTML = `
+      <div class="site-card-top">
+        <span class="site-card-name">${escapeHtml(site.name)}</span>
+        <span class="signal-bars"><span></span><span></span><span></span></span>
+      </div>
+      <span class="site-card-url">${escapeHtml(site.url)}</span>
+    `;
+    siteGridEl.appendChild(card);
+  });
+}
+
+function populateCategorySelects() {
+  [el("new-site-category-owner"), el("new-site-category-admin")].forEach((select) => {
+    if (!select) return;
+    const current = select.value;
+    select.innerHTML = categories.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
+    if (categories.some((c) => c.id === current)) select.value = current;
+  });
+}
+
+// ---------- Panels open / close / tabs ----------
+document.querySelectorAll("[data-close-panel]").forEach((elm) => {
+  elm.addEventListener("click", () => {
+    panelOwner.classList.add("hidden");
+    panelAdmin.classList.add("hidden");
+  });
+});
+
+btnOwnerPanel.addEventListener("click", () => panelOwner.classList.remove("hidden"));
+btnAdminPanel.addEventListener("click", () => panelAdmin.classList.remove("hidden"));
+
+document.querySelectorAll(".panel-tabs").forEach((tabgroup) => {
+  const scope = tabgroup.dataset.tabgroup; // "owner" | "admin"
+  tabgroup.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      tabgroup.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b === btn));
+      const sheet = tabgroup.closest(".panel-sheet");
+      sheet.querySelectorAll(`[data-${scope}-tab-panel]`).forEach((panel) => {
+        panel.classList.toggle("hidden", panel.dataset[`${scope}TabPanel`] !== btn.dataset.tab);
+      });
+    });
+  });
+});
+
+// ---------- Owner: access requests ----------
+function renderRequests() {
+  const list = el("requests-list");
+  const pending = allUsers.filter((u) => u.status === "pending");
+  if (pending.length === 0) {
+    list.innerHTML = `<div class="empty-note">No pending requests right now.</div>`;
+    return;
+  }
+  list.innerHTML = "";
+  pending.forEach((u) => {
+    const row = document.createElement("div");
+    row.className = "row-item";
+    row.innerHTML = `
+      <div class="row-main">
+        <div class="row-title">${escapeHtml(u.email)}</div>
+        <span class="status-tag status-pending">Pending</span>
+      </div>
+      <div class="row-actions">
+        <button class="btn btn-success btn-sm" data-approve="${u.id}">Approve</button>
+        <button class="btn btn-danger btn-sm" data-deny="${u.id}">Deny</button>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll("[data-approve]").forEach((btn) => {
+    btn.addEventListener("click", () => updateDoc(doc(db, "users", btn.dataset.approve), { status: "approved" }));
+  });
+  list.querySelectorAll("[data-deny]").forEach((btn) => {
+    btn.addEventListener("click", () => updateDoc(doc(db, "users", btn.dataset.deny), { status: "rejected" }));
+  });
+}
+
+// ---------- Owner: crew ----------
+function renderCrew() {
+  const list = el("crew-list");
+  const crew = allUsers.filter((u) => u.status === "approved");
+  if (crew.length === 0) {
+    list.innerHTML = `<div class="empty-note">No approved crew yet.</div>`;
+    return;
+  }
+  list.innerHTML = "";
+  crew.forEach((u) => {
+    const isSelf = u.id === currentUid;
+    const row = document.createElement("div");
+    row.className = "row-item";
+    let actions = "";
+    if (u.role === "owner") {
+      actions = "";
+    } else if (u.role === "admin") {
+      actions = `<button class="btn btn-secondary btn-sm" data-demote="${u.id}">Revoke admin</button>
+                 <button class="btn btn-danger btn-sm" data-revoke="${u.id}">Revoke access</button>`;
+    } else {
+      actions = `<button class="btn btn-secondary btn-sm" data-promote="${u.id}">Promote to admin</button>
+                 <button class="btn btn-danger btn-sm" data-revoke="${u.id}">Revoke access</button>`;
+    }
+    row.innerHTML = `
+      <div class="row-main">
+        <div class="row-title">${escapeHtml(u.email)}${isSelf ? " (you)" : ""}</div>
+        <span class="status-tag status-${u.role}">${u.role}</span>
+      </div>
+      <div class="row-actions">${actions}</div>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll("[data-promote]").forEach((btn) => {
+    btn.addEventListener("click", () => updateDoc(doc(db, "users", btn.dataset.promote), { role: "admin" }));
+  });
+  list.querySelectorAll("[data-demote]").forEach((btn) => {
+    btn.addEventListener("click", () => updateDoc(doc(db, "users", btn.dataset.demote), { role: "member" }));
+  });
+  list.querySelectorAll("[data-revoke]").forEach((btn) => {
+    btn.addEventListener("click", () => updateDoc(doc(db, "users", btn.dataset.revoke), { status: "rejected", role: "member" }));
+  });
+}
+
+// ---------- Categories: add + manage (shared by owner & admin) ----------
+[["form-add-category-owner", "new-category-name-owner"], ["form-add-category-admin", "new-category-name-admin"]]
+  .forEach(([formId, inputId]) => {
+    const form = el(formId);
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const input = el(inputId);
+      const name = input.value.trim();
+      if (!name) return;
+      await addDoc(collection(db, "categories"), { name, createdAt: serverTimestamp() });
+      input.value = "";
+    });
+  });
+
+function renderCategoryManagers() {
+  [el("owner-category-list"), el("admin-category-list")].forEach((list) => {
+    if (!list) return;
+    if (categories.length === 0) {
+      list.innerHTML = `<div class="empty-note">No categories yet. Add one above.</div>`;
+      return;
+    }
+    list.innerHTML = "";
+    categories.forEach((cat) => {
+      const count = sites.filter((s) => s.categoryId === cat.id).length;
+      const row = document.createElement("div");
+      row.className = "row-item";
+      row.innerHTML = `
+        <div class="row-main">
+          <div class="row-title">${escapeHtml(cat.name)}</div>
+          <div class="row-sub">${count} site${count === 1 ? "" : "s"}</div>
+        </div>
+        <div class="row-actions">
+          <button class="btn btn-danger btn-sm" data-del-cat="${cat.id}">Remove</button>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+    list.querySelectorAll("[data-del-cat]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const catId = btn.dataset.delCat;
+        const affected = sites.filter((s) => s.categoryId === catId);
+        if (affected.length > 0 && !confirm(`This category has ${affected.length} site(s). Remove the category and its sites?`)) return;
+        await Promise.all(affected.map((s) => deleteDoc(doc(db, "sites", s.id))));
+        await deleteDoc(doc(db, "categories", catId));
+      });
+    });
+  });
+}
+
+// ---------- Sites: add + manage (shared by owner & admin) ----------
+[
+  ["form-add-site-owner", "new-site-category-owner", "new-site-name-owner", "new-site-url-owner"],
+  ["form-add-site-admin", "new-site-category-admin", "new-site-name-admin", "new-site-url-admin"]
+].forEach(([formId, catId, nameId, urlId]) => {
+  const form = el(formId);
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (categories.length === 0) {
+      alert("Add a category first.");
+      return;
+    }
+    const categoryId = el(catId).value;
+    const name = el(nameId).value.trim();
+    let url = el(urlId).value.trim();
+    if (!name || !url) return;
+    if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+    await addDoc(collection(db, "sites"), { categoryId, name, url, createdAt: serverTimestamp() });
+    el(nameId).value = "";
+    el(urlId).value = "";
+  });
+});
+
+function renderSiteManagers() {
+  [el("owner-site-list"), el("admin-site-list")].forEach((list) => {
+    if (!list) return;
+    if (sites.length === 0) {
+      list.innerHTML = `<div class="empty-note">No sites yet. Add one above.</div>`;
+      return;
+    }
+    list.innerHTML = "";
+    sites.forEach((site) => {
+      const cat = categories.find((c) => c.id === site.categoryId);
+      const row = document.createElement("div");
+      row.className = "row-item";
+      row.innerHTML = `
+        <div class="row-main">
+          <div class="row-title">${escapeHtml(site.name)}</div>
+          <div class="row-sub">${escapeHtml(cat ? cat.name : "Uncategorized")} · ${escapeHtml(site.url)}</div>
+        </div>
+        <div class="row-actions">
+          <button class="btn btn-danger btn-sm" data-del-site="${site.id}">Remove</button>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+    list.querySelectorAll("[data-del-site]").forEach((btn) => {
+      btn.addEventListener("click", () => deleteDoc(doc(db, "sites", btn.dataset.delSite)));
+    });
+  });
+}
+
+// ---------- Utility ----------
+function escapeHtml(str) {
+  return String(str ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+  </script>
+</body>
+</html>
